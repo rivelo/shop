@@ -1,0 +1,34 @@
+###########################################
+#ID - Load nakladna
+###########################################
+
+0. catalog_id
+1. catalog_name
+2. count
+3. price
+4. curreny (2 - USD; 4 - EUR; 3	- UAH)
+5. id_nakladna
+6. catalog_price_recomended
+7. catalog_price_curreny (3	- UAH)
+8. catalog_manufacture
+9. catalog_type_id
+10. catalog_color
+11. catalog_country
+
+
+###########################################
+#catalog - Load catalog stuff
+###########################################
+
+0. catalog_id
+1. catalog_name
+2. catalog_manufacture
+3. catalog_type
+4. catalog_color
+5. catalog_country
+6
+7
+8
+9
+10. Price
+11. Currency
