@@ -1,0 +1,158 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Замовленні велосипеди</title>
+
+ <link rel="stylesheet" type="text/css" href="/media/table.css">
+<!-- -->
+ 
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<link rel="stylesheet" href="/media/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="/media/css/dataTables.jqueryui.css">
+ 
+<script type="text/javascript" src="/media/jquery-ui.min.js"></script>
+<script type="text/javascript" language="javascript" src="/media/jquery.dataTables.min.js"></script>
+<script type="text/javascript" language="javascript" src="/media/dataTables.jqueryui.js"></script>
+
+<style>
+  .d_false{
+  	clear: both;
+	//background: #94FF70 !important;
+	background: #94FF70 !important;
+  }
+  .d_true{
+  	clear: both;
+	// background: #FFFF99 !important;
+	background: #FFFFFF !important;
+  }
+  
+  span:visited{ text-decoration:none; color:#293d6b; }
+  span:hover{ text-decoration:underline; color:#293d6b; }
+  span {color:#293d6b; cursor: pointer; }
+  
+</style>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+    // DataTable
+    var table = $('#bTable').DataTable({
+        "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+        "iDisplayLength": 100,        
+        "columnDefs": [
+            {
+                "targets": [ 1 ],
+                "visible": true,
+                "searchable": false
+            },
+            {
+                "targets": [ 2 ],
+                "visible": true
+            },
+            {
+                "targets": [ 8 ],
+                "visible": false
+            },
+            {
+                "targets": [ 9 ],
+                "visible": false
+            },
+            
+            
+        ],
+    });
+
+
+$("body").on('click', 'span.ref_done', function() {
+	var obj_click = $(this); 
+	$.ajax({
+		type: "POST",
+        url: "/bicycle/order/done/",
+        data: { border_id: $(this).attr('id_order') },
+        dataType: "text",
+        success:function(msg){
+            // $(this).html(item['done']);
+                 obj_click.html(msg);
+                 if (msg == 'True') {
+                 obj_click.parent().parent().attr('class', 'd_true');
+                 }
+                 else {
+                 obj_click.parent().parent().attr('class', 'd_false');
+                 }
+                //console.log("PREV = ",  obj_click.parent().parent().attr('class', 'd_true'));
+                 
+        },
+        error:function(){
+        	alert("При відправці виникли помилки");
+        	$(this).html("При відправці виникли помилки")
+        }
+    });      
+}); 
+    
+    
+});
+</script>
+
+<h1>Список замовлених велосипедів ({{bicycles.count}}) <a href="/bicycle/order/add/">(Додати замовлення)</a></h1>
+
+<table id="bTable" class="display compact" cellspacing="0" width="100%">
+<thead>
+	<tr>
+		<th>#</th>
+		<th>ID</th>
+		<th>Назва моделі</th>
+		<th>Клієнт</th>
+		<th>Тип</th>
+{#		<th>Бренд</th> #}
+		<th>Рік</th>
+		<th>Колір</th>
+		<th>Розмір</th>
+		<th>Фото</th>
+		<th>Вага</th>
+		<th>Ціна</th>
+		<th>Завдаток</th>
+		<th>Валюта</th>
+		<th>Дата</th>
+		<th>Статус</th>
+		<!--    	<th>Опис</th> -->
+		<th>Edit</th>
+		<th>Дія</th>
+	</tr>
+</thead>
+<tbody>
+	{% for type in order %}
+	{% if type.done %}
+	<tr class="d_true">
+	{% else %}
+	<tr class="d_false">
+	{% endif %}
+	
+		<td>{{forloop.counter}}</td>
+		<td><a href="/bicycle-store/add/{{type.model__id}}">{{type.id}}</a></td>
+		<td><a href="/bicycle/photo/{{type.model__id}}">Велосипед {{type.model__brand__name}}. Модель {{type.model__model}}</a></td>
+		<td><a href="/client/result/search/?id={{type.client__id}}">{{type.client__name}}</a></td>
+		<td>{{type.model__type__type}}</td>
+{#		<td>{{type.model__brand__name}}</td> #}
+		<td>{{type.model__year|date:"Y"}}</td>
+		<td>{{type.model__color}}</td>
+		<td>{{type.size}}</td>
+		<td><!-- 	<img src="/media/{{type.photo}}" alt="" title=""/>  -->
+		{{type.model.photo}}</td>
+		<td>{{type.model.weight}}</td>
+		<td>{{type.price}}</td>
+		<td>{{type.prepay}}</td>
+		<td>{{type.currency__name}}</td>
+		<td>{{type.date}}</td>
+		<td><span class="ref_done" id_order="{{type.id}}">{{type.done}}</span></td>
+ 
+		<td><a href="/bicycle/order/edit/{{ type.id }}">edit</a></td>
+
+		<td><a href="/bicycle/order/{{ type.id }}/delete">delete</a></td>
+	</tr>
+	{% endfor %}
+</tbody>
+<tfoot> 
+</tfoot>
+</table>
+
+{% load poll_extras %}
+{% orm_debug %}

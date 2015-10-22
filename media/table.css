@@ -1,0 +1,135 @@
+table#price {
+	border: 0; /* Рамка вокруг таблицы */
+}
+
+TABLE { /*width: 100%; */ /* Ширина таблицы */
+	/*border: 4px double black; /* Рамка вокруг таблицы */
+	border: 0; /* Рамка вокруг таблицы */
+	/*border: 0px solid black; /* Рамка вокруг таблицы */
+	border-collapse: collapse; /* Отображать только одинарные линии */
+}
+
+TH {
+	text-align: center; /* Выравнивание по левому краю */
+	background: #ccc; /* Цвет фона ячеек */
+	padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+}
+
+TD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+	font-size: 10pt;
+}
+
+a:hover {text-decoration: none}
+.jQtooltip {color: #963}
+
+.jQtooltip {
+	position: relative;
+	cursor: help;
+  border-bottom: 1px dotted;
+}
+.jQtooltip.mini {
+	display: inline-block;
+	vertical-align: bottom;
+  font-size: 11px;
+	width: 14px;
+  line-height: 13px;
+  text-align: center;
+  margin-left: 2px;
+	top: -2px;
+	color: #9A4D18;
+  border: 1px solid #FAD28F;
+	background: #FFF6BD;
+	-moz-border-radius: 2px;
+	border-radius: 2px;
+}
+.jQtooltip div {
+	display: none;
+	position: absolute;
+	bottom: -1px;
+	left: -1px;
+	z-index: 1000;
+	width: 190px;
+	padding: 8px 12px;
+  text-align: left;
+  font-size: 12px;
+  line-height: 16px;
+	color: #000;
+	-webkit-box-shadow: 0 1px 3px #C4C4C4;
+	-moz-box-shadow: 0 1px 3px #C4C4C4;
+	box-shadow: 0 1px 3px #C4C4C4;
+  border: 1px solid #DBB779;
+	background: #FFF6BD;
+	-moz-border-radius: 2px;
+	border-radius: 2px;
+}
+
+.tr_true {
+background-color: #fff;
+}
+
+.tr_false {
+background-color: #fbf4aa;
+/* font-weight: bold; */
+}
+
+
+table#balance {
+	border: 2px solid black; /* Рамка вокруг таблицы */
+	border-collapse: collapse; /* Отображать только одинарные линии */
+}
+
+table#balance TH {
+	text-align: center; /* Выравнивание по левому краю */
+	background: #ccc; /* Цвет фона ячеек */
+	padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+}
+
+table#balance TD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+	font-size: 14pt;
+}
+
+
+table#product {
+	border: 2px solid black; /* Рамка вокруг таблицы */
+	border-collapse: collapse; /* Отображать только одинарные линии */
+	width: 100%;
+	font-size : 12px;
+	font-family : Arial;
+}
+
+table#product TH {
+	text-align: center; /* Выравнивание по левому краю */
+	background: #ccc; /* Цвет фона ячеек */
+	padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+}
+
+table#product TD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+	font-size: 10pt;
+/*	width: 30pt; */
+}
+
+.invoiceTABLE { /*width: 100%; */ /* Ширина таблицы */
+	/*border: 4px double black; /* Рамка вокруг таблицы */
+	border: 2px solid black; /* Рамка вокруг таблицы */
+	border-collapse: collapse; /* Отображать только одинарные линии */
+}
+
+.invoieceTABLE TH {
+	text-align: center; /* Выравнивание по левому краю */
+	background: #ccc; /* Цвет фона ячеек */
+	padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+}
+
+.invoiceTD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+	font-size: 10pt;
+}
+
+

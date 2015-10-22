@@ -1,0 +1,195 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Майстерня/Заявки</title>
+
+<style>
+	a.select {
+		color: #FFFFFF;
+		background-color:#006600;
+	}
+	a.non {
+		color: #0000FF;
+		background-color:#FFFFFF;
+	}
+{% comment %}   	// виконано {% endcomment %}
+	tr.w_done_done {
+		background-color: white;
+	}
+{% comment %}   	// виконано не видано {% endcomment %}
+	tr.w_done {
+		background-color: #ССFF89;
+	}
+	
+{% comment %}   	// не виконано {% endcomment %}
+	tr.w_false {
+		background-color: red;
+	}
+{% comment %}   	// в роботі {% endcomment %}
+	tr.w_working {
+		background-color: #FFFF99;
+	}
+{% comment %}   	// прийнято {% endcomment %}
+	tr.w_true {
+		background-color: #CCFF99;
+	}
+</style>
+
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<script src="/media/jquery-ui.min.js"></script>
+<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+
+<script>
+$(document).ready(function() {
+
+	$(document).tooltip({
+		content: function () {
+        return $(this).prop('title');
+        }
+    });
+
+$('.editable').editable('/workticket/edit/', { 
+     loadurl : '/workstatus/view/',
+     type   : 'select',
+     submit : 'OK',
+     submitdata : function() {
+      	 	return {id_w : $(this).attr('id_workticket')};
+     },
+     callback : function(value, settings) {
+       switch(value) {
+		case 'Прийнято':
+         $(this).closest("tr").attr('class', 'w_true');
+         break;
+		case 'Ремонтується':
+         $(this).closest("tr").attr('class', 'w_working');
+		 break;
+		case 'Виконано':
+         $(this).closest("tr").attr('class', 'w_done_done');
+		 break;
+		case 'Виконано невидано':
+         $(this).closest("tr").attr('class', 'w_done');
+		 break;
+		default :
+         $(this).closest("tr").attr('class', 'w_true');
+       }
+     }
+ });
+ 
+$(".w_desc").each(function() {
+	$(".w_desc").editable('/workticket/edit/', {
+		id : 'desc_w',
+         submitdata : function() {
+      	 	return {desc_w : $(this).attr('id_workticket')};
+    	 },         
+         type      : 'textarea',
+         cancel    : 'Cancel',
+         submit    : 'OK',
+         indicator : 'Saving',
+         tooltip   : 'dbClick to edit...',
+         style : "inherit",
+         height: 100,
+		 event : "dblclick",         
+     });
+});
+ 
+ 
+});
+
+</script>
+
+<br>
+<h2>
+    За рік: 
+    <a href="/workticket/year/2012/month/1/view">2012,</a>
+	<a href="/workticket/year/2013/month/12/view">2013,</a>
+	<a href="/workticket/year/2014/month/1/view">2014,</a>
+	<a href="/workticket/year/2015/month/1/view">2015,</a>
+<br>
+	За місяць: 
+	{% for i in "123456789012" %}
+	{% ifequal forloop.counter sel_month %}
+    <a href="/workticket/year/{{sel_year}}/month/{{forloop.counter}}/view" class="select">{{forloop.counter}}</a>,
+    {% else %}
+    <a href="/workticket/year/{{sel_year}}/month/{{forloop.counter}}/view" class="non">{{forloop.counter}}</a>,
+    {% endifequal %}
+	{% endfor %}
+	
+	<a href="/workticket/all/view" class="non">Всі</a>,
+	<a href="/workticket/status/1/view/" class="non">Прийняті</a>,
+	<a href="/workticket/status/4/view/" class="non">Невидані</a>
+</h2>    
+
+
+        <link rel="stylesheet" type="text/css" href="/media/table.css">
+
+	<h1>Замовлення на ремонт</h1>
+    	
+    <table border="1">
+    <tr>
+    	<th>ID</th>
+    	<th>Клієнт</th>
+    	<th>Дата створення</th>
+    	<th>Дата завершення</th>
+    	<th>Статус</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    </tr>
+      
+{% for type in workticket %}
+{% ifequal type.status.id 1 %}
+<tr class="w_true">
+{% endifequal %}
+{% ifequal type.status.id 2 %}
+<tr class="w_working">
+{% endifequal %}
+{% ifequal type.status.id 3 %}
+<tr class="w_done_done">
+{% endifequal %}
+{% ifequal type.status.id 4 %}
+<tr class="w_done">
+{% endifequal %}
+{% ifequal type.status.id 5 %}
+<tr class="w_false">
+{% endifequal %}
+
+	<td>       
+	<a href="/workticket/edit/{{ type.id }}" title="Edit"> {{type.id}}</a>
+	</td>
+	<td>       
+<!--	<a href="/workshop/done/client/{{ type.client.id }}/"> -->  
+	<a href="/client/result/search/?id={{ type.client.id }}">
+	{{type.client}}
+	</a>
+	</td>
+	<td title={{type.user.username}}>       
+	{{type.date|date}}
+	</td>
+	<td>       
+	{{type.end_date|date}}
+	</td>	
+	<td>
+
+	<span class="editable" id="{{type.status.id}}" style="display: inline" id_workticket="{{type.id}}" >       
+	{{type.status}}
+	</span>
+	
+	</td>
+	<td class="w_desc" id_workticket="{{type.id}}">       
+	{{type.description}}
+	</td>
+	<td>
+    <a href="/workticket/delete/{{ type.id }}">delete</a>
+    </td>
+</tr>
+{% endfor %}       
+      
+   
+	</table>
+
+
+<br><br>
+<a href="/workticket/add/">Створити нову заявку на ремонт</a>
+<br>
+
+
+
+

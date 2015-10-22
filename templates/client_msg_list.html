@@ -1,0 +1,39 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Повідомлення для клієнтів</title>
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<h1>Повідомлення для клієнтів</h1>
+
+<table>
+	<tr>
+		<th>#</th>
+		<th>Клієнт</th>
+		<th>Повідомлення</th>
+		<th>Статус</th>
+		<th>Дата створення</th>
+		<th>Користувач</th>
+		<th>Дата повідомлення</th>
+		<th>Користувач який повідомив</th>
+		<th>Дія</th>
+	</tr>
+	{% for element in msg_list %}
+	<tr>
+		<td>{{ forloop.counter }}</td>
+		<td>	<a href="/client/result/search/?id={{element.client.id}}">
+	{{ element.client }}       
+	</a>
+		</td>
+		<td>{{ element.msg }}</td>
+		<td>{{ element.status|yesno:'Доставлено,В черзі' }}</td>
+		<td>{{ element.date|date:"D d M Y" }}</td>
+		<td>{{ element.user }}</td>
+		<td>{{ element.ddate }}</td>
+		<td>{{ element.duser }}</td>
+		<td><a href="/clientmessage/{{element.id}}/delete/" onclick="return confirm('Видалити запис?')">Delete</a></td>
+	</tr>
+	{% endfor %}
+	<table>
+
+	<br>

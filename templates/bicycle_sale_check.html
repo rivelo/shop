@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<style type="text/css">
+   #checktable {
+    width:100%; 
+    padding: 0px;
+    border-collapse: collapse;
+    CELLSPACING:0;
+    CELLPADDING:0;
+    border: 2px solid white; 
+   }
+   #tdchecklogo {
+   text-align:right;
+   border: 2px solid white;
+   valign:top;
+   }
+</style>
+
+<table id="checktable">
+<tr>
+<td style="text-align:center; border: 2px solid white;" colspan="2">
+<h1>Товарний чек №{{bicycle.id}}</h1>
+<h2>від {{month}} року</h2>
+</td>
+</tr>
+
+<tr>
+<td style="text-align:left;" valign="bottom">
+<p>Продавець: ПП. Панчук Ігор Олексійович (ІПН 3084020932)</p>
+<p> Покупець: <a href="/client/{{bicycle.client.id}}">{{bicycle.client.name}}</a></p>
+</td>
+<td id="tdchecklogo" ALIGN="right">
+<a href="/"><img src="/media/images/site_logo_small.gif" alt="" title="" ></a>
+</td>
+</tr>
+</table>
+
+{% load template_math %}   
+
+<table border="1" width="100%">
+	<tr>
+		<th>№</th>
+		<th>Назва товару</th>
+		<th>Од.</th>
+		<th>Кількість</th>
+		<th>Ціна (грн.)</th>
+		<th>Сума (грн.)</th>
+	</tr>
+
+	<tr>
+		<td align="center">1</td>
+		<td><a href="/bicycle/photo/{{bicycle.model.model.id}}">{{bicycle.model}}</a></td>
+		<td align="center">шт.</td>
+		<td align="center">1</td>
+		<td align="center">{{bicycle.price}}</td>
+		<td align="center">{{bicycle.price|percentage:bicycle.sale}}</td>
+		
+	
+	</tr>
+
+	<tr>
+		<th></th>
+		<th>ВСЬОГО:</th>
+		<th></th>
+		<th></th>
+		<th></th>
+		<th>{{bicycle.price|percentage:bicycle.sale}}</th>
+	</tr>
+
+</table>
+
+<p>
+Всього на суму: {{str_number}} гривень 00 копійок
+</p>
+<p>
+<br>
+Підпис ___________________   Панчук Ігор Олексійович
+
+</p>
+
+{% if print %}
+<a href="/bicycle/sale/{{bicycle.id}}/check/print">Версія для друку</a> 
+<a href="/bicycle/sale/{{bicycle.id}}/check/email">Відправити на Email</a>
+{% endif %}
+

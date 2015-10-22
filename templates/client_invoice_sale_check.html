@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Чек на виконані роботи</title>
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<style type="text/css">
+   #checktable {
+    width:100%; 
+    padding: 0px;
+    border-collapse: collapse;
+    CELLSPACING:0;
+    CELLPADDING:0;
+    border: 2px solid white; 
+   }
+   #tdchecklogo {
+   text-align:right;
+   border: 2px solid white;
+   valign:top;
+   }
+</style>
+
+{% load template_math %} 
+
+<table id="checktable">
+<tr>
+<td style="text-align:center; border: 2px solid white;" colspan="2">
+
+{% if is_workshop %}
+<h1>Акт виконаних робіт №000{{check_invoice.id}}</h1>
+{% else %}
+<h1>Товарний чек №000{{check_invoice.id}}</h1>
+{% endif %}
+
+<h2>від {{month}} року</h2>
+</td>
+</tr>
+
+<tr>
+<td style="text-align:left;" valign="bottom">
+<p>Продавець: ПП. Панчук Ігор Олексійович (ІПН 3084020932)</p>
+<p> Покупець: <a href="/client/{{client.id}}">{{client.name}}</a></p>
+</td>
+<td id="tdchecklogo" ALIGN="right">
+<a href="/"><img src="/media/images/site_logo_small.gif" alt="" title="" ></a>
+</td>
+</tr>
+</table>
+
+
+{% if is_workshop %}
+<table border="1" width="100%">
+	<tr>
+		<th>№</th>
+		<th>Роботи</th>
+		<th>Ціна (грн.)</th>
+		<th>Сума (грн.)</th>
+	</tr>
+{% for item in check_invoice %}
+	<tr>
+		<td>{{forloop.counter}}</td>
+		<td><a href="/worktype/view/group/{{item.work_type.work_group.id}}">{{item.work_type.name}}</a></td>
+		<td>{{item.price}}</td>
+		<td>{{item.price}}</td>
+	</tr>
+{% endfor %}
+	<tr>
+		<th></th>
+		<th>ВСЬОГО:</th>
+		<th></th>
+		<th>{{sum}} грн.</th>
+	</tr>
+
+</table>
+
+{% else %}
+<table border="1" width="100%">
+	<tr>
+		<th>№</th>
+		<th>Назва товару</th>
+		<th>Од.</th>
+		<th>Кількість</th>
+		<th>Ціна (грн.)</th>
+		<th>Знижка %</th>
+		<th>Сума (грн.)</th>
+	</tr>
+{% for invoice in check_invoice %}
+	<tr>
+		<td>{{forloop.counter}}</td>
+		<td><a href="/invoice/catalog/{{invoice.catalog.id}}/view/">{{invoice.catalog}}</a></td>
+		<td>шт.</td>
+		<td>{{invoice.count}}</td>
+		<td>{{invoice.price}}</td>
+		<td>{{invoice.sale}}</td>
+		<td>{{invoice.sum}}</td>
+	</tr>
+{% endfor %}
+	<tr>
+		<th></th>
+		<th>ВСЬОГО:</th>
+		<th></th>
+		<th></th>
+		<th></th>
+		<th></th>
+		<th>{{sum}}</th>
+	</tr>
+
+</table>
+{% endif %}
+<p>
+Всього на суму: {{str_number}} гривень {{ sum|dotPart:"2"|floatformat }} копійок
+</p>
+<p>
+<br>
+Підпис ___________________   Панчук Ігор Олексійович
+
+</p>
+
+{% if is_workshop %}
+
+{% if print %}
+<a href="/client/workshop/check/">Версія для друку</a>
+<a href="/client/workshop/check/email/">Відправити на Email</a>
+{% endif %}
+
+{% else %}
+
+{% if print %}
+<a href="/client/invoice/check/">Версія для друку</a>
+<a href="/client/invoice/check/email/">Відправити на Email</a>
+{% endif %}
+
+{% endif %}

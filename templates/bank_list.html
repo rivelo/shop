@@ -1,0 +1,30 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Банки</title>
+
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+
+<h1>Список Банків <a href="/bank/add/">(Додати)</a></h1>
+
+<table>
+	<tr>
+		<th>#</th>
+		<th>Назва</th>
+		<th>Дія</th>
+	</tr>
+	{% for element in banks %}
+	<tr>
+		<td>{{ forloop.counter }}</td>
+		<td><a href="/bank/edit/{{ element.id }}">{{ element }}</a></td>
+		<td>
+{% if user.is_authenticated %}		
+		<a href="/bank/delete/{{ element.id }}" onclick="return confirm('Видалити запис - {{element.name}}?')">delete</a>
+		</td>		
+{% endif %}
+	</tr>
+	{% endfor %}
+	<table>
+
+	<br>

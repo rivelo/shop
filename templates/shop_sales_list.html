@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+
+    <h1>Денна виручка від продажу товарів <a href="/shop/sale/day/add/">(Додати)</a>
+    <br></h1>
+    <h2>
+    За місяць: 
+    <a href="/shop/sale/view/month/1">01,</a>
+	<a href="/shop/sale/view/month/2">02,</a>
+	<a href="/shop/sale/view/month/3">03,</a>
+	<a href="/shop/sale/view/month/4">04,</a>
+	<a href="/shop/sale/view/month/5">05,</a>
+	<a href="/shop/sale/view/month/6">06,</a>
+	<a href="/shop/sale/view/month/7">07,</a>
+	<a href="/shop/sale/view/month/8">08,</a>
+	<a href="/shop/sale/view/month/9">09,</a>
+	<a href="/shop/sale/view/month/10">10,</a>
+	<a href="/shop/sale/view/month/11">11,</a>
+	<a href="/shop/sale/view/month/12">12,</a>
+	</h2>
+	
+	
+    <table border="1">
+    <tr>
+    	<th>ID</th>
+    	<th>Дата</th>
+    	<th>Сума (грн.)</th>
+    	<th>Опис</th>
+    	<th>Готівка</th>
+    	<th>Термінал</th>
+    	<th>Видано з каси</th>
+    	<th>Дія</th>
+    </tr>
+ 
+{% for type in shopsales %}
+<tr>
+	<td>
+	 	<a href="/shop/year/{{type.date|date:"Y"}}/month/{{type.date|date:"m"}}/day/{{type.date|date:"d"}}/view/">{{type.id}}</a>
+	</td>
+	<td>       
+	<abbr title="[{{type.date|time:"H:i"}}]"> {{type.date|date}} </abbr>
+	</td>
+	<td>       
+	{{type.price}}
+	</td>
+	<td>       
+	{{type.description}}
+	</td>
+	<td>       
+	{{type.cash}}
+	</td>
+	<td>       
+	{{type.tcash}}
+	</td>
+	<td>       
+	{{type.ocash}}
+	</td>
+	
+	<td>
+	<a href="/shop/sale/day/edit/{{ type.id }}">edit</a>
+    <a href="/shop/sale/day/{{ type.id }}/delete/" onclick="return confirm('Видалити виручку?')">delete</a>
+    </td>
+</tr>
+{% endfor %}   
+
+<tr>
+    	<th></th>
+    	<th>Сума</th>
+    	<th>{{summ}} грн.</th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+</tr> 
+
+</table>
+
+

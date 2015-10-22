@@ -1,0 +1,60 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+    <h1>Список здійснених проплат <a href="/dealer/payment/add/">(Додати)</a> </h1>
+
+    <table border="1">
+	<tr>
+    	<th>ID</th>
+    	<th>Номер накладної</th>
+    	<th>Номери накладних</th>
+    	<th>Дата</th>
+    	<th>Банк</th>
+    	<th>Сума</th>
+    	<th>Валюта</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    </tr>    
+
+{% for type in dealer_payment %}
+<tr>
+	<td>       
+	{{type.id}}
+	</td>
+	<td>       
+	{{type.dealer_invoice}}
+	</td>	
+	<td>       
+	{{type.invoice_number}}
+	</td>
+	<td>       
+	{{type.date|date}}
+	</td>
+	<td>       
+	{{type.bank}}
+	</td>
+	<td>       
+	{{type.price}}
+	</td>
+	<td>       
+	{{type.currency}}
+	</td>
+	<td>       
+	{{type.description}}
+	</td>
+	<td>
+    <a href="/dealer/payment/delete/{{ type.id }}">delete</a>
+    </td>
+</tr>
+{% endfor %}       
+    
+    
+    <table>
+
+<br><br>
+<a href="/">HOME</a>
+<br>
+<a href="/dealer/payment/add/">Створити нову проплату</a>      
+<br>
+<a href="/dealer/invoice/year/2012/notpaid/">Список неоплачених рахунків від постачальників</a>

@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Додати товар до накладної</title>
+
+<style type="text/css">
+  div.box {//border-radius: 5px;
+  		   background-color: #bfbfbf;
+  		   font-size:200%;
+  		   margin: 80px 0px 0px;
+  }  		
+</style>
+
+{% comment %}
+<br>
+{% for company in company_list %}
+<a href="/invoice/manufacture/{{company.id}}/add/">{{company.name}}</a>
+{% endfor %}
+<br>
+{% endcomment %}
+
+    <h1>Додати товар до накладної</h1>
+<div style="float: left;">      
+    <form action="." method="POST">
+    	<p><input type="submit" value="Save"></p>
+        <table>
+            {{ form.as_ul }}
+        </table>
+        <p><input type="submit" value="Save"></p>
+    </form>
+</div>
+
+<div class="box" style="float: left;">
+<p style="font-style: normal;">Ціна товару:</p>
+    {{price_ua}} грн.
+</div>    
+
+    
+    
+    <br><br>
+
+
+
+
+

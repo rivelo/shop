@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Фотографії товарів</title>
+
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script src="/media/jquery-ui.min.js"></script>	
+
+
+{% load poll_extras %}
+
+<style>
+span.dropt {border-bottom: thin dotted; background: #ffeedd;}
+span.dropt:hover {text-decoration: none; background: #ffffff; z-index: 6; }
+span.dropt span {position: absolute; left: -9999px;
+  margin: 20px 0 0 0px; padding: 3px 3px 3px 3px;
+  border-style:solid; border-color:black; border-width:1px; z-index: 6;}
+span.dropt:hover span {left: 2%; background: #ffffff;} 
+span.dropt span {position: absolute; left: -9999px;
+  margin: 4px 0 0 0px; padding: 3px 3px 3px 3px; 
+  border-style:solid; border-color:black; border-width:1px;}
+span.dropt:hover span {margin: 20px 0 0 170px; background: #ffffff; z-index:6;} 
+</style>
+
+<script language="JavaScript">
+$(document).ready(function() {
+	$("#dialog_msg").hide();
+
+	$( "#img_msg" ).click(function() {
+  		$( "#dialog_msg" ).dialog({
+  		resizable: false,
+      	modal: true,
+  		width: 380,
+      	buttons: {
+        "Додати": function() {
+        	if (!$("#msg_text").length) { 
+        	$( this ).append('<textarea type="text" id="msg_text" name="mytext[]" rows="10" cols="40"> </textarea>');
+        	$( this ).append('<input type="button" class="ok_button" name="mytext[]" width="350" value="Відправити">');
+        	}
+        	//$( this ).dialog( "close" );
+        },
+        "Відмінити": function() {
+        	$( this ).dialog( "close" );	
+        },
+        
+        }  		
+  		});
+	});
+	
+	
+});
+    
+</script>
+
+<body onload="document.getElementById('pay').focus()">
+
+<div id="dialog_msg" title="Повідомлення">
+{% for msg in messages %}
+<p><b>Message: </b> <br> {{msg.msg}} </p>
+{% endfor %}  
+</div>	
+
+
+	<table border=1 width="100%" style="font-size : 12px; font-family : Arial;">
+	<tr bgcolor="grey">
+	<th>#</th>
+	<th>Дата</th>
+	<th>Товар</th>
+	<th>Фото</th>
+	<th>Користувач</th>
+	</tr>
+	
+	{% for photo in list %}
+	<tr>
+	<td>
+	{{forloop.counter}}
+	</td>
+	<td>
+	{{photo.date}}
+	</td>
+	<td>
+	[{{photo.catalog__ids}}] - {{photo.catalog__name}}
+	</td>
+	<td>
+	<span class="dropt" title="Title for the pop-up">{{photo.url}}
+	    <span><img width="300px" src="{{photo.url}}"/><br/>
+	  	</span>
+	</span>
+
+	</td>
+	<td>
+	{{photo.user__username}}
+	</td>
+	</tr>
+	{% endfor %}          
+    </table>    
+</form>
+	
+	
+
+
+
+
+

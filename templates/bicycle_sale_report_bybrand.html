@@ -1,0 +1,32 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<h1>Звіт по проданих велосипедах по моделі</h1>
+
+	<table border=1>
+	<tr>
+	<th>#</th>
+	<th>Модель</th>
+	<th>Кількість</th>
+	<th></th>
+	
+{% for item in bicycles %}
+{% ifequal item.bcount 0 %}
+{%else%}
+	<tr>
+	<td>
+	{{forloop.counter}}
+	</td>
+	<td>
+	{{item.model}} розмір {{item.model.size}}
+	</td>
+	<td>
+	{{item.bcount}}
+	</td>
+	<td>
+	</td>
+{% endifequal %}
+	{% endfor %}
+	</tr>
+	
+	</table>
+	

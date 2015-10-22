@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+    <h1>Список виробників <a href="/manufacturer/add/">(Додати)</a></h1>
+    <h2>{{ request.path }}</h2>
+
+    <table>
+	<tr>
+    	<th>ID</th>
+    	<th>Назва компанії</th>
+    	<th>Адреса</th>
+    	<th>Логотип</th>
+    	<th>Країна</th>
+    	<th>Дія</th>
+    </tr>
+    
+{% for type in manufactures %}
+<tr>
+	<td>       
+	<a href="/manufacturer/edit/{{ type.id }}">{{type.id}}</a>
+	</td>
+	<td>
+	<a href="/catalog/manufacture/{{ type.id }}/view/" title="Список продукції даного виробника" >
+	{{type.name}}
+	</a>
+	
+	</td>
+	<td>       
+	<a href="{{type.www}}" title="Перейти на домашню сторінку виробника">{{type.www}}</a>
+	</td>
+	<td>       
+	{{type.logo}}
+	</td>
+	<td>       
+	{{type.country}}
+	</td>	
+	<td>
+    <a href="/manufacturer/delete/{{ type.id }}">delete</a>
+    </td>
+</tr>
+{% endfor %}       
+    
+
+    <table>
+
+<br><br>
+<a href="/manufacturer/add/">Додати нову компанію</a>
+<br>
+<a href="/">HOME</a> 
+
+

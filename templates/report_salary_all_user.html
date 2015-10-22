@@ -1,0 +1,201 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link type="text/css" rel="stylesheet" href="/media/paginator.css">
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<script language="JavaScript">
+$(document).ready(function() {
+
+c4 = 0;
+c5 = 0;
+c7 = 0;
+c8 = 0;
+c9 = 0;
+$('.client_4').each(function() { 
+	c4 += parseFloat($(this).attr('val')); 
+})
+$('.client_5').each(function() { 
+	c5 += parseFloat($(this).attr('val')); 
+})
+$('.client_7').each(function() { 
+	c7 += parseFloat($(this).attr('val')); 
+})
+$('.client_8').each(function() { 
+	c8 += parseFloat($(this).attr('val')); 
+})
+$('.client_9').each(function() { 
+	c9 += parseFloat($(this).attr('val')); 
+})
+
+$('#client_4').html(c4.toFixed(2).toString() + ' грн.');
+$('#client_5').html(c5.toFixed(2).toString() + ' грн.');
+$('#client_7').html(c7.toFixed(2) + ' грн.');
+$('#client_8').html(c8.toFixed(2) + ' грн.');
+$('#client_9').html(c9.toFixed(2) + ' грн.');
+
+});    
+</script>
+
+{% load poll_extras %}
+
+<body onLoad="">
+
+<br>
+<h2>
+    За місяць: 
+    <a href="/report/salary/all_user/year/{{sel_year}}/month/1">01,</a>
+	<a href="/report/salary/all_user/year/{{sel_year}}/month/2">02,</a>
+	<a href="/report/salary/all_user/year/{{sel_year}}/month/3">03,</a>
+	<a href="/report/salary/all_user/year/{{sel_year}}/month/4">04,</a>
+	<a href="/report/salary/all_user/year/{{sel_year}}/month/5">05,</a>
+	<a href="/report/salary/all_user/year/{{sel_year}}/month/6">06,</a>
+	<a href="/report/salary/all_user/year/{{sel_year}}/month/7">07,</a>
+	<a href="/report/salary/all_user/year/{{sel_year}}/month/8">08,</a>
+	<a href="/report/salary/all_user/year/{{sel_year}}/month/9">09,</a>
+	<a href="/report/salary/all_user/year/{{sel_year}}/month/10">10,</a>
+	<a href="/report/salary/all_user/year/{{sel_year}}/month/11">11,</a>
+	<a href="/report/salary/all_user/year/{{sel_year}}/month/12">12</a>
+</h2>    
+
+
+    <h1>Звіт по майстерні за {{sel_month}} місяць {{sel_year}} року</h1>
+
+<table border="1">
+    <tr>
+    	<th>user_Id</th>
+    	<th>Користувач</th>
+    	<th>Сума</th>
+    	<th>Зарплата</th>
+    </tr>
+ 
+{% for element in workshop %}
+<tr class='client_{{element.user}}' val='{{element.total_price|mul:0.4}}'>	
+	<td>
+	{{element.user}}       
+	</td>
+	<td>       
+	{{element.user__username}}
+	</td>
+	<td>       
+	{{element.total_price}}
+	</td>
+	<td>
+	{{element.total_price|mul:0.4}}
+	</td>
+{% endfor %}
+
+<tr>
+    	<th></th>
+    	<th></th>
+    	<th>Сума</th>
+    	<th>{{w_sum}}</th>
+</tr> 
+
+</table>
+
+    <h1>Звіт по магазину за {{sel_month}} місяць {{sel_year}} року</h1>
+
+<table border="1">
+    <tr>
+    	<th>user_Id</th>
+    	<th>Користувач</th>
+    	<th>Сума</th>
+    	<th>Зарплата</th>
+    </tr>
+ 
+{% for element in cinvoice %}
+<tr class='client_{{element.user}}' val='{{element.total_price|mul:0.05}}'>	
+	<td>
+	{{element.user}}       
+	</td>
+	<td>       
+	{{element.user__username}}
+	</td>
+	<td>       
+	{{element.total_price}}
+	</td>
+	<td>
+	{{element.total_price|mul:0.05}}
+	</td>
+{% endfor %}
+
+<tr>
+    	<th></th>
+    	<th></th>
+    	<th>Сума</th>
+    	<th>{{c_sum}}</th>
+</tr> 
+
+</table>
+
+    <h1>Звіт по велосипедах за {{sel_month}} місяць {{sel_year}} року</h1>
+
+<table border="1">
+    <tr>
+    	<th>user_Id</th>
+    	<th>Користувач</th>
+    	<th>Сума</th>
+    	<th>Зарплата</th>
+    </tr>
+ 
+{% for element in bicycle_list %}
+<tr class='client_{{element.user}}' val='{{element.total_price|mul:0.05}}'>	
+	<td>
+	{{element.user}}       
+	</td>
+	<td>       
+	{{element.user__username}}
+	</td>
+	<td>       
+	{{element.total_price}}
+	</td>
+	<td>
+	{{element.total_price|mul:0.05}}
+	</td>
+{% endfor %}
+
+<tr>
+    	<th></th>
+    	<th></th>
+    	<th>Сума</th>
+    	<th>{{bike_sum}}</th>
+</tr> 
+</table>
+
+<h1>Зарплата за {{sel_month}} місяць {{sel_year}} року</h1>
+<table border="1">
+
+    <tr>
+    	<th>user_Id</th>
+    	<th>Користувач</th>
+    	<th>Зарплата</th>
+    </tr>
+    <tr>
+    	<td>4</td>
+    	<td>ygrik</td>
+    	<td id='client_4'> </td>
+    </tr>
+    <tr>
+    	<td>5</td>
+    	<td>uch</td>
+    	<td id='client_5'> </td>
+    </tr>
+    <tr>
+    	<td>7</td>
+    	<td>vadymyr</td>
+    	<td id='client_7'> </td>
+    </tr>
+    <tr>
+    	<td>8</td>
+    	<td>ma</td>
+    	<td id='client_8'> </td>
+    </tr>
+    <tr>
+    	<td>9</td>
+    	<td>liza</td>
+    	<td id='client_9'> </td>
+    </tr>
+    
+</table>
+    

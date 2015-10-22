@@ -1,0 +1,63 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title> Редагування клієнта </title>
+<script type="text/javascript" src="/media/jquery-1.3.1.min.js"></script>
+<script src="/media/jquery.textchange.min.js"></script>
+
+
+<script>
+function chk_client(){
+    $.ajax({
+	    type: "GET",
+        url: "/client/search/result/",
+        data: { name:  $('#id_name').val()},
+        dataType: "json",
+        success:function(msg){
+    	    //alert("Все отлично ушло на сервер - " + msg);
+            $('.test_client').empty();
+            $('#id_name').after('  <span class="test_client" style="padding-left:10px; color:red;"><a href="javascript:void(0)" id="chk_link" onclick="chk_client()">Check name</a></span>');            
+            $('#chk_link').after('<span id="result"> - </span>');
+            for (var i = 0, length = msg.length; i < length; i++) {
+			    if (i in msg) {
+        			$('#result').after(' <a href="/client/result/search/?id='+msg[i].id+'">'+ msg[i].name + ' ('+ msg[i].forumname +')</a>; ');	
+    			}
+			}
+            
+            
+        },
+            error:function(){
+            alert("При отправке возникли проблемы");
+        }
+    });
+}      
+
+
+$(document).ready(function(){
+$('#id_name').attr('class', 'classOfTextField');
+
+$('#id_name').bind('hastext', function () {
+	$('.test_client').empty();
+	$('#id_name').after('  <span class="test_client" style="padding-left:10px; color:red;"><a href="javascript:void(0)" id="chk_link" onclick="chk_client()">Check name</a></span>');
+
+});
+	
+
+$('#id_name').bind('notext', function () {
+	$('.test_client').empty();
+	$('#id_name').after('  <span class="test_client" style="padding-left:10px; color:red;">Empty</span>');
+});
+
+});
+</script>
+
+
+
+<body onload="document.getElementById('id_name').focus()">
+    <h1>Створення/Редагування Клієнта (Add Client)</h1>
+    <form action="" method="POST" enctype="multipart/form-data">
+        <table>
+            {{ form.as_table }}
+        </table>
+        <p><input type="submit" value="Зберегти"></p>
+    </form>
+
+</body>

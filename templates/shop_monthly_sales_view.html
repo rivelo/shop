@@ -1,0 +1,45 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<h1>Оборот коштів за місяць {{date_month}} року</h1>
+
+{# range(12)#}
+
+<b>Рік:</b>
+<a href="/shop/sale/year/2011/month/1/view">2011</a>, 
+<a href="/shop/sale/year/2012/month/1/view">2012</a>,
+<a href="/shop/sale/year/2013/month/1/view">2013</a>
+<a href="/shop/sale/year/2014/month/1/view">2014</a>
+<br>
+
+<b>Місяць:</b>
+{% for month in l_month %}
+<a href="/shop/sale/year/{{sel_year}}/month/{{month}}/view">{{month}}</a>, 
+{% endfor %}
+
+
+	<table border=1>
+	<tr>
+	<th>Дата</th>
+	<th>Оплати</th>
+	<th>Заборгованісті</th>
+	</tr>
+{% for cred in Ccred %}
+	<tr>
+	<td>
+	<a href="/shop/year/{{cred.year}}/month/{{cred.month}}/day/{{cred.day}}/view/"> {{cred.year}}/{{cred.month}}/{{cred.day}} </a>
+	</td>
+	<td>
+	{{cred.suma}}
+	</td>
+	<td>
+	{{cred.deb}}
+	</td>
+{% endfor %}
+	</tr>
+	<tr>
+	<th>Сума</th>
+	<th>{{sum_cred}}</th>
+	<th>{{sum_deb}}</th>
+	</tr>
+	</table>
+	

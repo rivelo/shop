@@ -1,0 +1,172 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Велосипеди - Магазин</title> 
+
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<script type="text/javascript" src="/media/jquery-ui.min.js"></script>
+
+<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+
+<style>
+  .ui-autocomplete-loading {
+    background: white url('/media/images/ui-anim_basic_16x16.gif') right center no-repeat;
+  }
+
+//  #client { width: 30em; }
+</style>
+
+<script type="text/javascript">
+//$(function() {
+function float2int (value) {
+    return value | 0;
+}
+
+$(document).ready(function() {
+
+var glob_sale = 0;
+glob_b_sale = $('#id_sale').val();
+glob_c_sale = 0;
+
+    $('#id_model').bind('change', function(){
+
+		$.getJSON("/bicycle/price/", {store_id: $("select#id_model").val()}, function(data) {
+			//alert(data);
+    		$('#id_price').val(data[0].model__price);
+    		glob_b_sale = data[0].model__sale;
+    		if ( glob_b_sale >= glob_c_sale) {
+    			$('#id_sale').val(data[0].model__sale);
+    		}
+    		else {
+    			$('#id_sale').val(glob_c_sale);
+    		}
+		var res = $('#id_price').val() * (1 - $('#id_sale').val()/100);
+    	$('#result').html("Сума " + res + " грн.");    
+    	$('#id_sum').val(res);
+    	$('#s_number').html("(" + data[0].serial_number + ")");	
+		});
+	});
+
+	$('#id_sale').change(function(){
+		var res = $('#id_price').val() * (1 - this.value /100);
+		$('#result').html("Сума " + res + " грн.");
+		$('#id_sum').val(res);
+	})
+
+
+    $( "#client" ).autocomplete({
+      source: function( request, response ) {
+        $.ajax({
+          type: "GET",
+          url: "/client/lookup/",
+          dataType: "json",
+          data: {
+            query: $("#client").val()
+          },
+          success: function( data ) {
+            response( $.map( data, function( item ) {
+              return {
+                label: item.fields.name + ": [" + item.fields.forumname + "] ",
+                value: item.fields.name,
+                sale: item.fields.sale,
+                pk_id: item.pk                       
+              }
+            }));
+          }
+        });
+      },
+      minLength: 3,
+      select: function( event, ui ) {
+      	var sel = ui.item.pk_id;
+      	$("#id_client [value = '"+sel+"']").attr("selected", "selected");
+      	if (ui.item.sale >= 5) {
+	      	//glob_c_sale = ui.item.sale;
+	      	glob_c_sale = 5;
+      	}
+      	else{
+      		glob_c_sale = 0;
+      	}
+      	//if ((ui.item.sale >= 5) && (ui.item.sale > $('#id_sale').val())) {
+      	if ((ui.item.sale >= 5) && (ui.item.sale > glob_b_sale)) {
+      		$('#id_sale').val(5);
+      		$('#id_sale').change();
+      	}
+      	else{
+      	//if ((ui.item.sale < 5) && (ui.item.sale < $('#id_sale').val())) {
+      		$('#id_sale').val(float2int(glob_b_sale));
+      		$('#id_sale').change();
+      	};
+      },
+      open: function() {
+        $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+      },
+      close: function() {
+        $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+      }
+    });
+    
+$('#id_sale').change();
+
+$('.click').editable('/bicycle-store/edit/', {
+     	 id   : 'id',
+         name : 'serial',
+         data : function(value, settings) {
+	     	var retval = value.replace(/^\(/, '');
+	     	retval = retval.replace(/\)$/, '');
+      	 	return retval;
+      	 },
+         submitdata : function() {
+      	 	return {id : $(this).attr('id_serial'),
+      	 			};
+    	 },
+         indicator : 'Saving...',
+         tooltip   : 'Click to edit...',
+         select : true,
+         style  : "inherit",
+         callback : function(value, settings) {
+         $(this).html("("+ value + ")");
+     	}
+     });
+    
+
+});
+
+</script>
+
+<body  onload="document.getElementById('client').focus()">
+
+<h1> {{text}}
+<font color="red" id="s_number">
+
+{% if user.is_authenticated %} 
+<b class="click" style="display: inline" id_serial="{{ bike_id }}" title="Doubleclick to edit...">({{serial_number}})</b> </font>
+{% else %}
+<b id_serial="{{ bike_id }}" title="Doubleclick to edit...">({{serial_number}})</b> </font>
+{% endif %}
+
+</h1>
+<form action="." method="POST" enctype="multipart/form-data">
+<div class="ui-widget">
+  <label for="client">Клієнт: </label>
+  <input id="client" style="width: 550px;"  />
+</div>
+
+<table>
+	{{ form.as_ul }}
+	<p><input type="submit" value="Save"></p>
+</table>
+
+<!--  
+<div class="ui-widget" style="margin-top: 2em; font-family: Arial;">
+  Result:
+  <div id="log" style="height: 200px; width: 300px; overflow: auto;" class="ui-widget-content"></div>
+</div>
+ -->
+ 
+    <h3 id="result" style="color:red; background-color:#CCCCCC"}>Сума грн.</h3>
+</form>
+
+<a href="/bicycle-store/view/">Список велосипедів у магазині</a>
+<br>
+<a href="/">HOME</a>
+
+</body>
+

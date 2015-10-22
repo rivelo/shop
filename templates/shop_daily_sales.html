@@ -1,0 +1,37 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Каса за день</title>
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<script src="/media/jquery-ui.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready( function() {
+	$("#id_cash").after("<b id='prev_day' val='{{lastcasa.price}}'>+ "+{{lastcasa.price}}+" грн. за минулий день {{lastcasa.date}} </b>");
+	var wprev_day = parseFloat($("#prev_day").attr("val")) + parseFloat($("#id_cash").attr("value"));
+	//$("#prev_day").after("<b style='color:red'>Сума = "+ wprev_day +"</b>");
+	$("#id_tcash").after("<b style='color:red'>Сума в касі = "+ wprev_day +" грн</b>");
+	
+	$("#id_price").after("<b style='color:red' id='day_sum'>Каса за день = "+ 0 +" грн.</b>");
+
+
+$("#id_price").change(function() {
+	console.log("work");
+	var casa_day = parseFloat($("#prev_day").attr("val")) + parseFloat($("#id_cash").attr("value")) - parseFloat($("#id_price").val());
+//	$("#id_price").after("<b style='color:red' id="day_sum">Каса за день = "+ casa_day +" грн.</b>");
+	$("#day_sum").html("Каса за день = "+ casa_day +" грн.")
+
+});
+
+})
+</script>
+
+    <h1>Денна каса за {% now "jS F Y" %} 
+<a href="/shop/year/{% now "Y" %}/month/{% now "m" %}/day/{% now "d" %}/view/">    
+[Детально] 
+</a>
+</h1>
+    <form action="" method="POST" enctype="multipart/form-data">
+        <table>
+            {{ form.as_table }}
+        </table>
+        <p><input type="submit" value="Save"></p>
+    </form>

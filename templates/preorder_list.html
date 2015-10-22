@@ -1,0 +1,115 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+    <h1>Попередні замовлення <a href="/preorder/add/">(Додати)</a> </h1>
+
+
+<br>
+
+    <table border="1">
+	<tr>
+    	<th>ID</th>
+    	<th>Дата</th>
+    	<th>Кінцева дата для проплати</th>
+    	<th>Дата поставки</th>
+    	<th>Компанія</th>
+    	<th>Менеджер</th>
+    	<th>Сума</th>
+    	<th>Сума передоплати</th>
+    	<th>Валюта</th>
+		<th>Файл</th>    
+		<th>Отримано</th>
+		<th>Оплата</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    </tr>    
+    
+{% for type in preorder1 %}
+{% if type.payment %}
+	{% if type.received %}
+	<tr>
+	{% else %}
+	<tr BGCOLOR="#B9B9B6">
+	{% endif %}
+{% else %}
+<tr BGCOLOR="#CCCC99">
+{% endif %}
+
+	<td>       
+    <a href="/preorder/edit/{{ type.id }}">{{type.id}}</a>
+	</td>
+	{% if type.received %}
+	<td>
+	{% else %}
+	<td BGCOLOR="#B9B9B6">
+	{% endif %}
+	{{type.date|date:"D d M Y"}}       
+	</td>
+	
+	<td>       
+	{{type.date_pay|date:"D d M Y"}}
+	</td>
+	<td>       
+	{{type.date_delivery|date:"D d M Y"}}
+	</td>
+	<td>       
+	{{type.company.name}}
+	</td>
+	<td>       
+	{{type.manager.name}}
+	</td>
+	<td>       
+	{{type.price}}
+	</td>
+	<td>       
+	{{type.price_pay}}
+	</td>
+	<td>       
+	{{type.currency}}
+	</td>
+	<td>       
+	{{type.file}}
+	</td>
+	<td>       
+	{{type.received|yesno:"Отримано,В дорозі,Не забрано"}}
+	</td>
+	<td>       
+	{{type.payment|yesno:"Оплачено,Не оплачено"}}
+	</td>
+ 	<td>
+	{{type.description}}
+	</td>
+	<td>
+    <a href="/preorder/delete/{{ type.id }}" onclick="return confirm('Видалити замовлення?')">delete</a>
+    </td>
+</tr>
+{% endfor %}             
+    
+    	<tr>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+		<th>Сума</th>
+		<th>{{summ}}</th>	
+		<th>Борг</th>
+		<th>{{summ_debt}}</th>
+    	<th></th>
+    	<th></th>
+    	<th></th>    	
+    </tr>    
+    
+    </table>
+
+<br>    
+
+
+
+
+<br><br>
+<br>
+<a href="/preorder/add/">Add</a>      

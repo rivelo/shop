@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Список робіт майстерні</title>
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+
+    <h1>Список робіт <a href="/worktype/add/">(Додати)</a></h1>
+	
+    <table border="1">
+    <tr>
+    	<th>#</th>
+    	<th>ID</th>
+    	<th>Назва</th>
+    	<th>Група</th>
+    	<th>Ціна (грн.)</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    	<th>Дія</th>
+    </tr>    
+
+{% for type in worktypes %}
+<tr>
+	<td>       
+	{{forloop.counter}}
+	</td>
+	<td>       
+	{{type.id}}
+	</td>
+	<td>       
+	{{type.name}}
+	</td>
+	<td>       
+	<a href="/worktype/view/group/{{ type.work_group.id }}">{{type.work_group}}</a>
+	</td>
+	<td>       
+	{{type.price}}
+	</td>	
+	<td>       
+	{{type.description}}
+	</td>
+	<td>
+	<a href="/workshop/add/{{type.id}}">+</a>
+	</td>
+	<td>
+	<a href="/worktype/edit/{{ type.id }}">edit</a>            
+    <a href="/worktype/delete/{{ type.id }}">delete</a>
+    </td>
+</tr>
+{% endfor %}       
+    
+    
+    </table>
+
+
+<br><br>
+<a href="/worktype/add/">Створити новий вид роботи</a>       
+
+
+
+

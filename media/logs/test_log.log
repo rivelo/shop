@@ -1,0 +1,3308 @@
+2012-11-15 18:20:06.203000 >>> DELETE FROM TABLE client invoice WHERE id = 47 
+Key = id - Value = 47
+Key = client - Value = 138
+Key = catalog - Value = 696
+Key = count - Value = 1
+Key = price - Value = 85.0
+Key = sum - Value = 85.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 85.0
+Key = date - Value = 2012-02-28
+Key = description - Value = 
+2012-11-15 18:33:24.890000 >>> DELETE FROM TABLE type WHERE id = 27 
+Key = id - Value = 27
+Key = name - Value = Down tube
+Key = description - Value = tube on a bicycle frame that runs from the head tube to the bottom bracket.
+Key = name_ukr - Value = None
+Key = description_ukr - Value = None
+2012-11-15 19:13:46.125000 >>> DELETE FROM TABLE country WHERE id = 34 
+Key = id - Value = 34
+Key = name - Value = testCountry
+2012-11-15 19:14:18.562000 >>> DELETE FROM TABLE country WHERE id = 35 
+Key = id - Value = 35
+Key = name - Value = testCountry2
+2012-11-15 19:29:01 >>> DELETE FROM TABLE country WHERE id = 36 
+Key = id - Value = 36
+Key = name - Value = countryTest1
+2012-11-15 19:30:04.546000 >>> DELETE FROM TABLE bank WHERE id = 7 
+Key = id - Value = 7
+Key = name - Value = testBank
+2012-11-15 19:31:54.937000 >>> DELETE FROM TABLE bank WHERE id = 8 
+Key = id - Value = 8
+Key = name - Value = westbank
+2012-11-15 19:33:29.015000 >>> DELETE FROM TABLE bank WHERE id = 9 
+Key = id - Value = 9
+Key = name - Value = reter
+2012-11-15 21:15:41.312000 >>> DELETE FROM TABLE bicycle_ type WHERE id = 11 
+Key = id - Value = 11
+Key = type - Value = newType
+Key = description - Value = new type of MTB
+2012-11-15 21:21:25.265000 >>> DELETE FROM TABLE bicycle_ type WHERE id = 12 
+Key = id - Value = 12
+Key = type - Value = newType
+Key = description - Value = new type of bicycle
+2012-11-15 21:23:51.796000 >>> DELETE FROM TABLE bicycle_ type WHERE id = 13 
+Key = id - Value = 13
+Key = type - Value = newType
+Key = description - Value = sfkfj
+2012-11-15 21:33:55.296000 >>> DELETE FROM TABLE manufacturer WHERE id = 34 
+Key = id - Value = 34
+Key = name - Value = Wellgo
+Key = www - Value = http://www.wellgo.com.tw/
+Key = logo - Value = upload/manufecturer/wellgo.jpg
+Key = country - Value = 7
+Key = description - Value = Компания Wellgo является крупнейшим производителем педалей в мире. Она производит как ОЕМ заказы для других брендов, так и свои собственные разработки. Применяемые передовые технологии литья в производстве педалей, делают компанию Wellgo лидером по выпуску магниевых и алюминиевых педалей. Можно также добавить, что Wellgo была пионером в продвижении педалей-автоматов на мировом рынке, и без сомнения, педали-автоматы Wellgo стали широко известны и создали хорошую репутацию своему производителю. Исследования и развитие, вот что было основой роста компании. Сегодня, являясь одной из лидирующих корпораций на рынке, Wellgo планирует в будущем разрабатывать и выпускать еще более совершенную и надежную продукцию.
+2012-11-15 21:50:12.234000 >>> DELETE FROM TABLE bicycle_ type WHERE id = 15 
+Key = id - Value = 15
+Key = type - Value = 454gf
+Key = description - Value = hj g jg
+2012-11-15 22:02:57.812000 >>> DELETE FROM TABLE bicycle_ type WHERE id = 14 
+Key = id - Value = 14
+Key = type - Value = newType
+Key = description - Value = gfd gfd gd
+2012-11-15 22:12:21.765000 >>> DELETE FROM TABLE frame size WHERE id = 34 
+Key = id - Value = 34
+Key = name - Value = 24" 59cm
+Key = cm - Value = 59.0
+Key = inch - Value = 24.0
+2012-11-15 22:12:34.468000 >>> DELETE FROM TABLE bicycle_ type WHERE id = 16 
+Key = id - Value = 16
+Key = type - Value = superType
+Key = description - Value = test super type
+2012-11-15 22:43:34.921000 >>> DELETE FROM TABLE bicycle WHERE id = 150 
+Key = id - Value = 150
+Key = model - Value = KUMA 4600
+Key = type - Value = 4
+Key = brand - Value = 46
+Key = year - Value = 2012-04-06
+Key = color - Value = Зелений
+Key = sizes - Value = 
+Key = photo - Value = upload/KUMA_4600_Shimano_Acera_22.jpg
+Key = weight - Value = 14.0
+Key = price - Value = 4620.0
+Key = currency - Value = 3
+Key = sale - Value = 0.0
+Key = description - Value = 
+2012-11-15 23:46:15.468000 >>> DELETE FROM TABLE country WHERE id = 26 
+Key = id - Value = 26
+Key = name - Value = Australia
+2012-11-15 23:46:21.656000 >>> DELETE FROM TABLE country WHERE id = 22 
+Key = id - Value = 22
+Key = name - Value = Belgium
+2012-11-15 23:46:27.406000 >>> DELETE FROM TABLE country WHERE id = 2 
+Key = id - Value = 2
+Key = name - Value = Canada
+2012-11-17 01:33:02.796000 >>> DELETE FROM TABLE bicycle_ store WHERE id = 99 
+Key = id - Value = 99
+Key = model - Value = 124
+Key = serial_number - Value = MM13318
+Key = size - Value = 22
+Key = price - Value = 708.0
+Key = currency - Value = 2
+Key = count - Value = 1
+Key = realization - Value = False
+Key = date - Value = 2012-02-22
+Key = description - Value = 
+2012-11-17 11:53:10.562000 >>> DELETE FROM TABLE client credits WHERE id = 607 
+Key = id - Value = 607
+Key = client - Value = 2
+Key = date - Value = 2012-07-16 17:04:45
+Key = price - Value = 89.05
+Key = description - Value = Swiss+Tech Micro-Plus EX 9-in-1 ; 
+2012-11-17 11:56:45.125000 >>> DELETE FROM TABLE client credits WHERE id = 656 
+Key = id - Value = 656
+Key = client - Value = 2
+Key = date - Value = 2012-07-20 00:00:00
+Key = price - Value = 322.15
+Key = description - Value = Закриття боргу 
+2012-11-17 11:57:19.671000 >>> DELETE FROM TABLE client credits WHERE id = 2177 
+Key = id - Value = 2177
+Key = client - Value = 2
+Key = date - Value = 2012-11-01 15:42:28
+Key = price - Value = 47.0
+Key = description - Value = Крюк д/крепежа вело ICE TOOLZ P655 с уголком ; 
+2012-11-17 11:57:51.265000 >>> DELETE FROM TABLE client credits WHERE id = 1384 
+Key = id - Value = 1384
+Key = client - Value = 2
+Key = date - Value = 2012-08-27 17:24:51
+Key = price - Value = 7.0
+Key = description - Value = Спица Sapim Laser 14G 291, с нип. Brass 14G 12 polyax (уп. 50 шт); 
+2012-11-17 11:58:43.890000 >>> DELETE FROM TABLE client credits WHERE id = 2146 
+Key = id - Value = 2146
+Key = client - Value = 2
+Key = date - Value = 2012-10-27 18:57:22
+Key = price - Value = 12.0
+Key = description - Value =     Велоаптечка VK (9 латок, клей, наждак) ; 
+2012-11-17 15:05:40.536337 >>> DELETE FROM TABLE client credits WHERE id = 656 
+Key = id - Value = 656
+Key = client - Value = 2
+Key = date - Value = 2012-07-20 00:00:00
+Key = price - Value = 322.15
+Key = description - Value = Закриття боргу 
+2012-11-17 15:10:57.130401 >>> DELETE FROM TABLE client credits WHERE id = 607 
+Key = id - Value = 607
+Key = client - Value = 2
+Key = date - Value = 2012-07-16 17:04:45
+Key = price - Value = 89.05
+Key = description - Value = Swiss+Tech Micro-Plus EX 9-in-1 ; 
+2012-11-17 15:11:32.289416 >>> DELETE FROM TABLE client credits WHERE id = 607 
+Key = id - Value = 607
+Key = client - Value = 2
+Key = date - Value = 2012-07-16 17:04:45
+Key = price - Value = 89.05
+Key = description - Value = Swiss+Tech Micro-Plus EX 9-in-1 ; 
+2012-11-17 15:12:43.094866 >>> DELETE FROM TABLE client credits WHERE id = 2257 
+Key = id - Value = 2257
+Key = client - Value = 2
+Key = date - Value = 2012-11-10 19:19:23
+Key = price - Value = 19.0
+Key = description - Value = Защита JAGWIRE на рубашки CHA054 3G - рубашки 4-5мм White (1 шт) ; 
+2012-11-17 15:25:33.292662 >>> DELETE FROM TABLE client credits WHERE id = 2177 
+Key = id - Value = 2177
+Key = client - Value = 2
+Key = date - Value = 2012-11-01 15:42:28
+Key = price - Value = 47.0
+Key = description - Value = Крюк д/крепежа вело ICE TOOLZ P655 с уголком ; 
+2012-11-17 15:30:53.023089 >>> DELETE FROM TABLE client credits WHERE id = 2146 
+Key = id - Value = 2146
+Key = client - Value = 2
+Key = date - Value = 2012-10-27 18:57:22
+Key = price - Value = 12.0
+Key = description - Value =     Велоаптечка VK (9 латок, клей, наждак) ; 
+2012-11-17 15:37:18.178509 >>> DELETE FROM TABLE client credits WHERE id = 2146 
+Key = id - Value = 2146
+Key = client - Value = 2
+Key = date - Value = 2012-10-27 18:57:22
+Key = price - Value = 12.0
+Key = description - Value =     Велоаптечка VK (9 латок, клей, наждак) ; 
+2012-11-17 15:40:50.385650 >>> DELETE FROM TABLE client credits WHERE id = 2146 
+Key = id - Value = 2146
+Key = client - Value = 2
+Key = date - Value = 2012-10-27 18:57:22
+Key = price - Value = 12.0
+Key = description - Value =     Велоаптечка VK (9 латок, клей, наждак) ; 
+2012-11-17 15:41:14.738293 >>> DELETE FROM TABLE client credits WHERE id = 1384 
+Key = id - Value = 1384
+Key = client - Value = 2
+Key = date - Value = 2012-08-27 17:24:51
+Key = price - Value = 7.0
+Key = description - Value = Спица Sapim Laser 14G 291, с нип. Brass 14G 12 polyax (уп. 50 шт); 
+2012-11-17 15:42:12.122377 >>> DELETE FROM TABLE client credits WHERE id = 2146 
+Key = id - Value = 2146
+Key = client - Value = 2
+Key = date - Value = 2012-10-27 18:57:22
+Key = price - Value = 12.0
+Key = description - Value =     Велоаптечка VK (9 латок, клей, наждак) ; 
+2012-11-17 15:42:45.004956 >>> DELETE FROM TABLE client credits WHERE id = 1384 
+Key = id - Value = 1384
+Key = client - Value = 2
+Key = date - Value = 2012-08-27 17:24:51
+Key = price - Value = 7.0
+Key = description - Value = Спица Sapim Laser 14G 291, с нип. Brass 14G 12 polyax (уп. 50 шт); 
+2012-11-17 16:24:00.273418 >>> DELETE FROM TABLE client debts WHERE id = 1518 
+Key = id - Value = 1518
+Key = client - Value = 2
+Key = date - Value = 2012-08-27 23:43:47
+Key = price - Value = 694.5
+Key = description - Value = Тормоз BR-M975 XTR PostMount, гидр диск передн, калипер; 
+2012-11-17 16:25:05.242278 >>> DELETE FROM TABLE client invoice WHERE id = 5065 
+Key = id - Value = 5065
+Key = client - Value = 2
+Key = catalog - Value = 4235
+Key = count - Value = 1
+Key = price - Value = 926.0
+Key = sum - Value = 694.5
+Key = currency - Value = 3
+Key = sale - Value = 25
+Key = pay - Value = 694.5
+Key = date - Value = 2012-08-27
+Key = description - Value = 
+2012-11-17 23:57:40.218000 >>> DELETE FROM TABLE client debts WHERE id = 659 
+Key = id - Value = 659
+Key = client - Value = 2
+Key = date - Value = 2012-07-16 17:04:45
+Key = price - Value = 89.05
+Key = description - Value = Swiss+Tech Micro-Plus EX 9-in-1 ; 
+2012-11-26 00:56:18.515000 >>> DELETE FROM TABLE client debts WHERE id = 2574 
+Key = id - Value = 2574
+Key = client - Value = 2
+Key = date - Value = 2012-11-26 00:55:34
+Key = price - Value = 50.0
+Key = description - Value = Роботи: Ремонт механічних гальм; Заміна півня; 
+2012-11-26 01:35:46.093000 >>> DELETE FROM TABLE client debts WHERE id = 2582 
+Key = id - Value = 2582
+Key = client - Value = 31
+Key = date - Value = 2012-11-26 01:30:17
+Key = price - Value = 20.0
+Key = description - Value = Роботи: Профілактика та підготовка велосипедів до сезону; 
+2012-11-26 01:35:52.406000 >>> DELETE FROM TABLE client debts WHERE id = 2587 
+Key = id - Value = 2587
+Key = client - Value = 31
+Key = date - Value = 2012-11-26 01:34:56
+Key = price - Value = 130.0
+Key = description - Value = Роботи: Складання колеса; Складання колеса; Перебирання задньої конусної втулки; 
+2012-11-26 11:06:57.578000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 215 
+Key = id - Value = 215
+Key = model - Value = 90
+Key = client - Value = 378
+Key = price - Value = 3904.0
+Key = currency - Value = 3
+Key = date - Value = 2012-11-26
+Key = service - Value = False
+Key = description - Value = 5% знижка
+2012-11-29 00:41:33.187000 >>> DELETE FROM TABLE client credits WHERE id = 2049 
+Key = id - Value = 2049
+Key = client - Value = 2
+Key = date - Value = 2012-10-17 20:47:18
+Key = price - Value = 13.6
+Key = description - Value = Спица Sapim Leader 14G 288, с нип. Brass 14G 12 polyax (уп. 100 шт); 
+2012-12-02 20:50:43.937000 >>> DELETE FROM TABLE client invoice WHERE id = 6692 
+Key = id - Value = 6692
+Key = client - Value = 2
+Key = catalog - Value = 1204
+Key = count - Value = 1
+Key = price - Value = 134.0
+Key = sum - Value = 134.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 0.0
+Key = date - Value = 2012-12-02 17:50:44
+Key = description - Value = 
+Key = user - Value = None
+2012-12-13 01:25:33.296000 >>> DELETE FROM TABLE rent WHERE id = 1 
+Key = id - Value = 1
+Key = catalog - Value = 448
+Key = client - Value = 2
+Key = date_start - Value = 2012-12-13 01:12:51
+Key = date_end - Value = 2012-12-15
+Key = count - Value = 1
+Key = deposit - Value = 100.0
+Key = status - Value = False
+Key = user - Value = 4
+Key = description - Value = 
+2012-12-17 11:37:30.609000 >>> DELETE FROM TABLE rent WHERE id = 1 
+Key = id - Value = 1
+Key = catalog - Value = 457
+Key = client - Value = 2
+Key = date_start - Value = 2012-12-17 11:33:20
+Key = date_end - Value = 2012-12-20
+Key = count - Value = 1
+Key = deposit - Value = 360.0
+Key = status - Value = True
+Key = user - Value = 4
+Key = description - Value = +200 grn
+2012-12-19 00:05:05.562000 >>> DELETE FROM TABLE client credits WHERE id = 394 
+Key = id - Value = 394
+Key = client - Value = 254
+Key = date - Value = 2012-05-22 00:00:00
+Key = price - Value = 153.0
+Key = description - Value =   
+Key = user - Value = None
+2012-12-19 20:39:00.750000 >>> DELETE FROM TABLE client debts WHERE id = 2976 
+Key = id - Value = 2976
+Key = client - Value = 31
+Key = date - Value = 2012-12-19 20:38:13
+Key = price - Value = 40.0
+Key = description - Value = Роботи: заміна касети; Заміна касети або фрівіла; Заміна передніх зірок (якщо передбачено конструкцією); "Заміна або встановлення ""рубашок"" і наконечників"; 
+Key = user - Value = 4
+2012-12-28 00:27:10.390000 >>> DELETE FROM TABLE client order WHERE id = 5 
+Key = id - Value = 5
+Key = client - Value = 2
+Key = catalog - Value = 2100
+Key = description - Value = 
+Key = count - Value = 1
+Key = price - Value = 45.0
+Key = sum - Value = 45.0
+Key = currency - Value = 3
+Key = pay - Value = 0.0
+Key = date - Value = 2012-12-27 22:39:22
+Key = user - Value = 4
+2012-12-28 00:27:14.031000 >>> DELETE FROM TABLE client order WHERE id = 6 
+Key = id - Value = 6
+Key = client - Value = 2
+Key = catalog - Value = 2100
+Key = description - Value = 
+Key = count - Value = 1
+Key = price - Value = 55.0
+Key = sum - Value = 55.0
+Key = currency - Value = 3
+Key = pay - Value = 0.0
+Key = date - Value = 2012-12-27 22:45:31
+Key = user - Value = 4
+2012-12-28 00:27:17.609000 >>> DELETE FROM TABLE client order WHERE id = 4 
+Key = id - Value = 4
+Key = client - Value = 2
+Key = catalog - Value = 2100
+Key = description - Value = test
+Key = count - Value = 1
+Key = price - Value = 74.0
+Key = sum - Value = 74.0
+Key = currency - Value = 3
+Key = pay - Value = 0.0
+Key = date - Value = 2012-12-27 22:38:53
+Key = user - Value = 4
+2012-12-28 23:53:34.812000 >>> DELETE FROM TABLE client order WHERE id = 1 
+Key = id - Value = 1
+Key = client - Value = 2
+Key = catalog - Value = 1890
+Key = description - Value = 
+Key = count - Value = 1
+Key = price - Value = 460.0
+Key = sum - Value = 460.0
+Key = currency - Value = 3
+Key = pay - Value = 151.0
+Key = date - Value = 2012-12-28 12:46:34
+Key = user - Value = 4
+Key = status - Value = False
+Key = credit - Value = 2692
+2012-12-28 23:54:21.562000 >>> DELETE FROM TABLE client order WHERE id = 1 
+Key = id - Value = 1
+Key = client - Value = 2
+Key = catalog - Value = 1890
+Key = description - Value = 
+Key = count - Value = 1
+Key = price - Value = 460.0
+Key = sum - Value = 460.0
+Key = currency - Value = 3
+Key = pay - Value = 151.0
+Key = date - Value = 2012-12-28 12:46:34
+Key = user - Value = 4
+Key = status - Value = False
+Key = credit - Value = 2692
+2012-12-28 23:54:21.687000 >>> DELETE FROM TABLE client credits WHERE id = 2692 
+Key = id - Value = 2692
+Key = client - Value = 2
+Key = date - Value = 2012-12-28 12:47:00
+Key = price - Value = 151.0
+Key = description - Value = Аванс - ротор SM-RT98 S, XTR, 160мм ()
+Key = user - Value = 4
+2013-01-11 16:34:52.296000 >>> DELETE FROM TABLE client credits WHERE id = 2764 
+Key = id - Value = 2764
+Key = client - Value = 31
+Key = date - Value = 2013-01-11 00:00:00
+Key = price - Value = 1000.0
+Key = description - Value = задаток за велосипед cannondale sl5 17 дюйм
+Key = user - Value = None
+2013-01-12 23:51:15.859000 >>> DELETE FROM TABLE work shop WHERE id = 730 
+Key = id - Value = 730
+Key = client - Value = 2
+Key = date - Value = 2013-01-12 23:49:20
+Key = work_type - Value = 658
+Key = price - Value = 5.0
+Key = pay - Value = False
+Key = user - Value = 3
+Key = description - Value = 
+2013-01-16 02:45:15.140000 >>> DELETE FROM TABLE dealer payment WHERE id = 81 
+Key = id - Value = 81
+Key = dealer_invoice - Value = 346
+Key = invoice_number - Value = 007
+Key = date - Value = 2013-01-16
+Key = bank - Value = 5
+Key = price - Value = 10.0
+Key = currency - Value = 4
+Key = letter - Value = False
+Key = description - Value = 
+2013-01-17 01:32:54.187000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 218 
+Key = id - Value = 218
+Key = model - Value = 275
+Key = client - Value = 2
+Key = price - Value = 7370.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+Key = debt - Value = None
+2013-01-17 01:33:05.484000 >>> DELETE FROM TABLE client debts WHERE id = 3110 
+Key = id - Value = 3110
+Key = client - Value = 2
+Key = date - Value = 2013-01-17 00:00:00
+Key = price - Value = 7370.0
+Key = description - Value = Велосипед Trek. Модель Trek 4500. 2013 (білий) [WTU246C7116G]
+Key = user - Value = None
+2013-01-17 01:36:32.703000 >>> DELETE FROM TABLE client debts WHERE id = 3111 
+Key = id - Value = 3111
+Key = client - Value = 2
+Key = date - Value = 2013-01-17 00:00:00
+Key = price - Value = 7370.0
+Key = description - Value = Велосипед Trek. Модель Trek 4500. 2013 (білий) [WTU246C7116G]
+Key = user - Value = None
+2013-01-17 01:36:48.093000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 219 
+Key = id - Value = 219
+Key = model - Value = 275
+Key = client - Value = 2
+Key = price - Value = 7370.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+Key = debt - Value = None
+2013-01-17 01:39:54.187000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 220 
+Key = id - Value = 220
+Key = model - Value = 275
+Key = client - Value = 2
+Key = price - Value = 7370.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+Key = debt - Value = 3112
+2013-01-17 01:42:47.796000 >>> DELETE FROM TABLE client debts WHERE id = 3112 
+Key = id - Value = 3112
+Key = client - Value = 2
+Key = date - Value = 2013-01-17 00:00:00
+Key = price - Value = 7370.0
+Key = description - Value = Велосипед Trek. Модель Trek 4500. 2013 (білий) [WTU246C7116G]
+Key = user - Value = None
+2013-01-17 01:45:58.390000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 221 
+Key = id - Value = 221
+Key = model - Value = 275
+Key = client - Value = 2
+Key = price - Value = 7370.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+Key = debt - Value = 3113
+2013-01-17 01:46:32.828000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 221 
+Key = id - Value = 221
+Key = model - Value = 275
+Key = client - Value = 2
+Key = price - Value = 7370.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+Key = debt - Value = 3113
+2013-01-17 01:47:45.062000 >>> DELETE FROM TABLE client debts WHERE id = 3114 
+Key = id - Value = 3114
+Key = client - Value = 2
+Key = date - Value = 2013-01-17 00:00:00
+Key = price - Value = 1843.0
+Key = description - Value = Велосипед Trek. Модель Jet 20. 2013 (Чорно-зелений) [wtu246c9158G]
+Key = user - Value = None
+2013-01-17 01:47:52.625000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 222 
+Key = id - Value = 222
+Key = model - Value = 276
+Key = client - Value = 2
+Key = price - Value = 1940.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+Key = debt - Value = None
+2013-01-17 01:49:49.125000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 222 
+Key = id - Value = 222
+Key = model - Value = 276
+Key = client - Value = 2
+Key = price - Value = 1940.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+Key = debt - Value = None
+2013-01-17 01:52:22.921000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 222 
+Key = id - Value = 222
+Key = model - Value = 276
+Key = client - Value = 2
+Key = price - Value = 1940.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+Key = debt - Value = None
+2013-01-17 01:53:23.265000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 222 
+Key = id - Value = 222
+Key = model - Value = 276
+Key = client - Value = 2
+Key = price - Value = 1940.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+Key = debt - Value = None
+2013-01-17 01:53:35.953000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 222 
+Key = id - Value = 222
+Key = model - Value = 276
+Key = client - Value = 2
+Key = price - Value = 1940.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+Key = debt - Value = None
+2013-01-17 01:54:04.890000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 222 
+Key = id - Value = 222
+Key = model - Value = 276
+Key = client - Value = 2
+Key = price - Value = 1940.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+Key = debt - Value = None
+2013-01-17 02:04:02.718000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 223 
+Key = id - Value = 223
+Key = model - Value = 266
+Key = client - Value = 2
+Key = price - Value = 10110.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+Key = debt - Value = 3115
+2013-01-17 02:05:37.406000 >>> DELETE FROM TABLE client debts WHERE id = 3116 
+Key = id - Value = 3116
+Key = client - Value = 2
+Key = date - Value = 2013-01-17 00:00:00
+Key = price - Value = 9604.5
+Key = description - Value = Велосипед Trek. Модель Cobia. 2013 (Black) [WTU236C5691G]
+Key = user - Value = None
+2013-01-17 02:05:46.718000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 224 
+Key = id - Value = 224
+Key = model - Value = 266
+Key = client - Value = 2
+Key = price - Value = 10110.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = тестове повідомлення
+Key = user - Value = 4
+Key = debt - Value = None
+2013-01-17 02:11:07.265000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 225 
+Key = id - Value = 225
+Key = model - Value = 266
+Key = client - Value = 2
+Key = price - Value = 10110.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = перевірка
+Key = user - Value = 4
+Key = debt - Value = 3117
+2013-01-17 02:26:59.375000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 226 
+Key = id - Value = 226
+Key = model - Value = 266
+Key = client - Value = 2
+Key = price - Value = 10110.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+Key = debt - Value = 3118
+2013-01-17 03:28:13 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 228 
+Key = id - Value = 228
+Key = model - Value = 266
+Key = client - Value = 2
+Key = price - Value = 10110.0
+Key = currency - Value = 3
+Key = sale - Value = 6
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+Key = debt - Value = None
+2013-01-17 03:29:32.062000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 227 
+Key = id - Value = 227
+Key = model - Value = 266
+Key = client - Value = 2
+Key = price - Value = 10110.0
+Key = currency - Value = 3
+Key = sale - Value = 10
+Key = date - Value = 2013-01-17
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+Key = debt - Value = 3119
+2013-01-17 04:34:57.093000 >>> DELETE FROM TABLE rent WHERE id = 1 
+Key = id - Value = 1
+Key = catalog - Value = 448
+Key = client - Value = 2
+Key = date_start - Value = 2013-01-17 04:27:52
+Key = date_end - Value = 2013-01-19
+Key = count - Value = 1
+Key = deposit - Value = 280.0
+Key = status - Value = False
+Key = user - Value = 4
+Key = description - Value = 
+2013-01-18 22:45:11.250000 >>> DELETE FROM TABLE client credits WHERE id = 2795 
+Key = id - Value = 2795
+Key = client - Value = 143
+Key = date - Value = 2013-01-18 14:23:29
+Key = price - Value = 0.0
+Key = description - Value = Аванс - 14434 Вилка EPICON-X1 RL-R lite +манетка блокировки,100мм, 26"/28,6/A-H, Disc, черн АКЦИЯ!
+
+Key = user - Value = 4
+2013-01-18 22:45:41.546000 >>> DELETE FROM TABLE client credits WHERE id = 2796 
+Key = id - Value = 2796
+Key = client - Value = 143
+Key = date - Value = 2013-01-18 14:23:59
+Key = price - Value = 2881.0
+Key = description - Value = Аванс - Вилка AXON-RLD, манетка  блокир.хода, 100мм 26"/28,6/A-H, воздух, под диск тормоз, черн ()
+Key = user - Value = 4
+2013-01-25 00:21:12.031000 >>> DELETE FROM TABLE client credits WHERE id = 2819 
+Key = id - Value = 2819
+Key = client - Value = 326
+Key = date - Value = 2013-01-24 16:51:26
+Key = price - Value = 100.0
+Key = description - Value = каретка BB-UN26 BSA 68x127.5мм, 1.37Х24, с болтами ; 
+Key = user - Value = None
+2013-01-25 00:22:13.500000 >>> DELETE FROM TABLE client debts WHERE id = 3162 
+Key = id - Value = 3162
+Key = client - Value = 326
+Key = date - Value = 2013-01-24 16:51:30
+Key = price - Value = 100.0
+Key = description - Value = каретка BB-UN26 BSA 68x127.5мм, 1.37Х24, с болтами ; 
+Key = user - Value = None
+2013-01-29 23:10:50.093000 >>> DELETE FROM TABLE client order WHERE id = 4 
+Key = id - Value = 4
+Key = client - Value = 2
+Key = catalog - Value = 900
+Key = description - Value = 
+Key = count - Value = 1
+Key = price - Value = 248.0
+Key = sum - Value = 248.0
+Key = currency - Value = 3
+Key = pay - Value = 14.0
+Key = date - Value = 2012-12-29 14:17:05
+Key = user - Value = 4
+Key = status - Value = True
+Key = credit - Value = 2706
+2013-01-29 23:10:50.265000 >>> DELETE FROM TABLE client credits WHERE id = 2706 
+Key = id - Value = 2706
+Key = client - Value = 2
+Key = date - Value = 2012-12-29 14:17:33
+Key = price - Value = 14.0
+Key = description - Value = Аванс - компоненты каретки шоссе шатунов Dura-Ace FC-7900, BSA (левый +правый подшипник) ()
+Key = user - Value = 4
+2013-02-02 00:24:43.421000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 217 
+Key = id - Value = 217
+Key = model - Value = 278
+Key = client - Value = 519
+Key = price - Value = 5450.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = date - Value = 2012-12-29
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = None
+Key = sum - Value = None
+Key = debt - Value = None
+2013-02-02 00:26:31.421000 >>> DELETE FROM TABLE client order WHERE id = 5 
+Key = id - Value = 5
+Key = client - Value = 519
+Key = catalog - Value = 3708
+Key = description - Value = 
+Key = count - Value = 1
+Key = price - Value = 205.0
+Key = sum - Value = 205.0
+Key = currency - Value = 3
+Key = pay - Value = 0.0
+Key = date - Value = 2012-12-29 15:18:55
+Key = user - Value = 4
+Key = status - Value = True
+Key = credit - Value = 2708
+2013-02-02 00:26:31.578000 >>> DELETE FROM TABLE client credits WHERE id = 2708 
+Key = id - Value = 2708
+Key = client - Value = 519
+Key = date - Value = 2012-12-29 15:19:53
+Key = price - Value = 0.0
+Key = description - Value = Аванс - Мигалка задняя Bontrager Ember Mini + Glo, черная()
+Key = user - Value = 4
+2013-03-05 23:48:34.562000 >>> DELETE FROM TABLE invoice component list WHERE id = 4709 
+Key = id - Value = 4709
+Key = invoice - Value = 449
+Key = catalog - Value = 46
+Key = count - Value = 100
+Key = price - Value = 0.34
+Key = currency - Value = 2
+Key = date - Value = 2013-03-05
+Key = description - Value = 
+2013-03-28 00:54:27.125000 >>> DELETE FROM TABLE client debts WHERE id = 3695 
+Key = id - Value = 3695
+Key = client - Value = 516
+Key = date - Value = 2013-03-28 00:54:05
+Key = price - Value = 378.0
+Key = description - Value = Седло SMP TRK Man, черный; 
+Key = user - Value = 4
+2013-03-28 01:06:10.109000 >>> DELETE FROM TABLE client debts WHERE id = 3515 
+Key = id - Value = 3515
+Key = client - Value = 397
+Key = date - Value = 2013-03-05 18:07:35
+Key = price - Value = 130.0
+Key = description - Value = Велокомпьютер Kellys KCC-13 black; 
+Key = user - Value = 5
+2013-04-03 00:53:03.890000 >>> DELETE FROM TABLE client order WHERE id = 24 
+Key = id - Value = 24
+Key = client - Value = 529
+Key = catalog - Value = 4299
+Key = description - Value = 
+Key = count - Value = 1
+Key = price - Value = 106.0
+Key = sum - Value = 106.0
+Key = currency - Value = 3
+Key = pay - Value = 0.0
+Key = date - Value = 2013-03-30 16:56:07
+Key = user - Value = 5
+Key = status - Value = False
+Key = credit - Value = 3262
+2013-04-03 00:53:04.109000 >>> DELETE FROM TABLE client credits WHERE id = 3262 
+Key = id - Value = 3262
+Key = client - Value = 529
+Key = date - Value = 2013-03-30 16:57:34
+Key = price - Value = 0.0
+Key = description - Value = Аванс - Покрышка 28" x 2.0" (52x622) RUBENA CITYHOPPER V99 Classic 22 серый()
+Key = user - Value = 5
+2013-05-16 22:43:01.921000 >>> DELETE FROM TABLE client debts WHERE id = 4704 
+Key = id - Value = 4704
+Key = client - Value = 87
+Key = date - Value = 2013-05-15 00:00:00
+Key = price - Value = 450.0
+Key = description - Value = Freerider 28 (крас/сер); 
+Key = user - Value = 5
+2013-05-16 22:43:30.031000 >>> DELETE FROM TABLE client credits WHERE id = 4160 
+Key = id - Value = 4160
+Key = client - Value = 87
+Key = date - Value = 2013-05-16 22:43:16
+Key = price - Value = 450.5
+Key = description - Value = Freerider 28 (крас/сер); 
+Key = user - Value = 4
+2013-05-30 11:56:20.812000 >>> DELETE FROM TABLE invoice component list WHERE id = 6169 
+Key = id - Value = 6169
+Key = invoice - Value = 507
+Key = catalog - Value = 4861
+Key = count - Value = 2
+Key = price - Value = 13.15
+Key = currency - Value = 2
+Key = date - Value = 2013-05-30
+Key = description - Value = 
+2013-05-31 01:50:05.265000 >>> DELETE FROM TABLE invoice component list WHERE id = 6148 
+Key = id - Value = 6148
+Key = invoice - Value = 236
+Key = catalog - Value = 4526
+Key = count - Value = 1
+Key = price - Value = 0.0
+Key = currency - Value = 2
+Key = date - Value = 2013-05-28
+Key = description - Value = 
+2013-06-06 15:39:23.703000 >>> DELETE FROM TABLE invoice component list WHERE id = 6299 
+Key = id - Value = 6299
+Key = invoice - Value = 513
+Key = catalog - Value = 5623
+Key = count - Value = 2
+Key = price - Value = 17.66
+Key = currency - Value = 3
+Key = date - Value = 2013-06-06
+Key = description - Value = 
+2013-06-28 03:25:14.890000 >>> DELETE FROM TABLE client debts WHERE id = 5739 
+Key = id - Value = 5739
+Key = client - Value = 132
+Key = date - Value = 2013-06-24 00:00:00
+Key = price - Value = 643.0
+Key = description - Value = туфлі m-33L 45р
+Key = user - Value = 4
+2013-06-28 11:51:43.937000 >>> DELETE FROM TABLE client debts WHERE id = 5761 
+Key = id - Value = 5761
+Key = client - Value = 12
+Key = date - Value = 2013-06-25 00:00:00
+Key = price - Value = 361.0
+Key = description - Value = втулка
+Key = user - Value = 4
+2013-07-21 00:39:15.453000 >>> DELETE FROM TABLE client order WHERE id = 49 
+Key = id - Value = 49
+Key = client - Value = 82
+Key = catalog - Value = None
+Key = description - Value = 
+Key = count - Value = 1
+Key = price - Value = 289.0
+Key = sum - Value = 289.0
+Key = currency - Value = 3
+Key = pay - Value = 0.0
+Key = date - Value = 2013-07-20 18:53:30
+Key = user - Value = None
+Key = status - Value = False
+Key = credit - Value = 5676
+2013-07-21 00:39:15.750000 >>> DELETE FROM TABLE client credits WHERE id = 5676 
+Key = id - Value = 5676
+Key = client - Value = 82
+Key = date - Value = 2013-07-20 18:54:23
+Key = price - Value = 0.0
+Key = description - Value = Аванс - втулка задняя FH-M525, для диск торм, 36сп. 8/9-зв., черн, для ротора на 6 болтов()
+Key = user - Value = None
+2013-07-26 01:37:56.234000 >>> DELETE FROM TABLE invoice component list WHERE id = 7000 
+Key = id - Value = 7000
+Key = invoice - Value = 553
+Key = catalog - Value = 5631
+Key = count - Value = 1
+Key = price - Value = 19.5
+Key = currency - Value = 2
+Key = date - Value = 2013-07-19
+Key = description - Value = 
+2013-07-26 23:44:24.921000 >>> DELETE FROM TABLE client invoice WHERE id = 8090 
+Key = id - Value = 8090
+Key = client - Value = 378
+Key = catalog - Value = 4144
+Key = count - Value = 14
+Key = price - Value = 7.0
+Key = sum - Value = 98.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 98.0
+Key = date - Value = 2013-04-01 17:41:50
+Key = description - Value = 
+Key = user - Value = 5
+2013-07-26 23:49:39.484000 >>> DELETE FROM TABLE client invoice WHERE id = 8091 
+Key = id - Value = 8091
+Key = client - Value = 383
+Key = catalog - Value = 4144
+Key = count - Value = 24
+Key = price - Value = 7.0
+Key = sum - Value = 168.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 168.0
+Key = date - Value = 2013-04-01 17:48:37
+Key = description - Value = 
+Key = user - Value = 5
+2013-08-01 01:17:32.968000 >>> DELETE FROM TABLE invoice component list WHERE id = 7104 
+Key = id - Value = 7104
+Key = invoice - Value = 560
+Key = catalog - Value = 2447
+Key = count - Value = 1
+Key = price - Value = 32.65
+Key = currency - Value = 2
+Key = date - Value = 2013-08-01
+Key = description - Value = 
+2013-08-21 14:48:23.843000 >>> DELETE FROM TABLE invoice component list WHERE id = 6771 
+Key = id - Value = 6771
+Key = invoice - Value = 539
+Key = catalog - Value = 5817
+Key = count - Value = 1
+Key = price - Value = 68.86
+Key = currency - Value = 2
+Key = date - Value = 2013-07-08
+Key = description - Value = 
+2013-08-21 16:38:00.703000 >>> DELETE FROM TABLE client debts WHERE id = 7305 
+Key = id - Value = 7305
+Key = client - Value = 720
+Key = date - Value = 2013-08-21 16:37:19
+Key = price - Value = 163.2
+Key = description - Value = Нипель 2/12мм черный/ 100шт; Спица Inox Plus черная (нержавейка) 2/292/ 1шт; Спица Inox Plus черная (нержавейка) 2/292/ 1шт; 
+Key = user - Value = 4
+2013-09-13 04:08:08.343000 >>> DELETE FROM TABLE invoice component list WHERE id = 7267 
+Key = id - Value = 7267
+Key = invoice - Value = 576
+Key = catalog - Value = 326
+Key = count - Value = 1
+Key = price - Value = 36.29
+Key = currency - Value = 2
+Key = date - Value = 2013-09-09
+Key = description - Value = 
+2013-09-21 03:08:59.640000 >>> DELETE FROM TABLE invoice component list WHERE id = 4214 
+Key = id - Value = 4214
+Key = invoice - Value = 236
+Key = catalog - Value = 4243
+Key = count - Value = 1
+Key = price - Value = 0.0
+Key = currency - Value = 2
+Key = date - Value = 2012-12-01
+Key = description - Value = 
+2013-10-02 14:36:02.890000 >>> DELETE FROM TABLE client WHERE id = 234 
+Key = id - Value = 234
+Key = name - Value = Шматов Михайло
+Key = forumname - Value = 
+Key = country - Value = 1
+Key = city - Value = Рівне
+Key = email - Value = 
+Key = phone - Value = 050 357 94 50
+Key = sale - Value = 0
+Key = summ - Value = 920.0
+Key = birthday - Value = None
+Key = description - Value = 
+2013-10-02 18:47:49.953000 >>> DELETE FROM TABLE client invoice WHERE id = 14352 
+Key = id - Value = 14352
+Key = client - Value = 2
+Key = catalog - Value = 5934
+Key = count - Value = 1
+Key = price - Value = 355.0
+Key = sum - Value = 355.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 0.0
+Key = date - Value = 2013-10-02 18:47:00
+Key = description - Value = 
+Key = user - Value = 4
+2013-10-08 17:00:09.671000 >>> DELETE FROM TABLE client debts WHERE id = 8015 
+Key = id - Value = 8015
+Key = client - Value = 76
+Key = date - Value = 2013-10-08 16:56:13
+Key = price - Value = 145.15
+Key = description - Value = конус FH-M525/FH-4400 задн.лев (M10X16MM), комплект; конус FH-M525/M565/MC12/STX/Alivio/RSX задн.прав (M10X9MM); конус HB-M495 передн (M10X10.4мм), комплект; конус HB-M525 передний+ пыльник, гайка (комплект); 
+Key = user - Value = 4
+2013-10-08 17:00:21.562000 >>> DELETE FROM TABLE client debts WHERE id = 8016 
+Key = id - Value = 8016
+Key = client - Value = 76
+Key = date - Value = 2013-10-08 16:59:47
+Key = price - Value = 169.5
+Key = description - Value = шарики  задн. втулки (1/4") комплект 18 шт. ; шарики  перед. втулки (3/16") комплект 20 шт.; конус HB-M525 передний+ пыльник, гайка (комплект); 
+Key = user - Value = 4
+2013-10-09 00:25:35.484000 >>> DELETE FROM TABLE client invoice WHERE id = 14427 
+Key = id - Value = 14427
+Key = client - Value = 677
+Key = catalog - Value = 1122
+Key = count - Value = 1
+Key = price - Value = 193.0
+Key = sum - Value = 183.35
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = pay - Value = 183.35
+Key = date - Value = 2013-10-05 17:55:11
+Key = description - Value = 
+Key = user - Value = 4
+2013-10-09 00:28:34.796000 >>> DELETE FROM TABLE client invoice WHERE id = 14424 
+Key = id - Value = 14424
+Key = client - Value = 677
+Key = catalog - Value = 3617
+Key = count - Value = 1
+Key = price - Value = 217.0
+Key = sum - Value = 206.15
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = pay - Value = 206.15
+Key = date - Value = 2013-10-05 17:51:43
+Key = description - Value = 
+Key = user - Value = 4
+2013-10-15 02:37:29.890000 >>> DELETE FROM TABLE client invoice WHERE id = 12663 
+Key = id - Value = 12663
+Key = client - Value = 18
+Key = catalog - Value = 4799
+Key = count - Value = 1
+Key = price - Value = 355.0
+Key = sum - Value = 337.25
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = pay - Value = 337.25
+Key = date - Value = 2013-08-01 17:02:02
+Key = description - Value = 
+Key = user - Value = None
+2013-10-18 00:06:32.375000 >>> DELETE FROM TABLE invoice component list WHERE id = 7591 
+Key = id - Value = 7591
+Key = invoice - Value = 589
+Key = catalog - Value = 4352
+Key = count - Value = 3
+Key = price - Value = 89.86
+Key = currency - Value = 3
+Key = date - Value = 2013-10-18
+Key = description - Value = 
+2013-10-24 15:14:57.296000 >>> DELETE FROM TABLE invoice component list WHERE id = 4213 
+Key = id - Value = 4213
+Key = invoice - Value = 236
+Key = catalog - Value = 4242
+Key = count - Value = 1
+Key = price - Value = 0.0
+Key = currency - Value = 2
+Key = date - Value = 2012-12-01
+Key = description - Value = 
+2013-10-30 18:45:26.390000 >>> DELETE FROM TABLE client invoice WHERE id = 14842 
+Key = id - Value = 14842
+Key = client - Value = 2
+Key = catalog - Value = 2424
+Key = count - Value = 1
+Key = price - Value = 35.0
+Key = sum - Value = 33.25
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = pay - Value = 0.0
+Key = date - Value = 2013-10-30 18:44:50
+Key = description - Value = 
+Key = user - Value = 4
+2013-11-08 12:23:26.500000 >>> DELETE FROM TABLE client debts WHERE id = 8362 
+Key = id - Value = 8362
+Key = client - Value = 73
+Key = date - Value = 2013-11-07 17:13:47
+Key = price - Value = 36.0
+Key = description - Value = Камера Bontrager Standart 700х28-32 АV ; 
+Key = user - Value = 5
+2013-11-29 00:42:12.203000 >>> DELETE FROM TABLE invoice component list WHERE id = 7784 
+Key = id - Value = 7784
+Key = invoice - Value = 605
+Key = catalog - Value = 6298
+Key = count - Value = 1
+Key = price - Value = 12.56
+Key = currency - Value = 4
+Key = date - Value = 2013-11-29
+Key = description - Value = 
+2013-11-29 00:43:43.625000 >>> DELETE FROM TABLE client debts WHERE id = 8531 
+Key = id - Value = 8531
+Key = client - Value = 639
+Key = date - Value = 2013-11-28 00:00:00
+Key = price - Value = 284.0
+Key = description - Value = sigma 16.12
+Key = user - Value = 4
+2013-12-09 15:57:08.671000 >>> DELETE FROM TABLE client invoice WHERE id = 15255 
+Key = id - Value = 15255
+Key = client - Value = 2
+Key = catalog - Value = 6261
+Key = count - Value = 1
+Key = price - Value = 298.0
+Key = sum - Value = 283.1
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = pay - Value = 283.1
+Key = date - Value = 2013-12-07 14:05:20
+Key = description - Value = 
+Key = user - Value = None
+2013-12-09 22:52:57.203000 >>> DELETE FROM TABLE costs WHERE id = 171 
+Key = id - Value = 171
+Key = date - Value = 2013-12-09 22:52:43
+Key = cost_type - Value = 5
+Key = price - Value = 1664.0
+Key = description - Value = Зарплата за листопад
+2013-12-27 00:53:27.937000 >>> DELETE FROM TABLE client debts WHERE id = 8603 
+Key = id - Value = 8603
+Key = client - Value = 386
+Key = date - Value = 2013-12-12 11:45:48
+Key = price - Value = 342.0
+Key = description - Value = Active  Knicker M -L; 
+Key = user - Value = None
+2013-12-27 00:54:25.921000 >>> DELETE FROM TABLE client invoice WHERE id = 15283 
+Key = id - Value = 15283
+Key = client - Value = 386
+Key = catalog - Value = 6237
+Key = count - Value = 1
+Key = price - Value = 342.0
+Key = sum - Value = 342.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 342.0
+Key = date - Value = 2013-12-12 11:45:22
+Key = description - Value = 
+Key = user - Value = None
+2014-01-03 01:26:00.843000 >>> DELETE FROM TABLE invoice component list WHERE id = 7886 
+Key = id - Value = 7886
+Key = invoice - Value = 618
+Key = catalog - Value = 1866
+Key = count - Value = 100
+Key = price - Value = 0.95
+Key = currency - Value = 2
+Key = date - Value = 2014-01-03
+Key = description - Value = 
+2014-01-14 01:10:36.312000 >>> DELETE FROM TABLE bicycle_ store WHERE id = 366 
+Key = id - Value = 366
+Key = model - Value = 224
+Key = serial_number - Value = -
+Key = size - Value = 28
+Key = price - Value = 185.0
+Key = currency - Value = 2
+Key = count - Value = 1
+Key = realization - Value = False
+Key = date - Value = 2013-06-12
+Key = description - Value = 
+2014-01-14 21:44:19.703000 >>> DELETE FROM TABLE client invoice WHERE id = 15635 
+Key = id - Value = 15635
+Key = client - Value = 76
+Key = catalog - Value = 2491
+Key = count - Value = 2
+Key = price - Value = 22.0
+Key = sum - Value = 37.4
+Key = currency - Value = 3
+Key = sale - Value = 15
+Key = pay - Value = 0.0
+Key = date - Value = 2014-01-14 21:30:07
+Key = description - Value = 
+Key = user - Value = 4
+2014-01-14 21:44:31.531000 >>> DELETE FROM TABLE client invoice WHERE id = 15636 
+Key = id - Value = 15636
+Key = client - Value = 76
+Key = catalog - Value = 2832
+Key = count - Value = 1
+Key = price - Value = 31.0
+Key = sum - Value = 26.35
+Key = currency - Value = 3
+Key = sale - Value = 15
+Key = pay - Value = 0.0
+Key = date - Value = 2014-01-14 21:31:51
+Key = description - Value = 
+Key = user - Value = 4
+2014-01-16 14:02:57.529000 >>> DELETE FROM TABLE client invoice WHERE id = 15654 
+Key = id - Value = 15654
+Key = client - Value = 82
+Key = catalog - Value = 4642
+Key = count - Value = 1
+Key = price - Value = 341.0
+Key = sum - Value = 341.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 0.0
+Key = date - Value = 2014-01-16 14:02:27
+Key = description - Value = 
+Key = user - Value = 4
+2014-01-21 18:05:00.343000 >>> DELETE FROM TABLE client invoice WHERE id = 15708 
+Key = id - Value = 15708
+Key = client - Value = 846
+Key = catalog - Value = 3623
+Key = count - Value = 1
+Key = price - Value = 805.0
+Key = sum - Value = 0.0
+Key = currency - Value = 3
+Key = sale - Value = 100
+Key = pay - Value = 0.0
+Key = date - Value = 2014-01-21 16:35:59
+Key = description - Value = 
+Key = user - Value = None
+2014-01-22 01:32:23.046000 >>> DELETE FROM TABLE client invoice WHERE id = 15707 
+Key = id - Value = 15707
+Key = client - Value = 846
+Key = catalog - Value = 3623
+Key = count - Value = 1
+Key = price - Value = 805.0
+Key = sum - Value = 0.0
+Key = currency - Value = 3
+Key = sale - Value = 100
+Key = pay - Value = 0.0
+Key = date - Value = 2014-01-21 16:35:59
+Key = description - Value = 
+Key = user - Value = None
+2014-01-22 01:32:44.953000 >>> DELETE FROM TABLE invoice component list WHERE id = 2073 
+Key = id - Value = 2073
+Key = invoice - Value = 242
+Key = catalog - Value = 3623
+Key = count - Value = 1
+Key = price - Value = 574.77
+Key = currency - Value = 3
+Key = date - Value = 2012-04-21
+Key = description - Value = 
+2014-02-03 00:48:00.406000 >>> DELETE FROM TABLE shop price WHERE id = 8 
+Key = id - Value = 8
+Key = catalog - Value = 1276
+Key = scount - Value = 1
+Key = dcount - Value = 0
+Key = date - Value = 2014-02-03 00:47:46
+Key = user - Value = 4
+2014-02-03 01:30:40.281000 >>> DELETE FROM TABLE shop price WHERE id = 28 
+Key = id - Value = 28
+Key = catalog - Value = 2743
+Key = scount - Value = 1
+Key = dcount - Value = 0
+Key = date - Value = 2014-02-03 01:28:05
+Key = user - Value = 4
+2014-02-03 01:41:39.468000 >>> DELETE FROM TABLE shop price WHERE id = 30 
+Key = id - Value = 30
+Key = catalog - Value = 5974
+Key = scount - Value = 4
+Key = dcount - Value = 0
+Key = date - Value = 2014-02-03 01:41:13
+Key = user - Value = 4
+2014-02-13 01:42:12.546000 >>> DELETE FROM TABLE client invoice WHERE id = 15901 
+Key = id - Value = 15901
+Key = client - Value = 116
+Key = catalog - Value = 5573
+Key = count - Value = 2
+Key = price - Value = 50.0
+Key = sum - Value = 95.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = pay - Value = 95.0
+Key = date - Value = 2014-02-08 18:04:06
+Key = description - Value = 
+Key = user - Value = 5
+2014-02-13 01:42:27.765000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 374 
+Key = id - Value = 374
+Key = model - Value = 353
+Key = client - Value = 2
+Key = price - Value = 3614.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2014-02-11
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 5
+Key = sum - Value = 3433.3
+Key = debt - Value = 8975
+2014-02-16 23:33:31.750000 >>> DELETE FROM TABLE invoice component list WHERE id = 5091 
+Key = id - Value = 5091
+Key = invoice - Value = 465
+Key = catalog - Value = 2246
+Key = count - Value = 10
+Key = price - Value = 2.94
+Key = currency - Value = 2
+Key = date - Value = 2013-04-11
+Key = description - Value = 
+2014-02-17 11:18:05.046000 >>> DELETE FROM TABLE client invoice WHERE id = 15886 
+Key = id - Value = 15886
+Key = client - Value = 121
+Key = catalog - Value = 1122
+Key = count - Value = 1
+Key = price - Value = 193.0
+Key = sum - Value = 193.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 193.0
+Key = date - Value = 2014-02-08 14:14:24
+Key = description - Value = 
+Key = user - Value = 5
+2014-02-27 13:08:43.203000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 382 
+Key = id - Value = 382
+Key = model - Value = 406
+Key = client - Value = 867
+Key = price - Value = 4899.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = date - Value = 2014-02-22
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 5
+Key = sum - Value = 4654.05
+Key = debt - Value = 9073
+2014-03-05 01:52:15.406000 >>> DELETE FROM TABLE client invoice WHERE id = 3152 
+Key = id - Value = 3152
+Key = client - Value = 138
+Key = catalog - Value = 3436
+Key = count - Value = 1
+Key = price - Value = 55.0
+Key = sum - Value = 55.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 55.0
+Key = date - Value = 2012-06-23 00:00:00
+Key = description - Value = 
+Key = user - Value = None
+2014-03-05 01:53:35.937000 >>> DELETE FROM TABLE catalog WHERE id = 3436 
+Key = id - Value = 3436
+Key = ids - Value = 10415310
+Key = name - Value = Камера Schwalbe AV7, 20x1.5-2.5 40mm
+Key = manufacturer - Value = 8
+Key = type - Value = 51
+Key = size - Value = None
+Key = weight - Value = None
+Key = photo - Value = 
+Key = year - Value = 2012
+Key = sale_to - Value = 2012-04-10
+Key = color - Value = Чорний
+Key = price - Value = 63.0
+Key = currency - Value = 3
+Key = sale - Value = 0.0
+Key = country - Value = 27
+Key = count - Value = 7
+Key = length - Value = None
+Key = description - Value = 
+2014-03-05 01:56:11.359000 >>> DELETE FROM TABLE catalog WHERE id = 4787 
+Key = id - Value = 4787
+Key = ids - Value = MUD-43-23
+Key = name - Value = Крыло задн. 28" SKS S-Blade
+Key = manufacturer - Value = 14
+Key = type - Value = 34
+Key = size - Value = None
+Key = weight - Value = None
+Key = photo - Value = 
+Key = year - Value = 2012
+Key = sale_to - Value = 2013-04-07
+Key = color - Value = Чорний
+Key = price - Value = 170.0
+Key = currency - Value = 3
+Key = sale - Value = 0.0
+Key = country - Value = 6
+Key = count - Value = 2
+Key = length - Value = 0.0
+Key = description - Value = 
+2014-03-10 02:19:05.718000 >>> DELETE FROM TABLE client invoice WHERE id = 15927 
+Key = id - Value = 15927
+Key = client - Value = 405
+Key = catalog - Value = 3616
+Key = count - Value = 1
+Key = price - Value = 235.0
+Key = sum - Value = 223.25
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = pay - Value = 223.25
+Key = date - Value = 2014-02-10 16:28:24
+Key = description - Value = 
+Key = user - Value = None
+2014-03-26 02:37:34.703000 >>> DELETE FROM TABLE client invoice WHERE id = 16918 
+Key = id - Value = 16918
+Key = client - Value = 439
+Key = catalog - Value = 6443
+Key = count - Value = 4
+Key = price - Value = 445.0
+Key = sum - Value = 1691.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = pay - Value = 0.0
+Key = date - Value = 2014-03-26 02:36:42
+Key = description - Value = 
+Key = user - Value = 4
+2014-03-27 01:54:14.093000 >>> DELETE FROM TABLE bicycle_ store WHERE id = 456 
+Key = id - Value = 456
+Key = model - Value = 155
+Key = serial_number - Value = WTU070C5735G
+Key = size - Value = 25
+Key = price - Value = 250.0
+Key = currency - Value = 2
+Key = count - Value = 1
+Key = realization - Value = False
+Key = date - Value = 2014-03-22
+Key = description - Value = 
+2014-03-29 02:32:06.359000 >>> DELETE FROM TABLE client invoice WHERE id = 16968 
+Key = id - Value = 16968
+Key = client - Value = 832
+Key = catalog - Value = 6441
+Key = count - Value = 2
+Key = price - Value = 445.0
+Key = sum - Value = 845.5
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = pay - Value = 0.0
+Key = date - Value = 2014-03-27 02:00:28
+Key = description - Value = 
+Key = user - Value = 4
+2014-04-10 01:49:08.968000 >>> DELETE FROM TABLE costs WHERE id = 209 
+Key = id - Value = 209
+Key = date - Value = 2014-04-10 01:49:00
+Key = cost_type - Value = 4
+Key = price - Value = 300.0
+Key = description - Value = merck
+2014-04-12 00:33:56.656000 >>> DELETE FROM TABLE invoice component list WHERE id = 8410 
+Key = id - Value = 8410
+Key = invoice - Value = 644
+Key = catalog - Value = 5938
+Key = count - Value = 1
+Key = price - Value = 107.625
+Key = currency - Value = 3
+Key = date - Value = 2014-04-12
+Key = description - Value = 
+2014-04-12 01:04:24.343000 >>> DELETE FROM TABLE client invoice WHERE id = 15840 
+Key = id - Value = 15840
+Key = client - Value = 846
+Key = catalog - Value = 2090
+Key = count - Value = 1
+Key = price - Value = 581.0
+Key = sum - Value = 581.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 581.0
+Key = date - Value = 2014-02-03 17:59:53
+Key = description - Value = 
+Key = user - Value = 5
+2014-04-16 03:01:57.765000 >>> DELETE FROM TABLE invoice component list WHERE id = 8415 
+Key = id - Value = 8415
+Key = invoice - Value = 640
+Key = catalog - Value = 6609
+Key = count - Value = 3
+Key = price - Value = 9.63
+Key = currency - Value = 2
+Key = date - Value = 2014-04-16
+Key = description - Value = None
+2014-04-16 05:25:19.343000 >>> DELETE FROM TABLE invoice component list WHERE id = 8447 
+Key = id - Value = 8447
+Key = invoice - Value = 646
+Key = catalog - Value = 107
+Key = count - Value = 2
+Key = price - Value = 66.0
+Key = currency - Value = 3
+Key = date - Value = 2014-04-16
+Key = description - Value = None
+2014-04-17 00:26:59.015000 >>> DELETE FROM TABLE dealer WHERE id = 22 
+Key = id - Value = 22
+Key = name - Value = ООО "ЕВРОЛАЙН"
+Key = country - Value = 1
+Key = city - Value = Київ
+Key = street - Value = ул.Здолбуновская 3
+Key = www - Value = http://www.eltd.com.ua/
+Key = description - Value = В 2011 компания закрепляет свои позиции на велосипедном рынке сотрудничеством с такими брендами как "Marin", "Rocky Mountain", "Trelock", "SKS".
+Key = director - Value = -
+2014-04-25 03:00:34.468000 >>> DELETE FROM TABLE invoice component list WHERE id = 8807 
+Key = id - Value = 8807
+Key = invoice - Value = 657
+Key = catalog - Value = 3780
+Key = count - Value = 3
+Key = price - Value = 8.6
+Key = currency - Value = 2
+Key = date - Value = 2014-04-19
+Key = description - Value = None
+2014-05-20 10:34:35.671000 >>> DELETE FROM TABLE dealer invoice WHERE id = 677 
+Key = id - Value = 677
+Key = origin_id - Value = 4669
+Key = date - Value = 2014-05-20
+Key = company - Value = 2
+Key = manager - Value = 14
+Key = price - Value = 273.0
+Key = currency - Value = 2
+Key = file - Value = № 4669 от 15 мая 2014 г..xls
+Key = received - Value = False
+Key = payment - Value = False
+Key = description - Value = 
+2014-05-31 17:36:00.890000 >>> DELETE FROM TABLE invoice component list WHERE id = 9344 
+Key = id - Value = 9344
+Key = invoice - Value = 662
+Key = catalog - Value = 6177
+Key = count - Value = 1
+Key = price - Value = 7.87
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:05.140000 >>> DELETE FROM TABLE invoice component list WHERE id = 9343 
+Key = id - Value = 9343
+Key = invoice - Value = 662
+Key = catalog - Value = 5128
+Key = count - Value = 1
+Key = price - Value = 16.93
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:09.531000 >>> DELETE FROM TABLE invoice component list WHERE id = 9342 
+Key = id - Value = 9342
+Key = invoice - Value = 662
+Key = catalog - Value = 2236
+Key = count - Value = 1
+Key = price - Value = 16.93
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:12.718000 >>> DELETE FROM TABLE invoice component list WHERE id = 9341 
+Key = id - Value = 9341
+Key = invoice - Value = 662
+Key = catalog - Value = 7071
+Key = count - Value = 1
+Key = price - Value = 14.85
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:16.062000 >>> DELETE FROM TABLE invoice component list WHERE id = 9339 
+Key = id - Value = 9339
+Key = invoice - Value = 662
+Key = catalog - Value = 2232
+Key = count - Value = 1
+Key = price - Value = 14.85
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:19.343000 >>> DELETE FROM TABLE invoice component list WHERE id = 9338 
+Key = id - Value = 9338
+Key = invoice - Value = 662
+Key = catalog - Value = 5116
+Key = count - Value = 1
+Key = price - Value = 7.43
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:20.390000 >>> DELETE FROM TABLE invoice component list WHERE id = 9337 
+Key = id - Value = 9337
+Key = invoice - Value = 662
+Key = catalog - Value = 5120
+Key = count - Value = 1
+Key = price - Value = 7.43
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:23.718000 >>> DELETE FROM TABLE invoice component list WHERE id = 9335 
+Key = id - Value = 9335
+Key = invoice - Value = 662
+Key = catalog - Value = 5115
+Key = count - Value = 3
+Key = price - Value = 3.42
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:24.734000 >>> DELETE FROM TABLE invoice component list WHERE id = 9334 
+Key = id - Value = 9334
+Key = invoice - Value = 662
+Key = catalog - Value = 5114
+Key = count - Value = 4
+Key = price - Value = 3.42
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:25.843000 >>> DELETE FROM TABLE invoice component list WHERE id = 9336 
+Key = id - Value = 9336
+Key = invoice - Value = 662
+Key = catalog - Value = 5118
+Key = count - Value = 1
+Key = price - Value = 7.43
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:27 >>> DELETE FROM TABLE invoice component list WHERE id = 9333 
+Key = id - Value = 9333
+Key = invoice - Value = 662
+Key = catalog - Value = 5113
+Key = count - Value = 2
+Key = price - Value = 3.42
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:30.562000 >>> DELETE FROM TABLE invoice component list WHERE id = 9332 
+Key = id - Value = 9332
+Key = invoice - Value = 662
+Key = catalog - Value = 5112
+Key = count - Value = 3
+Key = price - Value = 3.42
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:31.609000 >>> DELETE FROM TABLE invoice component list WHERE id = 9331 
+Key = id - Value = 9331
+Key = invoice - Value = 662
+Key = catalog - Value = 5110
+Key = count - Value = 2
+Key = price - Value = 3.42
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:34.890000 >>> DELETE FROM TABLE invoice component list WHERE id = 9330 
+Key = id - Value = 9330
+Key = invoice - Value = 662
+Key = catalog - Value = 5109
+Key = count - Value = 1
+Key = price - Value = 3.42
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:35.968000 >>> DELETE FROM TABLE invoice component list WHERE id = 9329 
+Key = id - Value = 9329
+Key = invoice - Value = 662
+Key = catalog - Value = 5091
+Key = count - Value = 2
+Key = price - Value = 3.42
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:37.125000 >>> DELETE FROM TABLE invoice component list WHERE id = 9328 
+Key = id - Value = 9328
+Key = invoice - Value = 662
+Key = catalog - Value = 5108
+Key = count - Value = 5
+Key = price - Value = 7.13
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:38.218000 >>> DELETE FROM TABLE invoice component list WHERE id = 9326 
+Key = id - Value = 9326
+Key = invoice - Value = 662
+Key = catalog - Value = 5102
+Key = count - Value = 2
+Key = price - Value = 7.13
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:39.296000 >>> DELETE FROM TABLE invoice component list WHERE id = 9325 
+Key = id - Value = 9325
+Key = invoice - Value = 662
+Key = catalog - Value = 5101
+Key = count - Value = 1
+Key = price - Value = 11.29
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:43.390000 >>> DELETE FROM TABLE invoice component list WHERE id = 9324 
+Key = id - Value = 9324
+Key = invoice - Value = 662
+Key = catalog - Value = 5093
+Key = count - Value = 1
+Key = price - Value = 11.29
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:44.515000 >>> DELETE FROM TABLE invoice component list WHERE id = 9322 
+Key = id - Value = 9322
+Key = invoice - Value = 662
+Key = catalog - Value = 2225
+Key = count - Value = 1
+Key = price - Value = 20.05
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:45.656000 >>> DELETE FROM TABLE invoice component list WHERE id = 9321 
+Key = id - Value = 9321
+Key = invoice - Value = 662
+Key = catalog - Value = 7070
+Key = count - Value = 2
+Key = price - Value = 19.23
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:36:49.421000 >>> DELETE FROM TABLE invoice component list WHERE id = 9320 
+Key = id - Value = 9320
+Key = invoice - Value = 662
+Key = catalog - Value = 2188
+Key = count - Value = 1
+Key = price - Value = 19.23
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:37:21.421000 >>> DELETE FROM TABLE invoice component list WHERE id = 9269 
+Key = id - Value = 9269
+Key = invoice - Value = 662
+Key = catalog - Value = 7040
+Key = count - Value = 1
+Key = price - Value = 5.64
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:37:22.562000 >>> DELETE FROM TABLE invoice component list WHERE id = 9270 
+Key = id - Value = 9270
+Key = invoice - Value = 662
+Key = catalog - Value = 7041
+Key = count - Value = 1
+Key = price - Value = 31.5
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:37:23.562000 >>> DELETE FROM TABLE invoice component list WHERE id = 9271 
+Key = id - Value = 9271
+Key = invoice - Value = 662
+Key = catalog - Value = 7042
+Key = count - Value = 1
+Key = price - Value = 29.53
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:37:25.656000 >>> DELETE FROM TABLE invoice component list WHERE id = 9272 
+Key = id - Value = 9272
+Key = invoice - Value = 662
+Key = catalog - Value = 7043
+Key = count - Value = 1
+Key = price - Value = 21.0
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:37:29.984000 >>> DELETE FROM TABLE invoice component list WHERE id = 9273 
+Key = id - Value = 9273
+Key = invoice - Value = 662
+Key = catalog - Value = 7044
+Key = count - Value = 1
+Key = price - Value = 21.0
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:37:32.140000 >>> DELETE FROM TABLE invoice component list WHERE id = 9274 
+Key = id - Value = 9274
+Key = invoice - Value = 662
+Key = catalog - Value = 7045
+Key = count - Value = 1
+Key = price - Value = 21.0
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:37:33.187000 >>> DELETE FROM TABLE invoice component list WHERE id = 9275 
+Key = id - Value = 9275
+Key = invoice - Value = 662
+Key = catalog - Value = 7046
+Key = count - Value = 1
+Key = price - Value = 30.19
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:37:34.203000 >>> DELETE FROM TABLE invoice component list WHERE id = 9276 
+Key = id - Value = 9276
+Key = invoice - Value = 662
+Key = catalog - Value = 7047
+Key = count - Value = 1
+Key = price - Value = 28.22
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:37:37.359000 >>> DELETE FROM TABLE invoice component list WHERE id = 9277 
+Key = id - Value = 9277
+Key = invoice - Value = 662
+Key = catalog - Value = 7048
+Key = count - Value = 1
+Key = price - Value = 28.22
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:37:38.468000 >>> DELETE FROM TABLE invoice component list WHERE id = 9278 
+Key = id - Value = 9278
+Key = invoice - Value = 662
+Key = catalog - Value = 7049
+Key = count - Value = 1
+Key = price - Value = 35.05
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:37:39.515000 >>> DELETE FROM TABLE invoice component list WHERE id = 9279 
+Key = id - Value = 9279
+Key = invoice - Value = 662
+Key = catalog - Value = 7050
+Key = count - Value = 1
+Key = price - Value = 69.56
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:37:40.531000 >>> DELETE FROM TABLE invoice component list WHERE id = 9280 
+Key = id - Value = 9280
+Key = invoice - Value = 662
+Key = catalog - Value = 7051
+Key = count - Value = 1
+Key = price - Value = 62.34
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:37:41.578000 >>> DELETE FROM TABLE invoice component list WHERE id = 9281 
+Key = id - Value = 9281
+Key = invoice - Value = 662
+Key = catalog - Value = 7052
+Key = count - Value = 1
+Key = price - Value = 64.31
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:41:21.890000 >>> DELETE FROM TABLE invoice component list WHERE id = 9319 
+Key = id - Value = 9319
+Key = invoice - Value = 662
+Key = catalog - Value = 7069
+Key = count - Value = 5
+Key = price - Value = 17.82
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:41:25.687000 >>> DELETE FROM TABLE invoice component list WHERE id = 9318 
+Key = id - Value = 9318
+Key = invoice - Value = 662
+Key = catalog - Value = 7068
+Key = count - Value = 3
+Key = price - Value = 16.34
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:41:26.843000 >>> DELETE FROM TABLE invoice component list WHERE id = 9317 
+Key = id - Value = 9317
+Key = invoice - Value = 662
+Key = catalog - Value = 6414
+Key = count - Value = 6
+Key = price - Value = 8.91
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:41:27.937000 >>> DELETE FROM TABLE invoice component list WHERE id = 9316 
+Key = id - Value = 9316
+Key = invoice - Value = 662
+Key = catalog - Value = 7067
+Key = count - Value = 1
+Key = price - Value = 157.5
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:41:31.531000 >>> DELETE FROM TABLE invoice component list WHERE id = 9315 
+Key = id - Value = 9315
+Key = invoice - Value = 662
+Key = catalog - Value = 7066
+Key = count - Value = 1
+Key = price - Value = 157.5
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:41:32.625000 >>> DELETE FROM TABLE invoice component list WHERE id = 9314 
+Key = id - Value = 9314
+Key = invoice - Value = 662
+Key = catalog - Value = 7065
+Key = count - Value = 1
+Key = price - Value = 164.06
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:41:33.656000 >>> DELETE FROM TABLE invoice component list WHERE id = 9313 
+Key = id - Value = 9313
+Key = invoice - Value = 662
+Key = catalog - Value = 7064
+Key = count - Value = 1
+Key = price - Value = 164.06
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:41:34.703000 >>> DELETE FROM TABLE invoice component list WHERE id = 9312 
+Key = id - Value = 9312
+Key = invoice - Value = 662
+Key = catalog - Value = 5089
+Key = count - Value = 1
+Key = price - Value = 10.4
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:41:35.906000 >>> DELETE FROM TABLE invoice component list WHERE id = 9311 
+Key = id - Value = 9311
+Key = invoice - Value = 662
+Key = catalog - Value = 2222
+Key = count - Value = 1
+Key = price - Value = 10.4
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:41:36.968000 >>> DELETE FROM TABLE invoice component list WHERE id = 9310 
+Key = id - Value = 9310
+Key = invoice - Value = 662
+Key = catalog - Value = 2181
+Key = count - Value = 2
+Key = price - Value = 14.11
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:41:38.109000 >>> DELETE FROM TABLE invoice component list WHERE id = 9309 
+Key = id - Value = 9309
+Key = invoice - Value = 662
+Key = catalog - Value = 7063
+Key = count - Value = 1
+Key = price - Value = 22.28
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:41:41.437000 >>> DELETE FROM TABLE invoice component list WHERE id = 9308 
+Key = id - Value = 9308
+Key = invoice - Value = 662
+Key = catalog - Value = 7062
+Key = count - Value = 1
+Key = price - Value = 22.28
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:44:28.640000 >>> DELETE FROM TABLE invoice component list WHERE id = 9282 
+Key = id - Value = 9282
+Key = invoice - Value = 662
+Key = catalog - Value = 7053
+Key = count - Value = 1
+Key = price - Value = 50.92
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:44:32.500000 >>> DELETE FROM TABLE invoice component list WHERE id = 9283 
+Key = id - Value = 9283
+Key = invoice - Value = 662
+Key = catalog - Value = 7054
+Key = count - Value = 1
+Key = price - Value = 33.84
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:44:33.562000 >>> DELETE FROM TABLE invoice component list WHERE id = 9284 
+Key = id - Value = 9284
+Key = invoice - Value = 662
+Key = catalog - Value = 7055
+Key = count - Value = 1
+Key = price - Value = 33.84
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:44:36.890000 >>> DELETE FROM TABLE invoice component list WHERE id = 9285 
+Key = id - Value = 9285
+Key = invoice - Value = 662
+Key = catalog - Value = 5123
+Key = count - Value = 5
+Key = price - Value = 1.49
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:44:37.968000 >>> DELETE FROM TABLE invoice component list WHERE id = 9286 
+Key = id - Value = 9286
+Key = invoice - Value = 662
+Key = catalog - Value = 7056
+Key = count - Value = 2
+Key = price - Value = 3.71
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:44:39.015000 >>> DELETE FROM TABLE invoice component list WHERE id = 9287 
+Key = id - Value = 9287
+Key = invoice - Value = 662
+Key = catalog - Value = 2218
+Key = count - Value = 5
+Key = price - Value = 1.49
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:44:40.187000 >>> DELETE FROM TABLE invoice component list WHERE id = 9288 
+Key = id - Value = 9288
+Key = invoice - Value = 662
+Key = catalog - Value = 2219
+Key = count - Value = 3
+Key = price - Value = 1.49
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:44:41.296000 >>> DELETE FROM TABLE invoice component list WHERE id = 9289 
+Key = id - Value = 9289
+Key = invoice - Value = 662
+Key = catalog - Value = 2123
+Key = count - Value = 1
+Key = price - Value = 9.65
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:44:42.343000 >>> DELETE FROM TABLE invoice component list WHERE id = 9290 
+Key = id - Value = 9290
+Key = invoice - Value = 662
+Key = catalog - Value = 7057
+Key = count - Value = 2
+Key = price - Value = 4.46
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:44:46.468000 >>> DELETE FROM TABLE invoice component list WHERE id = 9291 
+Key = id - Value = 9291
+Key = invoice - Value = 662
+Key = catalog - Value = 7058
+Key = count - Value = 2
+Key = price - Value = 4.46
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:44:47.593000 >>> DELETE FROM TABLE invoice component list WHERE id = 9292 
+Key = id - Value = 9292
+Key = invoice - Value = 662
+Key = catalog - Value = 2130
+Key = count - Value = 2
+Key = price - Value = 4.9
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:44:48.750000 >>> DELETE FROM TABLE invoice component list WHERE id = 9293 
+Key = id - Value = 9293
+Key = invoice - Value = 662
+Key = catalog - Value = 2133
+Key = count - Value = 2
+Key = price - Value = 4.9
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:44:49.843000 >>> DELETE FROM TABLE invoice component list WHERE id = 9294 
+Key = id - Value = 9294
+Key = invoice - Value = 662
+Key = catalog - Value = 7059
+Key = count - Value = 2
+Key = price - Value = 25.25
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:44:51.015000 >>> DELETE FROM TABLE invoice component list WHERE id = 9295 
+Key = id - Value = 9295
+Key = invoice - Value = 662
+Key = catalog - Value = 2147
+Key = count - Value = 2
+Key = price - Value = 22.28
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:44:52.156000 >>> DELETE FROM TABLE invoice component list WHERE id = 9296 
+Key = id - Value = 9296
+Key = invoice - Value = 662
+Key = catalog - Value = 2149
+Key = count - Value = 1
+Key = price - Value = 22.28
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:46:31.125000 >>> DELETE FROM TABLE invoice component list WHERE id = 9340 
+Key = id - Value = 9340
+Key = invoice - Value = 662
+Key = catalog - Value = 2233
+Key = count - Value = 1
+Key = price - Value = 14.85
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:46:35.312000 >>> DELETE FROM TABLE invoice component list WHERE id = 9327 
+Key = id - Value = 9327
+Key = invoice - Value = 662
+Key = catalog - Value = 5106
+Key = count - Value = 2
+Key = price - Value = 7.13
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:46:36.421000 >>> DELETE FROM TABLE invoice component list WHERE id = 9323 
+Key = id - Value = 9323
+Key = invoice - Value = 662
+Key = catalog - Value = 5080
+Key = count - Value = 1
+Key = price - Value = 33.41
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:46:40.375000 >>> DELETE FROM TABLE invoice component list WHERE id = 9307 
+Key = id - Value = 9307
+Key = invoice - Value = 662
+Key = catalog - Value = 6415
+Key = count - Value = 1
+Key = price - Value = 22.28
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:46:41.531000 >>> DELETE FROM TABLE invoice component list WHERE id = 9306 
+Key = id - Value = 9306
+Key = invoice - Value = 662
+Key = catalog - Value = 7061
+Key = count - Value = 1
+Key = price - Value = 5.94
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:46:42.593000 >>> DELETE FROM TABLE invoice component list WHERE id = 9305 
+Key = id - Value = 9305
+Key = invoice - Value = 662
+Key = catalog - Value = 5126
+Key = count - Value = 2
+Key = price - Value = 5.94
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:46:43.640000 >>> DELETE FROM TABLE invoice component list WHERE id = 9304 
+Key = id - Value = 9304
+Key = invoice - Value = 662
+Key = catalog - Value = 2164
+Key = count - Value = 4
+Key = price - Value = 22.28
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:46:44.671000 >>> DELETE FROM TABLE invoice component list WHERE id = 9303 
+Key = id - Value = 9303
+Key = invoice - Value = 662
+Key = catalog - Value = 2163
+Key = count - Value = 2
+Key = price - Value = 22.28
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:46:45.796000 >>> DELETE FROM TABLE invoice component list WHERE id = 9302 
+Key = id - Value = 9302
+Key = invoice - Value = 662
+Key = catalog - Value = 2160
+Key = count - Value = 4
+Key = price - Value = 22.28
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:46:46.890000 >>> DELETE FROM TABLE invoice component list WHERE id = 9301 
+Key = id - Value = 9301
+Key = invoice - Value = 662
+Key = catalog - Value = 2159
+Key = count - Value = 2
+Key = price - Value = 22.28
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:46:50.296000 >>> DELETE FROM TABLE invoice component list WHERE id = 9300 
+Key = id - Value = 9300
+Key = invoice - Value = 662
+Key = catalog - Value = 2158
+Key = count - Value = 2
+Key = price - Value = 23.76
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:46:51.421000 >>> DELETE FROM TABLE invoice component list WHERE id = 9299 
+Key = id - Value = 9299
+Key = invoice - Value = 662
+Key = catalog - Value = 7060
+Key = count - Value = 2
+Key = price - Value = 28.96
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:46:52.500000 >>> DELETE FROM TABLE invoice component list WHERE id = 9298 
+Key = id - Value = 9298
+Key = invoice - Value = 662
+Key = catalog - Value = 6131
+Key = count - Value = 2
+Key = price - Value = 28.96
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-05-31 17:46:53.515000 >>> DELETE FROM TABLE invoice component list WHERE id = 9297 
+Key = id - Value = 9297
+Key = invoice - Value = 662
+Key = catalog - Value = 2155
+Key = count - Value = 2
+Key = price - Value = 23.76
+Key = currency - Value = 2
+Key = date - Value = 2014-05-31
+Key = description - Value = None
+2014-06-01 00:40:38.343000 >>> DELETE FROM TABLE catalog WHERE id = 1013 
+Key = id - Value = 1013
+Key = ids - Value = CSM77110136 
+Key = name - Value = кассета CS-M771-10, DEORE XT, 10-скор. 11-13-15-17-19-21-24-28-32-36T 
+Key = manufacturer - Value = 31
+Key = type - Value = 101
+Key = size - Value = None
+Key = weight - Value = None
+Key = photo - Value = 
+Key = year - Value = 2011
+Key = sale_to - Value = 2011-04-09
+Key = color - Value = ---
+Key = price - Value = 983.0
+Key = currency - Value = 3
+Key = sale - Value = 0.0
+Key = country - Value = 25
+Key = count - Value = 0
+Key = length - Value = None
+Key = description - Value = 
+2014-06-01 00:47:16.921000 >>> DELETE FROM TABLE catalog WHERE id = 3387 
+Key = id - Value = 3387
+Key = ids - Value = FHM785BZALP
+Key = name - Value = Втулка задн FH-M785 XT 32сп, для диск торм Center Lock, черн
+Key = manufacturer - Value = 31
+Key = type - Value = 48
+Key = size - Value = None
+Key = weight - Value = None
+Key = photo - Value = 
+Key = year - Value = 2012
+Key = sale_to - Value = 2012-04-06
+Key = color - Value = Чорний
+Key = price - Value = 750.0
+Key = currency - Value = 3
+Key = sale - Value = 10.0
+Key = country - Value = 9
+Key = count - Value = 0
+Key = length - Value = None
+Key = description - Value = 
+2014-06-01 01:07:21.906000 >>> DELETE FROM TABLE catalog WHERE id = 6661 
+Key = id - Value = 6661
+Key = ids - 2014-06-01 01:09:17.875000 >>> DELETE FROM TABLE catalog WHERE id = 6661 
+Key = id - Value = 6661
+Key = ids - 2014-06-01 23:58:09.890000 >>> DELETE FROM TABLE invoice component list WHERE id = 9552 
+Key = id - Value = 9552
+Key = invoice - Value = 701
+Key = catalog - Value = 7206
+Key = count - Value = 1
+Key = price - Value = 3.8
+Key = currency - Value = 2
+Key = date - Value = 2014-06-01
+Key = description - Value = 
+2014-06-04 02:10:39.234000 >>> DELETE FROM TABLE dealer invoice WHERE id = 716 
+Key = id - Value = 716
+Key = origin_id - Value = FO000005747
+Key = date - Value = 2014-06-04
+Key = company - Value = 1
+Key = manager - Value = 26
+Key = price - Value = 341.35
+Key = currency - Value = 2
+Key = file - Value = № FO000005733 от 02 июня 2014 г .XLS
+Key = received - Value = False
+Key = payment - Value = False
+Key = description - Value = 
+2014-06-14 02:56:56.843000 >>> DELETE FROM TABLE client invoice WHERE id = 20110 
+Key = id - Value = 20110
+Key = client - Value = 1047
+Key = catalog - Value = 698
+Key = count - Value = 1
+Key = price - Value = 155.0
+Key = sum - Value = 155.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 155.0
+Key = date - Value = 2014-06-10 19:09:32
+Key = description - Value = 
+Key = user - Value = 7
+2014-06-14 02:57:48.640000 >>> DELETE FROM TABLE client invoice WHERE id = 20109 
+Key = id - Value = 20109
+Key = client - Value = 1047
+Key = catalog - Value = 1123
+Key = count - Value = 1
+Key = price - Value = 250.0
+Key = sum - Value = 250.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 250.0
+Key = date - Value = 2014-06-10 19:08:29
+Key = description - Value = 
+Key = user - Value = 7
+2014-06-14 02:58:18.390000 >>> DELETE FROM TABLE client invoice WHERE id = 20108 
+Key = id - Value = 20108
+Key = client - Value = 1047
+Key = catalog - Value = 21
+Key = count - Value = 1
+Key = price - Value = 245.0
+Key = sum - Value = 245.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 245.0
+Key = date - Value = 2014-06-10 19:03:32
+Key = description - Value = 
+Key = user - Value = 7
+2014-06-14 02:59:04.593000 >>> DELETE FROM TABLE client invoice WHERE id = 20107 
+Key = id - Value = 20107
+Key = client - Value = 1047
+Key = catalog - Value = 3903
+Key = count - Value = 1
+Key = price - Value = 294.0
+Key = sum - Value = 294.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 294.0
+Key = date - Value = 2014-06-10 19:02:13
+Key = description - Value = 
+Key = user - Value = 7
+2014-06-14 03:02:53.515000 >>> DELETE FROM TABLE work ticket WHERE id = 556 
+Key = id - Value = 556
+Key = client - Value = 1047
+Key = date - Value = 2014-06-10
+Key = end_date - Value = 2014-06-10
+Key = status - Value = 1
+Key = description - Value = Касета + цеп
+колесо скласти
+троси + рубашки
+2014-06-21 01:21:16.718000 >>> DELETE FROM TABLE client debts WHERE id = 12000 
+Key = id - Value = 12000
+Key = client - Value = 394
+Key = date - Value = 2014-06-20 17:37:22
+Key = price - Value = 490.82
+Key = description - Value = Шатун SUN RACE R81 39/53T L170мм серебр.; 
+Key = user - Value = 7
+2014-06-21 01:21:32.218000 >>> DELETE FROM TABLE client credits WHERE id = 10263 
+Key = id - Value = 10263
+Key = client - Value = 394
+Key = date - Value = 2014-06-20 17:37:22
+Key = price - Value = 500.0
+Key = description - Value = Шатун SUN RACE R81 39/53T L170мм серебр.; 
+Key = user - Value = 7
+2014-06-23 13:36:41.812000 >>> DELETE FROM TABLE client order WHERE id = 96 
+Key = id - Value = 96
+Key = client - Value = 883
+Key = catalog - Value = None
+Key = description - Value = race king 2.2 X 26"
+Key = count - Value = 1
+Key = price - Value = 440.0
+Key = sum - Value = 440.0
+Key = currency - Value = 3
+Key = pay - Value = 0.0
+Key = date - Value = 2014-05-13 16:33:45
+Key = user - Value = 5
+Key = status - Value = True
+Key = credit - Value = 9270
+2014-06-23 13:36:42.218000 >>> DELETE FROM TABLE client credits WHERE id = 9270 
+Key = id - Value = 9270
+Key = client - Value = 883
+Key = date - Value = 2014-05-13 16:36:31
+Key = price - Value = 0.0
+Key = description - Value = Аванс - race king 2.2 X 26"
+Key = user - Value = 5
+2014-06-24 13:46:54.984000 >>> DELETE FROM TABLE bicycle_ order WHERE id = 72 
+Key = id - Value = 72
+Key = client - Value = 130
+Key = model - Value = 306
+Key = size - Value = 17
+Key = price - Value = 5335.0
+Key = sale - Value = 10
+Key = prepay - Value = 0.0
+Key = currency - Value = 3
+Key = date - Value = 2014-06-21
+Key = done - Value = False
+Key = description - Value = 
+Key = user - Value = 7
+2014-06-30 14:22:02.921000 >>> DELETE FROM TABLE client debts WHERE id = 12313 
+Key = id - Value = 12313
+Key = client - Value = 383
+Key = date - Value = 2014-06-30 14:21:53
+Key = price - Value = 1059.18
+Key = description - Value = Обод Mach1 NEO DISC 29" 32отв. AV черн; Рюкзак SPRINT серебро; Спица Sapim Leader 14G 258, с нип. Brass 14G 12 polyax (уп. 100 шт); Набор для заклейки камер KLS; 
+Key = user - Value = 4
+2014-06-30 14:45:00.546000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 503 
+Key = id - Value = 503
+Key = model - Value = 440
+Key = client - Value = 828
+Key = price - Value = 5470.0
+Key = currency - Value = 3
+Key = sale - Value = 10
+Key = date - Value = 2014-06-30
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 7
+Key = sum - Value = 4923.0
+Key = debt - Value = 12300
+2014-07-01 01:18:03.453000 >>> DELETE FROM TABLE client invoice WHERE id = 20988 
+Key = id - Value = 20988
+Key = client - Value = 1064
+Key = catalog - Value = 4069
+Key = count - Value = 1
+Key = price - Value = 120.0
+Key = sum - Value = 114.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = pay - Value = 114.0
+Key = date - Value = 2014-06-26 19:57:44
+Key = description - Value = 
+Key = user - Value = 4
+2014-07-02 01:41:02.051000 >>> DELETE FROM TABLE bicycle_ store WHERE id = 547 
+Key = id - Value = 547
+Key = model - Value = 303
+Key = serial_number - Value = -
+Key = size - Value = 24
+Key = price - Value = 343.2
+Key = currency - Value = 2
+Key = count - Value = 1
+Key = realization - Value = False
+Key = date - Value = 2014-06-01
+Key = description - Value = 
+2014-07-19 02:26:43 >>> DELETE FROM TABLE client invoice WHERE id = 4515 
+Key = id - Value = 4515
+Key = client - Value = 138
+Key = catalog - Value = 3808
+Key = count - Value = 1
+Key = price - Value = 69.0
+Key = sum - Value = 69.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 69.0
+Key = date - Value = 2012-08-08 00:00:00
+Key = description - Value = 
+Key = user - Value = None
+2014-08-01 18:02:57.546000 >>> DELETE FROM TABLE bicycle_ order WHERE id = 86 
+Key = id - Value = 86
+Key = client - Value = 1086
+Key = model - Value = 399
+Key = size - Value = 17
+Key = price - Value = 14510.0
+Key = sale - Value = 15
+Key = prepay - Value = 12334.0
+Key = currency - Value = 3
+Key = date - Value = 2014-08-01
+Key = done - Value = False
+Key = description - Value = 
+Key = user - Value = 7
+2014-08-04 01:51:44.453000 >>> DELETE FROM TABLE invoice component list WHERE id = 10552 
+Key = id - Value = 10552
+Key = invoice - Value = 788
+Key = catalog - Value = 6120
+Key = count - Value = 3
+Key = price - Value = 6.18
+Key = currency - Value = 2
+Key = date - Value = 2014-08-04
+Key = description - Value = 
+2014-08-04 15:40:23.234000 >>> DELETE FROM TABLE client credits WHERE id = 11365 
+Key = id - Value = 11365
+Key = client - Value = 341
+Key = date - Value = 2014-08-04 15:38:33
+Key = price - Value = 57.0
+Key = description - Value = Ручки руля VLG075A, EVA - неопрен, чёрные, 130 мм; 
+Key = user - Value = 7
+2014-08-04 15:40:32.265000 >>> DELETE FROM TABLE client credits WHERE id = 11366 
+Key = id - Value = 11366
+Key = client - Value = 341
+Key = date - Value = 2014-08-04 00:00:00
+Key = price - Value = 938.75
+Key = description - Value = Закриття боргу 
+Key = user - Value = 7
+2014-08-06 12:49:57.203000 >>> DELETE FROM TABLE bicycle_ order WHERE id = 88 
+Key = id - Value = 88
+Key = client - Value = 957
+Key = model - Value = 398
+Key = size - Value = 17
+Key = price - Value = 10582.0
+Key = sale - Value = 5
+Key = prepay - Value = 0.0
+Key = currency - Value = 3
+Key = date - Value = 2014-08-05
+Key = done - Value = False
+Key = description - Value = 
+Key = user - Value = 7
+2014-08-14 14:14:12.578000 >>> DELETE FROM TABLE client debts WHERE id = 13533 
+Key = id - Value = 13533
+Key = client - Value = 636
+Key = date - Value = 2014-08-14 14:01:05
+Key = price - Value = 330.15
+Key = description - Value = Велотрусы с лямками KELLYS Pro Team, серые, размер M; 
+Key = user - Value = 7
+2014-08-14 14:14:52.734000 >>> DELETE FROM TABLE client invoice WHERE id = 23193 
+Key = id - Value = 23193
+Key = client - Value = 636
+Key = catalog - Value = 2481
+Key = count - Value = 1
+Key = price - Value = 355.0
+Key = sum - Value = 330.15
+Key = currency - Value = 3
+Key = sale - Value = 7
+Key = pay - Value = 330.15
+Key = date - Value = 2014-08-14 13:59:49
+Key = description - Value = 
+Key = user - Value = 7
+2014-08-14 14:15:52.093000 >>> DELETE FROM TABLE client invoice WHERE id = 23153 
+Key = id - Value = 23153
+Key = client - Value = 636
+Key = catalog - Value = 7358
+Key = count - Value = 1
+Key = price - Value = 320.0
+Key = sum - Value = 320.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 320.0
+Key = date - Value = 2014-08-13 16:29:31
+Key = description - Value = 
+Key = user - Value = 7
+2014-08-24 02:06:51.203000 >>> DELETE FROM TABLE invoice component list WHERE id = 10722 
+Key = id - Value = 10722
+Key = invoice - Value = 806
+Key = catalog - Value = 1878
+Key = count - Value = 12
+Key = price - Value = 1.6
+Key = currency - Value = 2
+Key = date - Value = 2014-08-23
+Key = description - Value = 
+2014-08-29 01:47:31.609000 >>> DELETE FROM TABLE invoice component list WHERE id = 10728 
+Key = id - Value = 10728
+Key = invoice - Value = 808
+Key = catalog - Value = 7813
+Key = count - Value = 1
+Key = price - Value = 1209.0
+Key = currency - Value = 3
+Key = date - Value = 2014-08-28
+Key = description - Value = 
+2014-09-22 23:45:37.625000 >>> DELETE FROM TABLE client credits WHERE id = 12395 
+Key = id - Value = 12395
+Key = client - Value = 1212
+Key = date - Value = 2014-09-22 17:43:49
+Key = price - Value = 188.5
+Key = description - Value = направляющая трубка для V-brake SM-VBRK 90° ; Рубашка Alligator переключения SP 4мм Черная (бухта 30м) ; Рубашка Alligator тормозная 2Р 5мм черная (бухта 30м) ; Тросик переключения Alligator нерж. полированный бухта 100шт ; Тросик тормозной Alligator нерж. полированный бухта 100шт ; Пыльник на направляющую V-brake, 45 mm; Концовка рубашки переключения, пластик, в коробке 1 шт.; Концовка рубашки тормозного троса, метал, в коробке 1 шт.; 
+Key = user - Value = 7
+2014-09-30 13:39:23.984000 >>> DELETE FROM TABLE bicycle_ store WHERE id = 513 
+Key = id - Value = 513
+Key = model - Value = 368
+Key = serial_number - Value = -
+Key = size - Value = 24
+Key = price - Value = 390.45
+Key = currency - Value = 2
+Key = count - Value = 1
+Key = realization - Value = False
+Key = date - Value = 2014-05-08
+Key = description - Value = 
+2014-10-07 16:17:33.234000 >>> DELETE FROM TABLE dealer invoice WHERE id = 826 
+Key = id - Value = 826
+Key = origin_id - Value = FO000012242
+Key = date - Value = 2014-10-07
+Key = company - Value = 1
+Key = manager - Value = 25
+Key = price - Value = 241.03
+Key = currency - Value = 2
+Key = file - Value = № FO000012242 от 03 октября 2014 г .XLS
+Key = received - Value = False
+Key = payment - Value = False
+Key = description - Value = 
+2014-10-19 00:33:43.328000 >>> DELETE FROM TABLE client credits WHERE id = 12779 
+Key = id - Value = 12779
+Key = client - Value = 378
+Key = date - Value = 2014-10-19 00:33:21
+Key = price - Value = 1075.0
+Key = description - Value = Велокуртка Pro Team Isowind, размер L; 
+Key = user - Value = 4
+2014-10-20 14:51:11.156000 >>> DELETE FROM TABLE work type WHERE id = 671 
+Key = id - Value = 671
+Key = name - Value = Запресовка чашок
+Key = work_group - Value = 6
+Key = price - Value = 10.0
+Key = description - Value = Запресовка чашок
+2014-10-20 14:55:20.656000 >>> DELETE FROM TABLE work type WHERE id = 674 
+Key = id - Value = 674
+Key = name - Value = установка ромашки
+Key = work_group - Value = 6
+Key = price - Value = 10.0
+Key = description - Value = установки ромашки
+2014-10-20 15:27:31.281000 >>> DELETE FROM TABLE work type WHERE id = 3 
+Key = id - Value = 3
+Key = name - Value = Заміна або встановлення тросику передач
+Key = work_group - Value = 2
+Key = price - Value = 15.0
+Key = description - Value = Заміна або встановлення тросику	+ налаштування перемикача
+2014-10-20 16:12:27.828000 >>> DELETE FROM TABLE work type WHERE id = 661 
+Key = id - Value = 661
+Key = name - Value = демонтаж і монтаж касети
+Key = work_group - Value = 15
+Key = price - Value = 10.0
+Key = description - Value =  
+2014-10-20 16:14:31.781000 >>> DELETE FROM TABLE work type WHERE id = 655 
+Key = id - Value = 655
+Key = name - Value = заміна касети
+Key = work_group - Value = 15
+Key = price - Value = 10.0
+Key = description - Value =     
+2014-10-20 16:41:14.656000 >>> DELETE FROM TABLE work type WHERE id = 636 
+Key = id - Value = 636
+Key = name - Value = Встановлення дискового гідравлічного гальма
+Key = work_group - Value = 1
+Key = price - Value = 30.0
+Key = description - Value = Встановлення дискової гальмівної системи - без підрізки і прокачки гідроліній. У вартість роботи не включено встановлення дискових втулок на колеса
+2014-10-20 16:55:45.734000 >>> DELETE FROM TABLE work type WHERE id = 597 
+Key = id - Value = 597
+Key = name - Value = Заміна керма
+Key = work_group - Value = 8
+Key = price - Value = 10.0
+Key = description - Value = Рубашки і тросики у вартість не входять
+2014-10-26 04:20:20.812000 >>> DELETE FROM TABLE shop price WHERE id = 14 
+Key = id - Value = 14
+Key = catalog - Value = 3118
+Key = scount - Value = 1
+Key = dcount - Value = 0
+Key = date - Value = 2014-10-25 15:14:18
+Key = user - Value = 4
+2014-10-26 04:20:43.578000 >>> DELETE FROM TABLE shop price WHERE id = 2 
+Key = id - Value = 2
+Key = catalog - Value = 5937
+Key = scount - Value = 1
+Key = dcount - Value = 0
+Key = date - Value = 2014-10-25 15:12:32
+Key = user - Value = 4
+2014-10-26 04:23:10.812000 >>> DELETE FROM TABLE shop price WHERE id = 19 
+Key = id - Value = 19
+Key = catalog - Value = 5444
+Key = scount - Value = 1
+Key = dcount - Value = 0
+Key = date - Value = 2014-10-25 15:14:29
+Key = user - Value = 4
+2014-10-26 04:23:25.609000 >>> DELETE FROM TABLE shop price WHERE id = 10 
+Key = id - Value = 10
+Key = catalog - Value = 6604
+Key = scount - Value = 1
+Key = dcount - Value = 0
+Key = date - Value = 2014-10-25 15:12:46
+Key = user - Value = 4
+2014-10-26 04:23:50.750000 >>> DELETE FROM TABLE shop price WHERE id = 4 
+Key = id - Value = 4
+Key = catalog - Value = 5945
+Key = scount - Value = 1
+Key = dcount - Value = 0
+Key = date - Value = 2014-10-25 15:12:36
+Key = user - Value = 4
+2014-10-26 04:24:06.859000 >>> DELETE FROM TABLE shop price WHERE id = 22 
+Key = id - Value = 22
+Key = catalog - Value = 5458
+Key = scount - Value = 1
+Key = dcount - Value = 0
+Key = date - Value = 2014-10-25 15:14:36
+Key = user - Value = 4
+2014-10-26 05:05:28.312000 >>> DELETE FROM TABLE shop price WHERE id = 17 
+Key = id - Value = 17
+Key = catalog - Value = 5432
+Key = scount - Value = 1
+Key = dcount - Value = 0
+Key = date - Value = 2014-10-25 15:14:25
+Key = user - Value = 4
+2014-10-26 15:06:28.828000 >>> DELETE FROM TABLE client invoice WHERE id = 25403 
+Key = id - Value = 25403
+Key = client - Value = 138
+Key = catalog - Value = 4353
+Key = count - Value = 1
+Key = price - Value = 693.0
+Key = sum - Value = 693.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 0.0
+Key = date - Value = 2014-10-26 15:06:07
+Key = description - Value = 
+Key = user - Value = 4
+2014-10-26 15:09:49.296000 >>> DELETE FROM TABLE invoice component list WHERE id = 11024 
+Key = id - Value = 11024
+Key = invoice - Value = 817
+Key = catalog - Value = 4353
+Key = count - Value = 1
+Key = price - Value = 0.0
+Key = currency - Value = 2
+Key = date - Value = 2014-10-26
+Key = description - Value = 
+2014-10-26 15:11:26.421000 >>> DELETE FROM TABLE invoice component list WHERE id = 11025 
+Key = id - Value = 11025
+Key = invoice - Value = 817
+Key = catalog - Value = 4353
+Key = count - Value = 1
+Key = price - Value = 0.0
+Key = currency - Value = 2
+Key = date - Value = 2014-10-26
+Key = description - Value = 
+2014-10-26 15:22:40.796000 >>> DELETE FROM TABLE invoice component list WHERE id = 11026 
+Key = id - Value = 11026
+Key = invoice - Value = 817
+Key = catalog - Value = 4353
+Key = count - Value = 1
+Key = price - Value = 0.0
+Key = currency - Value = 2
+Key = date - Value = 2014-10-26
+Key = description - Value = 
+2014-11-07 21:38:27.687000 >>> DELETE FROM TABLE invoice component list WHERE id = 10993 
+Key = id - Value = 10993
+Key = invoice - Value = 236
+Key = catalog - Value = 6696
+Key = count - Value = 1
+Key = price - Value = 21.0
+Key = currency - Value = 4
+Key = date - Value = 2014-10-22
+Key = description - Value = 
+2014-11-07 21:38:51.093000 >>> DELETE FROM TABLE client invoice WHERE id = 25762 
+Key = id - Value = 25762
+Key = client - Value = 1257
+Key = catalog - Value = 6696
+Key = count - Value = 1
+Key = price - Value = 630.0
+Key = sum - Value = 0.0
+Key = currency - Value = 3
+Key = sale - Value = 100
+Key = pay - Value = 0.0
+Key = date - Value = 2014-11-07 18:15:38
+Key = description - Value = 
+Key = user - Value = 5
+2014-11-13 03:50:43.671000 >>> DELETE FROM TABLE type WHERE id = 22 
+Key = id - Value = 22
+Key = name - Value = Coupler
+Key = description - Value = to connect tubing together
+Key = name_ukr - Value = відгалужувач
+Key = description_ukr - Value = 
+відгалужувач
+2014-11-13 13:14:26.468000 >>> DELETE FROM TABLE client invoice WHERE id = 24681 
+Key = id - Value = 24681
+Key = client - Value = 735
+Key = catalog - Value = 117
+Key = count - Value = 1
+Key = price - Value = 825.0
+Key = sum - Value = 783.75
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = pay - Value = 783.75
+Key = date - Value = 2014-09-24 13:58:47
+Key = description - Value = 
+Key = user - Value = 7
+2014-11-13 13:14:50.781000 >>> DELETE FROM TABLE client debts WHERE id = 14563 
+Key = id - Value = 14563
+Key = client - Value = 735
+Key = date - Value = 2014-09-24 14:00:47
+Key = price - Value = 783.75
+Key = description - Value = Велоштаны TERMO ISOWIND, размер L; 
+Key = user - Value = 7
+2014-11-14 15:33:06.234000 >>> DELETE FROM TABLE client invoice WHERE id = 23462 
+Key = id - Value = 23462
+Key = client - Value = 138
+Key = catalog - Value = 7443
+Key = count - Value = 1
+Key = price - Value = 270.0
+Key = sum - Value = 270.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 270.0
+Key = date - Value = 2014-08-21 12:55:00
+Key = description - Value = 
+Key = user - Value = 7
+2014-11-15 13:50:38.343000 >>> DELETE FROM TABLE client invoice WHERE id = 25915 
+Key = id - Value = 25915
+Key = client - Value = 138
+Key = catalog - Value = 2754
+Key = count - Value = 1
+Key = price - Value = 200.0
+Key = sum - Value = 0.0
+Key = currency - Value = 3
+Key = sale - Value = 100
+Key = pay - Value = 0.0
+Key = date - Value = 2014-11-14 02:25:47
+Key = description - Value = 
+Key = user - Value = 4
+2014-11-16 15:46:13.421000 >>> DELETE FROM TABLE client invoice WHERE id = 25950 
+Key = id - Value = 25950
+Key = client - Value = 2
+Key = catalog - Value = 4663
+Key = count - Value = 1
+Key = price - Value = 15.0
+Key = sum - Value = 14.25
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = pay - Value = 0.0
+Key = date - Value = 2014-11-16 15:36:39
+Key = description - Value = 
+Key = user - Value = 3
+2014-11-18 01:14:08.968000 >>> DELETE FROM TABLE client invoice WHERE id = 25944 
+Key = id - Value = 25944
+Key = client - Value = 138
+Key = catalog - Value = 2648
+Key = count - Value = 1
+Key = price - Value = 184.0
+Key = sum - Value = 184.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 184.0
+Key = date - Value = 2014-11-17 18:35:51
+Key = description - Value = 
+Key = user - Value = 4
+2014-11-27 00:55:11.453000 >>> DELETE FROM TABLE client invoice WHERE id = 20815 
+Key = id - Value = 20815
+Key = client - Value = 138
+Key = catalog - Value = 5911
+Key = count - Value = 1
+Key = price - Value = 205.0
+Key = sum - Value = 198.85
+Key = currency - Value = 3
+Key = sale - Value = 3
+Key = pay - Value = 198.85
+Key = date - Value = 2014-06-24 13:09:07
+Key = description - Value = 
+Key = user - Value = 7
+2014-11-27 03:46:36.171000 >>> DELETE FROM TABLE client invoice WHERE id = 25410 
+Key = id - Value = 25410
+Key = client - Value = 2
+Key = catalog - Value = 3847
+Key = count - Value = 1
+Key = price - Value = 55.0
+Key = sum - Value = 52.25
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = pay - Value = 52.25
+Key = date - Value = 2014-10-24 14:34:17
+Key = description - Value = 
+Key = user - Value = None
+2014-11-27 03:47:05.578000 >>> DELETE FROM TABLE client invoice WHERE id = 25391 
+Key = id - Value = 25391
+Key = client - Value = 386
+Key = catalog - Value = 3847
+Key = count - Value = 1
+Key = price - Value = 55.0
+Key = sum - Value = 0.0
+Key = currency - Value = 3
+Key = sale - Value = 100
+Key = pay - Value = 0.0
+Key = date - Value = 2014-10-23 12:26:40
+Key = description - Value = 
+Key = user - Value = 7
+2014-11-27 03:55:59.640000 >>> DELETE FROM TABLE client invoice WHERE id = 15622 
+Key = id - Value = 15622
+Key = client - Value = 846
+Key = catalog - Value = 3885
+Key = count - Value = 1
+Key = price - Value = 296.0
+Key = sum - Value = 296.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 296.0
+Key = date - Value = 2014-01-13 18:38:11
+Key = description - Value = 
+Key = user - Value = None
+2014-11-27 03:57:01.328000 >>> DELETE FROM TABLE client invoice WHERE id = 19119 
+Key = id - Value = 19119
+Key = client - Value = 138
+Key = catalog - Value = 6279
+Key = count - Value = 1
+Key = price - Value = 247.0
+Key = sum - Value = 247.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 247.0
+Key = date - Value = 2014-05-17 16:50:37
+Key = description - Value = 
+Key = user - Value = 5
+2014-11-29 00:40:26.406000 >>> DELETE FROM TABLE bicycle_ store WHERE id = 517 
+Key = id - Value = 517
+Key = model - Value = 286
+Key = serial_number - Value = -
+Key = size - Value = 28
+Key = price - Value = 150.1
+Key = currency - Value = 2
+Key = count - Value = 1
+Key = realization - Value = False
+Key = date - Value = 2014-05-08
+Key = description - Value = 
+2014-11-30 04:40:28.281000 >>> DELETE FROM TABLE client invoice WHERE id = 26239 
+Key = id - Value = 26239
+Key = client - Value = 1277
+Key = catalog - Value = 7116
+Key = count - Value = 1
+Key = price - Value = 600.0
+Key = sum - Value = 570.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = pay - Value = 0.0
+Key = date - Value = 2014-11-29 17:18:09
+Key = description - Value = 
+Key = user - Value = None
+2014-12-01 19:55:41.750000 >>> DELETE FROM TABLE work shop WHERE id = 2436 
+Key = id - Value = 2436
+Key = client - Value = 404
+Key = date - Value = 2014-11-26 15:21:26
+Key = work_type - Value = 691
+Key = price - Value = 15.0
+Key = pay - Value = True
+Key = user - Value = 5
+Key = description - Value = 
+2014-12-03 16:00:22.171000 >>> DELETE FROM TABLE work day WHERE id = 3 
+Key = id - Value = 3
+Key = date - Value = 2014-12-03
+Key = user - Value = 3
+Key = status - Value = 0
+Key = description - Value = 
+2014-12-03 16:02:07.843000 >>> DELETE FROM TABLE work day WHERE id = 1 
+Key = id - Value = 1
+Key = date - Value = 2014-12-03
+Key = user - Value = 3
+Key = status - Value = 0
+Key = description - Value = хз
+2014-12-03 16:02:51.750000 >>> DELETE FROM TABLE work day WHERE id = 6 
+Key = id - Value = 6
+Key = date - Value = 2014-12-03
+Key = user - Value = 3
+Key = status - Value = 0
+Key = description - Value = йцйц
+2014-12-03 16:05:52.937000 >>> DELETE FROM TABLE work day WHERE id = 7 
+Key = id - Value = 7
+Key = date - Value = 2014-12-03
+Key = user - Value = 3
+Key = status - Value = 1
+Key = description - Value = бла
+2014-12-04 00:04:55 >>> DELETE FROM TABLE work ticket WHERE id = 814 
+Key = id - Value = 814
+Key = client - Value = 977
+Key = date - Value = 2014-12-04
+Key = end_date - Value = 2014-12-04
+Key = status - Value = 1
+Key = description - Value = цукамаси
+2014-12-04 14:00:45.359000 >>> DELETE FROM TABLE work ticket WHERE id = 816 
+Key = id - Value = 816
+Key = client - Value = 31
+Key = date - Value = 2014-12-04
+Key = end_date - Value = 2014-12-04
+Key = status - Value = 1
+Key = description - Value = test
+2014-12-04 17:38:02.062000 >>> DELETE FROM TABLE client debts WHERE id = 15210 
+Key = id - Value = 15210
+Key = client - Value = 352
+Key = date - Value = 2014-11-11 16:43:31
+Key = price - Value = 360.0
+Key = description - Value = покрышка	Continental RACE KING 26*2,2 FOLD; 
+Key = user - Value = 5
+2014-12-04 17:38:41.406000 >>> DELETE FROM TABLE client invoice WHERE id = 25849 
+Key = id - Value = 25849
+Key = client - Value = 352
+Key = catalog - Value = 7504
+Key = count - Value = 1
+Key = price - Value = 400.0
+Key = sum - Value = 360.0
+Key = currency - Value = 3
+Key = sale - Value = 10
+Key = pay - Value = 360.0
+Key = date - Value = 2014-11-11 16:42:11
+Key = description - Value = 
+Key = user - Value = 5
+2014-12-14 02:46:19.953000 >>> DELETE FROM TABLE client invoice WHERE id = 10908 
+Key = id - Value = 10908
+Key = client - Value = 138
+Key = catalog - Value = 3990
+Key = count - Value = 1
+Key = price - Value = 70.0
+Key = sum - Value = 70.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 70.0
+Key = date - Value = 2013-06-18 14:20:12
+Key = description - Value = 
+Key = user - Value = None
+2014-12-15 01:17:45.734000 >>> DELETE FROM TABLE cash type WHERE id = 4 
+Key = id - Value = 4
+Key = name - Value = тест
+Key = description - Value = тест1
+2014-12-17 13:47:52.171000 >>> DELETE FROM TABLE client credits WHERE id = 13372 
+Key = id - Value = 13372
+Key = client - Value = 2
+Key = date - Value = 2014-12-16 16:33:03
+Key = price - Value = 25000.0
+Key = cash_type - Value = 1
+Key = description - Value = Цепь инд. 112 зв. 1/2x1/8 KMC Z410 brown/brown ; Шлем BUGGIE розовый цветок, размер  XS/S; Герметик для покрышек Bontrager TLR TIRE SEALANT (0,95 литра); 
+Key = user - Value = 5
+2014-12-17 19:12:17.734000 >>> DELETE FROM TABLE work ticket WHERE id = 822 
+Key = id - Value = 822
+Key = client - Value = 1282
+Key = date - Value = 2014-12-17
+Key = end_date - Value = 2014-12-17
+Key = status - Value = 2
+Key = description - Value = уцкуцк
+2014-12-20 23:08:39.859000 >>> DELETE FROM TABLE client invoice WHERE id = 26439 
+Key = id - Value = 26439
+Key = client - Value = 1257
+Key = catalog - Value = 7967
+Key = count - Value = 5
+Key = price - Value = 50.0
+Key = sum - Value = 0.0
+Key = currency - Value = 3
+Key = sale - Value = 100
+Key = pay - Value = 0.0
+Key = date - Value = 2014-12-20 14:50:48
+Key = description - Value = 
+Key = user - Value = 5
+2014-12-20 23:08:44.843000 >>> DELETE FROM TABLE client invoice WHERE id = 26440 
+Key = id - Value = 26440
+Key = client - Value = 1257
+Key = catalog - Value = 7968
+Key = count - Value = 2
+Key = price - Value = 50.0
+Key = sum - Value = 0.0
+Key = currency - Value = 3
+Key = sale - Value = 100
+Key = pay - Value = 0.0
+Key = date - Value = 2014-12-20 14:51:10
+Key = description - Value = 
+Key = user - Value = 5
+2014-12-20 23:08:49 >>> DELETE FROM TABLE invoice component list WHERE id = 11107 
+Key = id - Value = 11107
+Key = invoice - Value = 236
+Key = catalog - Value = 7967
+Key = count - Value = 5
+Key = price - Value = 0.0
+Key = currency - Value = 2
+Key = date - Value = 2014-11-12
+Key = rcount - Value = None
+Key = description - Value = 
+Key = user - Value = None
+2014-12-20 23:09:05.937000 >>> DELETE FROM TABLE invoice component list WHERE id = 11108 
+Key = id - Value = 11108
+Key = invoice - Value = 236
+Key = catalog - Value = 7968
+Key = count - Value = 2
+Key = price - Value = 0.0
+Key = currency - Value = 2
+Key = date - Value = 2014-11-12
+Key = rcount - Value = None
+Key = description - Value = 
+Key = user - Value = None
+2014-12-21 01:37:55.843000 >>> DELETE FROM TABLE client credits WHERE id = 13403 
+Key = id - Value = 13403
+Key = client - Value = 1257
+Key = date - Value = 2014-12-20 14:51:27
+Key = price - Value = 0.0
+Key = cash_type - Value = 1
+Key = description - Value = Футболка велодень (лого ВК)
+Key = user - Value = 5
+2014-12-21 01:38:15.640000 >>> DELETE FROM TABLE client credits WHERE id = 13402 
+Key = id - Value = 13402
+Key = client - Value = 1257
+Key = date - Value = 2014-12-20 14:51:06
+Key = price - Value = 0.0
+Key = cash_type - Value = 1
+Key = description - Value = Футболка велодень
+Key = user - Value = 5
+2014-12-21 13:18:11.390000 >>> DELETE FROM TABLE client invoice WHERE id = 12609 
+Key = id - Value = 12609
+Key = client - Value = 378
+Key = catalog - Value = 2267
+Key = count - Value = 4
+Key = price - Value = 55.0
+Key = sum - Value = 220.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 220.0
+Key = date - Value = 2013-07-30 17:18:13
+Key = description - Value = 
+Key = user - Value = 5
+2014-12-21 13:42:34.765000 >>> DELETE FROM TABLE client invoice WHERE id = 6704 
+Key = id - Value = 6704
+Key = client - Value = 378
+Key = catalog - Value = 479
+Key = count - Value = 1
+Key = price - Value = 80.0
+Key = sum - Value = 80.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 80.0
+Key = date - Value = 2012-12-03 16:16:24
+Key = description - Value = 
+Key = user - Value = 5
+2014-12-22 22:15:28.265000 >>> DELETE FROM TABLE client invoice WHERE id = 9320 
+Key = id - Value = 9320
+Key = client - Value = 138
+Key = catalog - Value = 105
+Key = count - Value = 8
+Key = price - Value = 0.25
+Key = sum - Value = 2.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 2.0
+Key = date - Value = 2013-05-10 16:27:58
+Key = description - Value = 
+Key = user - Value = 5
+2014-12-23 03:45:47.265000 >>> DELETE FROM TABLE client invoice WHERE id = 25636 
+Key = id - Value = 25636
+Key = client - Value = 2
+Key = catalog - Value = 3518
+Key = count - Value = 1
+Key = price - Value = 314.0
+Key = sum - Value = 0.0
+Key = currency - Value = 3
+Key = sale - Value = 100
+Key = pay - Value = 0.0
+Key = date - Value = 2014-11-03 18:37:23
+Key = description - Value = 
+Key = user - Value = 4
+2015-01-10 00:35:10.718000 >>> DELETE FROM TABLE client debts WHERE id = 15869 
+Key = id - Value = 15869
+Key = client - Value = 138
+Key = date - Value = 2015-01-10 00:33:06
+Key = price - Value = 8525.18
+Key = description - Value = Ось втулки задняя MTB на гайках 3/8"x26T 175мм ; Roverbox 20 ; шарики  задн. втулки (1/4") комплект 18 шт. ; Динг-Донг Green Cycle GCB-1058S I love my bike, диаметр 80mm, розовый; Фляга KLS KAROO 0,7L серый/желтый; Фляга KLS KAROO 0,7L полу-пр./красный; Флягодержатель RATIO, серый; каретка BB-UN26 BSA 73x122.5мм, 1.37Х24 без болтов ; Каретка Mega Exo cartridge BB, BSA, BB-7000 ; Сальник JAGWIRE BSA047 на V-brake тормоз Black Rubber (1шт); Ручки тормозные ALHONGA HJ-317ADV 2007 Al черн-сереб 2 пальца ; Тормозные колодки V-Brake Alligator, 70мм., черные ; Тормозные колодки Alligator (органика) (для Avid Elixir); Рубашка Alligator тормозная 2Р 5мм серая (бухта 30м) ; Рубашка Alligator переключения SP 4мм Черная (бухта 30м) ; Тросик переключения Alligator нерж. полированный бухта 100шт ; Тросик тормозной Alligator нерж. полированный бухта 100шт ; Тросик тормозной Alligator нерж. полированный бухта 100шт ; Кассета инд. 8-k 11-34T SUN RACE M66 Satin ;     Цепь KMC Z72 116 звеньев, 8 звёзд, с замком ; Замок цепи KMC CL559R-NP 10 ск. 2шт/уп.; шатуны FC-M171, 170мм, 48X38X28, с защитой, черн ; Велокомпьютер Kellys KCC-09; Концовка рубашки переключения, пластик, в коробке 1 шт.; Концовка рубашки тормозного троса, метал, в коробке 1 шт.; Колпачок на рубашку JAGWIRE CHA089 - торм. 5мм - Black алюм. (20шт); Колпачок на рубашку JAGWIRE Open BOT115-2DE - торм. 5мм - Black алюм. (200шт) ; Колпачок на рубашку CF Cup-I хромир. 2P 5мм; Очки Goggle Е335-4P; Руль FireEye Blaze 733 31.8 / 733mm ALU, чёрный ; Грипсы STOLEN MONEY 145мм Gang green; Грипсы FireEye Stripper No.2 с замками, фиолетовые; Обмотка Bontrager пробков. синий ; Ручки руля KLS FOAM неопреновые; Камера Bontrager 26X1.75-2.125 SV 50/BX; Камера 29ERx1,95/2,10; Камера Bontrager 26X1.75-2.125 SV 50/BX; Камера Bontrager 700X18-25 PV48 50/BX; Мигалка задняя KLS ELEMENT; Фара и Мигалка KLS TWIN красный, набор; Батарея питания GP AAA; Трос с замком KLS RECOIL, 12х5,6х1200 mm; Корзина BELLELLI PLAZA BIANCO белый пластиковая с креплением на руль; Дзеркало на кермо Blackburn Multi, універс.; Педали Wellgo B78 ; Педаль  STOLEN Thermalite Gang Green ; Насос компактный, лого VK-04; Насос-мини GP-93, телескопический, алю; Флипер (лента) на обод 22-559 ( 26" ) желтый 1 шт ; Седло MAX FLITE Gel Flow Vanox/кожа черн 290g; Седло VL-2180 CroMo рамка, лого VK ; Седло STOLEN с трубой 75 мм Combo Black/Black; Спица Inox Plus (нержавейка) 2/258/ 1шт; UNO вынос KL-100 Серебристый, длина: 100мм шоссе, 1" резьбовой, угол наклона отрицательн.(направлен вниз); Покрышка Stradius Sport 700X23C Kevlar (red); Покрышка Schwalbe RAPID ROB KevlarGuard 29x2.25 57-622 B/B-SK HS391 SBC; Покрышка Schwalbe RAPID ROB KevlarGuard 54-622 B/B-SK HS391 SBC (29x2.10); Покрышка 26x2.15 (55-559) Schwalbe BIG APPLE KevlarGuard C/C+RT HS430 SBC 50EPI; Покрышка Schwalbe SPICER KevlarGuard 40-559 B/B-SK+RT HS442 SBC (26x1.50); Съемник трещётки HG Shimano под 24мм ; Клей ICE TOOLZ в тюбиках 10мл. х50шт.; Клей ICE TOOLZ в тюбиках 10мл. х50шт.; Колпачок камеры TW V23 Крест черн; Балаклава флис с лого - черные, синие; Велокуртка ELITE BARIER, черн/бел, разм. L; 
+Key = user - Value = 4
+2015-01-14 01:03:01.859000 >>> DELETE FROM TABLE shop daily sales WHERE id = 93 
+Key = id - Value = 93
+Key = date - Value = 2015-01-14 00:44:13
+Key = price - Value = 200.0
+Key = description - Value = bla
+Key = user - Value = 1
+Key = cash - Value = 1000.0
+Key = tcash - Value = 0.0
+Key = ocash - Value = 0.0
+2015-01-14 22:03:41.468000 >>> DELETE FROM TABLE client credits WHERE id = 13620 
+Key = id - Value = 13620
+Key = client - Value = 2
+Key = date - Value = 2015-01-14 14:30:25
+Key = price - Value = 535.0
+Key = cash_type - Value = 1
+Key = description - Value = Багажник Standwell SW-CM001 черный CroMoly  26" v-brake, на 40 кг; 
+Key = user - Value = 5
+2015-01-14 22:03:59.015000 >>> DELETE FROM TABLE client debts WHERE id = 15899 
+Key = id - Value = 15899
+Key = client - Value = 2
+Key = date - Value = 2015-01-14 00:00:00
+Key = price - Value = 100.0
+Key = cash - Value = False
+Key = description - Value = bla
+Key = user - Value = 5
+2015-01-14 22:18:24.734000 >>> DELETE FROM TABLE client invoice WHERE id = 26713 
+Key = id - Value = 26713
+Key = client - Value = 2
+Key = catalog - Value = 99
+Key = count - Value = 1
+Key = price - Value = 20.0
+Key = sum - Value = 20.0
+Key = currency - Value = 3
+Key = sale - Value = 5
+Key = pay - Value = 20.0
+Key = date - Value = 2015-01-14 22:16:46
+Key = description - Value = 
+Key = user - Value = 4
+2015-01-17 02:33:52.125000 >>> DELETE FROM TABLE client credits WHERE id = 13618 
+Key = id - Value = 13618
+Key = client - Value = 1287
+Key = date - Value = 2015-01-17 02:33:33
+Key = price - Value = 30.0
+Key = cash_type - Value = 2
+Key = description - Value = Роботи: Ремонт дуалконтролів; 
+Key = user - Value = 4
+2015-01-18 01:42:19.796000 >>> DELETE FROM TABLE work shop WHERE id = 2482 
+Key = id - Value = 2482
+Key = client - Value = 138
+Key = date - Value = 2015-01-18 00:00:00
+Key = work_type - Value = 677
+Key = price - Value = 15.0
+Key = pay - Value = False
+Key = user - Value = 4
+Key = description - Value = 
+2015-01-18 01:54:35.093000 >>> DELETE FROM TABLE work shop WHERE id = 2483 
+Key = id - Value = 2483
+Key = client - Value = 138
+Key = date - Value = 2015-01-18 01:54:19
+Key = work_type - Value = 631
+Key = price - Value = 25.0
+Key = pay - Value = False
+Key = user - Value = 4
+Key = description - Value = 
+2015-01-18 01:58:41.406000 >>> DELETE FROM TABLE client invoice WHERE id = 26764 
+Key = id - Value = 26764
+Key = client - Value = 138
+Key = catalog - Value = 105
+Key = count - Value = 1
+Key = price - Value = 0.4
+Key = sum - Value = 0.4
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 0.0
+Key = date - Value = 2015-01-18 01:58:19
+Key = description - Value = 
+Key = user - Value = 4
+2015-01-20 00:23:30.390000 >>> DELETE FROM TABLE client message WHERE id = 5 
+Key = id - Value = 5
+Key = client - Value = 848
+Key = msg - Value =  сидушку та задаток повернено
+Key = status - Value = False
+Key = date - Value = 2015-01-14
+Key = user - Value = 7
+Key = ddate - Value = 2015-01-14 00:00:00
+Key = duser - Value = None
+2015-01-28 03:19:30.675000 >>> DELETE FROM TABLE bicycle_ order WHERE id = 93 
+Key = id - Value = 93
+Key = client - Value = 2
+Key = model - Value = 422
+Key = size - Value = 19
+Key = price - Value = 7330.0
+Key = sale - Value = 0
+Key = prepay - Value = 1000.0
+Key = currency - Value = 3
+Key = date - Value = 2015-01-28
+Key = done - Value = False
+Key = description - Value = 
+Key = user - Value = 4
+2015-02-18 02:26:19.491000 >>> DELETE FROM TABLE work day WHERE id = 10 
+Key = id - Value = 10
+Key = date - Value = 2015-02-16
+Key = user - Value = 4
+Key = status - Value = 0
+Key = description - Value = пішов з обіду
+2015-02-25 13:13:16.453000 >>> DELETE FROM TABLE bicycle_ sale WHERE id = 590 
+Key = id - Value = 590
+Key = model - Value = 624
+Key = client - Value = 1315
+Key = price - Value = 15540.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = date - Value = 2015-02-25
+Key = service - Value = False
+Key = description - Value = 
+Key = user - Value = 5
+Key = sum - Value = 15540.0
+Key = debt - Value = 16335
+2015-02-25 23:48:09.375000 >>> DELETE FROM TABLE client invoice WHERE id = 27313 
+Key = id - Value = 27313
+Key = client - Value = 76
+Key = catalog - Value = 2289
+Key = count - Value = 10
+Key = price - Value = 35.0
+Key = sum - Value = 297.5
+Key = currency - Value = 3
+Key = sale - Value = 15
+Key = pay - Value = 297.5
+Key = date - Value = 2015-02-24 19:43:37
+Key = description - Value = 
+length:10.0
+Key = user - Value = 5
+2015-02-25 23:48:44.906000 >>> DELETE FROM TABLE client invoice WHERE id = 27315 
+Key = id - Value = 27315
+Key = client - Value = 76
+Key = catalog - Value = 634
+Key = count - Value = 5
+Key = price - Value = 40.0
+Key = sum - Value = 170.0
+Key = currency - Value = 3
+Key = sale - Value = 15
+Key = pay - Value = 170.0
+Key = date - Value = 2015-02-24 19:43:16
+Key = description - Value = 
+length:5.0
+Key = user - Value = 5
+2015-02-25 23:49:03.734000 >>> DELETE FROM TABLE client debts WHERE id = 16331 
+Key = id - Value = 16331
+Key = client - Value = 76
+Key = date - Value = 2015-02-24 19:48:44
+Key = price - Value = 854.25
+Key = cash - Value = False
+Key = description - Value = Тросик гальмівний Alligator супер полірована оцинковка (бухта 100шт); Тросик тормозной Alligator нерж. полированный бухта 100шт ; Тросик переключения Alligator нерж. полированный бухта 100шт ; Грипсы FireEye Honeycomb с замками ; Рулевая A-H Al/Fe 28,6мм -1 1/8", черн  ; 
+Key = user - Value = 5
+2015-02-25 23:49:19.875000 >>> DELETE FROM TABLE client invoice WHERE id = 27312 
+Key = id - Value = 27312
+Key = client - Value = 76
+Key = catalog - Value = 50
+Key = count - Value = 1
+Key = price - Value = 150.0
+Key = sum - Value = 127.5
+Key = currency - Value = 3
+Key = sale - Value = 15
+Key = pay - Value = 127.5
+Key = date - Value = 2015-02-24 19:39:34
+Key = description - Value = 
+Key = user - Value = 5
+2015-02-25 23:50:13.515000 >>> DELETE FROM TABLE client invoice WHERE id = 27314 
+Key = id - Value = 27314
+Key = client - Value = 76
+Key = catalog - Value = 8126
+Key = count - Value = 5
+Key = price - Value = 20.0
+Key = sum - Value = 85.0
+Key = currency - Value = 3
+Key = sale - Value = 15
+Key = pay - Value = 85.0
+Key = date - Value = 2015-02-24 19:43:07
+Key = description - Value = 
+length:5.0
+Key = user - Value = 5
+2015-02-25 23:50:27.265000 >>> DELETE FROM TABLE client invoice WHERE id = 27311 
+Key = id - Value = 27311
+Key = client - Value = 76
+Key = catalog - Value = 2112
+Key = count - Value = 1
+Key = price - Value = 205.0
+Key = sum - Value = 174.25
+Key = currency - Value = 3
+Key = sale - Value = 15
+Key = pay - Value = 174.25
+Key = date - Value = 2015-02-24 19:35:04
+Key = description - Value = 
+Key = user - Value = 5
+2015-02-26 01:46:33.125000 >>> DELETE FROM TABLE catalog WHERE id = 6661 
+Key = id - Value = 6661
+Key = ids - 2015-02-26 01:47:56.437000 >>> DELETE FROM TABLE catalog WHERE id = 6661 
+Key = id - Value = 6661
+Key = ids - 2015-02-26 01:49:48.812000 >>> DELETE FROM TABLE catalog WHERE id = 6661 
+Key = id - Value = 6661
+Key = ids - 2015-02-27 03:33:49.921000 >>> DELETE FROM TABLE client debts WHERE id = 16362 
+Key = id - Value = 16362
+Key = client - Value = 528
+Key = date - Value = 2015-02-26 16:28:37
+Key = price - Value = 40.0
+Key = cash - Value = False
+Key = description - Value = камера
+Key = user - Value = 7
+2015-05-23 00:33:43.734000 >>> DELETE FROM TABLE work day WHERE id = 30 
+Key = id - Value = 30
+Key = date - Value = 2015-05-23
+Key = user - Value = 7
+Key = status - Value = 0
+Key = description - Value = зник безвісті
+2015-05-23 00:49:12.531000 >>> DELETE FROM TABLE invoice component list WHERE id = 12955 
+Key = id - Value = 12955
+Key = invoice - Value = 939
+Key = catalog - Value = 3443
+Key = count - Value = 2
+Key = price - Value = 2.22
+Key = currency - Value = 2
+Key = date - Value = 2015-05-20
+Key = rcount - Value = 2
+Key = description - Value = 
+Key = user - Value = 9
+2015-05-23 00:49:19.406000 >>> DELETE FROM TABLE invoice component list WHERE id = 12953 
+Key = id - Value = 12953
+Key = invoice - Value = 939
+Key = catalog - Value = 7289
+Key = count - Value = 3
+Key = price - Value = 2.0
+Key = currency - Value = 2
+Key = date - Value = 2015-05-20
+Key = rcount - Value = 3
+Key = description - Value = 
+Key = user - Value = 9
+2015-05-24 00:34:01.392000 >>> DELETE FROM TABLE client debts WHERE id = 18183 
+Key = id - Value = 18183
+Key = client - Value = 82
+Key = date - Value = 2015-05-23 17:27:39
+Key = price - Value = 1360.0
+Key = cash - Value = False
+Key = description - Value = Рюкзак Cross Bike 18 цвет 3333 coolblue-midnight; 
+Key = user - Value = 5
+2015-10-22 03:21:42.768000 >>> DELETE FROM TABLE inventory list WHERE id = 1 
+Key = id - Value = 1
+Key = catalog - Value = 1088
+Key = count - Value = 1
+Key = date - Value = 2015-10-22 03:20:35
+Key = edit_date - Value = 2015-10-22 03:20:35
+Key = description - Value = вітрина
+Key = user - Value = 4
+Key = real_count - Value = 1
+Key = check_all - Value = False

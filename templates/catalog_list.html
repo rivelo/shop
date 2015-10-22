@@ -1,0 +1,233 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<script type="text/javascript" src="/media/jquery-1.7.2.min.js"></script>
+<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+
+<script>
+
+$(document).ready(function() {
+     $('.edit').editable('/catalog/edit/149', {
+     	 id   : 'id',
+         name : 'price',
+   // submitdata: { _method: "GET", id: 149 , price : 100},
+         
+   //    submitdata: {id: $(this).attr('id_price')},
+         submitdata : function() {
+      	 	return {id : $(this).attr('id_price')};
+    	 },
+         indicator : 'Saving...',
+         tooltip   : 'Click to edit...',
+         select : true,
+         callback : function(value, settings) {
+         $(this).html(value);
+     }
+     });
+     
+     
+     $('.edit_sale').editable('/catalog/edit/149', {
+     	 id   : 'id',
+         name : 'sale',
+
+         submitdata : function() {
+      	 	return {id : $(this).attr('id_sale')};
+    	 },
+         indicator : 'Saving...',
+         tooltip   : 'Click to edit...',
+         select : true,
+         callback : function(value, settings) {
+         $(this).html(value);
+     }
+     });
+     
+     
+     $('.edit_area').editable('/catalog/edit/149', {
+         submitdata : function() {
+      	 	return {id : $(this).attr('id_desc')};
+    	 },         
+         type      : 'textarea',
+         cancel    : 'Cancel',
+         submit    : 'OK',
+         indicator : 'Saving',
+         tooltip   : 'Click to edit...',
+         
+     });
+
+ 
+   $('.edit_type').each(function() {
+	$(this).editable('/catalog/set/type/', {
+	
+     loadurl : '/category/get/list/',
+     loaddata : {sel: $(this).attr('cat_id')},
+     loadtype: 'POST',     
+     type   : 'select',
+     submit : 'OK',
+     tooltip   : 'Click to edit...',
+     style   : 'inherit',
+     submitdata : function() {
+      	return {id : $(this).attr('id_type')};
+    	 },
+     callback : function(value, settings) {
+//         console.log(this);
+//         console.log(typeof(value));
+//         console.log(settings);
+         var obj = jQuery.parseJSON(value);
+//         console.log(obj);
+         $(this).attr({'cat_id': obj[0]['type__id']});
+         
+         str1 = '<a href="/catalog/type/' + obj[0]['type__id'];
+         str2 = '/view">' + obj[0]['type__name'] + "</a>";
+         $(this).html(str1 + str2);
+         
+     }
+     });
+    });
+     
+}); 
+
+</script>
+
+
+{% if view %}
+
+<br>
+{% for company in company_list %}
+<a href="/catalog/manufacture/{{company.id}}/view/">{{company.name}}</a>
+{% endfor %}
+<br>
+
+{% endif %}
+
+   
+    <h1>Список Продукції {{catalog.manufacturer.name}}  ({{catalog.count}})</h1>
+    <a href="/catalog/add/">Додати новий товар</a>
+    {% if url %}   
+    <a href="{{url}}">Друкувати цінники</a>
+    {% endif %}
+
+    <table width="100%">
+
+	<col width="1%" valign="top">
+	<col width="5%" valign="top">
+   	<col width="20%" valign="top">    
+   	<col width="5%" valign="top">
+   	<col width="10%" valign="top">
+   	<col width="1%" valign="top">
+   	<col width="1%" valign="top">
+   	<col width="2%" valign="top">
+   	<col width="9%" valign="top">
+   	<col width="2%" valign="top">
+   	<col width="2%" valign="top">
+   	<col width="2%" valign="top">
+   	<col width="2%" valign="top">
+   	<col width="2%" valign="top">
+   	<col width="2%" valign="top">
+
+    
+	<tr>
+	<th>#</th>
+    	<th id="id_col">ID</th>
+    	<th>Код</th>
+    	<th>Назва</th>
+    	<th>Виробник</th>
+    	<th>Тип</th>
+    	<th>Вага</th>
+    	<th width="2%">Рік виготовлення</th>
+    	<th>Дата закінчення розпродажу</th>
+    	<th>Колір</th>
+    	<th>Ціна</th>
+    	<th>Валюта</th>
+    	<th>Знижка (%)</th>
+    	<th>Країна</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    	<th>Місце</th>
+    	<th>Кількість</th>
+    	<th>Наявність</th>
+    </tr>
+
+{% for type in catalog %}
+{% ifequal type.sale 0 %}
+<tr>
+{% else %}
+<tr BGCOLOR="#FF6600">
+{% endifequal %}
+	<td>
+	{{forloop.counter}}
+	</td>	
+	<td>       
+	<abbr title="Додати товар до накладної"><a href="/invoice/catalog/{{ type.id }}/add">{{type.id}}</a></abbr>
+	</td>
+	<td>       
+	{{type.ids}}
+	</td>
+	<td>       
+	<a href="/catalog/edit/{{ type.id }}">{{type.name}}</a>
+	</td>
+	<td>       
+	<a href="/catalog/manufacture/{{ type.manufacturer.id }}/view">{{type.manufacturer}}</a>
+	</td>
+	
+	{% if user.is_authenticated %}
+	<td class="edit_type" id_type="{{type.id}}" cat_id="{{type.type.id}}">
+	{% else %}
+	<td id_type="{{type.id}}" cat_id="{{type.type.id}}">
+	{% endif %}		       
+	<a href="/catalog/type/{{type.type.id}}/view">{{type.type}}</a>
+	</td>
+	
+	<td>       
+	{{type.weight}}
+	</td>	
+	<td width="2%">       
+	{{type.year}}
+	</td>
+	<td>       
+	{{type.sale_to}}
+	</td>
+	<td>       
+	{{type.color}}
+	</td>
+{% if user.is_authenticated %}
+	<td class="edit" id_price="{{type.id}}">
+{% else %}
+	<td id_price="{{type.id}}">
+{% endif %}       
+	{{type.price}}
+	</td>
+	<td>       
+	{{type.currency}}
+	</td>	
+	<td class="edit_sale" id_sale="{{type.id}}">
+	{{type.sale}}
+	</td>
+	<td>       
+	{{type.country}}
+	</td>	
+      
+	<td class="edit_area" id_desc="{{type.id}}" align="center">	
+	{{type.description}}
+	</td>
+	<td>
+{% if user.is_authenticated %}	
+    <a href="/catalog/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')">delete</a>
+{% endif %}
+    </td>
+    <td align="center">
+    {{type.locality}}
+    </td>
+    <td align="center">
+    {{type.count}}
+    </td>
+	<td>       
+	<a href="/invoice/catalog/{{type.id}}/view/">Переглянути наявність</a>
+	</td>
+    
+</tr>
+{% endfor %}   
+    
+    <table>
+
+<br>
+

@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+    <h1>Типи затрат <a href="/cost/type/add/">(Додати)</a></h1>
+	
+<table border="1">
+    <tr>
+    	<th>ID</th>
+    	<th>Назва</th>
+    	<th>Опис</th>
+    	<th>Додати</th>
+    	<th>Дія</th>
+    </tr>    
+
+{% for type in costtypes %}
+<tr>
+	<td>       
+	<a href="/cost/type/edit/{{ type.id }}">{{type.id}}</a>
+	</td>
+	<td>       
+	{{type.name}}
+	</td>
+	<td>       
+	{{type.description}}
+	</td>
+	<td>       
+	<a href="/cost/add/{{ type.id }}">+</a>
+	</td>
+	<td>
+    <a href="/cost/type/delete/{{ type.id }}">delete</a>
+    </td>
+</tr>
+{% endfor %}    
+    
+    
+</table>
+
+
+<br><br>
+<a href="/cost/type/add/">Створити новий вид затрат</a>       
+<br>
+<a href="/cost/add/">Додати затрати</a>       
+
+
+
+

@@ -1,0 +1,40 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+
+    <h1>Типи велосипедів <a href="/bicycle-type/add/">(Додати)</a></h1>
+
+    <table>
+    <tr>
+    	<th>ID</th>
+    	<th>Назва типу</th>
+    	<th>Опис</th>
+    	<th>Звіт</th>
+    	<th>Дія</th>
+    </tr>
+    {% for type in types %}
+    <tr>
+    	<td><a href="/bicycle-type/edit/{{ type.id }}">{{ type.id }}</a></td>
+        <td>
+        {{ type.type }}
+        </td>
+        <td>
+        {{ type.description }}
+        </td>
+        	<td><a href="/bicycle/store/report/bytype/{{ type.id }}/">Наявні велосипеди</a></td>
+        <td>
+	{% if user.is_authenticated %}	        	
+            <a href="/bicycle-type/delete/{{ type.id }}" onclick="return confirm('Видалити запис - {{type.type}}?')">delete</a>
+    {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    <table>
+
+<br>
+<a href="/bicycle-type/add/">Створити новий тип (Додати/Add)</a>        
+<br>
+<a href="/bicycle/add/">Додати велосипед до каталогу</a>
+

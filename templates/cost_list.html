@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+<link type="text/css" rel="stylesheet" href="/media/paginator.css">
+
+    <h1>Затрати <a href="/cost/add/">(Додати)</a> </h1>
+	
+    <table border="1">
+    <tr>
+    	<th>#</th>
+    	<th>ID</th>
+    	<th>Дата</th>
+    	<th>Тип витрат</th>
+    	<th>Ціна (грн.)</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    </tr>    
+
+
+{% for type in costs.object_list %}
+<tr>
+	<td>
+	{{forloop.counter}}
+	</td>
+	<td>       
+	<a href="/cost/edit/{{ type.id }}">{{type.id}}</a>
+	</td>
+	<td>       
+	{{type.date|date}}
+	</td>
+	<td>       
+	{{type.cost_type}}
+	</td>
+	<td>       
+	{{type.price}}
+	</td>
+	<td>       
+	{{type.description}}
+	</td>
+	<td>
+    <a href="/cost/delete/{{ type.id }}">delete</a>
+    </td>
+</tr>
+{% endfor %}
+
+    <tr>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th>Сума</th>
+    	<th>{{summ}} грн.</th>
+    	<th></th>
+    	<th></th>
+    </tr>    
+
+
+</table>
+
+<div class="pagination">
+  <ul>
+  	{% if costs.has_previous %}
+        <li class="prev">
+            <a href="?page={{ costs.previous_page_number }}">&larr; Previous</a>
+        </li>
+    {% else %}
+    <li class="prev disabled">
+            <a href="?page={{ costs.previous_page_number }}">&larr; Previous</a>
+    </li>
+    {% endif %}
+    
+<!--     <li class="disabled"><a href="">Page {{ costs.number }} of {{ costs.paginator.num_pages }}.</a></li>
+ -->
+    {% for i in costs.paginator.page_range %}
+    {% ifequal i  costs.number%}
+    <li class="disabled"><a href="">{{ i }}.</a></li>
+    {% else %}
+    <li class="active"><a href="?page={{ i }}">{{ i }}.</a></li>
+    {% endifequal %}
+    {% endfor %}   
+    
+    {% if costs.has_next %}
+        <li class="next">
+            <a href="?page={{ costs.next_page_number }}">Next &rarr;</a>
+        </li>
+    {% else %}
+    <li class="next disabled">
+            <a href="?page={{ costs.previous_page_number }}">Next &rarr;</a>
+     </li>    
+    {% endif %}
+  </ul>
+</div>
+
+
+
+<br>
+<br>
+<a href="/cost/add/">Додати затрати</a>       
+<br>
+<a href="/">Головне меню (HOME)</a>
+
+
+

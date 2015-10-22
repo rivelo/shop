@@ -1,0 +1,19 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<head>
+    <title>Add Bicycle Type</title>
+</head>
+
+<body onload="document.getElementById('id_type').focus()">
+
+    <h1>Додати новий тип велосипедів (Bicycle Type)</h1>
+    <form action="" method="POST">
+        <table>
+            {{ form.as_table }}
+        </table>
+        <p><input type="submit" value="Save"></p>
+    </form>
+    <a href="/bicycle-type/view/">Список типів</a>
+
+</body>

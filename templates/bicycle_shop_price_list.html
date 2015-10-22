@@ -1,0 +1,123 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+{% if view %}
+<h1>Цінники на Велосипеди <a href="/bicycle/store/price/print">(Версія для друку)</a> </h1>
+{% endif %}
+
+
+{% load template_math %}   
+
+
+<table BORDER=0 CELLPADDING=4> 
+<tr>
+{% for bike in bicycles %}
+
+
+<td>
+
+
+<table>
+<tr>
+
+	<td COLSPAN="3" align="center">
+	<img src="/media/{{bike.model.brand.logo}}" width="150px">
+	</td>
+</tr>
+
+<tr>
+	<td>
+<b>	Виробник </b>
+	</td>	
+	<td>       
+	{{bike.model.brand.name}}
+	</td>
+</tr>
+
+<tr>
+	<td>       
+<b>	Модель </FONT></b>
+	</td>
+	<td width = 190>       
+	<a href="">{{bike.model.model}}</a> ({{bike.model.year.year}})
+	</td>
+</tr>
+	
+
+<!--
+<tr>
+	<td>
+	Вага
+	</td>
+	<td>       
+	{{type.weight}}
+	</td>	
+</tr>
+-->
+
+<tr>
+	<td>
+<b>	Країна виробника </b>
+	</td>
+	<td>
+	{{bike.model.brand.country}}
+	</td>	
+</tr>
+<tr>
+	<td>
+<b>	Тип велосипеду </b>
+	</td>
+	<td>
+	{{bike.model.type}}
+	</td>	
+</tr>
+
+{% if bike.model.sale > 0 %}
+<tr>
+	<td>
+<FONT COLOR=black FACE="Geneva, Arial" SIZE=3><s>Ціна</s></FONT> 	
+	</td>
+	<td>       
+<FONT COLOR=black FACE="Geneva, Arial" SIZE=3><s>{{bike.model.price}} грн.  </s></FONT>	
+	</td>
+</tr>
+<tr>
+	<td>
+<b><FONT COLOR=black FACE="Geneva, Arial" SIZE=3> Нова ціна </FONT></b> 	
+	</td>
+	<td>       
+<b><FONT COLOR=black FACE="Geneva, Arial" SIZE=3>{{bike.model.sale|div:-100|sub:-1|mul:bike.model.price|floatformat:"0"}} грн.  </FONT></b>	
+	</td>
+</tr>       
+
+{% else %}
+<tr> 	
+	<td>
+<b><FONT COLOR=black FACE="Geneva, Arial" SIZE=3>Ціна</FONT></b> 	
+	</td>
+	<td>       
+<b><FONT COLOR=black FACE="Geneva, Arial" SIZE=3>{{bike.model.price}} грн.</FONT></b>	
+	</td>
+</tr>
+{% endif %}	
+       
+
+
+</table>
+
+</td>
+
+
+{% if forloop.counter|divisibleby:"2"  %}
+</tr><tr>
+{% endif %}
+
+{% if forloop.counter|divisibleby:"6"  %}
+</table>
+<br style="page-break-after: always">
+<table BORDER=0 CELLPADDING=4> 
+{% endif %}
+ 
+{% endfor %}   
+

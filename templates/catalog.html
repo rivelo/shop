@@ -1,0 +1,35 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<script type="text/javascript">
+function sum() {
+	sale = 1 - ((parseFloat(document.getElementById('id_sale').value)||0)/100)
+    res = document.getElementById('result').innerHTML = (parseFloat(document.getElementById('id_price').value)||0) * sale
+    document.getElementById('result').innerHTML = "Сума " + document.getElementById('result').innerHTML + " грн."
+    document.getElementById('id_sum').value = res 
+}
+
+//setTimeout(sum, 100)
+
+setInterval(sum, 100)
+
+</script>
+
+<body onload="document.getElementById('id_ids').focus()">
+
+
+    <h1>Додати нову запчастину до каталогу</h1>
+    <form action="" method="POST" enctype="multipart/form-data">
+    <p><input type="submit" value="Save"></p>
+        <table>
+            {{ form.as_table }}
+        </table>
+        <h3 id="result" style="color:red; background-color:#CCCCCC"}>Ціна зі знижкою грн.</h3>
+    </form>
+    <br>
+    
+   
+   {{myurl}}
+<a href="/">HOME</a>
+
+

@@ -1,0 +1,113 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+{% load template_math %}
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+    <h1>Знайдені рахунки <a href="/dealer/invoice/add/">(Додати)</a> </h1>
+
+<br>    
+
+    <table border="1">
+	<tr>
+    	<th>ID</th>
+    	<th>Номери накладних</th>
+    	<th>Дата</th>
+    	<th>Компанія</th>
+    	<th>Менеджер</th>
+    	<th>Сума</th>
+    	<th>Валюта</th>
+		<th>Файл</th>    
+		<th>Сума в гривнях</th>	
+		<th>Отримано</th>
+		<th>Оплата</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    </tr>    
+    
+{% for type in invoice_list %}
+{% if type.payment %}
+	{% if type.received %}
+	<tr>
+	{% else %}
+	<tr BGCOLOR="#B9B9B6">
+	{% endif %}
+{% else %}
+<tr BGCOLOR="#CCCC99">
+{% endif %}
+
+	<td>       
+    <a href="/dealer/invoice/edit/{{ type.id }}">{{type.id}}</a>
+	</td>
+	{% if type.received %}
+	
+	<td>
+	{% else %}
+	<td BGCOLOR="#B9B9B6">
+	{% endif %}
+	<a href="/invoice/id/{{ type.id }}/view/">{{type.origin_id}}</a>     
+	</td>
+	
+	<td>       
+	{{type.date|date:"D d M Y"}}
+	</td>
+	<td>       
+	{{type.company.name}}
+	</td>
+	<td>       
+	{{type.manager.name}}
+	</td>
+	<td>       
+	{{type.price}}
+	</td>
+	<td>       
+	{{type.currency}}
+	</td>
+	<td>       
+	{{type.file}}
+	</td>
+<td>
+</td>	
+	<td>       
+	{{type.received|yesno:"Отримано,В дорозі,Не забрано"}}
+	</td>
+	<td>       
+	{{type.payment|yesno:"Оплачено,Не оплачено"}}
+	</td>
+ 	<td>
+	{{type.description}}
+	</td>
+	<td>
+    <a href="/dealer/invoice/delete/{{ type.id }}" onclick="return confirm('Видалити накладну?')">delete</a>
+    </td>
+</tr>
+{% endfor %}             
+    
+    	<tr>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+		<th>Сума</th>
+		<th>{{summ}}</th>	
+		<th>Борг</th>
+		<th>{{summ_debt}}</th>
+    	<th></th>
+    	<th></th>
+    </tr>    
+    
+    </table>
+
+<br>    
+
+
+
+
+<br><br>
+<a href="/">HOME</a>
+<br>
+<a href="/dealer/invoice/add/">Add</a>      

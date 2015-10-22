@@ -1,0 +1,167 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link type="text/css" rel="stylesheet" href="/media/paginator.css">
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<script language="JavaScript">
+
+function resWorkshop()
+{
+var p=0;
+var All=document.forms['formWorkshopSum'];
+for(var i = 0; i < All.elements.length; ++i) {
+	if(All.elements[i].checked){
+	p+=parseFloat(All.elements[i].value);
+	}
+	document.getElementById('workshop_pay').innerHTML = "До оплати: <br>" + p.toFixed(2)+" грн.";
+}
+}
+    
+</script>
+
+<body onLoad="resWorkshop()">
+
+<br>
+<h2>
+    За місяць: 
+    <a href="/report/workshop/byuser/year/{{sel_year}}/month/1">01,</a>
+	<a href="/report/workshop/byuser/year/{{sel_year}}/month/2">02,</a>
+	<a href="/report/workshop/byuser/year/{{sel_year}}/month/3">03,</a>
+	<a href="/report/workshop/byuser/year/{{sel_year}}/month/4">04,</a>
+	<a href="/report/workshop/byuser/year/{{sel_year}}/month/5">05,</a>
+	<a href="/report/workshop/byuser/year/{{sel_year}}/month/6">06,</a>
+	<a href="/report/workshop/byuser/year/{{sel_year}}/month/7">07,</a>
+	<a href="/report/workshop/byuser/year/{{sel_year}}/month/8">08,</a>
+	<a href="/report/workshop/byuser/year/{{sel_year}}/month/9">09,</a>
+	<a href="/report/workshop/byuser/year/{{sel_year}}/month/10">10,</a>
+	<a href="/report/workshop/byuser/year/{{sel_year}}/month/11">11,</a>
+	<a href="/report/workshop/byuser/year/{{sel_year}}/month/12">12</a>
+</h2>    
+
+<h2>
+	За день:
+	{% for day in month_days %}		 
+    <a href="/report/workshop/byuser/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}">{{day}},</a>
+    {% endfor %}
+</h2>    
+
+
+
+    <h1>Рахунки на виконані роботи [{{sel_user}}] ({{sel_day}}/{{sel_month}}/{{sel_year}}) <a href="/workshop/add/">(Додати)</a></h1>
+
+	
+<form action="/payform/workshop/" method="post" name="formWorkshopSum">
+<br> 
+    <table border="1">
+    <tr>
+    	<th>ID</th>
+    	<th>Клієнт</th>
+    	<th>Дата завершення</th>
+    	<th>Робота</th>
+    	<th>Ціна (грн.)</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    	<th></th>
+    </tr>
+ 
+{% for type in workshop.object_list %}
+{% if type.pay %}	
+<tr>	
+{% else %}
+<tr BGCOLOR="#F2AE6B">
+{% endif %}
+	<td>       
+	<abbr title="Створено користувачем {{type.user.username}}">
+	{{type.id}}
+	</abbr>
+	</td>
+	<td>       
+	<a href="/client/result/search/?id={{type.client.id}}">
+	{{type.client}}
+	</a>
+	</td>
+	<td>       
+	{{type.date|date}}
+	</td>
+	<td>       
+	{{type.work_type}}
+	</td>	
+	<td>       
+	{{type.price}}
+	</td>
+	<td>       
+	{{type.description}}
+	</td>
+	<td>
+	<a href="/workshop/edit/{{ type.id }}">edit</a>
+	{% if perms.accounting.delete_workshop %}	
+    <a href="/workshop/delete/{{ type.id }}" onclick="return confirm('Видалити роботу?')">delete</a>
+    {% endif %}
+    </td>
+    <td>
+{% if type.pay %}    
+   	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{type.price}}" onclick="resWorkshop()" name="checkbox_{{ type.id }}"/>
+{% else %}
+   	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{type.price}}" onclick="resWorkshop()" checked name="checkbox_{{ type.id }}"/>
+{% endif %}
+    </td>
+</tr>
+{% endfor %}   
+
+<tr>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th>Сума</th>
+    	<th><font color="#000099">{{sum_salary}} грн.</font></th> <!-- {{sumall}} -->
+    	<th>
+    	<input type="submit" value="E-mail" name="send_check" id="send_check" onClick="return confirm('Створити і надіслати листа?')">
+    	</th>
+    	<th>	
+    	<p><input type="submit" value="Оплата" name="pay" onClick="return confirm('Провести операцію?')"></p>
+		
+		</th>
+    	<th id="workshop_pay"></th>
+</tr> 
+
+</table>
+<br>
+
+</form>
+
+<div class="pagination">
+  <ul>
+  	{% if workshop.has_previous %}
+        <li class="prev">
+            <a href="?page={{ workshop.previous_page_number }}">&larr; Previous</a>
+        </li>
+    {% else %}
+    <li class="prev disabled">
+            <a href="?page={{ workshop.previous_page_number }}">&larr; Previous</a>
+    </li>
+    {% endif %}
+    
+<!--     <li class="disabled"><a href="">Page {{ workshop.number }} of {{ workshop.paginator.num_pages }}.</a></li>
+ -->
+    {% for i in workshop.paginator.page_range %}
+    {% ifequal i  workshop.number%}
+    <li class="disabled"><a href="">{{ i }}.</a></li>
+    {% else %}
+    <li class="active"><a href="?page={{ i }}">{{ i }}.</a></li>
+    {% endifequal %}
+    {% endfor %}   
+    
+    {% if buycomponents.has_next %}
+        <li class="next">
+            <a href="?page={{ workshop.next_page_number }}">Next &rarr;</a>
+        </li>
+    {% else %}
+    <li class="next disabled">
+            <a href="?page={{ workshop.previous_page_number }}">Next &rarr;</a>
+     </li>    
+    {% endif %}
+  </ul>
+</div>
+
+

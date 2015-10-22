@@ -1,0 +1,463 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<html lang="en">
+<link type="text/css" rel="stylesheet" href="/media/paginator.css">
+<head>
+    <title>Список проданого товару</title>
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+</head>
+
+<style>
+	a.select {
+		color: #FFFFFF;
+		background-color:#006600;
+	}
+	a.non {
+		color: #0000FF;
+		background-color:#FFFFFF;
+	}
+	
+/* Класс контекстного меню: */ .context-menu {     position: absolute; /* Задаем абсолютное позиционирование для нашего меню */     display: none; /* Изначально не показываем его */    
+ background-color: #fff; /* Цвет фона меню */     
+ border: 1px solid #333; /* Граница */      
+ /* Немного красивостей. Добавляем тень для нашего меню, что бы визуально отобразить его слегка выше остальных элементов страницы: */     
+ -moz-box-shadow: -5px 2px 10px rgba(0,0,0,0.5);     -webkit-box-shadow: -5px 2px 10px rgba(0,0,0,0.5);     box-shadow: -5px 2px 10px rgba(0,0,0,0.5); }  
+ /* Добавляем стили для списка который будет находиться внутри меню и, собственно, содержать его пункты: */ 
+ .context-menu ul { list-style: none; margin: 0; padding: 0; }              .context-menu ul li { margin: 0; padding: 0; background-color: #fff; display: block; }  
+ /* Стили для ссылок пунктов меню: */ 
+ .context-menu ul li a { color: #333; text-decoration: none; font-size: 12px; display: block; padding: 5px; }             
+ .context-menu ul li a:hover { background-color: #eee; }  	
+ 
+label.ressum {
+color: #B4886B;
+font-weight: bold;
+//display: block;
+width: 150px;
+//float: left;
+}
+
+</style>
+
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<script src="/media/jquery-ui.min.js"></script>
+
+<body onLoad="res()">
+
+<script type="text/javascript">
+function res()
+{
+var p=0;
+var All=document.forms['formSum'];
+for(var i = 0; i < All.elements.length; ++i) {
+	if(All.elements[i].checked){
+	//p+=parseInt(All.elements[i].value);
+	p=p+parseFloat(All.elements[i].value);
+	}
+	document.getElementById('for_pay').innerHTML = p.toFixed(2)+" грн.";
+	//document.getElementById('debet').innerHTML = parseFloat(document.getElementById('for_pay').innerHTML)+parseFloat(document.getElementById('workshop_pay').innerHTML);
+}
+}
+    
+function resWorkshop()
+{
+var p=0;
+var All=document.forms['formWorkshopSum'];
+for(var i = 0; i < All.elements.length; ++i) {
+	if(All.elements[i].checked){
+	p+=parseFloat(All.elements[i].value);
+	}
+	document.getElementById('workshop_pay').innerHTML = p.toFixed(2)+" грн.";
+	document.getElementById('debet').innerHTML = parseFloat(document.getElementById('for_pay').innerHTML)+parseFloat(document.getElementById('workshop_pay').innerHTML);
+}
+}
+
+
+$(document).ready( function() {
+
+$( "#dialog_return" ).dialog({
+	modal: true,
+	closeOnEscape: true,
+	width: 400,
+	open: function( event, ui ) {
+		$('.context-menu').remove(); //видалення меню
+		$("#sp_count").spinner({
+		min: 1,
+		max: $("#sp_count").attr('max'),
+		change: function( event, ui ) {
+			calc_sum();
+		},
+		stop: function( event, ui ) {
+			//var dsum = $("#sp_count").val() * $("#dialog_return").attr("price");  
+			//$("#print_sum").html("Сума: " + dsum);
+			calc_sum();
+		}
+		});
+		
+	},
+    buttons: {
+    "Створити": function() {
+    if ($("#msg_return").val() != "") {
+    var cash = true;
+	if ($("#sp_cash").is(':checked')) {
+		cash = true;
+	}
+	else {
+		cash = false;
+	}
+
+	$.ajax({
+       type: "POST",
+       	url: "/client/invoice/return/"+$('#dialog_return').attr('id_target')+"/add/",
+       	data: {msg:  $("#msg_return").val(), count: $("#sp_count").val(), cash: cash},
+       	dataType: "text",
+       success:function(msg){
+        var td_count = $("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"'] td.tcount"); 
+        var td_sum = $("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"'] td.tsum");
+        var td_pay = $("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"'] td.tpay");
+        var rcount = td_count.html() - $("#sp_count").val();
+        td_sum.html(td_sum.html() / td_count.html() * rcount);
+        td_pay.html(td_sum.html());
+        td_count.html(rcount);
+        $("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"']").css("background-color","#99FF33");
+       	if (td_count.html() == 0) { 
+       		$("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"']").hide();
+       	}
+       	
+       	
+       },
+       error:function(){
+         alert("При отправке возникли проблемы");
+       }
+    });
+                
+      	$( this ).dialog( "close" );
+	}
+	else {
+	alert("Введіть причину обміну/повернення");
+	}
+		
+    },
+    "Відмінити": function() {
+       	$( this ).dialog( "close" );	
+    },
+       
+    }
+});
+
+$("#dialog_return").dialog("close");
+
+	$("#maincheck").click( function() {
+    	if($('#maincheck').attr('checked')){
+        	$('.mc').attr('checked', true);
+        } else {
+            $('.mc').attr('checked', false);
+        }
+     });
+       
+	$(".menu").menu({
+  	disabled: false,
+  	select: function( event, ui ) {
+  	$(".menu").hide();
+  	$( ".menu" ).menu( "collapseAll", null, true );
+  	console.log('select = ', ui.item);
+  	},
+  	
+	});       
+
+/*	$(".operation").click(function(){
+	$(".menu").show();
+	})
+*/	
+	$(".menu").hide();
+
+$("#itable").click(function(){
+	$('.context-menu').remove();
+});
+
+$("#sp_cash").click(function(){
+	calc_sum();
+});
+
+$("#sp_count").on( "spinchange", function( event, ui ) {
+	calc_sum();
+});
+
+
+$(".operation").click(function(event) {
+// Убираем css класс selected-html-element у абсолютно всех элементов на странице с помощью селектора "*":         
+$('*').removeClass('selected-html-element');         
+// Удаляем предыдущие вызванное контекстное меню:         
+$('.context-menu').remove();                 
+ // Проверяем нажата ли именно правая кнопка мыши:         
+// if (event.which === 3)  {                          
+// Получаем элемент на котором был совершен клик:             
+var target = $(event.target);                          
+
+var iid = 0;
+if (target.prop('tagName')=="IMG") {
+	console.log("Target = ", target.parent('td').parent('tr').attr("ci_id"));
+	console.log("max = ", target.parent('td').parent("tr").attr("count"));
+	iid = target.parent('td').parent('tr').attr("ci_id");
+	cat_id = target.parent('td').parent('tr').attr("cat_id");
+	$("#sp_count").attr('max', target.parent('td').parent('tr').attr("count"))
+	$("#sp_count").attr('value',target.parent('td').parent('tr').attr("count"));
+}
+if (target.prop('tagName')=="TD") {
+	console.log("Target = ", target.parent('tr').attr("ci_id"));
+	console.log("max = ", target.parent("tr").attr("count"));
+	iid = target.parent('tr').attr("ci_id");
+	cat_id = target.parent('tr').attr("cat_id");
+	$("#sp_count").attr('max', target.parent('tr').attr("count"))
+	$("#sp_count").attr('value',target.parent('tr').attr("count"));
+}
+
+var dprice = parseFloat($("tr[ci_id ='"+iid+"'] td.tsum").html()) / parseFloat($("tr[ci_id ='"+iid+"'] td.tcount").html()); 
+$("#dialog_return").attr('price', dprice);
+//console.log("Price = ", $("tr[ci_id ='"+iid+"'] td.tprice").html());
+$("#dialog_return").attr("id_target", iid);
+     
+// Создаем меню:             
+$('<div/>', { class: 'context-menu' 
+// Присваиваем блоку наш css класс контекстного меню:             
+})  .css({left: event.pageX+'px', 
+// Задаем позицию меню на X                 
+top: event.pageY+'px' 
+// Задаем позицию меню по Y             
+})             
+.appendTo('body') 
+// Присоединяем наше меню к body документа:             
+.append( // Добавляем пункты меню:                  
+//$('<ul/>').append('<li><a href="/client/invoice/'+ iid +'/delete/" onclick="return confirm("Видалити запис?")">Видалити</a></li>')
+$('<ul/>').append('<li><a href="/client/invoice/'+ iid +'/delete/" onclick="return confirm('+ "'Видалити запис?'" +');">Видалити</a></li>')
+.append('<li><a href="/client/invoice/'+ iid +'/edit">Редагувати</a></li>')
+.append('<li><a href="/client/invoice/catalog/'+ cat_id +'/add/">Продати ще</a></li>')
+//.append('<li><a href="/client/invoice/return/'+ iid +'/add/">Обмін/Повернення</a></li>')
+.append('<li><a href="#" onclick="show_ret();return false">Обмін/Повернення</a></li>')
+//.append('<li><a href="#">Open Inspector</a></li>'))
+).show('fast'); 
+// Показываем меню с небольшим стандартным эффектом jQuery. Как раз очень хорошо подходит для меню   
+//}
+     });
+
+});
+
+function show_ret() {
+	$( "#dialog_return" ).dialog("open");
+}
+
+function calc_sum() {
+	var dsum = $("#sp_count").val() * $("#dialog_return").attr("price");  
+	$("#print_sum").html("Сума: " + dsum);
+}
+
+</script>
+
+
+
+
+<br>
+{% if view %}
+<h2>
+    За місяць: 
+	{% for i in "123456789012" %}
+	{% ifequal forloop.counter sel_month %}
+	<a href="/client/invoice/year/{{sel_year}}/month/{{forloop.counter}}/view" class="select">{{forloop.counter}}</a>,
+    {% else %}
+	<a href="/client/invoice/year/{{sel_year}}/month/{{forloop.counter}}/view" class="non">{{forloop.counter}}</a>,
+    {% endifequal %}
+	{% endfor %}    
+</h2>    
+
+<h2>
+	За день:
+	{% for day in month_days %}		 
+	{% ifequal day sel_day %}
+    <a href="/client/invoice/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view" class="select">{{day}}</a>,
+    {% else %}
+	<a href="/client/invoice/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view" class="non">{{day}}</a>,
+    {% endifequal %}
+    {% endfor %}
+</h2>    
+{% endif %}
+
+    <h1>Список проданого товару [{{sel_day}}/{{sel_month}}/{{sel_year}}] </h1>
+    
+<form action="/payform/" method="post" name="formSum">   
+
+<div id="dialog_return" title="Повернення/Обмін" id_target="">
+<label>Введіть причину відмови/повернення</label>
+<textarea  name="dreturn" id="msg_return" value="" wrap="soft" cols="42" rows="7"></textarea>
+<br>
+<label>Введіть кількість</label>
+<input id="sp_count" value="1" max="5">
+<br>
+<label>Готівка</label>
+<input type="checkbox" id="sp_cash" >
+<label id="print_sum" class="ressum">Сума:</label>
+</div>
+
+    <table border="1" id="itable">
+	<tr>
+    	<th>#</th>	
+    	<th>ID</th>
+    	<th>Клієнт</th>
+    	<th>Назва компонента</th>
+    	<th>Кількість</th>
+    	<th>Ціна</th>
+    	<th>Сума</th>
+    	<th>Валюта</th>
+    	<th>Знижка, %</th>    	
+    	<th>Оплата</th>    	    	
+    	<th>Дата</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    	<th><input type="submit" value="Оплата"><div id="for_pay" style="COLOR: red" BGCOLOR="#D5FFB4"></div></th>
+    	<th>Зал.
+    	<input type="checkbox" name="maincheck" id="maincheck"/>
+    	</th>
+    </tr>
+    
+   
+{% load template_math %}    
+    
+{% for type in buycomponents.object_list %}
+{% ifequal type.sum type.pay %}
+<tr ci_id={{type.id}} count="{{type.count}}" cat_id={{type.catalog.pk}}>
+{% else %}
+<tr BGCOLOR="#F2AE6B" ci_id={{type.id}} cat_id={{type.catalog.pk}} count="{{type.count}}">
+{% endifequal %}
+
+	<td>
+	<abbr title="Створено користувачем {{type.user.username}}">
+	{{forloop.counter}}
+	</abbr>
+	</td>
+	<td>       
+    <a href="/client/invoice/{{type.id}}/edit">{{type.id}}</a>
+	</td>
+	<td>
+	<a href="/client/result/search/?id={{type.client.id}}">
+	{{type.client}}       
+	</a>
+	</td>
+	<td>       
+	{{type.catalog}}
+	</td>
+	<td align="center" class="tcount">       
+	{{type.count}}
+	</td>
+	<td class="tprice">       
+	{{type.price}}
+	</td>	
+	<td class="tsum">       
+	{{type.sum}}
+	</td>
+	<td>       
+	{{type.currency}}
+	</td>
+	<td align="center">       
+	{{type.sale}}
+	</td>
+	<td class="tpay">       
+	{{type.pay}}
+	</td>	
+	<td> 
+	{{type.date|date:'d-m-Y H:i' }}
+	</td>
+	<td>
+	{{type.description}}
+	</td>
+	<td class="operation" onclick="event.cancelBubble=true;">
+	<img src="/media/images/Actions-system-run-icon.png" width="32px">
+	<ul class="menu">
+  <li>Повернення</li>
+  <li>Видалення
+    <ul>
+      <li>Item 3-1</li>
+      <li>Редагування</li>
+    </ul>
+  </li>
+</ul>
+{#    <a href="/client/invoice/{{type.id}}/delete/" onclick="return confirm('Видалити запис?')">delete</a> #}
+    </td>
+    <td align="center">
+<!-- 	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{type.sum}}" onclick="resWorkshop()"/>
+ -->	
+
+{% ifequal type.sum type.pay %}
+<input type="checkbox" id="model{{forloop.counter}}" class="mc" value="{{type.sum}}" onclick="res()" name="checkbox_{{ type.id }}"/>
+{% else %}
+{% ifequal request.user.username type.user.username %} 
+<input type="checkbox" id="model{{forloop.counter}}" class="mc" value="{{type.sum}}" onclick="res()" checked name="checkbox_{{ type.id }}"/>
+{% else %}
+<input type="checkbox" id="model{{forloop.counter}}" class="mc" value="{{type.sum}}" onclick="res()" name="checkbox_{{ type.id }}"/>
+{% endifequal %}
+{% endifequal %}
+	</td>
+	<td align="center">
+	<abbr title="Ящик номер: {{type.catalog.locality}}">
+	{{type.catalog.count}}
+	</abbr>
+	</td>
+</tr>
+{% endfor %}         
+
+    	<tr>
+    	<th></th>	
+    	<th></th>
+    	<th></th>
+    	<th>Загальна кількість проданих товарів:</th>
+    	<th>{{countall}}</th>
+    	<th></th>
+    	<th>{{sumall}}</th>
+    	<th>грн.</th>
+    	<th></th>    	
+    	<th></th>    	    	
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th><input type="submit" value="E-mail" name="send_check"></th>
+    	<th></th>
+    </tr>
+    
+    <table>
+</form>
+
+<div class="pagination">
+  <ul>
+  	{% if buycomponents.has_previous %}
+        <li class="prev">
+            <a href="?page={{ buycomponents.previous_page_number }}">&larr; Previous</a>
+        </li>
+    {% else %}
+    <li class="prev disabled">
+            <a href="?page={{ buycomponents.previous_page_number }}">&larr; Previous</a>
+    </li>
+    {% endif %}
+    
+<!--     <li class="disabled"><a href="">Page {{ buycomponents.number }} of {{ buycomponents.paginator.num_pages }}.</a></li>
+ -->
+    {% for i in buycomponents.paginator.page_range %}
+    {% ifequal i  buycomponents.number%}
+    <li class="disabled"><a href="">{{ i }}.</a></li>
+    {% else %}
+    <li class="active"><a href="?page={{ i }}">{{ i }}.</a></li>
+    {% endifequal %}
+    {% endfor %}   
+    
+    {% if buycomponents.has_next %}
+        <li class="next">
+            <a href="?page={{ buycomponents.next_page_number }}">Next &rarr;</a>
+        </li>
+    {% else %}
+    <li class="next disabled">
+            <a href="?page={{ buycomponents.previous_page_number }}">Next &rarr;</a>
+     </li>    
+    {% endif %}
+  </ul>
+</div>
+
+
+<br>
+
+</body>
+</html>

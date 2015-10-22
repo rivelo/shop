@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Майстерня</title>
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+
+<script language="JavaScript">
+
+function resWorkshop()
+{
+var p=0;
+var All=document.forms['formWorkshopSum'];
+for(var i = 0; i < All.elements.length; ++i) {
+	if(All.elements[i].checked){
+	p+=parseFloat(All.elements[i].value);
+	}
+	document.getElementById('workshop_pay').innerHTML = "До оплати: <br>" + p.toFixed(2)+" грн.";
+}
+}
+
+$(document).ready(function() {
+ $(".w_del").click(function(){
+
+ if (confirm("Ви дійсно бажаєте видалити запис?")) {
+ 	console.log($(this).parents("tr"));
+ 	console.log("log = "+$(this).attr("id_work"));
+	$(this).parents("tr").remove();
+		$.ajax({
+                type: "POST",
+                url: "/workshop/delete/",
+                data: {id:  $(this).attr("id_work") },
+                dataType: "text",
+                success:function(data){
+                	console.log("ajax work");
+                },
+                error:function(data){
+                    alert("Виникли проблеми з сервером" + data);
+                }
+            });	
+ }
+	
+ });
+});
+    
+</script>
+
+<body onLoad="resWorkshop()">
+
+<br>
+<h2>
+    За місяць: 
+    <a href="/workshop/year/{{sel_year}}/month/1/view">01,</a>
+	<a href="/workshop/year/{{sel_year}}/month/2/view">02,</a>
+	<a href="/workshop/year/{{sel_year}}/month/3/view">03,</a>
+	<a href="/workshop/year/{{sel_year}}/month/4/view">04,</a>
+	<a href="/workshop/year/{{sel_year}}/month/5/view">05,</a>
+	<a href="/workshop/year/{{sel_year}}/month/6/view">06,</a>
+	<a href="/workshop/year/{{sel_year}}/month/7/view">07,</a>
+	<a href="/workshop/year/{{sel_year}}/month/8/view">08,</a>
+	<a href="/workshop/year/{{sel_year}}/month/9/view">09,</a>
+	<a href="/workshop/year/{{sel_year}}/month/10/view">10,</a>
+	<a href="/workshop/year/{{sel_year}}/month/11/view">11,</a>
+	<a href="/workshop/year/{{sel_year}}/month/12/view">12</a>
+</h2>    
+
+<h2>
+	За день:
+	{% for day in month_days %}		 
+    <a href="/workshop/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view">{{day}},</a>
+    {% endfor %}
+</h2>    
+
+
+
+    <h1>Рахунки на виконані роботи ({{sel_day}}/{{sel_month}}/{{sel_year}}) <a href="/workshop/add/">(Додати)</a></h1>
+
+	
+<form action="/payform/workshop/" method="post" name="formWorkshopSum">
+<br> 
+    <table border="1">
+    <tr>
+    	<th>ID</th>
+    	<th>Клієнт</th>
+    	<th>Дата завершення</th>
+    	<th>Робота</th>
+    	<th>Ціна (грн.)</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    	<th></th>
+    </tr>
+ 
+{% for type in workshop %}
+{% if type.pay %}	
+<tr id="row_{{type.id}}">	
+{% else %}
+<tr BGCOLOR="#F2AE6B" id="row_{{type.id}}">
+{% endif %}
+	<td>       
+	<abbr title="Створено користувачем {{type.user.username}}">
+	{{type.id}}
+	</abbr>
+	</td>
+	<td>       
+	<a href="/client/result/search/?id={{type.client.id}}">
+	{{type.client}}
+	</a>
+	</td>
+	<td>       
+	{{type.date|date}}
+	</td>
+	<td>       
+	{{type.work_type}}
+	</td>	
+	<td>       
+	{{type.price}}
+	</td>
+	<td>       
+	{{type.description}}
+	</td>
+	<td>
+	<a href="/workshop/edit/{{ type.id }}">edit</a>
+
+{% comment %}	{% if perms.accounting.delete_workshop %} 
+{% endcomment %}
+
+{% if user.is_authenticated %}		
+<!--     <a href="/workshop/delete/{{ type.id }}" onclick="return confirm('Видалити роботу?')">delete</a>  -->
+    <span class="w_del" id_work={{type.id}} style="cursor: pointer;">Видалити</span>
+{% endif %}
+    </td>
+    <td>
+{% if type.pay %}    
+   	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{type.price}}" onclick="resWorkshop()" name="checkbox_{{ type.id }}"/>
+{% else %}
+   	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{type.price}}" onclick="resWorkshop()" checked name="checkbox_{{ type.id }}"/>
+{% endif %}
+    </td>
+</tr>
+{% endfor %}   
+
+<tr>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th>Сума</th>
+    	<th>{{summ}} грн.</th>
+    	<th>
+    	<input type="submit" value="E-mail" name="send_check" id="send_check" onClick="return confirm('Створити і надіслати листа?')">
+    	</th>
+    	<th>	
+<!--     	<p><input type="submit" value="Оплата" name="pay" onClick="return confirm('Провести операцію?')"></p>
+ -->		
+      <p><input type="submit" value="Оплата" name="pay"></p>
+		</th>
+    	<th id="workshop_pay"></th>
+</tr> 
+
+</table>
+<br>
+
+</form>
+

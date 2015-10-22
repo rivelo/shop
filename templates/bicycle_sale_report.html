@@ -1,0 +1,41 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<h1>Список проданих велосипедів по місяцях</h1>
+
+<table border="1">
+	<tr>
+		<th>№</th>
+		<th>Рік</th>
+		<th>Місяць</th>
+		<th>Кількість</th>
+		<th>Сума (грн)</th>
+	</tr>
+
+	{% for type in bicycles %}
+	<tr>
+		<td align="center">{{forloop.counter}}</td>
+		<td><a href="/">{{type.year}}</a></td>
+		<td><a href="/bicycle/sale/year/{{type.year}}/month/{{type.month}}/view/">{{type.month}} - {{type.month_name}}</a></td>
+		<td align="center">{{type.bike_count}}</td>
+		<td align="center">{{type.s_price}}</td>
+	</tr>
+	{% endfor %}
+
+	<tr>
+		<th></th>
+		<th></th>
+		<th>Сума</th>
+		<th align="right">{{bike_sum}}</th>
+		<th>{{all_sum}} грн.</th>
+	</tr>
+
+
+</table>
+
+		<br>
+		<a href="/bicycle/sale/add/">Продати велосипед</a>
+		<br>
+		<a href="/bicycle/add/">Додати велосипед до каталогу</a>
+		

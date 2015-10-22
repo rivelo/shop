@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<script type="text/javascript" src="/media/jquery-1.8.3.js"></script>
+
+
+<style type="text/css">
+.table {
+    width: 310px;
+    height: 143px;
+}
+
+.TableD {
+	border: 1px solid white; /* Граница вокруг ячеек */
+	}     
+
+table {
+/*    border: 2px solid white; */
+    border-spacing: 1px;
+    }
+
+TR {
+	/* border-bottom: 1px solid black; */ 
+	}
+TD{
+
+	}
+
+.nameTD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+	/*border-bottom: 1px solid black;*/ 
+	}     
+
+a { 
+    text-decoration: none; /* Отменяем подчеркивание у ссылки */
+   } 
+     
+</style>
+
+{% load poll_extras %}
+
+<h1>Черга цінників для друку <a href="/shop/price/print/view/">(Попередній перегляд)</a> <a href="/shop/price/print/empty/" style="font-size: 14pt; text-decoration: underline;">(Очистити список)</a></h1>  
+<a href="/shop/price/qr/print/view/">(Попередній перегляд QR-Code)</a> 
+
+<br>
+
+<table>
+<tr>
+<th><b>#</b></th>
+<th><b>Код</b></th>
+<th><b style="font-size: 10pt;">Виробник </b></th>
+<th><b style="font-size: 10pt;">Країна</b> </th>
+<th><b style="font-size: 10pt;">Ціна </b> </th>
+<th> <b>Назва</b> </th>
+<th><b style="font-size: 10pt;">К-сть магазин</b> </th>
+<th><b style="font-size: 10pt;">К-сть склад</b> </th>
+<th><b style="font-size: 10pt;">Користувач</b> </th>
+<th><b>Дата</b> </th>
+<th><b>Дія</b> </th>
+</tr>
+
+{% for price in price_list %}
+<tr>
+<td align="center" style="font-size: 10pt;" class="nameTD">
+{{forloop.counter}}
+</td>
+<td align="right" style="font-size: 10pt;" class="nameTD">
+{{price.catalog.ids}}
+</td>
+<td style="padding-left: 5px; padding-right: 5px; font-size: 10pt;" class="nameTD">       
+{{price.catalog.manufacturer}}
+</td>
+<td style="padding-left: 5px; padding-right: 5px;" class="nameTD">
+{{price.catalog.country}}
+</td>	
+<td class="nameTD">       
+<b>	{{price.catalog.price}} грн. </b>
+</td>
+<td>       
+<a href="/catalog/id/{{price.catalog.id}}/view/" style="margin-right:20px">{{price.catalog.name}}</a>
+</td>
+<td class="nameTD" align="center">       
+<b>	{{price.scount}} шт. </b>
+</td>
+<td   class="nameTD" align="center">       
+<b>	{{price.dcount}} шт. </b>
+</td>
+<td   class="nameTD" align="center">       
+<b>	{{price.user}}</b>
+</td>
+<td   class="nameTD">       
+<b>	{{price.date}}</b>
+</td>
+<td   class="nameTD">       
+<a href="/shop/price/print/{{price.id}}/delete/"> Видалити </a>
+</td>
+
+{% endfor %}   
+</table>
+<br>

@@ -1,0 +1,28 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<h1>Велосипед {{bicycle.brand}} {{bicycle.model}} - {{bicycle.year.year}} року</h1>
+
+<br>
+
+<img src="/media/{{bicycle.photo}}"
+	alt="{{bicycle.brand}} {{bicycle.model}} {{bicycle.year}}" title=""
+	width="800" />
+
+<br>
+<b>Специфікація:</b>
+{{bicycle.description}}
+<br>
+<b>Ціна: {{bicycle.price}} {{bicycle.currency}}</b>
+
+
+<br>
+<br>
+<a href="/bicycle/view/">Каталог велосипедів</a>
+<br>
+<a href="/bicycle/add/">Додати велосипед (Add)</a>
+<br>
+<a href="/bicycle-store/add/{{bicycle.id}}">Додати велосипед до
+магазину(Add)</a>
+

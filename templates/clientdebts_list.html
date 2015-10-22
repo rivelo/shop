@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<html lang="en">
+
+<link type="text/css" rel="stylesheet" href="/media/paginator.css">
+
+<head>
+    <title>Список боржників</title>
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+</head>
+<body>
+    <h1>Історія боргів клієнтів</h1>
+	
+    <table border="1">
+    <tr>
+       	<th>№</th>
+    	<th>ID</th>
+    	<th width="230">Клієнт</th>
+    	<th>Дата операції</th>
+    	<th>Сума (грн.)</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    </tr>    
+    
+    {% for type in clients.object_list %}
+<tr>
+	<td>
+	<abbr title="Створено користувачем {{type.user.username}}">       
+	{{forloop.counter}}
+	</abbr>
+	</td>
+	<td>       
+	<a href="/clientdebts/edit/{{ type.id }}">{{type.id}}</a> 
+	</td>
+	<td>
+	<a href="/client/result/search/?id={{type.client.id}}">{{type.client}}</a>       
+	</td>
+	<td>       
+	{% if perms.accounting.delete_clientdebts %}
+	{{type.date|date:'d-m-Y H:i' }}
+	{% else %}
+	{{type.date|date}}
+	{% endif %}
+	</td>
+	<td>       
+	{{type.price}}
+	</td>
+	<td>       
+	{{type.description}}
+	</td>	
+	<td>
+	{% if perms.accounting.delete_clientdebts %}
+    <a href="/clientdebts/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')">delete</a>
+    {% endif %}
+    </td>
+</tr>
+{% endfor %}           
+    
+<table>
+
+
+<div class="pagination">
+  <ul>
+  	{% if clients.has_previous %}
+        <li class="prev">
+            <a href="?page={{ clients.previous_page_number }}">&larr; Previous</a>
+        </li>
+    {% else %}
+    <li class="prev disabled">
+            <a href="?page={{ clients.previous_page_number }}">&larr; Previous</a>
+    </li>
+    {% endif %}
+    
+<!--     <li class="disabled"><a href="">Page {{ clients.number }} of {{ clients.paginator.num_pages }}.</a></li>
+ -->
+    {% for i in clients.paginator.page_range %}
+    {% ifequal i  clients.number%}
+    <li class="disabled"><a href="">{{ i }}.</a></li>
+    {% else %}
+    <li class="active"><a href="?page={{ i }}">{{ i }}.</a></li>
+    {% endifequal %}
+    {% endfor %}   
+    
+    {% if clients.has_next %}
+        <li class="next">
+            <a href="?page={{ clients.next_page_number }}">Next &rarr;</a>
+        </li>
+    {% else %}
+    <li class="next disabled">
+            <a href="?page={{ clients.previous_page_number }}">&larr; Previous</a>
+     </li>    
+    {% endif %}
+  </ul>
+</div>
+
+
+<br><br>
+<a href="/">Головне меню (HOME)</a>
+<a href="/clientdebts/add/">Створити нового клієнта (Add)</a>       
+
+</body>
+</html>
+
+

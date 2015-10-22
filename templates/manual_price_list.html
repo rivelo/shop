@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<script type="text/javascript" src="/media/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="/media/jquery.qrcode-0.7.0.min.js"></script>
+
+<script language="JavaScript">
+function qrcode(){
+$("#qr_tr1").qrcode({
+	render: 'image',
+	width: 60,
+	height: 60,
+	size: 80,
+	fill: '#3a3',
+	ecLevel: 'H',
+	text: '/catalog/edit/{{ type.id }}'
+	});
+};
+</script>
+
+<style type="text/css">
+.table {
+	border: 1px solid black; /* Граница вокруг ячеек */
+ 	width: 80mm;
+ 	height: 33mm;
+    table-layout: fixed;
+}
+
+.TableD {
+	border: 1px solid white; /* Граница вокруг ячеек */
+	/*border-bottom: 1px solid red;*/
+	height: 9mm;
+	}     
+
+table {
+    /* border: 1px solid black; */
+    border-spacing: 0px;
+    }
+
+TR {
+	/* border-bottom: 1px solid black; */ 
+	}
+TD{
+
+	}
+
+.nameTD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 0px solid black;  /* Граница вокруг ячеек */
+	/*border-bottom: 1px solid black;*/ 
+	}     
+
+a { 
+    text-decoration: none; /* Отменяем подчеркивание у ссылки */
+   } 
+     
+</style>
+
+{% load poll_extras %}
+
+<!-- <table border="1" CELLPADDING=0px style="padding: 1px;">  --> 
+<table>
+<tr height= 125mm>
+{% for price in price_list %}
+
+<td class="nameTD">
+
+<table class="table">
+
+<tr>
+{% with price.catalog.id|sale_url:request.get_host as url_buy %}  
+<td rowspan="4"  class="nameTD" style="border-bottom: 1px solid black; padding-left: 8px; padding-top: 5px;">
+<img src="{{url_buy|qr:"90x90"}}" />
+</td>
+{% endwith %}
+
+	<td align="right" style="font-size: 8pt;" class="nameTD">
+<b>Код</b> 
+	</td>
+	<td style="padding-left: 3px; font-family: Arial; font-size: 6pt;" class="nameTD">
+	{{price.catalog.ids|slice:"20"}}
+	</td>
+</tr>
+
+<tr>
+	<td align="right" style="font-size: 8pt;" class="nameTD">
+<b>	Виробник </b>
+	</td>	
+	<td style="padding-left: 5px; font-size: 8pt;" class="nameTD">       
+	{{price.catalog.manufacturer}}
+	</td>
+
+<tr>
+	<td align="right" class="nameTD">
+<b style="font-size: 8pt;"> Країна виробник </b>
+	</td>
+	<td style="padding-left: 3px;" class="nameTD">
+	{{price.catalog.country}}
+	</td>	
+</tr>
+
+{% comment %}
+<tr>
+	<td align="right" class="nameTD" style="border-bottom: 1px solid black;">
+<b style="font-size: 8pt;">	Ціна </b>
+	</td>
+	<td style="padding-left: 5px; border-bottom: 1px solid black; font-size: 10pt; font-weight: bold;" class="nameTD">       
+ {{price.catalog.price}} грн.  
+	</td>
+</tr>       
+{% endcomment %}
+<tr>
+</tr>       
+
+<tr>
+<!--
+ 	<td>       
+<b>	Назва </FONT></b>
+	</td>
+--> 
+{% with price.catalog.name|lenght as s_len %}
+{% if s_len > 64  %}
+	<td width = 70mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 7pt; vertical-align: top;" class="TableD">
+{% endif %}
+{% if s_len >= 32 and  s_len < 64 %} 
+	<td width = 70mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 8pt; vertical-align: top;" class="TableD">
+{% endif %}
+{% if s_len < 32 %}		       
+	<td width = 70mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 10pt; vertical-align: top;" class="TableD">
+{% endif %}
+{% endwith %}
+	<a href="/catalog/edit/{{ type.id }}" style="margin-right:20px">{{price.catalog.name|slice:"100"}}</a>
+	</td>
+</tr>
+
+
+</table>
+</td>
+
+
+{% if forloop.counter|divisibleby:"3"  %}
+</tr><tr height= 125mm>
+{% endif %}
+
+{% if forloop.counter|divisibleby:"27"  %}
+</table>
+<!--  <p style="page-break-after: always">  </p> -->
+<table> 
+{% endif %}
+ 
+{% endfor %}   
+

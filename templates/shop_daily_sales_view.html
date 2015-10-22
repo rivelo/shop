@@ -1,0 +1,183 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Денний звіт</title>
+
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script src="/media/jquery-ui.min.js"></script>	
+
+	<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+
+<script language="JavaScript">
+$(document).ready(function() {
+ $('.cred_price').each(function() {
+ $(this).editable('/clientcredits/set/', {
+	 loadurl : '/cashtype/list/',
+	 loaddata : function(value, settings) {
+	   console.log("load this [tcash_id]= " + $(this).attr('tcash_id'));
+       return {sel: $(this).attr('tcash_id')};
+   	 },
+     loadtype: 'POST',
+     submitdata : function() {
+      	return {id : $(this).attr('id_cred')};
+    	 },
+     type   : 'select',
+     event: 'dblclick',
+     style   : 'inherit',
+     callback : function(value, settings) {
+         var obj = jQuery.parseJSON(value);
+         $(this).attr("tcash_id", obj[0]["cash_type__id"])
+         str = '<abbr title="'+ obj[0]["cash_type__name"] +'">'+ obj[0]["cash_type__name"] +'</abbr>';
+         $(this).html(str);
+         sel = obj[0]["cash_type__id"];
+     },     
+     tooltip   : 'Натисніть для редагування...',
+     submit : 'OK'
+ });
+ });
+
+});
+</script>
+
+{% load poll_extras %}
+
+<h1 style="display:inline;">Оборот коштів на {{date}} року </h1> <h2 style="display:inline; color: red;" >Каса: {{casa}} грн.</h2>
+
+	<table border=1>
+	<tr>
+	<th>id</th>
+	<th>Дата</th>
+	<th>Клієнт</th>
+	<th>Сума (грн.)</th>
+	<th>Опис</th>
+	<th>Тип оплати</th>
+	</tr>
+
+<h2>Оплати</h2>	
+{% for cred in Ccred %}
+	<tr>
+	<td>
+	<a href="/clientcredits/edit/{{cred.id}}">{{cred.id}}</a>
+	</td>
+	<td>
+	{% comment %}
+	{{cred.date|time:"H:i"}}
+	{% endcomment %}
+		<abbr title="[{{cred.user.username}}]">
+		{{cred.date|time:"H:i"}}
+		</abbr>	
+	</td>
+	<td>
+	<a href="/client/result/search/?id={{cred.client.id}}">
+	{{cred.client}}
+	</a>
+	</td>
+	<td>
+	{{cred.price}}
+	</td>
+	<td>
+	{{cred.description}}
+{% if request.user|has_group:"admin" %}
+	<a href="/clientcredits/delete/{{cred.id}}" onclick="return confirm('Видалити оплату?')">Видалити</a>
+{% endif %}	
+	</td>
+	<td class="cred_price" tcash_id="{{cred.cash_type.id}}" id_cred={{cred.id}} value="{{cred.price}}">
+	<abbr title="{{cred.cash_type.name}}">
+	{{cred.cash_type}}
+	</abbr>
+	</td>
+<!-- 
+	<td>
+	{{cred.cash_type}}
+	</td>
+ -->	
+{% endfor %}
+	</tr>
+	<tr>
+	<td>	</td>
+	<td>	</td>
+	<td>
+	Сума
+	</td>
+	<td>
+	{{c_sum}}
+	</td>
+	<td>
+{% for tcash in cash_credsum %}	
+	{{tcash.cash_type__name}} - {{tcash.suma}} грн. / 	
+{% endfor %}
+	</td>
+	<td>
+	
+	</td>
+	</tr>	
+	</table>
+	
+	<table border=1>
+	<tr>
+	<th>id</th>	
+	<th>Дата</th>
+	<th>Клієнт</th>
+	<th>Сума (грн.)</th>
+	<th>Опис</th>
+	<th>Тип оплати</th>
+	</tr>
+
+<h2>Продажі</h2>	
+{% for deb in Cdeb %}
+	<tr>
+	<td>
+{% if request.user|has_group:"admin" %}	
+	<a href="/clientdebts/edit/{{deb.id}}">{{deb.id}}</a>
+{% else %}
+	{{deb.id}}
+{% endif %}
+	
+	</td>
+	<td>
+		<abbr title="[{{deb.user.username}}]">
+		{{deb.date|time:"H:i"}}
+		</abbr>	
+	</td>
+	<td>
+	{{deb.client}}
+	</td>
+	<td>
+	{{deb.price}}
+	</td>
+	<td>
+	{{deb.description}}
+{% if request.user|has_group:"admin" %}
+	<a href="/clientdebts/delete/{{deb.id}}" onclick="return confirm('Видалити продаж?')">Видалити</a>
+{% endif %}	
+	</td>
+	
+	{% if deb.cash %}
+	<td style="background-color: #b0c4de;">
+	{% else %}
+	<td >
+	{% endif %}
+	<abbr title="">
+	{{deb.cash}}
+	</abbr>
+	</td>
+
+{% endfor %}
+	</tr>
+	<tr>
+	<td>
+	</td>
+	<td>
+	</td>
+	<td>
+	Сума
+	</td>
+	<td>
+	{{d_sum}}
+	</td>
+	<td>
+	{% for tcash in cash_debsum %}	
+	{{tcash.cash}} - {{tcash.suma}} грн. / 	
+	{% endfor %}
+	</td>
+	</tr>	
+	</table>	
+	

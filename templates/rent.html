@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<html lang="en">
+<head>
+    <title>В прокат</title>
+</head>
+
+	<link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
+
+<!-- 	<script type="text/javascript" src="/media/jquery-1.3.1.min.js"></script>  
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> -->
+	<script type="text/javascript" src="/media/jquery-1.7.2.min.js"></script>	
+	<script type="text/javascript" src="/media/jquery.autocomplete.pack.js"></script>
+	<script type="text/javascript" src="/media/jquery.select-autocomplete.js"></script>
+
+<script type="text/javascript">
+	$(document).ready(function() {
+      $('select.autocomplete').select_autocomplete();
+      $('#id_catalog').focus();
+//      $(".ac_input").focus();
+      
+            $('#ttt').click(function(){
+            var TextStory = "ygrik" 
+            var MailStory = $("#mail_story").val();
+            $.ajax({
+                type: "POST",
+                url: "/insertstory/",
+                data: { TextStory: TextStory },
+                dataType: "json",
+                success:function(msg){
+                    //alert("Все отлично ушло на сервер - " + msg);
+//                    $('#ttt').append("<strong> " + msg + "</strong>");
+                    $('#ttt').text(""+msg);
+                    $('#id_deposit').val(""+msg);
+                    
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });      
+});
+})
+
+	$(function(){
+      $("select#id_catalog").change(function(){
+	$.getJSON("/ajax/test/", {id: $("select#id_catalog").val()}, function(data) {
+//        alert(data);    
+//      var text = eval("(" + data + ")");
+
+      $('#id_deposit').val(data[0].price);
+//      $('#result')[0].innerHTML= data;
+		});
+		
+      });
+  	})
+
+</script>
+
+
+<body onload="document.getElementById('id_client').focus()">
+    <h1>В прокат (Add Rent)</h1>
+  
+    <form action="" method="POST">
+        <table>
+            {{ form.as_ul }}
+        </table>
+        <p><input type="submit" value="Save"></p>
+    </form>
+    <a href="/">back</a>
+{% comment %}  
+  <div id="ttt" class="facts">New DIV</div>      
+  <div id="1" class="fact">I love bugs</div>
+  <div id="2" class="fact">I love hugs</div>
+  <div id="3" class="fact">I love pugs</div>
+  <div id="result">Click on the lie!</div>
+{% endcomment %}  
+
+</body>
+</html>
+
+
+

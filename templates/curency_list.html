@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+    <h1>Список валют <a href="/curency/add/">(Додати)</a></h1>
+
+    <table>
+    
+    <tr>
+    	<th>ID</th>
+    	<th>Код</th>
+    	<th>Скорочення</th>
+    	<th>Назва</th>
+    	<th>Країна</th>
+    	<th>Дія</th>
+    </tr>
+    
+	{% for type in currency %}
+    <tr>
+
+        <td>
+            {{ type.id }}
+        </td>
+        <td>
+            {{ type.ids }}
+        </td>
+        <td>
+            {{ type.ids_char }}
+        </td>
+        <td>
+            {{ type.name }}
+        </td>
+        <td>
+            {{ type.country }}
+        </td>
+    
+        <td>
+        {% if user.is_authenticated %}
+            <a href="/curency/edit/{{ type.id }}">edit</a>
+            <br>
+            <a href="/curency/delete/{{ type.id }}">delete</a>
+        {% endif %}
+        </td>
+    </tr>
+    {% endfor %}    
+   
+    
+    </table>
+
+
+<br>       
+

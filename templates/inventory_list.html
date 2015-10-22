@@ -1,0 +1,43 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Інвентеризація товару</title>
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+{% load poll_extras %}    
+
+<h1>Інвентеризація товару</h1>
+
+<table>
+	<tr>
+		<th>#</th>
+		<th>id</th>
+		<th>Товар</th>
+		<th>Кількість</th>
+		<th>Опис</th>
+		<th>Дата підрахунку</th>
+		<th>Користувач</th>
+		<th>Дата редагування</th>
+		<th>Статус виконання</th>
+		<th>Кількість в базі</th>
+	</tr>
+	{% for element in return_list %}
+	<tr>
+		<td>{{ forloop.counter }}</td>
+		<td>{{ element.id }}</td>
+		<td>{{ element.catalog }}</td>
+		<td align="center">{{ element.count }}</td>
+		<td>{{ element.description }}</td>
+		<td>{{ element.date|date:"l j/m/Y" }} - {{ element.date|time:"H:i" }}</td>
+		<td align="center">{{ element.user }}</td>
+		<td>{{ element.edit_date }}</td>		
+		<td>{{ element.check_all }}</td>
+		<td align="center">{{ element.real_count }}</td>
+		{% if request.user|has_group:"admin" %}
+		<td align="center"><a href="/inventory/delete/{{element.id}}">delete</a></td>
+		{% endif %}
+	</tr>
+	{% endfor %}
+	<table>
+
+	<br>

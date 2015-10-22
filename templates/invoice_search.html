@@ -1,0 +1,37 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<html lang="en">
+<head>
+    <title>Пошук наявного товару</title>
+</head>
+
+<script type="text/javascript">
+//myFocus("search_field");
+
+function myFocus(id){
+ try{
+    document.getElementById(id).focus();
+ } catch(e) {
+    // обработчик ошибки, можно оставить пустым
+    // alert(e);
+ }
+}
+</script>
+
+<body onload="document.getElementById('search_field').focus()">
+
+  <h1>Пошук наявного товару</h1>
+
+  <form action="/invoice/search/result" method="GET">
+    <label>Введіть назву товару: </label>
+    <input type="text" name="name" id="search_field">
+    <br>
+    <label>Введіть артикул товару: </label>
+    <input type="text" name="id" id="search_field">
+    <br>
+    <input type="submit" value="Пошук">
+  </form>
+
+</body>
+</html>
+
+

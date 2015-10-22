@@ -1,0 +1,221 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<html lang="en">
+<link type="text/css" rel="stylesheet" href="/media/paginator.css">
+<head>
+    <title>Список проданого товару</title>
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+</head>
+<body onLoad="res()">
+
+<script type="text/javascript">
+
+
+function res()
+{
+var p=0;
+var All=document.forms['formSum'];
+for(var i = 0; i < All.elements.length; ++i) {
+	if(All.elements[i].checked){
+	//p+=parseInt(All.elements[i].value);
+	p=p+parseFloat(All.elements[i].value);
+	}
+	document.getElementById('for_pay').innerHTML = p.toFixed(2)+" грн.";
+	//document.getElementById('debet').innerHTML = parseFloat(document.getElementById('for_pay').innerHTML)+parseFloat(document.getElementById('workshop_pay').innerHTML);
+}
+}
+    
+function resWorkshop()
+{
+var p=0;
+var All=document.forms['formWorkshopSum'];
+for(var i = 0; i < All.elements.length; ++i) {
+	if(All.elements[i].checked){
+	p+=parseFloat(All.elements[i].value);
+	}
+	document.getElementById('workshop_pay').innerHTML = p.toFixed(2)+" грн.";
+	document.getElementById('debet').innerHTML = parseFloat(document.getElementById('for_pay').innerHTML)+parseFloat(document.getElementById('workshop_pay').innerHTML);
+}
+}
+    
+</script>
+
+
+<br>
+{% if view %}
+<h2>
+    За місяць: 
+    <a href="/report/sales/user/year/{{sel_year}}/month/1/report">01,</a>
+	<a href="/report/sales/user/year/{{sel_year}}/month/2/report">02,</a>
+	<a href="/report/sales/user/year/{{sel_year}}/month/3/report">03,</a>
+	<a href="/report/sales/user/year/{{sel_year}}/month/4/report">04,</a>
+	<a href="/report/sales/user/year/{{sel_year}}/month/5/report">05,</a>
+	<a href="/report/sales/user/year/{{sel_year}}/month/6/report">06,</a>
+	<a href="/report/sales/user/year/{{sel_year}}/month/7/report">07,</a>
+	<a href="/report/sales/user/year/{{sel_year}}/month/8/report">08,</a>
+	<a href="/report/sales/user/year/{{sel_year}}/month/9/report">09,</a>
+	<a href="/report/sales/user/year/{{sel_year}}/month/10/report">10,</a>
+	<a href="/report/sales/user/year/{{sel_year}}/month/11/report">11,</a>
+	<a href="/report/sales/user/year/{{sel_year}}/month/12/report">12</a>
+</h2>    
+
+<h2>
+	За день:
+	{% for day in month_days %}		 
+    <a href="/report/sales/user/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/report">{{day}},</a>
+    {% endfor %}
+</h2>    
+{% endif %}
+
+    <h1>Список проданого товару користувачем {{sel_user.username}} - [{{sel_day}}/{{sel_month}}/{{sel_year}}] </h1>
+    
+<form action="/payform/" method="post" name="formSum">   
+
+    <table border="1">
+	<tr>
+    	<th>#</th>	
+    	<th>ID</th>
+    	<th>Клієнт</th>
+    	<th>Назва компонента</th>
+    	<th>Кількість</th>
+    	<th>Ціна</th>
+    	<th>Сума</th>
+    	<th>Валюта</th>
+    	<th>Знижка, %</th>    	
+    	<th>Оплата</th>    	    	
+    	<th>Дата</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    	<th><input type="submit" value="Оплата"><div id="for_pay" style="COLOR: red" BGCOLOR="#D5FFB4"></div></th>
+    	<th>Зал.</th>
+    </tr>
+    
+   
+{% load template_math %}    
+    
+{% for type in buycomponents.object_list %}
+{% ifequal type.sum type.pay %}
+<tr>
+{% else %}
+<tr BGCOLOR="#F2AE6B">
+{% endifequal %}
+
+	<td>
+	<abbr title="Створено користувачем {{type.user.username}}">
+	{{forloop.counter}}
+	</abbr>
+	</td>
+	<td>       
+    <a href="/client/invoice/{{type.id}}/edit">{{type.id}}</a>
+	</td>
+	<td>
+	<a href="/client/result/search/?id={{type.client.id}}">
+	{{type.client}}       
+	</a>
+	</td>
+	<td>       
+	{{type.catalog}}
+	</td>
+	<td align="center">       
+	{{type.count}}
+	</td>
+	<td>       
+	{{type.price}}
+	</td>	
+	<td>       
+	{{type.sum}}
+	</td>
+	<td>       
+	{{type.currency}}
+	</td>
+	<td align="center">       
+	{{type.sale}}
+	</td>
+	<td>       
+	{{type.pay}}
+	</td>	
+	<td> 
+	{{type.date|date:'d-m-Y H:i' }}
+	</td>
+	<td>
+	{{type.description}}
+	</td>
+	<td>
+    <a href="/client/invoice/{{type.id}}/delete/" onclick="return confirm('Видалити запис?')">delete</a>
+    </td>
+    <td align="center">
+<!-- 	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{type.sum}}" onclick="resWorkshop()"/>
+ -->	
+ 
+{% ifequal type.sum type.pay %}
+<input type="checkbox" id="model{{forloop.counter}}" value="{{type.sum}}" onclick="res()" name="checkbox_{{ type.id }}"/>
+{% else %}
+<input type="checkbox" id="model{{forloop.counter}}" value="{{type.sum}}" onclick="res()" checked name="checkbox_{{ type.id }}"/>
+{% endifequal %}
+
+	</td>
+	<td align="center">
+	{{type.catalog.count}}
+	</td>
+</tr>
+{% endfor %}         
+
+    	<tr>
+    	<th></th>	
+    	<th></th>
+    	<th></th>
+    	<th>Загальна кількість проданих товарів:</th>
+    	<th>{{countall}}</th>
+    	<th></th>
+    	<th><font color="#000099">{{sum_salary}}</font></th> <!-- {{sumall}} -->
+    	<th>грн.</th>
+    	<th></th>    	
+    	<th></th>    	    	
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th><input type="submit" value="E-mail" name="send_check"></th>
+    	<th></th>
+    </tr>
+    
+    <table>
+</form>
+
+<div class="pagination">
+  <ul>
+  	{% if buycomponents.has_previous %}
+        <li class="prev">
+            <a href="?page={{ buycomponents.previous_page_number }}">&larr; Previous</a>
+        </li>
+    {% else %}
+    <li class="prev disabled">
+            <a href="?page={{ buycomponents.previous_page_number }}">&larr; Previous</a>
+    </li>
+    {% endif %}
+    
+<!--     <li class="disabled"><a href="">Page {{ buycomponents.number }} of {{ buycomponents.paginator.num_pages }}.</a></li>
+ -->
+    {% for i in buycomponents.paginator.page_range %}
+    {% ifequal i  buycomponents.number%}
+    <li class="disabled"><a href="">{{ i }}.</a></li>
+    {% else %}
+    <li class="active"><a href="?page={{ i }}">{{ i }}.</a></li>
+    {% endifequal %}
+    {% endfor %}   
+    
+    {% if buycomponents.has_next %}
+        <li class="next">
+            <a href="?page={{ buycomponents.next_page_number }}">Next &rarr;</a>
+        </li>
+    {% else %}
+    <li class="next disabled">
+            <a href="?page={{ buycomponents.previous_page_number }}">Next &rarr;</a>
+     </li>    
+    {% endif %}
+  </ul>
+</div>
+
+
+<br>
+
+</body>
+</html>

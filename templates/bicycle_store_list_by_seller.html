@@ -1,0 +1,258 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Велосипеди - магазин</title>
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<script type="text/javascript" src="/media/jquery-1.7.2.min.js"></script>
+<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+
+<script>
+
+$(document).ready(function() {
+     $('.edit').editable('/bicycle-store/edit/362/', {
+     	 id   : 'id',
+         name : 'serial',
+         submitdata : function() {
+      	 	return {id : $(this).attr('id_serial')};
+    	 },
+         indicator : 'Saving...',
+         tooltip   : 'Click to edit...',
+         select : true,
+         style  : "inherit",
+         callback : function(value, settings) {
+         $(this).html(value);
+     	}
+     });
+
+     $('.change_price').editable('/bicycle/price/set/', {
+     	 id   : 'id',
+         name : 'price',
+         submitdata : function() {
+      	 	return {id : $(this).attr('id_price')};
+    	 },
+         indicator : 'Saving...',
+         tooltip   : 'Click to edit...',
+         select : true,
+         style  : "inherit",
+         callback : function(value, settings) {
+         $(this).html(value);
+         console.log("val = ", value);
+         console.log("sale = ", $(this).nextAll('.change_sale:first').html());
+         var sprice = value / 100 * (100 - $(this).nextAll('.change_sale:first').html().split('%')[0]);
+         $(this).nextAll('.sale_price:first').html(sprice + ' грн.');
+     	}
+     });
+    
+     $('.change_sale').editable('/bicycle/price/set/', {
+     	 id   : 'id',
+         name : 'sale',
+         submitdata : function() {
+      	 	return {id : $(this).attr('id_sale')};
+    	 },
+         indicator : 'Saving...',
+         tooltip   : 'Click to edit...',
+         select : true,
+         style  : "inherit",
+         callback : function(value, settings) {
+         $(this).html(value+"%");
+         //console.log($(this).prevAll('.change_price:first').html());
+         var sprice = $(this).prevAll('.change_price:first').html() / 100 * (100 - value);
+         $(this).nextAll('.sale_price:first').html(sprice + ' грн.');
+     	}
+     });
+
+
+});
+
+</script>
+
+
+<h1>Список велосипедів у магазині <br>{{text}}</h1>
+<a href="/bicycle-store/all/view/seller/">Всі</a>
+<a href="/bicycle-store/view/seller/">Наявні</a>
+<b> Рік: </b>
+<a href="/bicycle-store/view/seller/year/2012/">2012</a>
+<a href="/bicycle-store/view/seller/year/2013/">2013</a>
+<a href="/bicycle-store/view/seller/year/2014/">2014</a>
+<a href="/bicycle-store/view/seller/year/2015/">2015</a>
+
+<br>
+<b>Розмір рами:</b>
+{% for size in sizes %}
+<a href="/bicycle-store/view/seller/bysize/{{size.id}}/">{{size.name}}</a>
+{% endfor %}
+
+<b>Виробники:</b>
+{% for comp in b_company %}
+<a href="/bicycle-store/view/seller/bycompany/{{comp.model__brand}}/">{{comp.model__brand__name}}[{{comp.num_company}}]</a>
+{% endfor %}
+
+{% load template_math %}   
+
+<form action="/bicycle/store/price/print/" method="post" name="formBPrice">
+
+<table border="1">
+    <tr>
+    	<th>#</th>
+    	<th>ID</th>
+    	<th style="text-align: left"> Велосипед</th>
+    	<th >Номер рами</th>
+    	<th>Розмір рами</th>
+{% if perms.accounting.add_preorder %}
+    	<th>Оптова ціна</th>
+{% endif %}    	
+    	<th>Ціна</th>
+    	<th>Знижка</th>
+    	<th>Нова ціна</th>
+    <!-- <th>Опис</th> 
+    	<th>Реалізація</th> -->
+		<th>Кількість</th> 
+		<th>Дата</th>
+    	<th>Дія</th>
+    	<th></th>
+    </tr>    
+    
+{% for type in bicycles %}
+{% ifequal type.count 0 %}
+<tr>
+{% else %}
+<tr BGCOLOR="#CCCC99">
+{% endifequal %}
+
+	<td>
+	{{forloop.counter}}
+	</td>
+	<td>       
+	<a href="/bicycle/sale/id/{{type.id}}/view/">{{type.id}}</a> 
+	</td>
+	<td>
+	<a href="/bicycle/photo/{{type.model.id}}">{{type.model}}</a>       
+	</td>
+      
+{% if user.is_authenticated %}
+	<td class="edit" id_serial="{{ type.id }}">
+{% else %}
+	<td id_serial="{{ type.id }}">
+{% endif %}       
+	{{type.serial_number}}
+	</td>
+	<td>       
+	{{type.size}}
+	</td>
+{% if perms.accounting.add_preorder %}	
+	<td align="center">
+	{{type.price}}$	
+	</td>
+{% endif %}
+
+{% if user.is_authenticated %}	
+	<td class="change_price" id_price="{{type.model.id}}">
+	{{type.model.price}}   
+	</td>
+	<td align="center" class="change_sale" id_sale="{{type.model.id}}">
+	{{type.model.sale|floatformat:"0"}}%       
+	</td>
+{% else %}	
+	<td>
+    {{type.model.price}}   
+	</td>
+	<td align="center">
+	{{type.model.sale|floatformat:"0"}}%       
+	</td>
+{% endif %}
+
+	<td align="center" class="sale_price">
+	{{type.model.sale|div:-100|sub:-1|mul:type.model.price|floatformat:"0"}} грн.       
+	</td>
+<!-- <td>       
+	{{type.description}}
+	</td>
+ -->	
+<!--	<td align="center">
+ 	<img src="/media/{{type.photo}}" alt="" title=""/>         
+	{{type.realization}}
+	</td>	
+	-->
+	{% ifequal type.count 1 %}
+			<td align="center">
+			<abbr title="Продати велосипед"><a href="/bicycle/sale/add/{{type.id}}">{{type.count}}</a></abbr>
+			</td>
+		{% else %}
+			<td align="center">{{type.count}}</td>
+		{% endifequal %}
+	<td>       
+	{{type.date|date:"D d M Y"}}
+	</td>
+	<td>
+{% if perms.accounting.add_preorder %}	
+    <a href="/bicycle-store/edit/{{ type.id }}">edit</a> 
+    
+    <a href="/bicycle-store/delete/{{ type.id }}">delete</a>
+{% endif %}
+    </td>
+	<td align="center">
+	<input type="checkbox" id="bikeid_{{type.model.id}}" value="{{type.model.id}}" name="checkbox_{{ type.id }}"/ onclick="">	
+	</td>    
+</tr>
+{% endfor %}       
+
+
+<tr>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+{% if perms.accounting.add_preorder %}    	    	
+    	<th align="center">
+    	{{price_summ}} $
+    	</th>    	
+{% endif %}
+    	<th></th>
+		<th></th>
+		<th></th>
+		<th align="center">{{bike_summ}}</th> 
+		<th></th>
+    	<th></th>
+    	<th><input type="submit" value="Цінники" name="BPrice"></th>    	
+    </tr>        
+   
+<table>
+
+{% if html %}
+<p>
+    [table]
+	[tr]
+    	[td]Назва[/td]
+    	[td]Розмір рами[/td]
+    	[td]Ціна[/td]
+    	[td]Знижка[/td]
+    	[td]Ціна зі знижкою[/td]
+    [/tr]
+    {% for bike in bicycles %}
+    [tr]
+	[td]
+    {{bike.model}}
+    [/td]
+	[td]
+    {{bike.size}}
+    [/td]
+	[td]
+    {{bike.model.price}}
+    [/td]
+	[td]
+    {{bike.model.sale|floatformat:"0"}}% 
+    [/td]
+	[td]
+    {{bike.model.sale|div:-100|sub:-1|mul:bike.model.price|floatformat:"0"}} грн.  
+    [/td]
+    [/tr]
+    {% endfor %}
+    [/table]    
+    </p>
+{% endif %}
+
+<br><br>
+<a href="/bicycle/store/report/sum/">Сумарна вартість велосипедів у магазині</a>
+<br>
+

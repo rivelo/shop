@@ -1,0 +1,110 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Список ящиків</title>
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<script src="/media/jquery-ui.min.js"></script>
+<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+ $(".box_del").click(function(){
+ if (confirm("Ви дійсно бажаєте видалити запис?")) {
+ 	console.log($(this).parents("tr"));
+ 	console.log("log = "+$(this).attr("id_work"));
+	$(this).parents("tr").remove();
+		$.ajax({
+                type: "POST",
+                url: "/storage/box/delete/",
+                data: {id:  $(this).attr("id_catalog") },
+                dataType: "text",
+                success:function(data){
+                	console.log("ajax work");
+                },
+                error:function(data){
+                    alert("Виникли проблеми з сервером" + data);
+                }
+            });	
+ }
+ });
+ 
+     $('.locality_edit').each(function() {
+     $(this).editable('/catalog/edit/', {
+     	loadurl : '/catalog/get/locality/',
+     	loadtype: 'POST',
+		loaddata : {sel_id: $(this).attr('id_locality')},     	
+	   	 id   : 'id',
+         name : 'locality',
+      
+         submitdata : function() {
+      	 	return {id : $(this).attr('id_locality')};
+    	 },
+         indicator : 'Saving...',
+         select : true,
+         event : "dblclick",
+         style : "inherit",
+         callback : function(value, settings) {
+         	$(this).html(value);
+     	 }
+     });
+     });
+ 
+ 
+});
+
+</script>
+
+<body>
+
+{% if pprint %}
+
+<br>
+{% for element in boxes %}
+{% ifchanged element.locality %}
+</div>
+</div>
+<div style="background:#FFFFF; clear:left; border: 1px solid;">
+<div style="float:left; font-size:96pt; font-weight: bold; border: 1px solid;" >{{element.locality}}</div>
+<div style="float:left; width: 50%; white-space: normal; ">
+{% endifchanged %}
+<div style="background:#FFFFF; clear:left; font-size:10pt;">
+{{element}}
+</div>
+
+{% endfor %}
+
+{% else %}
+
+  <h1>Список ящиків <a href="/storage/boxes/print/">Версія для друку</a> </h1>
+<table>
+<tr>
+<th>#</th><th>Номер ящика</th><th>Назва товару</th><th>Кількість</th><th>Дія</th>
+</tr>
+{% for element in boxes %}
+<tr>
+<td>
+{{ forloop.counter }}
+</td>
+<td align="center" class="locality_edit" id_locality="{{element.id}}">
+{{element.locality}}
+</td>
+<td>
+{{element}}
+</td>
+<td align="center">
+{{element.count}}
+</td>
+<td>
+<span class="box_del" id_catalog="{{element.id}}" style="cursor: pointer;">Видалити</span>
+</td>
+</tr>
+{% endfor %}  
+</table>  
+
+{% endif %}
+</body>
+

@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+    <h1>Курс валют / Exchange rate <a href="/exchange/add/">(Додати)</a></h1>
+    
+   <table border="1">
+	<tr>
+    	<th>ID</th>
+    	<th>Дата</th>
+    	<th>Валюта</th>
+		<th>Курс</th>    	
+    	<th>Дія</th>
+    </tr>    
+    
+    
+    {% for cur in exchange %}
+    <tr>
+    	<td>
+            {{ cur.id }}
+        </td>
+    
+    	<td>
+            {{ cur.date|date:"D d M Y" }}
+        </td>
+
+        <td>
+            {{ cur.currency.name }}
+        </td>
+    	<td>
+            {{ cur.value }}
+        </td>
+        <td>
+{% if user.is_authenticated %}        
+            <a href="/exchange/edit/{{ cur.id }}">edit</a>
+            
+            <a href="/exchange/delete/{{ cur.id }}">delete</a>
+{% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    <table>
+
+
+<br>
+<a href="/exchange/add/">Add</a>       
+

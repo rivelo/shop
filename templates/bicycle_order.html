@@ -1,0 +1,318 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Замовлення велосипеду</title>
+
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script src="/media/jquery-ui.min.js"></script>
+
+	<script type="text/javascript">
+
+	</script>
+
+<style>
+  .custom-combobox {
+    position: relative;
+    display: inline-block;
+  }
+  .custom-combobox-toggle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin-left: -1px;
+    padding: 0;
+  }
+  .custom-combobox-input {
+    margin: 0;
+    padding: 5px 10px;
+  }
+</style>  
+	
+<script type="text/javascript">
+(function( $ ) {
+    $.widget( "custom.combobox", {
+      _create: function() {
+        this.wrapper = $( "<span>" )
+          .addClass( "custom-combobox" )
+          .insertAfter( this.element );
+ 
+        this.element.hide();
+        this._createAutocomplete();
+        this._createShowAllButton();
+      },
+ 
+      _createAutocomplete: function() {
+        var selected = this.element.children( ":selected" ),
+          value = selected.val() ? selected.text() : "";
+ 
+        this.input = $( "<input>" )
+          .appendTo( this.wrapper )
+          .val( value )
+          .attr( "title", "" )
+          .addClass( "custom-combobox-input ui-widget ui-widget-content ui-state-default ui-corner-left" )
+          .autocomplete({
+            delay: 0,
+            minLength: 0,
+            select: function( event, ui ) {
+            	/*
+            	$("#c_c").html("(Завантажується..." + ui.item.value + ")");
+            	console.log("SELECT = " + ui.item.option.value);
+            	console.log("SELECT VALUE = " + ui.item.value);
+            	window.location.href = ui.item.option.value;
+            	*/
+            },
+            source: $.proxy( this, "_source" )
+          })
+          .tooltip({
+            tooltipClass: "ui-state-highlight"
+          });
+ 
+        this._on( this.input, {
+          autocompleteselect: function( event, ui ) {
+            ui.item.option.selected = true;
+            this._trigger( "select", event, {
+              item: ui.item.option
+            });
+          },
+ 
+          autocompletechange: "_removeIfInvalid"
+        });
+      },
+ 
+      _createShowAllButton: function() {
+        var input = this.input,
+          wasOpen = false;
+ 
+        $( "<a>" )
+          .attr( "tabIndex", -1 )
+          .attr( "title", "Show All Items" )
+          .tooltip()
+          .appendTo( this.wrapper )
+          .button({
+            icons: {
+              primary: "ui-icon-triangle-1-s"
+            },
+            text: false
+          })
+          .removeClass( "ui-corner-all" )
+          .addClass( "custom-combobox-toggle ui-corner-right" )
+          .mousedown(function() {
+            wasOpen = input.autocomplete( "widget" ).is( ":visible" );
+          })
+          .click(function() {
+            input.focus();
+ 
+            // Close if already visible
+            if ( wasOpen ) {
+              return;
+            }
+ 
+            // Pass empty string as value to search for, displaying all results
+            input.autocomplete( "search", "" );
+          });
+      },
+ 
+      _source: function( request, response ) {
+        var matcher = new RegExp( $.ui.autocomplete.escapeRegex(request.term), "i" );
+        response( this.element.children( "option" ).map(function() {
+          var text = $( this ).text();
+          if ( this.value && ( !request.term || matcher.test(text) ) )
+            return {
+              label: text,
+              //value: this.value,
+              value: text,
+              option: this
+            };
+        }) );
+      },
+ 
+      _removeIfInvalid: function( event, ui ) {
+ 
+        // Selected an item, nothing to do
+        if ( ui.item ) {
+          return;
+        }
+ 
+        // Search for a match (case-insensitive)
+        var value = this.input.val(),
+          valueLowerCase = value.toLowerCase(),
+          valid = false;
+        this.element.children( "option" ).each(function() {
+          if ( $( this ).text().toLowerCase() === valueLowerCase ) {
+            this.selected = valid = true;
+            return false;
+          }
+        });
+ 
+        // Found a match, nothing to do
+        if ( valid ) {
+          return;
+        }
+ 
+        // Remove invalid value
+        this.input
+          .val( "" )
+          .attr( "title", value + " didn't match any item" )
+          .tooltip( "open" );
+        this.element.val( "" );
+        this._delay(function() {
+          this.input.tooltip( "close" ).attr( "title", "" );
+        }, 2500 );
+        this.input.autocomplete( "instance" ).term = "";
+      },
+ 
+      _destroy: function() {
+        this.wrapper.remove();
+        this.element.show();
+      }
+    });
+})( jQuery );
+
+$(document).ready(function() {
+	$('#id_client_id').focus();
+	
+    $( "#id_client_id" ).autocomplete({
+    	source: function( request, response ) {
+        	$.ajax({
+                type: "GET",
+                url: "/client/lookup",
+				data: { query: $("#id_client_id").val() },
+                dataType: "json",
+                success: function( data ) {
+                        	response( $.map( data, function( item ) {
+                            return {
+                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
+                                value: item.fields.name,
+                                sale: item.fields.sale,
+                                pk_id: item.pk,
+    							}
+                        	}));                                
+                            }
+            })
+        },
+        minLength: 3,
+        select: function( event, ui ) {
+           	//$('#id_client').val(ui.item.pk_id);
+	    	$(this).attr('c_id', ui.item.pk_id)
+	    	$('#id_sale').val(ui.item.sale);
+        },
+        open: function() {
+        	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+        },
+        close: function() {
+        	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+        }
+    });
+
+
+    $("#id_model_id").autocomplete({
+    	source: function( request, response ) {
+        	$.ajax({
+                type: "POST",
+                url: "/bike/lookup/",
+				data: { query: $("#id_model_id").val() },
+                dataType: "json",
+                success: function( data ) {
+                        	response( $.map( data, function( item ) {
+                            return {
+                                label: "["+item.pk + "] : " + item.fields.brand[1] +" - "+ item.fields.model +" ("+item.fields.year.split("-")[0]+") " +item.fields.color,
+                                value: item.fields.model,
+                                sale: item.fields.sale,
+                                pk_id: item.pk,
+								price: item.fields.price,
+                                /*label: item.id + ": [" + item.brand__name + "] "+ item.model,
+                                value: item.model,
+                                sale: item.sale,
+                                pk_id: item.id,
+                                */
+    							}
+                        	}));                                
+                            }
+            })
+        },
+        minLength: 3,
+        select: function( event, ui ) {
+	    	$(this).attr('c_id', ui.item.pk_id)
+	    	$('#id_sale').val(ui.item.sale);
+	    	$('#id_price').val(ui.item.price);
+        },
+        open: function() {
+        	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+        },
+        close: function() {
+        	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+        }
+    });
+
+/*
+    $("#id_model").combobox();
+    $('.ui-autocomplete-input').css('width','600px')
+    
+	$("#id_model").change(function(){
+		$.getJSON("/bicycle/price/", {id: $("select#id_model").val()}, function(data) {
+			//alert(data);    
+    		$('#id_price').val(data[0].price);
+
+    		$('#result').empty();
+			var res = $('#id_price').val() * (1 - $('#id_sale').val() /100);
+			$('#id_sale').after('<span id="result"> Зі знижкою ' + res.toFixed(2) + ' грн.</span>');
+		});
+	});
+*/    
+    $('#id_client_id').attr({width: '400px'});
+	// $('#id_model').focus();
+	
+	
+	$('#id_sale').change(function(){
+		$('#result').empty();
+		var res = $('#id_price').val() * (1 - this.value /100);
+		$('#id_sale').after('<span id="result"> Зі знижкою ' + res.toFixed(2) + ' грн.</span>');
+	});
+
+
+$("#UserEnter").submit(function() {
+      if ($("#id_price").val()) {
+      	$("#id_client_id").val($("#id_client_id").attr('c_id'));
+      	$("#id_model_id").val($("#id_model_id").attr('c_id'));
+      	//$("#id_count").val(Math.round($("#id_count").val()));
+        return true;
+      }
+      $("#id_price").after("<b>Введіть суму!</b>");
+      return false;
+});
+
+function id2name(){
+            $.ajax({
+                type: "GET",
+                url: "/client/lookup/byid/",
+                data: { client_id: 2 },
+                dataType: "json",
+                success:function(msg){
+                	$.each(msg,function(index,item){
+                	$("#s_client").val(item)    
+                    });
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });      
+
+};
+
+$("#id_prepay").after('<select name="cash" id="id_cash">' +
+'<option value="2">Термінал pb.ua</option>' +
+'<option value="1" selected="selected">Готівка</option>' +
+'</select>');
+});
+  
+
+</script>
+
+
+<h1>Створити замовлення велосипеду{{text}}</h1>
+<form id="UserEnter" action="." method="POST" enctype="multipart/form-data">
+<table>
+	{{ form.as_ul }}
+</table>
+<p><input type="submit" value="Save"></p>
+</form>
+

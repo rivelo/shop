@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+
+<head>
+    <title>Баланс клієнтів</title>
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+</head>
+
+{% load template_math %}  
+
+    <h1>Баланс по клієнтам</h1>
+    <table border="1">
+    <tr>
+    	<th>#</th>
+    	<th>ID</th>
+    	<th width=180>ПІБ</th>
+    	<th>Оплати</th>
+    	<th>Борг</th>
+		<th align="center">Різниця</th>
+    </tr>    
+
+
+{% for type in clients %}
+{% if type.minus < 0 %}
+<tr  style="background-color:#FCF6CF">
+{% endif %}
+{% if type.minus > 0 %}
+<tr  style="background-color:#CCFF99">
+{% endif %}
+{% ifequal type.minus 0 %}
+<tr>
+{% endifequal %}
+	<td>{{forloop.counter}}</td>
+	<td>       
+	{{type.id}}
+	</td>
+	<td>       
+	<a href="/client/result/search/?id={{ type.id }}">{{type.name}}</a>
+	</td>
+	<td>       
+	{{type.sum_cred}}
+	</td>
+	<td>       
+	{{type.sum_deb}}
+	</td>
+	{% with type.minus as total %}
+	<td align="center">
+	{{total}}
+	</td>
+	{% endwith %}
+</tr>
+{% endfor %}           
+    
+    
+
+</table>
+
+<br>
+<!-- 
+	<h2>Заборгованість = {{sum_debt}} грн</h2>
+	<h2>Оплати = {{sum_cred}} грн</h2>
+-->
+	<h2>Різниця (оплати-борги) = {{sum_cred|sub:sum_debt}} грн</h2>
+ 
+<br>
+<a href="/">Головне меню (HOME)</a>
+<br>
+<a href="/client/add/">Створити нового клієнта (Add)</a>       

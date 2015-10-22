@@ -1,0 +1,185 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Нові надходження</title>
+{% load template_math %}
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<script src="/media/jquery-ui.js"></script>
+<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+
+
+<!--   <body onLoad="res()"> -->
+<body>
+<script type="text/javascript">
+
+function res()
+{
+var p=0;
+var All=document.forms['formSum'];
+for(var i = 0; i < All.elements.length; ++i) {
+	if(All.elements[i].checked){
+	//p+=parseInt(All.elements[i].value);
+	p=p+parseFloat(All.elements[i].value);
+	}
+	document.getElementById('for_pay').innerHTML = p.toFixed(2)+" грн.";
+	//document.getElementById('debet').innerHTML = parseFloat(document.getElementById('for_pay').innerHTML)+parseFloat(document.getElementById('workshop_pay').innerHTML);
+}
+}
+
+$(function() {
+//    $( "#accordion" ).accordion({
+//    	heightStyle: "content",
+//    	collapsible: true,
+//    	active: false
+//    });
+
+$("#accordion").addClass("ui-accordion ui-accordion-icons ui-widget ui-helper-reset")
+  .find("h3")
+    .addClass("ui-accordion-header ui-helper-reset ui-state-default ui-corner-top ui-corner-bottom")
+    .hover(function() { $(this).toggleClass("ui-state-hover"); })
+    .prepend('<span class="ui-icon ui-icon-triangle-1-e"></span>')
+    .click(function() {
+      $(this).find("> .ui-icon").toggleClass("ui-icon-triangle-1-e ui-icon-triangle-1-s").end()
+        .next().toggleClass("ui-accordion-content-active").slideToggle();
+        return false;
+    })
+    .next()
+      .addClass("ui-accordion-content  ui-helper-reset ui-widget-content ui-corner-bottom")
+  .hide();
+      
+    
+    $( ".selector" ).accordion({ animate: false });
+    $('#ui-id-1').remove();
+    $('#ui-id-2').remove();
+
+    $('.edit').editable('/dealer/invoice/new/edit/', {
+     	 id   : 'id',
+         name : 'rcount',
+         
+         submitdata : function() {
+      	 	return {id : $(this).attr('id_rcount')};
+    	 },
+    	 style   : 'inherit',
+         indicator : 'Saving...',
+         tooltip   : 'Click to edit...',
+         select : true,
+         callback : function(value, settings) {
+          var obj = jQuery.parseJSON(value);
+          $(this).html(obj.value);
+          document.getElementById('userid'+obj.id).innerHTML = obj.user;
+          if (obj.value > parseFloat(document.getElementById('count'+obj.id).innerHTML)) {
+          	document.getElementById('row'+obj.id).style.backgroundColor = "#f42525";
+          	$("#row"+obj.id).children("td.recived").html("Надлишок");
+          }
+          if (obj.value == parseFloat(document.getElementById('count'+obj.id).innerHTML)) {
+           	document.getElementById('row'+obj.id).style.backgroundColor = "#9fbb31";
+           	$("#row"+obj.id).children("td.recived").html("Отримано");
+          }    
+          if (obj.value < parseFloat(document.getElementById('count'+obj.id).innerHTML)) {
+           	document.getElementById('row'+obj.id).style.backgroundColor = "#FFFFFF";
+           	$("#row"+obj.id).children("td.recived").html("Недостача");
+          }
+     	 }
+     });
+
+$("body").on("click",".locality_edit",function(e){ 	    
+//$('.locality_edit').each(function() {
+  $(this).editable('/catalog/edit/', {
+        loadurl : '/catalog/get/locality/',
+     	loadtype: 'POST',
+		loaddata : {sel_id: $(this).attr('id_locality')},     	
+	   	 id   : 'id',
+         name : 'locality',
+      
+         submitdata : function() {
+      	 	return {id : $(this).attr('id_locality')};
+    	 },
+         indicator : 'Saving...',
+         select : true,
+         event : "dblclick",
+         style : "inherit",
+         tooltip   : 'dblClick to edit...',
+         callback : function(value, settings) {
+         	$(this).html(value);
+     	 }
+ }).trigger("focus");    
+});
+
+});   
+</script>
+<br>    
+
+<div id="accordion" >
+
+<h3>EMPTY{{x.invoice.origin_id}}</h3> <div> <table>
+<tr>
+	<th>#</th>
+   	<th>[ID] - Назва </th>
+  	<th>Кількість</th>
+   	<th>Накладна</th>
+   	<th>Статус</th>
+   	<th>Наявна кількість</th>
+   	<th>Користувач</th>
+</tr>
+
+{% for x in dinvoice_list %}
+{% ifchanged x.invoice %}
+  
+</table></div>
+<h3>{{x.invoice.origin_id}}</h3> <div class="content"> <table>
+<tr>
+	<th>#</th>
+   	<th>[ID] - Назва </th>
+  	<th>Кількість</th>
+   	<th>Накладна</th>
+   	<th>Статус</th>
+   	<th style="width:80px">Наявна кількість</th>
+   	<th>Ціна</th>
+   	<th>Користувач</th>
+   	<th>Ящик</th>
+</tr> 
+{% endifchanged %}
+{% if x.count == x.rcount %}
+<tr id=row{{x.id}}  bgcolor="#9fbb31">
+{% endif %}
+{% if  x.count < x.rcount %}
+<tr id=row{{x.id}}  bgcolor="#f42525">
+{% endif %}
+{% if  x.count > x.rcount %}
+<tr id=row{{x.id}}>
+{% endif %}
+
+<td>{{forloop.counter}}</td>
+<td>{{x.catalog}}</td>
+<td id="count{{x.id}}" align="center">{{x.count}} шт.</td>
+<td>{{x.invoice.origin_id}}</td>
+<td class="recived" align="center">
+{% ifequal x.count x.rcount %}
+Отримано
+{% else %}
+В дорозі
+{% endifequal %}
+</td>
+
+{% if user.is_authenticated %}
+	<td class="edit" id_rcount="{{x.id}}" align="center">
+{% else %}
+	<td id_rcount="{{x.id}}" align="center">
+{% endif %}       
+{{x.rcount}}
+</td>
+
+<td align="center">{{x.catalog.price}} грн.</td>
+<td id="userid{{x.id}}" align="center">{{x.user}}</td>
+<td align="center" class="locality_edit" id_locality="{{x.catalog.id}}">
+{{x.catalog.locality}}
+</td>
+</tr>
+
+{% endfor %}
+
+</table>
+</div>
+
+</div>
+

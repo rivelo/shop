@@ -1,0 +1,43 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Повернення/обмін товару</title>
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+
+<h1>Повернення/Обмін товару</h1>
+
+<table>
+	<tr>
+		<th>#</th>
+		<th>id</th>
+		<th>Клієнт</th>
+		<th>Товар</th>
+		<th>Кількість</th>
+		<th>Сума</th>
+		<th>Дата продажі</th>
+		<th>Користувач</th>
+		<th>Опис</th>
+		<th>Дата обміну</th>
+		<th>Користувач</th>		
+		<th>Готівка</th>
+	</tr>
+	{% for element in return_list %}
+	<tr>
+		<td>{{ forloop.counter }}</td>
+		<td>{{ element.id }}</td>
+		<td>{{ element.client }}</td>
+		<td>{{ element.catalog }}</td>
+		<td>{{ element.count }}</td>
+		<td>{{ element.sum }}</td>
+		<td>{{ element.buy_date }}</td>
+		<td>{{ element.buy_user }}</td>
+		<td>{{ element.msg }}</td>
+		<td>{{ element.date }}</td>		
+		<td>{{ element.user }}</td>
+		<td>{{ element.cash }}</td>
+	</tr>
+	{% endfor %}
+	<table>
+
+	<br>

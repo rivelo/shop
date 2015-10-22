@@ -1,0 +1,217 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Продаж товару</title>
+
+
+<!-- 	<script type="text/javascript" src="/media/jquery.select-autocomplete.js"></script>
+	<script type="text/javascript" src="/media/jquery-1.3.1.min.js"></script>
+	<script type="text/javascript" src="/media/jquery.autocomplete.pack.js"></script>
+	 -->	
+	<link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+
+	<script type="text/javascript" src="/media/jquery-ui.min.js"></script>	
+		
+	
+<style type="text/css">
+  span:visited{ text-decoration:none; color:#293d6b; }
+  span:hover{ text-decoration:underline; color:#FFF; }
+  span {color:#293d6b; 
+  		cursor: pointer; 
+  		border-radius: 5px;
+  		color: #FFF;
+  		background-color: #4A4A4A;
+  		}
+  span.one {background-color: #5cb85c;
+  		}
+  span.two {background-color: #FF6600;
+  		}
+  div.box {//border-radius: 5px;
+  		   background-color: #bfbfbf;
+  		   font-size:200%;
+  		   margin: 80px 0px 0px;
+  }  		
+  div.box_price {//border-radius: 5px;
+  		   background-color: #8BCB45;
+  		   font-size:200%;
+  		   margin: 80px 0px 0px;
+  }  		
+  		
+</style>	
+	
+<script type="text/javascript">
+
+function payed() {
+$("#id_pay").val($('#id_sum').val())
+$("#id_length").val($("#id_count").val());
+$("#id_count").val(Math.round($("#id_count").val()));
+document.getElementById("UserEnter").submit();
+}
+
+$(document).ready(function() {
+	$("#s_client").val($('#id_client').val());
+	$("#s_client").select();
+	
+{% if b_len %}
+$("#id_count").after("м");
+$("label[for='id_count']").html("Довжина:");
+{% endif %}	
+
+{%if desc_len %}
+$("#id_count").val({{desc_len}});
+{% endif %}
+
+$("#UserEnter").submit(function() {
+      if ($("#id_sum").val()) {
+      	$("#id_length").val($("#id_count").val());
+      	$("#id_count").val(Math.round($("#id_count").val()));
+        return true;
+      }
+      $("#id_count").after("FALSE");
+      return false;
+});
+
+
+$( "input[type='text']" ).change(function(){
+  sum();
+});
+	
+	$('span').click(function(){
+    	//$(this).hide();
+    	$("#s_client").val($(this).attr('vname'));
+    	$('#id_client').val($(this).attr('val'));
+    	$('#id_sale').val($(this).attr('sale'));
+    	sum();
+    	$('#id_count').focus();
+    	$('#id_count').select();
+    });
+//});
+
+//$(function() {
+	var sale = $('#id_sale').val();
+        $( "#s_client" ).autocomplete({
+            source: function( request, response ) {
+                $.ajax({
+                type: "GET",
+                url: "/client/lookup",
+				data: { query: $("#s_client").val() },
+                dataType: "json",
+                success: function( data ) {
+                        	response( $.map( data, function( item ) {
+                            return {
+                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
+                                value: item.fields.name,
+                                idid: item.fields.sale,
+                                pk_id: item.pk                                
+    							}
+                        	}));                                
+                            }
+                    })
+            },
+            minLength: 3,
+            select: function( event, ui ) {
+            if (sale==0){
+            	$('#id_sale').val(ui.item.idid);
+            }
+            $('#id_client').val(ui.item.pk_id);
+			//alert ("OK+ sale = " + ui.item.idid)
+			sum();            	            
+            },
+            open: function() {
+                $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+            },
+            close: function() {
+                $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+            }
+        });
+
+//      $(".ac_input").focus();
+//  		$('#id_client').hide();
+      
+});
+
+
+//$('#s_client').bind('change', 
+function id2name(){
+
+            $.ajax({
+                type: "GET",
+                url: "/client/lookup/byid/",
+                data: { client_id: $("#s_client").val() },
+                dataType: "json",
+                success:function(msg){
+                	$.each(msg,function(index,item){
+                	$("#s_client").val(item)    
+                    });
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });      
+
+};
+
+
+function sum() {
+	sale = 1 - ((parseFloat(document.getElementById('id_sale').value)||0)/100)
+    res = document.getElementById('result').innerHTML = parseFloat(document.getElementById("id_count").value||0) * (parseFloat(document.getElementById('id_price').value)||0) * sale
+    document.getElementById('result').innerHTML = "Сума " + document.getElementById('result').innerHTML + " грн."
+    document.getElementById('id_sum').value = res 
+}
+
+//setTimeout(sum, 100)
+//setInterval(sum, 100);
+
+$(document).ready(function() {
+	if ($("#s_client").val() != '') {
+		id2name();
+	}
+});
+
+</script>
+
+<body onload="document.getElementById('s_client').focus()">
+
+<h1>Продаж товару</h1>
+<div style="float: left;">    
+    <form id="UserEnter" action="." method="POST">
+        <table>
+        	<input id="s_client" style="width: 550px;" />
+            {{ form.as_ul }}
+        </table>
+        <p><input type="submit" value="Save"><input id="bpay" onclick="payed()" type="button" value="Оплатити"></p>
+    </form>
+</div>
+
+<span></span>    
+<div style="float: none;">
+{% for client in clients_list %}
+{% if client.num_inv >= 7 %}
+<span class="two" val='{{client.client__id}}' vname="{{client.client__name}}" sale="{{client.client__sale}}" style="font-size:200%;"> {{client.client__name}} ({{client.num_inv}}) </span>,
+{% endif %}
+{% if client.num_inv >= 3 and client.num_inv < 7 %}
+<span class="one" val='{{client.client__id}}' vname="{{client.client__name}}" sale="{{client.client__sale}}" style="font-size:150%;"> {{client.client__name}} ({{client.num_inv}}) </span>,
+{% endif %}
+{% if client.num_inv < 3 %} 
+<span val='{{client.client__id}}' vname="{{client.client__name}}" sale="{{client.client__sale}}" style="font-size:100%;"> {{client.client__name}} ({{client.num_inv}}) </span>,
+{% endif %}
+{% endfor %}
+
+<div class="box" style="float: left;">
+<p style="font-style: normal;">Номер ящика:</p>
+{{box_number}}
+</div>
+<br>
+<div class="box_price" style="clear:left;">
+<p align="left" style="font-style: normal; font-weight: bold;">Ціна: 
+{{ form.price.value }} грн.</p>
+</div>
+
+
+</div>
+
+<div style="clear: left;">
+    <h3 id="result" style="color:red; background-color:#CCCCCC"}>Сума грн.</h3>
+</div>
+    
+    

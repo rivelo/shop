@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Класифікатор велокомпонентів</title>
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+    <h1>Список велокомпонентів (List of Component type)</h1>
+	
+    <table border="1">
+    <tr>
+    	<th>ID</th>
+    	<th>Назва типу</th>
+    	<th>Опис</th>
+    	<th>Назва, українською</th>
+    	<th>Опис, українською</th>
+    	<th>Дія</th>
+    </tr>    
+
+
+{% for type in categories %}
+<tr>
+	<td>       
+	{{type.id}}
+	</td>
+	<td>       
+	<a href="/catalog/type/{{type.id}}/view/">{{type.name}}</a>
+	</td>
+	<td>       
+	{{type.description}}
+	</td>
+	<td>       
+	{{type.name_ukr}}
+	</td>
+	<td>       
+	{{type.description_ukr}}
+	</td>
+	<td>
+	<a href="/category/edit/{{ type.id }}">edit</a>
+    <a href="/category/delete/{{ type.id }}">delete</a>
+    </td>
+</tr>
+{% endfor %}   
+
+    
+<table>
+
+
+<br><br>
+<a href="/">Головне меню (HOME)</a>
+<br>
+<a href="/category/add/">Створити новий тип (Add)</a>       
+
+
+

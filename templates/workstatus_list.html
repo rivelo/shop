@@ -1,0 +1,41 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+
+
+        <link rel="stylesheet" type="text/css" href="/media/table.css">
+
+	<h1>Статус роботи</h1>
+    	
+    <table border="1">
+    <tr>
+    	<th>ID</th>
+    	<th>Назва</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    </tr>    
+    {% for type in workstatus %}
+    <tr>
+	{% for element in type %}
+        <td>
+            {{ element }}
+        </td>
+    {% endfor %}
+            <td>
+        <a href="/workstatus/edit/{{ type|first }}">edit</a>
+        <br>            
+        <a href="/workstatus/delete/{{ type|first }}">delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+    </table>
+
+
+<br><br>
+<a href="/">Головне меню (HOME)</a>
+<br>
+<a href="/workstatus/add/">Створити новий стан роботи</a>       
+
+
+
+

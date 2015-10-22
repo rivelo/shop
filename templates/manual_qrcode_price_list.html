@@ -1,0 +1,109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<script type="text/javascript" src="/media/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="/media/jquery.qrcode-0.7.0.min.js"></script>
+
+<script language="JavaScript">
+function qrcode(){
+$("#qr_tr1").qrcode({
+	render: 'image',
+	width: 60,
+	height: 60,
+	size: 80,
+	fill: '#3a3',
+	ecLevel: 'H',
+	text: '/catalog/edit/{{ type.id }}'
+	});
+};
+</script>
+
+<style type="text/css">
+.table {
+ 	width: 40mm;
+ 	height: 33mm;
+    table-layout: fixed;
+}
+
+.TableD {
+	border: 1px solid white; /* Граница вокруг ячеек */
+	border-bottom: 1px solid red;
+	height: 9mm;
+	}     
+
+table {
+    border: 1px solid white;
+    border-spacing: 0px;
+    }
+
+TR {
+	/* border-bottom: 1px solid black; */ 
+	}
+TD{
+
+	}
+
+.nameTD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 0px solid white; /* Граница вокруг ячеек */
+	/*border-bottom: 1px solid black;*/ 
+	}     
+
+a { 
+    text-decoration: none; /* Отменяем подчеркивание у ссылки */
+   } 
+
+#rotateText {
+    -moz-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    writing-mode: tb-rl;
+    width: 300px;
+    height: 200px;
+}
+     
+</style>
+
+{% load poll_extras %}
+
+<!-- <table border="1" CELLPADDING=0px style="padding: 1px;">  --> 
+<table>
+<tr height= 40mm>
+{% for price in price_list %}
+
+<td class="nameTD">
+
+<table class="table">
+<tr>
+{% with price.catalog.id|sale_url:request.get_host as url_buy %}  
+<td class="nameTD" style="border-bottom: 1px solid black; padding-left: 8px; padding-top: 5px;">
+<img src="{{url_buy|qr:"80x80"}}" />
+</td>
+{% endwith %}
+
+<td style="padding-left: 3px; font-family: Arial; font-size: 5pt;" class="nameTD">
+
+<!-- 
+<div class="firstBlock"></div>
+<div id="rotateText"> 	{{price.catalog.ids|slice:"20"}}</div>
+<div class="lastBlock"></div>
+ -->
+
+</td>
+</tr>
+</table>
+</td>
+
+
+{% if forloop.counter|divisibleby:"7"  %}
+</tr><tr height= 40mm>
+{% endif %}
+
+{% if forloop.counter|divisibleby:"91"  %}
+</table>
+<!--  <p style="page-break-after: always">  </p> -->
+<table> 
+{% endif %}
+ 
+{% endfor %}   
+

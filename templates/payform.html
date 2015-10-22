@@ -1,0 +1,338 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Оплата - {{client}}</title>
+
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script src="/media/jquery-ui.min.js"></script>	
+
+
+<style>
+
+a.css3dbutton {
+    background: #c1e75c; /* default green background color of button */
+    color: black;
+    text-decoration: none;
+    font: bold 18px Arial; /* font size and style */
+    position: relative;
+    display: inline-block;
+    margin-right: 15px; /* spacing between multiple buttons */
+    padding: 15px; /* padding inside button */
+    border-radius: 85px; /* border radius of button */
+    width: 85px; /* dimensions of button */
+    height: 85px;
+    outline: none;
+    box-shadow: 0 8px 0 #8dab3b, /* depth and color of main shadow */
+        0 0 3px rgba(0,0,0, 0.2),
+        0 20px 20px #eee;
+    -moz-transition: all 0.2s ease-in-out; /* transition style and duration */
+    -o-transition: all 0.2s ease-in-out;
+    -webkit-transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out;
+}
+
+a.css3dbutton span.outer{ /* outermost text container */
+    text-align: center;
+    width: 100%;
+    display: block;
+    position: relative;
+    top: 50%; /* center element */
+    -webkit-transform: translateY(-50%); /* center element */
+    -ms-transform: translateY(-50%);
+    -moz-transform: translateY(-50%);
+    transform: translateY(-50%); 
+}
+
+a.css3dbutton span.outer span.top{ /* top line */
+    display: block;
+    padding-bottom: 4px;
+}
+
+a.css3dbutton span.outer span.bottom{ /* bottom line */
+    border-top: 1px solid black;
+    padding-top: 4px;
+    display: block;
+    text-transform: uppercase;
+    line-height: 12px;
+    font-size: 60%;
+}
+
+a.css3dbutton:hover {
+    background: #9cc62b; /* background color when mouse rolls over button */
+    box-shadow:  none;
+    -ms-transform: translateY(8px); /* shift button downwards by shadow depth amount */
+    -webkit-transform: translate3D(0, 8px, 0);
+    -moz-transform: translateY(8px);
+    transform: translate3D(0, 8px, 0);
+}
+
+a.css3dbutton.red{
+    background: #ff3232;
+    box-shadow: 0 8px 0 #b20000, /* depth and color of main shadow */
+        0 0 3px rgba(0,0,0, 0.2),
+        0 20px 20px #eee;
+}
+
+a.css3dbutton.red:hover {
+    background: #ff0000; /* background color when mouse rolls over button */
+    box-shadow: none;
+}
+
+
+</style>
+
+
+
+{% load poll_extras %}
+
+<script language="JavaScript">
+$(document).ready(function() {
+	$("#dialog_msg").hide();
+
+	$( "#img_msg" ).click(function() {
+  		$( "#dialog_msg" ).dialog({
+  		resizable: false,
+      	modal: true,
+  		width: 380,
+      	buttons: {
+        "Додати": function() {
+        	if (!$("#msg_text").length) { 
+        	$( this ).append('<textarea type="text" id="msg_text" name="mytext[]" rows="10" cols="40"> </textarea>');
+        	$( this ).append('<input type="button" class="ok_button" name="mytext[]" width="350" value="Відправити">');
+        	}
+        	//$( this ).dialog( "close" );
+        },
+        "Відмінити": function() {
+        	$( this ).dialog( "close" );	
+        },
+        
+        }  		
+  		});
+	});
+	
+$('#client_debt_but').click(function() {
+	$("#pay").attr("value", 0);
+	$("#pay_form").submit();
+});
+
+$('#client_cred_term_but').click(function() {
+	$("#pay_term").attr("value", $("#pay").attr("value"))
+	$("#pay").attr("value", 0);
+	$("#pay_form").submit();
+});
+
+$('#client_cred_but').click(function() {
+	$("#pay_form").submit();
+});
+
+$('#pay').change(function() {
+	var omoney = parseFloat($('#pay').attr("value")) + parseFloat($("#cl_balance").attr('value'))-parseFloat($('#to_pay').attr('value'));
+	$("#oddmoney").html("Решта: "+omoney.toFixed(2)+" грн.");	
+});
+
+checkedSum();
+	
+});
+
+
+function AllSum() {
+//	document.getElementById('pay').value = {{summ|sub:balance}};
+	document.getElementById('pay').value = Math.abs($('#AllSum').attr("value")); 
+	document.getElementById('pay').focus();
+	document.getElementById('pay').select();
+//	alert('Спасибо');
+	$('#pay').change();
+}
+
+function PaySum() {
+	document.getElementById('pay').value = $('#to_pay').attr('value'); //{{summ}};
+	document.getElementById('pay').focus();
+	document.getElementById('pay').select();	
+	$('#pay').change();
+}
+
+function checkedSum() {
+var sum = 0;
+$.each($("input:checked"),function(index,item){
+	console.log("chk = " + index); // item.attr("value"));
+	console.log("TYPE = " + item.value);
+	sum = sum + parseFloat(item.value); 	
+})
+$("#to_pay").html("До сплати: "+ sum.toFixed(2) +" грн.");
+$('#pay').value = sum.toFixed(2);
+$("#checkSum").html(sum.toFixed(2) + " грн.");
+$('#to_pay').attr('value', sum.toFixed(2));
+
+var res = parseFloat($("#cl_balance").attr('value')) - sum; 
+$("#AllSum").html("Загальна сума: "+ res.toFixed(2) +" грн.");
+$('#AllSum').attr("value", res);
+
+$('#pay').change();
+}
+    
+</script>
+
+<body onload="document.getElementById('pay').focus()">
+
+<div id="dialog_msg" title="Повідомлення">
+{% for msg in messages %}
+<p><b>Message: </b> <br> {{msg.msg}} </p>
+{% endfor %}  
+</div>	
+
+<div style="float:left;">
+
+<div style="float:left;"><h1>{{client}}</h1></div>
+<div style="float:left;">
+{% if messages %}
+ <img style="display: True; opacity: 1" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення">
+{%endif%} 
+</div>
+
+<div style="clear:left;"></div>
+
+<div style="float:left;">
+	<h2><font color="#fe6037" id="cl_balance" value="{{balance}}"> Ваш рахунок: {{balance}} грн. </font></h2>
+    <h2 id="to_pay" value="{{summ}}" onclick="PaySum()">До сплати: {{summ}} грн. </h2>
+    <h2 onclick="AllSum()"> <font color="#006699" id="AllSum" value="{{summ|sub:balance}}"> Загальна сума: {{summ|sub:balance}} грн.</font></h2>
+</div>
+
+<div style="float:left;">
+<a href="#" class="css3dbutton" id="client_cred_but">
+<span class="outer">
+<span class="top">Оплатити</span>
+<span class="bottom">оплата готівкою</span>
+</span>
+</a>
+</div>
+
+<div style="float:left;">
+<a href="#" class="css3dbutton" id="client_cred_term_but">
+<span class="outer">
+<span class="top">Оплатити</span>
+<span class="bottom">оплата через термінал</span>
+</span>
+</a>
+</div>
+
+<div style="float:left;">
+<a href="#" class="css3dbutton red" id="client_debt_but">
+<span class="outer">
+<span class="top">Борг</span>
+<span class="bottom"></span>
+</span>
+</a>
+</div>
+
+
+<div style="clear:left;"></div>
+{% if workshop %}
+<form action="/client/workshop/payform/" method="POST" id="pay_form">
+{% else %}    
+<form action="/client/payform/" method="POST" id="pay_form">
+{% endif %}
+        Готівка: <input type="text" name="pay" id="pay" width="20" value="{{summ}}">
+        Термінал: <input type="text" name="pay_terminal" id="pay_term" width="20" value="0">
+        <input type="submit" value="Save">
+</div>
+
+<br>
+<div style="clear:left;">
+<p> <font color="#006699" id="oddmoney">Решта: 0 грн.</font> </p>
+</div>
+
+<div style="clear:left;">      
+        
+{% if workshop %}
+	<table border=1 width="65%" style="font-size : 12px; font-family : Arial;">
+	<tr bgcolor="grey">
+	<th>Дата</th>
+	<th>Робота</th>
+	<th>Прайс</th>
+	<th></th>
+	</tr>
+	
+	{% for inv in invoice %}
+	<tr>
+	<td>
+	{{inv.date}}
+	</td>
+	<td>
+	{{inv.work_type}}
+	</td>
+	<td>
+	{{inv.price}}
+	</td>
+	<td>
+	<input type="checkbox" id="model{{forloop.counter}}" value="{{inv.price}}" checked name="checkbox_{{ inv.id }}" onclick="checkedSum()"/>
+	</td>
+	</tr>
+	{% endfor %}
+
+	<tr bgcolor="grey">
+	<th></th>
+	<th>Сума</th>
+	<th id="checkSum"></th>
+	<th></th>
+	</tr>
+	          
+    </table>
+{% else %}
+	<table border=1 width="65%" style="font-size : 12px; font-family : Arial;">
+	<tr bgcolor="grey">
+	<th>Дата</th>
+	<th>Товар</th>
+	<th>Кількість</th>
+	<th>Прайс</th>
+	<th>Сума</th>
+	<th>Валюта</th>
+	<th></th>
+	</tr>
+	
+	{% for inv in invoice %}
+	<tr>
+	<td>
+	{{inv.date}}
+	</td>
+	<td>
+	{{inv.catalog}}
+	</td>
+	<td>
+	{{inv.count}}
+	</td>
+	<td>
+	{{inv.price}}
+	</td>
+	<td>
+	{{inv.sum}}
+	</td>
+	<td>
+	{{inv.currency}}
+	</td>
+	<td>
+	<input type="checkbox" id="model{{forloop.counter}}" value="{{inv.sum}}" checked name="checkbox_{{ inv.id }}" onclick="checkedSum()"/>
+	</td>
+	</tr>
+	{% endfor %}
+
+	<tr bgcolor="grey">
+	<th></th>
+	<th></th>
+	<th>Кількість</th>
+	<th>Сума</th>
+	<th id="checkSum"></th>
+	<th></th>
+	<th></th>
+	</tr>
+	          
+    </table>
+{% endif %}        
+</form>
+
+</div>
+	
+	
+
+
+
+
+

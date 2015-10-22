@@ -1,0 +1,33 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+
+<h1>Розміри рам <a href="/bicycle-framesize/add/">(Додати)</a></h1>
+
+<table>
+	<tr>
+		<th>ID</th>
+		<th>Назва</th>
+		<th>Розмір (см)</th>
+		<th>Розмір (дюйми)</th>
+		<th>Звіт</th>
+		<th>Дія</th>
+	</tr>
+
+	{% for type in framesizes %}
+	<tr>
+		<td><a href="/bicycle/framesize/edit/{{ type.id }}">{{type.id}}</a>
+		</td>
+		<td>{{type.name}}</td>
+		<td>{{type.cm}}</td>
+		<td>{{type.inch}}</td>
+		<td><a href="/bicycle/store/report/bysize/{{ type.id }}/">Наявні
+		велосипеди</a></td>
+		<td><a href="/bicycle/framesize/delete/{{ type.id }}" onclick="return confirm('Видалити запис - {{type.name}}?')">delete</a></td>
+	</tr>
+	{% endfor %}
+
+	<table>
+
+	<br>
+	<a href="/bicycle-framesize/add/">Додати новий розмір</a>

@@ -1,0 +1,112 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<html lang="en">
+<head>
+    <title>Список наявного товару по типу (HTML)</title>
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+</head>
+<body>
+
+    <h1>Список наявного товару ({{company_name}}{{type_name}})</h1>
+
+    <table border="1" width="100%">
+	<tr>
+    	<th >#</th>	
+    	<th >Артикул</th>
+    	<th >Найменування товару</th>
+    	<th align="center">Кількість</th>
+    	<th >Ціна</th>
+    	<th >Ціна зі знижкою</th>
+    	<th >Опис</th>
+    </tr>
+    
+{% load template_math %}    
+    
+{% for type in componentlist %}
+
+
+<tr>
+	<td>
+	{{forloop.counter}}
+	</td>
+	<td>       
+		{{type.ids}}
+	</td>
+	
+	<td>
+	{{type.name}}
+	</td>
+	<td align="center">
+	{{type.count}}
+	</td>
+
+{% ifequal type.sale 0 %}
+<td align="center">
+{% else %}
+<td align="center" BGCOLOR="#FF6600">
+<abbr title="Знижка - {{type.sale}}%. Ціна зі знижкою {{type.sale|div:100|sub:1|mul:type.price}}">
+{% endifequal %}
+
+	{{type.price}} грн.
+	</td>
+	<td align="center">
+	{{type.sale|div:100|sub:1|mul:type.price|mul:-1}} грн.    
+	</td>
+	<td align="center">   
+	{{type.description}} 
+	</td>
+
+</tr>
+{% endfor %}         
+	<tr>	
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th>Кількість: {{zcount}}</th>
+    	<th></th>
+    	<th></th>
+    	<th></th>    	    	
+    </tr>
+    
+</table>
+    
+    <p>
+    [table]
+	[tr]
+    	[td]#[/td]	
+    	[td]Артикул[/td]
+    	[td]Найменування товару[/td]
+    	[td]Кількість[/td]
+    	[td]Ціна[/td]
+    	[td]Ціна зі знижкою[/td]
+    	[td]Опис[/td]
+    [/tr]
+    {% for type in componentlist %}
+    [tr]
+    [td]
+    {{forloop.counter}}
+    [/td]
+	[td]
+    {{type.ids}}
+    [/td]
+	[td]
+    {{type.name}}
+    [/td]
+	[td]
+    {{type.count}}
+    [/td]
+	[td]
+    {{type.price}} грн.
+    [/td]
+	[td]
+    {{type.sale|div:100|sub:1|mul:type.price|mul:-1}} грн.  
+    [/td]
+	[td]
+    {{type.description}}
+    [/td]
+    [/tr]
+    {% endfor %}
+    [/table]    
+    </p>
+    
+</body>
+</html>

@@ -1,0 +1,881 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Виписка по клієнту: {{client_name.name}}</title>
+
+
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+{#    <script type="text/javascript" src="/media/jquery-1.7.2.min.js"></script> #}
+
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script src="/media/jquery-ui.min.js"></script>	
+
+
+	<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+
+<style type="text/css">
+#button > span.ui-icon-custom { 
+    background-image: url(/media/images/Bicycle_ico.png)    
+}
+
+div.read { color:red; 
+		background-color: #CCCCCC;
+		//display: inline-block; /* Строчно-блочный элемент */
+    position: relative; /* Относительное позиционирование */
+		}
+div.standart { color:black; 
+		background-color: #999999;
+		//display: inline-block; /* Строчно-блочный элемент */
+    position: relative; /* Относительное позиционирование */
+		}
+
+div.read:hover::after {
+    content: attr(data-title); /* Выводим текст */
+    position: absolute; /* Абсолютное позиционирование */
+    left: 0; right: 0; bottom: 5px; /* Положение подсказки */
+    z-index: 1; /* Отображаем подсказку поверх других элементов */
+    background: rgba(0,42,167,0.6); /* Полупрозрачный цвет фона */
+    color: #fff; /* Цвет текста */
+    text-align: center; /* Выравнивание текста по центру */
+    font-family: Arial, sans-serif; /* Гарнитура шрифта */
+    font-size: 11px; /* Размер текста подсказки */
+    padding: 5px 10px; /* Поля */
+    border: 1px solid #333; /* Параметры рамки */
+   }
+
+div.standart:hover::after {
+    content: attr(data-title); /* Выводим текст */
+    position: absolute; /* Абсолютное позиционирование */
+    left: 0; right: 0; bottom: 5px; /* Положение подсказки */
+    z-index: 1; /* Отображаем подсказку поверх других элементов */
+    background: rgba(0,42,167,0.6); /* Полупрозрачный цвет фона */
+    color: #fff; /* Цвет текста */
+    text-align: center; /* Выравнивание текста по центру */
+    font-family: Arial, sans-serif; /* Гарнитура шрифта */
+    font-size: 11px; /* Размер текста подсказки */
+    padding: 5px 10px; /* Поля */
+    border: 1px solid #333; /* Параметры рамки */
+   }
+
+</style>
+
+{% load poll_extras %}     
+    
+<script language="JavaScript">
+$(document).ready(function() {
+	$(document).tooltip({
+		content: function () {
+        return $(this).prop('title');
+        }
+    });
+	$("#dialog").hide();
+	$("#dialog_r").hide();
+	$("#dialog_msg").hide();
+	$("#dialog_ajax_load").hide();
+	
+  	$( "#img_bike" ).click(function() {
+  		$( "#dialog" ).dialog();
+	});
+	
+	$( "#img_msg" ).click(function() {
+  		$( "#dialog_msg" ).dialog({
+  		resizable: false,
+      	modal: true,
+  		width: 380,
+  		height:"auto",
+      	buttons: {
+        "Додати": function() {
+        	if (!$("#msg_text").length) { 
+        	$( this ).append('<textarea type="text" id="msg_text" name="mytext[]" rows="10" cols="40"> </textarea>');
+        	$( this ).append('<input id="msg_button" type="button" class="ok_button" name="mytext[]" width="350" value="Відправити">');
+        	
+        	$(".ok_button").on('click', function(){
+				$.ajax({
+                type: "POST",
+                url: "/clientmessage/add/",
+                data: {client:  {{client_name.id}}, msg: $("#msg_text").val() },
+                dataType: "json",
+                success:function(data){
+                	//$( "#dialog_msg" ).dialog("close");
+                	$("#img_msg").css("opacity", 1);
+                //	$("#dialog_msg p:last").after("<p><b>Message: </b> <br>"+ $('#msg_text').val() +"</p>");
+                	$("#dialog_msg").after("<p><b>Message: </b> <br>"+ $('#msg_text').val() +"</p>");
+                	$("#msg_text").remove();
+                	$("#msg_button").remove();
+                },
+                error:function(data){
+                    alert("При отправке возникли проблемы" + data);
+                }
+            	});
+            console.log("Натиснуто ОК" + $("#msg_text").val()); 
+            })
+        	}
+        	//$( this ).dialog( "close" );
+        },
+        "Відмінити": function() {
+        	$( this ).dialog( "close" );	
+        	$("#msg_text").remove();
+            $("#msg_button").remove();
+        },
+        
+        }  		
+  		});
+	});
+
+	
+	//$('#img_repair').css("opacity", 1);
+})
+
+
+function res() {
+var sum=0;
+	$('.chk_inv').each(function() {
+	if(this.checked){
+		console.log("THIS = "+ this.value);
+		sum = sum + parseFloat(this.value);
+	}
+	});
+document.getElementById('for_pay').innerHTML = sum + " грн.";
+document.getElementById('debet').innerHTML = parseFloat(document.getElementById('for_pay').innerHTML)+parseFloat(document.getElementById('workshop_pay').innerHTML);
+document.getElementById('row_count').innerHTML = "Row = " + document.getElementById("product").rows.length;
+}
+    
+function resWorkshop()
+{
+var p=0;
+var All=document.forms['formWorkshopSum'];
+for(var i = 0; i < All.elements.length; ++i) {
+	if(All.elements[i].checked){
+	p+=parseFloat(All.elements[i].value);
+	}
+	document.getElementById('workshop_pay').innerHTML = p.toFixed(2)+" грн.";
+	document.getElementById('debet').innerHTML = parseFloat(document.getElementById('for_pay').innerHTML)+parseFloat(document.getElementById('workshop_pay').innerHTML);
+}
+}
+
+
+$(function() {
+    $( "#tabs" ).tabs({
+      beforeLoad: function( event, ui ) {
+        ui.jqXHR.error(function() {
+          ui.panel.html(
+            "Couldn't load this tab. We'll try to fix this as soon as possible. " +
+            "If this wouldn't be a demo." );
+        });
+      }
+    });
+
+    $("#all_cred").click(function(){
+            var Id = {{client_name.id}};
+            $.ajax({
+            	beforeSend: function() {$( "#dialog_ajax_load" ).dialog({modal: true});},
+                type: "POST",
+                url: "/client_history/cred/",
+                data: { clientId: Id },
+                dataType: "json",
+                success:function(msg){
+                	$("#balance .tr_cred").empty(); 
+                	$("#1month_cred").attr("cred_day", 0);
+                	$("#1month_cred").hide();
+                	$.each(msg,function(index,item){
+//                		var tdate = item.fields.date.split(" ")[0].replace("-", "/").replace("-", "/");
+//                		var fcol = '<abbr title="' + item.fields.date.split(" ")[1] + ' - [user]">' + tdate + '</abbr>';
+//                		var cdesc = item.fields.description + " <a href='/clientcredits/delete/" + item.pk + "'>delete</a>";
+//                		var price = '<td class="cred_price" tcash_id="'+item.fields.cash_type+'" id_cred="' + item.pk + '" value="'+ item.fields.price+'"><abbr title="' + item.fields.cash_type.name + '">' + item.fields.price + '</abbr>';
+//                	    $('.in_cred').after('<tr class="tr_cred"><td>'+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</tr>');
+						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
+						var ed = '<a href="/clientcredits/edit/'+item['id']+'">edit</a>';
+						var cdesc = item['description'] + ed + " <a href='/clientcredits/delete/" + item['id'] + "'>delete</a>";
+						var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'"><abbr title="' + item['cash_type__name'] + '">' + item['price'] + '</abbr>';
+                	    $('.in_cred').after('<tr class="tr_cred"><td>'+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
+                    });
+				$( "#dialog_ajax_load" ).dialog("close");
+				reload_price();
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });      
+		});
+
+//--- Борги клієнтів ---
+    $("#all_debt").click(function(){
+            var Id = {{client_name.id}};
+            $.ajax({
+            	beforeSend: function() {$( "#dialog_ajax_load" ).dialog({modal: true});},
+                type: "POST",
+                url: "/client_history/debt/",
+                data: { clientId: Id },
+                dataType: "json",
+                success:function(msg){
+                	$("#balance .tr_debt").empty(); 
+                	$("#1month_debt").hide();
+                	$.each(msg,function(index,item){
+//                		var tdate = item.fields.date.split(" ")[0].replace("-", "/").replace("-", "/");
+//                		var fcol = '<abbr title="' + item.fields.date.split(" ")[1] + ' - [user]">' + tdate + '</abbr>';
+//                		var cdesc = item.fields.description + " <a href='/clientdebts/delete/" + item.pk + "'>delete</a>";
+//                	    $('.in_debt').after('<tr class="tr_debt"><td>'+ fcol +'</td><td>'+ cdesc +'</td><td>' + item.fields.price+'</td></tr>');
+						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
+						var ed = '<a href="/clientdebts/edit/'+item['id']+'">edit</a>';
+						var cdesc = item['description'] + ed + " <a href='/clientdebts/delete/" + item['id'] + "'>delete</a>";
+						var price = '<td>' + item['price'];
+                	    $('.in_debt').after('<tr class="tr_debt"><td>'+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
+                	    
+                    });
+				$( "#dialog_ajax_load" ).dialog("close");                    
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });      
+		});
+
+
+	$("#1month_cred").click(function(){
+		var Id = {{client_name.id}};
+            $.ajax({
+                type: "POST",
+                url: "/client_history/cred/",
+                data: { client_id: Id, cred_month: $(this).attr("cred_month"), cred_year: $(this).attr("cred_year"), cred_day: $(this).attr("cred_day")},
+                dataType: "json",
+                success:function(msg){
+                	if ($("#1month_cred").attr("cred_day") == 0) {
+	                	alert ("Виведено всі проплати клієнта");
+                	}
+                	var prev_day = parseInt($("#1month_cred").attr("cred_day")) + 30;
+                	$("#1month_cred").html("+ " + (prev_day-30) + " днів");
+                	$("#1month_cred").attr("cred_day", prev_day);
+                	//$("#balance .tr_cred").empty(); 
+                	$.each(msg,function(index,item){
+						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
+						var ed = '<a href="/clientcredits/edit/'+item['id']+'">edit</a>';
+						var cdesc = item['description'] + ed + " <a href='/clientcredits/delete/" + item['id'] + "'>delete</a>";
+						var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'"><abbr title="' + item['cash_type__name'] + '">' + item['price'] + '</abbr>';
+                	    $('.in_cred').after('<tr class="tr_cred"><td>'+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
+                    });
+                    reload_price();
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });      
+	});
+
+
+	$("#1month_debt").click(function(){
+		var Id = {{client_name.id}};
+            $.ajax({
+                type: "POST",
+                url: "/client_history/debt/",
+                data: { client_id: Id, cred_day: $(this).attr("debt_day")},
+                dataType: "json",
+                success:function(msg){
+                	if ($("#1month_debt").attr("debt_day") == 0) {
+                		alert ("Виведено всі борги клієнта");
+                	}
+                	var prev_day = parseInt($("#1month_debt").attr("debt_day")) + 30;
+                	$("#1month_debt").html("+ " + (prev_day-30) + " днів");
+                	$("#1month_debt").attr("debt_day", prev_day);
+                	//$("#balance .tr_debt").empty(); 
+                	$.each(msg,function(index,item){
+						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
+						var ed = '<a href="/clientdebts/edit/'+item['id']+'">edit</a>';
+						var cdesc = item['description'] + ed + " <a href='/clientcredits/delete/" + item['id'] + "'>delete</a>";
+                	    $('.in_debt').after('<tr class="tr_debt"><td>'+ fcol +'</td><td>'+ cdesc +'</td><td>' + item['price']+'</td></tr>');
+                    });
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });      
+	});
+
+
+	$("#last_invoice").click(function(){
+		res();	
+		var Id = {{client_name.id}};
+            $.ajax({
+                type: "POST",
+                url: "/client_history/invoice/",
+                data: { client_id: Id, day: $(this).attr("day")},
+                dataType: "json",
+                success:function(msg){
+                	var day = parseInt($("#last_invoice").attr("day")) + {{tdelta}};
+                	$("#last_invoice").html(">>> + " + (day-{{tdelta}}) + " днів");
+                	$("#last_invoice").attr("day", day);
+
+                	//$("#product .tr_inv").empty(); 
+                	$.each(msg,function(index,item){
+                	inp = '<input type="checkbox" class="chk_inv" value="'+item['sum']+'" onclick="res()" name="checkbox_' +item['id']+ '"/>';
+                	    $('#th_inv').after('<tr class="tr_inv"><td>'+ item['date'] +'</td><td>['+ item['catalog__ids'] +'] - '+ item['catalog__name'] +'</td><td>'+ item['count'] +'</td>'+'<td>' + item['price']+'</td>'+'<td>'+item['sum']+'</td>'+'<td>'+item['pay']+'<td>'+item['currency__name']+'<td align="center">'+inp+'</td></tr>');
+                    });
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });      
+	});
+
+
+$("#ticket_tab").on("click", function() {
+	$("#tabs-3").append($("#t_workticket"));
+});
+
+$('.bike_serv').editable('/bicycle/sale/service/', {
+     data   : " {'1':'Пройдено','0':'Не пройдено'}",
+     submitdata : function() {
+      	return {id : $(this).attr('id_bike')};
+    	 },
+     type   : 'select',
+//     tooltip   : 'Натисніть для редагування...',
+     submit : 'OK'
+});
+
+$('.cred_price').each(function() {
+$(this).editable('/clientcredits/set/', {
+	 loadurl : '/cashtype/list/',
+	 //loaddata : {sel: $(this).attr('tcash_id')},
+	 loaddata : function(value, settings) {
+	   console.log("load this [tcash_id]= " + $(this).attr('tcash_id'));
+       return {sel: $(this).attr('tcash_id')};
+   	 },
+     loadtype: 'POST',
+     submitdata : function() {
+      	return {id : $(this).attr('id_cred')};
+     },
+     type : 'select',
+     event : 'dblclick',
+     style : 'inherit',
+     callback : function(value, settings) {
+         var obj = jQuery.parseJSON(value);
+         $(this).attr("tcash_id", obj[0]["cash_type__id"])
+         str = '<abbr title="'+ obj[0]["cash_type__name"] +'">'+$(this).attr("value")+'</abbr>';
+         $(this).html(str);
+         sel = obj[0]["cash_type__id"];
+     },
+     tooltip   : 'Натисніть для редагування...',
+     submit : 'OK'
+});
+});
+
+
+	$('#selectall').click(function(event) {  //on click 
+        if(this.checked) { // check select status
+            $('.chk_inv').each(function() { //loop through each checkbox
+                this.checked = true;  //select all checkboxes with class "checkbox1"
+                res();               
+            });
+        }else{
+            $('.chk_inv').each(function() { //loop through each checkbox
+                this.checked = false; //deselect all checkboxes with class "checkbox1"    
+                res();                   
+            });         
+        }
+    });
+
+      
+});
+
+
+function reload_price() {
+
+$('.cred_price').each(function() {
+$(this).editable('/clientcredits/set/', {
+	 loadurl : '/cashtype/list/',
+	 loaddata : function(value, settings) {
+	   console.log("load this [tcash_id]= " + $(this).attr('tcash_id'));
+       return {sel: $(this).attr('tcash_id')};
+   	 },
+     loadtype: 'POST',
+     submitdata : function() {
+      	return {id : $(this).attr('id_cred')};
+    	 },
+     type   : 'select',
+     event: 'dblclick',
+     style   : 'inherit',
+     callback : function(value, settings) {
+         var obj = jQuery.parseJSON(value);
+         $(this).attr("tcash_id", obj[0]["cash_type__id"])
+         str = '<abbr title="'+ obj[0]["cash_type__name"] +'">'+$(this).attr("value")+'</abbr>';
+         $(this).html(str);
+         sel = obj[0]["cash_type__id"];
+     },     
+     tooltip   : 'Натисніть для редагування...',
+     submit : 'OK'
+});
+});
+}
+
+$(document).ready(function() {
+//	$('div.read').on("click", function(){
+	//$("body").on("click", "div.read", function(){	
+	
+	$("div").on("click", ".read", function(){
+		console.log('standart');
+		  $.ajax({
+            	beforeSend: function() {$( "#dialog_ajax_load" ).dialog({modal: true});},
+                type: "POST",
+                url: "/clientmessage/set/",
+                data: { msg_id: $(this).attr("msg_id") },
+                dataType: "json",
+                success:function(msg){
+			    	if ($("div").is(".read")==false) {
+		 				$("#img_msg").css('opacity', '0.2');
+					}
+				$( "#dialog_ajax_load" ).dialog("close");
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            }); 
+    	$(this).removeClass('read').addClass('standart');
+    	$(this).attr("data-title", "Клікніть для зміни статусу. Статус: Доставлено")
+	});
+
+	$("div").on("click", ".standart", function(){
+		console.log('read');
+		  $.ajax({
+            	beforeSend: function() {$( "#dialog_ajax_load" ).dialog({modal: true});},
+                type: "POST",
+                url: "/clientmessage/set/",
+                data: { msg_id: $(this).attr("msg_id") },
+                dataType: "json",
+                success:function(msg){
+             		if ($("div").is(".read")) {
+						$("#img_msg").css('opacity', '1');
+					};    	
+					$( "#dialog_ajax_load" ).dialog("close");
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });
+    	$(this).removeClass('standart').addClass('read');
+    	$(this).attr("data-title", "Клікніть для зміни статусу. Статус: В черзі")
+	});    
+    
+});
+         
+</script>
+
+<body onLoad="res(); resWorkshop()">
+
+<div style=" margin: 10px 0px 0px 0px;
+    width: 800px;      
+    float:left;  ">
+    <h1>Виписка по клієнту:
+    <span title="Телефон: {{client_name.phone|phone2Str}} <br> E-mail: {{client_name.email}}">
+    	 <a href=/client/edit/{{client_name.id}}> {{client_name.name}} ({{client_name.forumname}}) </a>
+    </span>
+    </h1>
+</div>
+
+
+<div id="dialog_ajax_load" title="Завантаження">
+<h2>Зачекайте, триває завантаження ... </h2>
+</div>
+
+<!-- dialog for client message -->
+<div id="dialog_msg" title="Повідомлення">
+{% for msg in messages %}
+{% if msg.status  %}
+<div id="msg_{{msg.id}}" class="standart" msg_id="{{msg.id}}" data-title="Клікніть для зміни статусу. Статус: {{msg.status|yesno:'Доставлено,В черзі'}}">
+<p style="font-style: normal;"><b>Message [{{msg.date}}]: </b> <br> {{msg.msg}} </p>
+</div>
+{% else %}
+<div id="msg_{{msg.id}}" class="read" msg_id="{{msg.id}}" data-title="Клікніть для зміни статусу. Статус: {{msg.status|yesno:'Доставлено,В черзі'}}">
+<p style="font-style: normal;"><b>Message [{{msg.date}}]: </b> <br> {{msg.msg}} </p>
+</div>
+{% endif %}
+{% endfor %}  
+</div>	
+
+<!-- repair bike  
+<img style="display: none;" id="img_repair" src="http://thumb10.shutterstock.com/thumb_small/295516/103760093/stock-photo-bicycle-repair-sign-on-a-white-background-part-of-a-series-103760093.jpg" height="64px" >
+-->
+
+<img style="display: True; opacity: 0.2" id="img_repair" src="/media/images/bicycle-repair.jpg" height="56px" title="Майстерня">
+{% if status_msg %}
+<img style="display: True; opacity: 1" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення">
+{% else %}
+<img style="display: True; opacity: 0.2" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення">
+{% endif %}
+{% if b_bike %}
+<img style="display: True;" id="img_bike" src="/media/images/green-bicycle_ico.png" height="50px" title="Придбані велосипеди">
+{% endif %}
+
+<img style="display: None;" id="img_attention" src="/media/images/system-attention-icon.png" height="50px" title="Непроведені операції/роботи">
+
+{% if status_order %}
+<img style="display: True;" id="img_order" src="/media/images/components_order.png" height="50px" title="Замовлення компонентів">
+{% else %}
+<img style="display: None;" id="img_order" src="/media/images/components_order.png" height="50px" title="Замовлення компонентів">
+{% endif %}
+
+{% if status_rent %}
+<img style="display: True;" id="img_rent" src="/media/images/test_icon.png" height="50px" title="Тест сидінь">
+{% else %}
+<img style="display: None;" id="img_rent" src="/media/images/test_icon.png" height="50px" title="Тест сидінь">
+{% endif %}
+
+<div id="dialog_r" title="Заявки на ремонт:">
+<table width='100%' id="t_workticket">
+  <script>
+	$( "#img_repair" ).click(function() {
+		window.location.href = "/workticket/add/client/"+ {{client_name.id}} +"/";	
+//    	console.log("/workticket/add/client/"+ {{client_name.id}} +"/");
+  	});
+  </script>
+
+
+{% for ticket in workshopTicket  %}
+{% if ticket.status__name = 'Прийнято' %}
+  <tr bgcolor="#CCFF99" > 
+  <script>
+  $( "#img_repair" ).unbind(); 
+  $( "#img_repair" ).click(function() {
+  $("#dialog_r").append($("#t_workticket"));
+  $( "#dialog_r" ).dialog({
+      buttons: {
+        "Створити": function() {
+        	$( this ).dialog( "close" );
+        	window.location.href = "/workticket/add/client/"+ {{client_name.id}} +"/";	
+        },
+        "Відмінити": function() {
+        	$( this ).dialog( "close" );	
+        },
+        
+        }
+  });
+  });
+
+//  $('#img_repair').show();
+  $('#img_repair').css("opacity", 1);
+
+  </script>
+  
+{% else %}
+  <tr bgcolor="#FFFFFF">
+{% endif %}  
+  <td>{{ticket.date}}</td><td>{{ticket.description}}</td><td class="edit_workstatus" id_workticket={{ticket.id}}>{{ticket.status__name}}</td>
+  </tr>
+{% endfor %}
+
+<script>
+$('.edit_workstatus').editable('/workticket/edit/0/', { 
+     loadurl : '/workstatus/view/',
+     type   : 'select',
+     submit : 'OK',
+     event: 'dblclick',
+     submitdata : function() {
+      	 	return {id_w : $(this).attr('id_workticket')};
+     },
+     callback : function(value, settings) {
+         
+       switch(value) {
+		case 'Прийнято':
+         $(this).closest("tr").attr('BGCOLOR', '#CCFF99');
+         $('#img_repair').css("opacity", 1);
+         break;
+		case 'Ремонтується':
+         $(this).closest("tr").attr('BGCOLOR', '#FFFF99');
+		 break;
+		case 'Виконано':
+		 $(this).closest("tr").attr('BGCOLOR', '#FFFFFF');
+         $('#img_repair').css("opacity", 0.2);
+		 break;
+		case 'Виконано невидано':
+         $('#img_repair').css("opacity", 0.2);
+		 break;
+		default :
+         $(this).closest("tr").attr('BGCOLOR', '#FFFFFF');
+       }
+     }
+ });
+</script>
+
+</table>
+</div>
+
+
+<div id="dialog" title="Придбані велосипеди">
+{% for bike in b_bike %}
+<p><b>Велосипед {{bike.model__model__brand__name}} {{bike.model__model__model}} {{bike.model__size__name}}</b> S/N: [{{bike.model__serial_number}}] <br> Дата продажу: {{bike.date}} 
+<br> Сервіс: <b class="bike_serv" id_bike={{bike.id}}>{{bike.service|yesno:"Пройдено,Не пройдено"}}</b></p>
+{% endfor %}  
+</div>	
+   
+    
+
+    <div style="clear:both;">
+	<br>
+	 <h2 style="color:red;"> Cума:  {{clients|floatformat:2}} грн.
+	 </h2>	
+	
+	</div>
+
+	
+	
+<table id="balance" >
+	<tr><th>Дата</th>
+	<th>Опис</th>
+	<th>Сума (грн)</th>
+	</tr>
+	
+	<tr BGCOLOR="#29AE48"  class="in_cred">
+	<td>
+	Оплати
+	</td>
+	<td><a href="/clientcredits/add/{{client_name.id}}">Створити нову проплату</a>  
+	{% if perms.accounting.delete_clientcredits %}
+	 /-----/ <a href="/clientcredits/{{client_name.id}}/delete/all">(Видалити всі проплати)</a> 
+	{% endif %}
+	{% if user.is_authenticated %}		
+	 /-----/ <a id="all_cred" href="javascript:" >(Показати всі проплати)</a>
+	 /-----/ <a id="1month_cred" href="javascript:" cred_month="12" cred_year="2014" cred_day="60">(+ 30 днів)</a>	 
+	{% endif %}		
+	 
+	</td>
+	<td>
+	</td>
+	</tr>
+	
+	
+	{% for credit in credit_list %}
+	<tr class="tr_cred">
+	<td>
+		<abbr title="{{credit.date|time:"H:i"}} - [{{credit.user.username}}]">
+	{{credit.date|date}}
+	</abbr>
+	</td>
+	<td>
+	{{credit.description}} 
+	{% if perms.accounting.delete_clientcredits %}
+	<a href="/clientcredits/edit/{{ credit.id }}">edit</a>	 
+	<a href="/clientcredits/delete/{{ credit.id }}" onclick="return confirm('Видалити запис?')">delete</a>
+	{% endif %}
+	</td>
+	<td class="cred_price" tcash_id="{{credit.cash_type.id}}" id_cred={{credit.id}} value="{{credit.price}}">
+	<abbr title="{{credit.cash_type.name}}">
+	{{credit.price}}
+	</abbr>
+	
+	</td>
+	{% endfor %}
+	</tr>
+
+	<tr BGCOLOR="#F11111" class="in_debt">
+	<td>
+	Борги
+	</td>
+	<td><a href=/clientdebts/add/{{client_name.id}}> Додати борг </a>
+	{% if perms.accounting.delete_clientcredits %}
+	 /-----/ <a href="/clientdebts/{{client_name.id}}/delete/all">(Видалити всі борги)</a>
+	{% endif %}
+	{% if user.is_authenticated %}	
+	 /-----/ <a id="all_debt" href="javascript:">(Показати всю історію боргів)</a>  
+	 /-----/ <a id="1month_debt" href="javascript:" debt_day=60>(+ 30 днів)</a>
+	{% endif %}	
+	</td>
+	<td id="debet">
+	</td>
+	</tr>
+
+	{% for debt in debt_list %}
+	<tr class="tr_debt">
+	<td>
+	<abbr title="{{debt.date|time:"H:i"}} - [{{debt.user.username}}]">
+	{{debt.date|date}}
+	</abbr>
+	</td>
+	<td>
+	{{debt.description}}
+	{% if perms.accounting.delete_preorder %}
+    <a href="/clientdebts/edit/{{ debt.id }}" >edit</a>	
+    <a href="/clientdebts/delete/{{ debt.id }}" onclick="return confirm('Видалити запис?')">delete</a>	
+	{% endif %}
+	</td>
+	<td>
+	<abbr title="{{debt.cash|yesno:"Каса,Віртуальні"}}">
+	{{debt.price}}
+	</abbr>
+	</td>
+	{% endfor %}
+	</tr>
+	
+	</table>
+
+<div id="tabs">
+  <ul>
+    <li><a href="#tabs-1">Товари</a></li>
+    <li><a href="/client/{{client_name.id}}/invoice/lookup/">Проданий товар</a></li>
+    <li id="ticket_tab"><a href="#tabs-3">Заявки</a></li>
+    <li><a href="#tabs-2">Майстерня</a></li>
+  </ul>
+  <div id="tabs-1">
+{# Проданий Товар #}	
+<form action="/payform/" method="post" name="formSum">
+	<br>
+	<table id="product">
+	<tr bgcolor="grey" id="th_inv">
+	<th>Дата</th>
+	<th>Товар <a href="javascript:" id="last_invoice" day="{{ tdelta|add:tdelta }}">  >>> [+ {{tdelta}} днів] </a></th>
+	<th>Кількість</th>
+	<th>Прайс</th>
+	<th>Сума</th>
+	<th>Оплата</th>
+	<th>Валюта</th>
+	<th>Оплата</th>
+	</tr>
+	
+	{% for inv in invoice %}
+	<tr class="tr_inv">
+	<td>
+	{{inv.date}}
+	</td>
+	<td>
+	{{inv.catalog}}
+	</td>
+	<td>
+	{{inv.count}}
+	</td>
+	<td>
+	{{inv.price}}
+	</td>
+	<td>
+	{{inv.sum}}
+	</td>
+	
+{% ifequal inv.sum inv.pay %}
+<td>
+	{{inv.pay}}
+	</td>	
+	<td>
+	{{inv.currency}}
+	</td>
+	<td align="center">
+	<input type="checkbox" id="model{{forloop.counter}}" value="{{inv.sum}}" onclick="res()" class="chk_inv" name="checkbox_{{ inv.id }}"/>
+	</td>
+{% else %}
+	<td BGCOLOR="#FF6600">
+	{{inv.pay}}
+	</td>	
+	<td>
+	{{inv.currency}}
+	</td>
+	<td align="center">
+	<input type="checkbox" id="model{{forloop.counter}}" value="{{inv.sum}}" onclick="res()" class="chk_inv" checked name="checkbox_{{ inv.id }}"/>
+	</td>
+	<script>
+	$("#img_attention").show();
+	</script>
+{% endifequal %}
+	</tr>
+	{% endfor %}
+	
+	<tr>
+	<th id="row_count"></th>
+	<th></th>
+	<th></th>
+	<th>Загальна сума</th>
+	<th>{{client_invoice_sum}} грн.</th>
+	<th><p><input type="submit" value="Оплата" name="pay"></p>
+	<input type="submit" value="E-mail" name="send_check"></th>
+	{% if perms.accounting.delete_clientcredits %}
+	<th BGCOLOR="#D5FFB4">До оплати<br><input type="checkbox" id="selectall">Виділити всі<br></th>
+	{% else %}
+	<th BGCOLOR="#D5FFB4">До оплати</th>
+	{% endif %}
+	<th id="for_pay" BGCOLOR="#D5FFB4">0</th>
+	</tr>
+	</table>
+</form>	
+
+
+  </div>
+
+<div id="tabs-2">
+{# Роботи майстерні #}
+<form action="/payform/workshop/" method="post" name="formWorkshopSum" >
+<br>
+	<table border=1 width="100%" style="font-size : 12px; font-family : Arial;">
+	<tr bgcolor="grey">
+	<th>Дата</th>
+	<th>Робота</th>
+	<th>Прайс</th>
+	<th>Опис</th>
+	<th>Оплата</th>
+	</tr>
+	
+	{% for inv in workshop %}
+	<tr>
+	<td>
+	{{inv.date}}
+	</td>
+	<td>
+	{{inv.work_type}}
+	</td>
+{% if inv.pay %}	
+	<td>
+	{{inv.price}}
+	</td>
+	<td>
+	{{inv.description}}
+	</td>	
+	<td align="center">
+	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{inv.price}}" onclick="resWorkshop()" name="checkbox_{{ inv.id }}"/>
+	</td>	
+{% else %}
+	<td BGCOLOR="#FF6600">
+	{{inv.price}}
+	</td>
+	<td>
+	{{inv.description}}
+	</td>	
+	<td align="center">
+	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{inv.price}}" onclick="resWorkshop()" checked name="checkbox_{{ inv.id }}"/>
+	</td>
+	<script>
+	$("#img_attention").show();
+	</script>
+{% endif %}
+	</tr>
+	{% endfor %}
+	
+	<tr>
+	<th></th>
+	<th>Загальна сума</th>
+	<th>{{client_workshop_sum}} грн.</th>
+	<th BGCOLOR="#D5FFB4">
+	<p><input type="submit" value="Оплата" name="pay" onClick="return confirm('Провести операцію?')"></p>
+	<input type="submit" value="E-mail" name="send_check">	
+	</th>
+	<th>  <p>До оплати:</p><p id="workshop_pay" BGCOLOR="#D5FFB4">0<p></th>
+	</tr>
+	</table>
+	
+	
+</form>
+	</div>
+
+<div id="tabs-3" onClick="$("#tabs-3").append($("#t_workticket"));">
+</div>
+	
+</div>
+
+
+<a href=/workticket/add/client/{{client_name.id}}/> 
+Створити заявку на ремонт
+</a>
+<br>
+<a href=/workshop/add/client/{{client_name.id}}/> 
+Додати роботу
+</a>
+<br>	
+<br>
+<a href=/client/search/> Пошук клієнта </a>
+ 
+{% load poll_extras %}
+{% orm_debug %}
+
+
+

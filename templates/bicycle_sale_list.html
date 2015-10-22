@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+<title>Продані велосипеди</title>
+
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<script src="/media/jquery-ui.min.js"></script>
+<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+
+<script>
+$(document).ready(function() {
+
+$('.bike_serv').editable('/bicycle/sale/service/', {
+     data   : " {'1':'Пройдено','0':'Не пройдено'}",
+     submitdata : function() {
+      	return {id : $(this).attr('id_bike')};
+    	 },
+     type   : 'select',
+     tooltip   : 'Натисніть для редагування...',
+     submit : 'OK'
+});
+
+});
+</script>
+
+<br>
+{% for group in user.groups.all %}
+    {% if group.name == 'admin' %}
+<a href="/bicycle/sale/brand/11/year/2012/month/11/view">Orbea 2012</a> /    
+<a href="/bicycle/sale/brand/11/year/2013/month/11/view">Orbea 2013</a> /
+<a href="/bicycle/sale/brand/11/year/2014/month/11/view">Orbea 2014</a> /
+<a href="/bicycle/sale/brand/1/year/2011/month/1/view">Kellys 2011</a> /
+<a href="/bicycle/sale/brand/1/year/2012/month/1/view">Kellys 2012</a> /   
+<a href="/bicycle/sale/brand/1/year/2013/month/1/view">Kellys 2013</a> /
+<a href="/bicycle/sale/brand/1/year/2014/month/1/view">Kellys 2014</a> /
+<a href="/bicycle/sale/brand/3/year/2012/month/1/view">Trek 2012</a> / 
+<a href="/bicycle/sale/brand/3/year/2013/month/1/view">Trek 2013</a> /
+<a href="/bicycle/sale/brand/3/year/2014/month/1/view">Trek 2014</a> /
+<a href="/bicycle/sale/brand/138/year/2013/month/1/view">Schwinn 2013</a> /
+<a href="/bicycle/sale/brand/138/year/2014/month/1/view">Schwinn 2014</a> /
+<a href="/bicycle/sale/brand/19/year/2013/month/1/view">Cannondale 2013</a> /
+<a href="/bicycle/sale/brand/19/year/2014/month/1/view">Cannondale 2014</a> /
+
+    {% endif %}
+{% endfor %}		
+
+<h1>Список проданих велосипедів</h1>
+
+{% load template_math %}   
+
+<table border="1">
+	<tr>
+		<th>№</th>
+		<th>ID</th>
+		<th>Велосипед</th>
+		<th>Номер рами</th>
+		<th>Клієнт</th>
+		<th>Ціна</th>
+		<th>Валюта</th>
+		<th>Знижка %</th>
+		<th>Сума</th>
+		<th>Дата</th>
+{% for group in user.groups.all %}
+    {% if group.name == 'admin' %}
+		<th>Ціна $</th>
+    {% endif %}
+{% endfor %}		
+		<th>Сервіс</th>
+		<th>Опис</th>
+		<th>Дія</th>
+	</tr>
+
+	{% for type in bicycles %}
+	<tr>
+		<td title="{{type.user}}">{{forloop.counter}}</td>
+		<td title="Редагувати"><a href="/bicycle/sale/edit/{{ type.id }}">{{type.id}}</a></td>
+<!-- 		<td title="{{type.model.size}}"><a href="/bicycle/photo/{{type.model.model.id}}">{{type.model}}</a></td>
+ -->
+		<td title="{{type.model.size}}"><a href="/bicycle-store/edit/{{type.model.id}}">{{type.model}}</a></td>
+		<td>{{type.model.serial_number}}</td>
+		<td><a href="/client/{{type.client.id}}">{{type.client}}</a></td>
+		<td title="{{type.price|percentage:type.sale}}">{{type.price}}</td>
+		<td>{{type.currency}}</td>
+		<td align="center" title="{{type.price|percentage:type.sale}}">{{type.sale}}</td>
+		<td align="center">{{type.sum}}</td>
+		<td align="center">{{type.date|date:"D d M Y"}}</td>
+{% for group in user.groups.all %}
+    {% if group.name == 'admin' %}
+		<td align="center">{{type.model.price}}</td>
+    {% endif %}
+{% endfor %}			
+		
+{% if type.service %}
+<td class="bike_serv" id_bike={{type.id}}>{{type.service|yesno:"Пройдено,Не пройдено,Невідомо"}}
+{% else %}
+<td BGCOLOR="#CCCC99" class="bike_serv" id_bike={{type.id}}>
+{{type.service|yesno:"Пройдено,Не пройдено,Невідомо"}}</a>
+{% endif %}		
+
+		</td>
+		</td>
+		<td>{{type.description}}</td>
+		<td><a href="/bicycle/sale/{{ type.id }}/check">check</a>
+		<a href="/bicycle/sale/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')">delete</a></td>
+	</tr>
+	{% endfor %}
+
+	<tr>
+		<th></th>
+		<th></th>
+		<th></th>
+		<th></th>
+		<th></th>
+{% if user.is_authenticated %}		
+		<th>{{price_summ}}</th>
+		<th>грн</th>
+		<th></th>
+		<th>{{pay_sum}}</th>
+{% else %}
+		<th></th>
+		<th></th>
+		<th></th>
+		<th></th>
+{% endif %}
+		<th>Не пройдено ТО:</th>
+{% for group in user.groups.all %}
+    {% if group.name == 'admin' %}
+		<th>{{price_opt}}</th>
+    {% endif %}
+{% endfor %}			
+		<th>{{service_summ}}</th>
+		<th></th>
+		<th></th>
+	</tr>
+
+	</table>
+
+		<br>
+		<a href="/bicycle/sale/report/month/">Звіт продаж по місяцях</a>
+		<br>
+		<a href="/bicycle/sale/add/">Продаж велосипеду</a>
+		

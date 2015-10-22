@@ -1,0 +1,60 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+{# Проданий Товар #}	
+<table id="product">
+	<tr bgcolor="grey">
+	<th>Дата</th>
+	<th>Товар</th>
+	<th>Кількість</th>
+	<th>Прайс</th>
+	<th>Сума</th>
+	<th>Оплата</th>
+	<th>Валюта</th>
+	</tr>
+	
+	{% for inv in invoice %}
+	<tr>
+	<td>
+	{{inv.date}}
+	</td>
+	<td>
+	{{inv.catalog}}
+	</td>
+	<td>
+	{{inv.count}}
+	</td>
+	<td>
+	{{inv.price}}
+	</td>
+	<td>
+	{{inv.sum}}
+	</td>
+	
+{% ifequal inv.sum inv.pay %}
+<td>
+	{{inv.pay}}
+	</td>	
+	<td>
+	{{inv.currency}}
+	</td>
+{% else %}
+	<td BGCOLOR="#FF6600">
+	{{inv.pay}}
+	</td>	
+	<td>
+	{{inv.currency}}
+	</td>
+{% endifequal %}
+	</tr>
+	{% endfor %}
+	
+	<tr>
+	<th></th>
+	<th></th>
+	<th></th>
+	<th>Загальна сума</th>
+	<th>{{client_invoice_sum}} грн.</th>
+	<th></th>
+	<th BGCOLOR="#D5FFB4"></th>
+	</tr>
+</table>

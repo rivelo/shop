@@ -1,0 +1,125 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<html lang="en">
+<head>
+    <title>Список товару</title>
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+</head>
+<body>
+<br>
+
+{% if company_list %}
+<table border="1">
+	<tr>
+    	<th>#</th>	
+    	<th>ID</th>
+    	<th>Сума по накладній</th>
+    	<th>Кількість товару</th>
+    </tr>
+
+{% for company in company_list %}
+<tr>
+	<td>
+	{{forloop.counter}}
+	</td>
+	<td>
+	<a href="/invoice/id/{{company.invoice}}/view/">{{company.id}} - {{company.origin_id}}</a>
+	</td>
+	<td align="center">
+	{{company.suma}} $
+	</td>	
+	<td align="center">
+	{{company.ccount}}
+	</td>
+</tr>	
+{% endfor %}
+</table>
+{% endif %}
+
+
+    <h1>Список наявного товару по накладній № {{dinvoice.origin_id}} ({{dinvoice.company}})</h1>
+    
+
+    <table border="1">
+	<tr>
+    	<th>#</th>	
+    	<th>ID</th>
+    	<th>Накладна</th>
+    	<th>Товар</th>
+    	<th align="center">Кількість</th>
+    	<th>Ціна</th>
+    	<th>Валюта</th>
+    	<th>Сума</th>
+{% if perms.accounting.add_preorder %}    	
+    	<th>Прайс</th>    	    	
+{% endif %}
+    	<th>Дата</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    </tr>
+    
+{% load template_math %}    
+    
+{% for type in list %}
+<tr>
+	<td>
+	{{forloop.counter}}
+	</td>
+	<td>       
+    <a href="/invoice/edit/{{type.id}}">{{type.id}}</a>
+	</td>
+ 	<td>
+	{{type.invoice}}       
+	</td>	
+	<td>       
+	{{type.catalog}}
+	</td>
+	<td align="center">       
+	<a href="/client/invoice/catalog/{{type.catalog.id}}/add">{{type.count}}</a>
+	</td>
+	<td>       
+	{{type.catalog.price}}
+	</td>
+	<td>       
+	{{type.catalog.currency}}
+	</td>
+	<td align="center">       
+	{{type.catalog.price|mul:type.count}}
+	</td>
+{% if perms.accounting.add_preorder %}
+	<td align="center">       
+	{{type.price}} ({{type.currency.ids_char}})
+	</td>
+{% endif %}
+	<td> 
+	{{type.date}}
+	</td>
+	<td>
+	{{type.description}}
+	</td>
+	<td>
+    <a href="/invoice/delete/{{type.id}}">delete</a>
+    </td>
+</tr>
+{% endfor %}         
+	<tr>
+    	<th></th>	
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th>Кількість: {{countsum}}</th>
+    	<th></th>
+    	<th></th>
+    	<th>{{allpricesum}} грн.</th>
+{% if perms.accounting.add_preorder %}
+    	<th>{{alloptsum}}</th>
+{% endif %}
+    	<th></th>    	
+    	<th></th>
+    	<th></th>
+    </tr>
+    
+    <table>
+
+
+</body>
+</html>

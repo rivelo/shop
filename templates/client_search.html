@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script src="/media/jquery-ui.min.js"></script>
+ 
+<script type="text/javascript">
+$(document).ready(function() {  
+/*
+       $( "#client_search_field" ).autocomplete({
+        source: "/asearch/", // url that provides JSON data
+	    }); 
+*/
+	    
+	$( "#client_search_field" ).autocomplete({
+    	source: function( request, response ) {
+        	$.ajax({
+                type: "GET",
+                url: "/client/lookup",
+				data: { query: $("#client_search_field").val() },
+                dataType: "json",
+                success: function( data ) {
+                        	response( $.map( data, function( item ) {
+                            return {
+                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
+                                value: item.fields.name,
+                                idid: item.fields.sale,
+                                pk_id: item.pk                                
+    							}
+                        	}));                                
+                            }
+            })
+        },
+        minLength: 3,
+        open: function() {
+        	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+        },
+        close: function() {
+        	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+        }
+    });	    
+	    
+});
+</script>
+
+
+<body onload="document.getElementById('client_search_field').focus()">
+<input type="hidden" name="csrfmiddlewaretoken" value="$csrf_token"/>
+  <h1>Пошук клієнта</h1>
+  <form action="/client/search/result/" method="GET">
+    <label>Введіть ім'я або прізвище клієнта: </label>
+    <input type="text" name="name" id="client_search_field" style="width: 350px;">
+    <br>
+ <!--    <input id="q1" type="text" />   -->
+    <label>Введіть телефон клієнта: </label>
+    <input type="text" name="phone" id="phone_search_field">
+    <br>    
+    <label>Введіть місто клієнта: </label>
+    <input type="text" name="city" id="city_search_field">
+    <br>    
+    <label>Descrioption: </label>
+    <input type="text" name="description" id="descripion_search_field">
+    <input type="submit" value="Пошук">
+  </form>
+
+

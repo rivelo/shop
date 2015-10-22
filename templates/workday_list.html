@@ -1,0 +1,144 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+<link type="text/css" rel="stylesheet" href="/media/paginator.css">
+<title>Робочі дні</title>
+
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<script src="/media/jquery-ui.min.js"></script>
+
+    <h1>Робочі дні <a href="/workday/add/">(Додати)</a> </h1>
+
+<script>
+  $(function() {
+  	$("#datepicker").datepicker({
+  	monthNames: [ "Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень" ], 
+  	firstDay: 1,
+  	dateFormat: "yy-mm-dd",
+  	onSelect: function(dateText) {
+//  	  $("#cdate").html( dateText );
+  	  $.ajax({
+                type: "POST",
+                url: "/workday/alluser/report/",
+                data: {id:  0, date: dateText},
+                dataType: "json",
+                success:function(value){
+//         			console.log(value);
+//         			console.log(value[0][0]);
+					$("#wtable tr:not(:first)").remove();
+         			if (value.length > 0) {
+         				
+         			var text = "";
+         			for (var i=0; i<value.length; i++) {
+         				text = text + value[i][0] + " / "
+         				console.log(value[i][0]);
+         				var num = i+1;
+         				$("#wtable").append("<tr><td>" + num + "</td><td>"+ value[i][3] +"</td><td>"+ dateText +"</td><td>"+ value[i][0] +"</td><td>"+ value[i][1] +"</td><td>"+ value[i][2] +"</td><td><a onclick=\"return confirm('Підтвердіть видалення?')\" href='/workday/"+value[i][3]+"/delete/'>delete</a></td></tr>");
+         			}
+         			
+//         			$("#result").html("res = " + text);
+					
+					}
+					
+					         			
+//                    alert("Все отлично ушло на сервер - " + msg);
+                },
+                error:function(value){
+                    alert("При отправке возникли проблемы");
+                }
+      });
+  	  
+  	},
+  	onChangeMonthYear: function(year, month){
+//  		alert("MONTH = " + month + "YEAR = " + year);
+  		  	  $.ajax({
+                type: "POST",
+                url: "/workday/alluser/report/",
+                data: {cmonth:  month, cyear: year},
+                dataType: "json",
+                success:function(value){
+					$("#wtable tr:not(:first)").remove();
+         			if (value.length > 0) {
+         				
+         			var text = "";
+         			for (var i=0; i<value.length; i++) {
+         				text = text + value[i][0] + " / "
+         				console.log(value[i][0]);
+         				var num = i+1;
+         				$("#wtable").append("<tr><td>" + num + "</td><td>"+ value[i][3] +"</td><td>"+ month + year +"</td><td>"+ value[i][0] +"</td><td>"+ value[i][1] +"</td><td>"+ value[i][2] +"</td><td><a onclick=\"return confirm('Підтвердіть видалення?')\" href='/workday/"+value[i][3]+"/delete/'>delete</a></td></tr>");
+         			}
+					
+					}
+  		        },
+                error:function(value){
+                    alert("При отправке возникли проблемы");
+                }
+      			});
+  	
+  	},
+  	onClose: function( selectedDate ) {
+        $("#cdate").html( "test" );
+      } 
+  	});
+    
+    
+  });
+</script>
+
+<div id="datepicker"></div>
+
+<h2 id="cdate"> </h2>
+<p id="result"></p>
+	
+    <table border="1" id="wtable">
+    <tr>
+    	<th>#</th>
+    	<th>ID</th>
+    	<th>Дата</th>
+    	<th>Користувач</th>
+    	<th>Статус</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    </tr>    
+
+
+{% for type in workdays %}
+<tr>
+	<td>
+	{{forloop.counter}}
+	</td>
+	<td>       
+	<a href="/{{ type.id }}">{{type.id}}</a>
+	</td>
+	<td>       
+	{{type.date}}
+	</td>
+	<td>       
+	{{type.user}}
+	</td>
+	<td>       
+	{{type.status}}
+	</td>
+	<td>       
+	{{type.description}}
+	</td>
+	<td>
+    <a href="/workday/{{type.id}}/delete/" onclick="return confirm('Підтвердіть видалення?')">delete</a>
+    </td>
+</tr>
+{% endfor %}
+
+    <tr>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    </tr>    
+
+
+</table>
+
+

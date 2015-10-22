@@ -1,0 +1,40 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<html lang="en">
+<head>
+    <title>Country</title>
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+</head>
+<body>
+    <h1>Список країн виробників <a href="/country/add/">(Додати)</a></h1>
+
+    <table>
+    <tr>
+    	<th>#</th>
+    	<th>Назва</th>
+    	<th>Дія</th>
+    </tr>
+    {% for country in countries %}
+    <tr>
+		<td>
+		{{ forloop.counter }}
+		</td>
+        <td>
+            {{ country }}
+        </td>
+    
+        <td>
+{% if user.is_authenticated %}        
+        	<a href="/country/edit/{{ country.id }}">edit</a>
+            <a href="/country/delete/{{ country.id }}" onclick="return confirm('Видалити запис - {{country.name}}?')">delete</a>
+{% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    <table>
+
+<br><br>
+<a href="/country/add/">Add</a>        
+
+</body>
+</html>

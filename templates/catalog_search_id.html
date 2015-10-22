@@ -1,0 +1,20 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<body onload="document.getElementById('search_field_id').focus()">
+
+  <h1>Пошук товару по артикулу</h1>
+  <form action="/catalog/search/result" method="GET">
+    <label>Введіть артикул товару: </label>
+    <br>
+    <input type="text" name="id" id="search_field_id"> 
+    <br>
+    <label>Введіть назву товару: </label>
+    <br>
+    <input type="text" name="name" id="search_field_name">
+    <br>
+    <input type="submit" value="Пошук">
+  </form>
+
+
+

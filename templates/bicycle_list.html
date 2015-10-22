@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<h1>Каталог велосипедів ({{bicycles.count}}) <a href="/bicycle/add/">(Створити)</a></h1>
+<h2>
+    За рік: 
+    <a href="/bicycle/year/2010/view">2010,</a>
+    <a href="/bicycle/year/2011/view">2011,</a>
+	<a href="/bicycle/year/2012/view">2012,</a>
+	<a href="/bicycle/year/2013/view">2013,</a>
+	<a href="/bicycle/year/2014/view">2014,</a>
+	<a href="/bicycle/year/2015/view">2015,</a>
+	<a href="/bicycle/all/view">Всі</a>
+</h2>    
+<b>Виробники:</b>
+{% for comp in b_company %}
+<a href="/bicycle/year/{{year}}/bycompany/{{comp.brand}}/view/">{{comp.brand__name}}[{{comp.num_company}}]</a>
+{% endfor %}
+
+{% load template_math %}   
+
+<table border="1">
+	<tr>
+		<th>#</th>
+		<th>ID</th>
+		<th>Назва моделі</th>
+		<th>Тип</th>
+		<th>Бренд</th>
+		<th>Рік</th>
+		<th>Колір</th>
+		<th></th>
+		<th>Фото</th>
+		<th>Вага</th>
+		<th>Ціна</th>
+		<th>Валюта</th>
+		<th>Знижка</th>
+		<th>Ціна зі знижкою</th>
+		<!--    	<th>Опис</th> -->
+		<th>Edit</th>
+		<th>Дія</th>
+	</tr>
+
+	{% for type in bicycles %}
+	<tr>
+		<td>{{forloop.counter}}</td>
+		<td><a href="/bicycle-store/add/{{type.id}}">{{type.id}}</a></td>
+		<td><a href="/bicycle/photo/{{type.id}}">{{type.model}}</a></td>
+		<td>{{type.type}}</td>
+		<td>{{type.brand}}</td>
+		<td>{{type.year.year}}</td>
+		<td>{{type.color}}</td>
+		<td>{{type.sizes}}</td>
+		<td><!-- 	<img src="/media/{{type.photo}}" alt="" title=""/>  -->
+		{{type.photo}}</td>
+		<td>{{type.weight}}</td>
+		<td>{{type.price}}</td>
+		<td>{{type.currency}}</td>
+		<td align="center">{{type.sale|floatformat:"0"}}%</td>
+		{% if type.sale %}
+		<td align="center">{{type.sale|div:-100|sub:-1|mul:type.price|floatformat:"0"}} грн.</td>
+		{% else %}
+		<td align="center">{{type.price}} грн.</td>
+		{% endif %}
+{#		<td align="center">{{ type.sale }} грн.</td> #} 
+{#		<td align="center">{% widthratio type.sale 1 1 %} грн.</td> #} 
+{#		http://slacy.com/blog/2010/07/using-djangos-widthratio-template-tag-for-multiplication-division/ #} 
+		<!-- 	<td>
+	{{type.description}}
+	</td>
+ -->
+		<td><a href="/bicycle/edit/{{ type.id }}">edit</a></td>
+
+		<td><a href="/bicycle/delete/{{ type.id }}" onclick="return confirm('Видалити запис - {{ type.model|escapejs }}?')">delete</a></td>
+	</tr>
+	{% endfor %}
+
+	<table>
+
+
+		<br>
+		<a href="/bicycle/add/">Додати велосипед</a>
+		<br>
+		<a href="/bicycle-store/add/">Додати велосипед до магазину</a>

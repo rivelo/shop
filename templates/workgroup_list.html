@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+
+<head>
+    <title>Групи робіт</title>
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+</head>
+
+
+    <h1>Групи робіт</h1>
+	
+    <table border="1">
+    <tr>
+    	<th>ID</th>
+    	<th>Назва</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    </tr>    
+    
+    {% for type in workgroups %}
+<tr>
+	<td>       
+	{{type.id}}
+	</td>
+	<td>    
+	<a href="/worktype/view/group/{{ type.id }}">	{{type.name}} </a>
+	</td>	
+	<td>       
+	{{type.description}}
+	</td>
+	<td>
+	<a href="/workgroup/edit/{{ type.id }}">edit</a>
+    <a href="/workgroup/delete/{{ type.id }}">delete</a>
+    </td>
+</tr>
+{% endfor %}   
+    
+
+
+
+</table>
+
+
+<br>
+<br>
+<a href="/workgroup/add/">Створити нову групу</a>
+<br>
+<a href="/workgroup/view/">Групи робіт</a>
+<br>
+<a href="/">Головне меню (HOME)</a>
+       
+
+
+
+

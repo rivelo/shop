@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<title>Ціна товару</title>
+
+
+	<link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+
+	<script type="text/javascript" src="/media/jquery-ui.min.js"></script>	
+		
+	
+<style type="text/css">
+  span:visited{ text-decoration:none; color:#293d6b; }
+  span:hover{ text-decoration:underline; color:#FFF; }
+  span {color:#293d6b; 
+  		cursor: pointer; 
+  		border-radius: 5px;
+  		color: #FFF;
+  		background-color: #4A4A4A;
+  		}
+  span.one {background-color: #5cb85c;
+  		}
+  span.two {background-color: #FF6600;
+  		}
+  div.box {//border-radius: 5px;
+  		   background-color: #bfbfbf;
+  		   font-size:200%;
+  		   margin: 80px 0px 0px;
+  }  		
+  		
+</style>	
+	
+<script type="text/javascript">
+
+function payed() {
+$("#id_pay").val($('#id_sum').val())
+$("#id_length").val($("#id_count").val());
+$("#id_count").val(Math.round($("#id_count").val()));
+document.getElementById("UserEnter").submit();
+}
+
+$(document).ready(function() {
+	$("#s_client").val($('#id_client').val());
+	$("#s_client").select();
+	
+{% if b_len %}
+$("#id_count").after("м");
+$("label[for='id_count']").html("Довжина:");
+{% endif %}	
+
+{%if desc_len %}
+$("#id_count").val({{desc_len}});
+{% endif %}
+
+$("#UserEnter").submit(function() {
+      if ($("#id_sum").val()) {
+      	$("#id_length").val($("#id_count").val());
+      	$("#id_count").val(Math.round($("#id_count").val()));
+        return true;
+      }
+      $("#id_count").after("FALSE");
+      return false;
+});
+
+
+$( "input[type='text']" ).change(function(){
+  sum();
+});
+	
+	$('span').click(function(){
+    	//$(this).hide();
+    	$("#s_client").val($(this).attr('vname'));
+    	$('#id_client').val($(this).attr('val'));
+    	$('#id_sale').val($(this).attr('sale'));
+    	sum();
+    	$('#id_count').focus();
+    	$('#id_count').select();
+    });
+//});
+
+//$(function() {
+	var sale = $('#id_sale').val();
+        $( "#s_client" ).autocomplete({
+            source: function( request, response ) {
+                $.ajax({
+                type: "GET",
+                url: "/client/lookup",
+				data: { query: $("#s_client").val() },
+                dataType: "json",
+                success: function( data ) {
+                        	response( $.map( data, function( item ) {
+                            return {
+                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
+                                value: item.fields.name,
+                                idid: item.fields.sale,
+                                pk_id: item.pk                                
+    							}
+                        	}));                                
+                            }
+                    })
+            },
+            minLength: 3,
+            select: function( event, ui ) {
+            if (sale==0){
+            	$('#id_sale').val(ui.item.idid);
+            }
+            $('#id_client').val(ui.item.pk_id);
+			//alert ("OK+ sale = " + ui.item.idid)
+			sum();            	            
+            },
+            open: function() {
+                $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+            },
+            close: function() {
+                $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+            }
+        });
+
+//      $(".ac_input").focus();
+//  		$('#id_client').hide();
+      
+});
+
+
+$(document).ready(function() {
+});
+
+</script>
+
+<body>
+
+<h1>Ціна товару</h1>
+<div style="float: left;">
+<table class="table">
+
+{% load poll_extras %}
+
+<tr>
+{% with price.catalog.id|sale_url:request.get_host as url_buy %}  
+<td rowspan="4"  class="nameTD" style="border-bottom: 1px solid black; padding-left: 8px; padding-top: 5px;">
+<img src="{{url_buy|qr:"90x90"}}" />
+</td>
+{% endwith %}
+
+	<td align="right" style="font-size: 8pt;" class="nameTD">
+<b>Код</b> 
+	</td>
+	<td style="padding-left: 3px; font-family: Arial; font-size: 10pt;" class="nameTD">
+	{{cat.ids}}
+	</td>
+</tr>
+
+<tr>
+	<td align="right" style="font-size: 8pt;" class="nameTD">
+<b>	Виробник </b>
+	</td>	
+	<td style="padding-left: 5px; font-size: 8pt;" class="nameTD">       
+	{{cat.manufacturer}}
+	</td>
+
+<tr>
+	<td align="right" class="nameTD">
+<b style="font-size: 8pt;"> Країна виробник </b>
+	</td>
+	<td style="padding-left: 3px;" class="nameTD">
+	{{cat.country}}
+	</td>	
+</tr>
+
+<tr>
+	<td align="right" class="nameTD" style="border-bottom: 1px solid black;">
+<b style="font-size: 12pt;">	Ціна </b>
+	</td>
+	<td style="padding-left: 5px; border-bottom: 1px solid black; font-size: 12pt; font-weight: bold;" class="nameTD">       
+ {{cat.price}} грн.  
+	</td>
+</tr>       
+
+<tr>
+</tr>       
+
+<tr>
+ 	<td width = 70mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 11pt; vertical-align: top;" class="TableD">
+	{{cat.name|slice:"100"}}
+	</td>
+</tr>
+
+</table>
+</div>
+
+{% comment %}
+<div class="box" style="float: left;">
+<p style="font-style: normal;">Номер ящика:</p>
+{{box_number}}
+</div>
+{% endcomment %}
+
+</div>
+
+<div style="clear: left;">
+    <h3 id="result" style="color:red; background-color:#CCCCCC"}>Сума {{cat.price}} грн.</h3>
+</div>
+    
+    

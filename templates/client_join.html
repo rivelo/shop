@@ -1,0 +1,159 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title> Об'єднання клієнтів </title>
+
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<script src="/media/jquery-ui.min.js"></script>
+
+<script src="/media/jquery.textchange.min.js"></script>
+
+<style type="text/css">
+  span.client_link:visited{ text-decoration:none; color:#293d6b; }
+  span.client_link:hover{ text-decoration:underline; color:#FFF; }
+  span {color:#293d6b; 
+  		cursor: pointer; 
+  		border-radius: 5px;
+  		font-style: normal;
+  		color: #FFF;
+  		background-color: #4A4A4A;
+  		}
+  span.client_link {background-color: #293d6b;
+  		}
+  span.two {background-color: #FF6600;
+  		}
+  span.test_client {background-color: #FFF;
+  		}
+  span.result{background-color: #FFF;
+  		}
+  span.test_client1 {background-color: #FFF; //#4A4A4A;
+  		}
+  		
+</style>	
+
+
+<script>
+function chk_client(){
+    $.ajax({
+	    type: "GET",
+        url: "/client/search/result/",
+        data: { name:  $('#client_main').val()},      
+        dataType: "json",
+        success:function(msg){
+            $('.test_client').empty();
+            $('#result_main').empty();
+            $('#result_main').append('<span class="test_client" style="padding-left:10px; color:red;" id="chk_span"><a href="javascript:void(0)" id="chk_link" >Check name - </a></span>');            
+            //$('#chk_link').after('<span id="result"> - </span>');
+            for (var i = 0, length = msg.length; i < length; i++) {
+			    if (i in msg) {
+        			$('#result_main').append('<span class="client_link" val="'+ msg[i].id +'" vname="'+ msg[i].name +'" style="font-size:100%;">' + msg[i].name + ' ('+ msg[i].forumname +') </span>, ')	
+    			}
+			}
+            
+            
+        },
+            error:function(){
+            alert("При отправке возникли проблемы");
+        }
+    });
+}      
+
+function chk_client1(){
+    $.ajax({
+	    type: "GET",
+        url: "/client/search/result/",
+        data: { name:  $('#client_1').val()},      
+        dataType: "json",
+        success:function(msg){
+            $('.test_client1').empty();
+            $('#result_1').empty();
+            $('#result_1').append('<span class="test_client1" style="padding-left:10px; color:red;" id="chk_span"><a href="javascript:void(0)" id="chk_link" >Check name - </a></span>');            
+            for (var i = 0, length = msg.length; i < length; i++) {
+			    if (i in msg) {
+        			$('#result_1').append('<span class="client_link1" val="'+ msg[i].id +'" vname="'+ msg[i].name +'" style="font-size:100%;">' + msg[i].name + ' ('+ msg[i].forumname +') </span>, ')	
+    			}
+			}
+            
+            
+        },
+            error:function(){
+            alert("При отправке возникли проблемы");
+        }
+    });
+}      
+
+$(document).on("click", ".client_link", function(event) {
+$("#client_main").val($(this).attr('vname'));
+$("#client_main").attr("id_client", $(this).attr('val'));
+$('#client_1').focus();               
+});
+
+$(document).on("click", "#chk_link", function(event) {
+chk_client();
+});
+
+$(document).on("click", "#chk_link_1", function(event) {
+chk_client1();
+});
+
+$(document).on("click", ".client_link1", function(event) {
+$("#client_1").val($(this).attr('vname'));
+$("#client_1").attr("id_client", $(this).attr('val'));
+$('#client_main').focus();               
+});
+
+$(document).ready(function(){
+$('#client_main').attr('class', 'classOfTextField');
+
+$('#client_main').bind('hastext', function () {
+	$('.client_link').empty();
+	$('.test_client').empty();
+	$('#result_main').append('  <span class="test_client" style="padding-left:10px; color:red;"><a href="javascript:void(0)" id="chk_link" >Check name</a></span>');
+});	
+
+$('#client_main').bind('notext', function () {
+	$('.client_link').empty();
+	$('.test_client').empty();
+	$("#client_main").attr("id_client", "");
+	$('#result_main').append('  <span class="test_client" style="padding-left:10px; color:red;">Empty</span>');
+});
+
+$('#client_1').bind('hastext', function () {
+	$('.test_client1').empty();
+	$('#client_1').after('  <span class="test_client1" style="padding-left:10px; color:red;"><a href="javascript:void(0)" id="chk_link_1">Check name</a></span>');
+
+});	
+
+$('#client_1').bind('notext', function () {
+	$('.client_link1').empty();
+	$('.test_client1').empty();
+	$("#client_1").attr("id_client", "");
+	$('#client_1').after('  <span class="test_client1" style="padding-left:10px; color:red;">Empty</span>');
+});
+
+$("#UserJoin").submit(function() {
+      if ($("#client_main").attr("id_client")) {
+      	$("#client_main").val($("#client_main").attr("id_client"));
+      	if ($("#client_1").attr("id_client")) {
+      		$("#client_1").val($("#client_1").attr("id_client"));
+      	}
+      	else {
+      		$("#client_1").after("FALSE");
+      		return false;
+      	}
+        return true;
+      }
+      $("#client_main").after("FALSE");
+      return false;
+});
+
+});
+</script>
+
+<body onload="document.getElementById('client_main').focus()">
+    <h1>Обєднання клієнтів</h1>
+    <form action="." method="POST" id="UserJoin">
+    	<p>Імя клієнта<input type="text" value="" name="client_main" id="client_main" size="32"><span class="result" id="result_main"></span></p>
+    	<p>Імя клієнта<input type="text" value="" name="client_1" id="client_1" size="32"><span class="result" id="result_1"></span></p>
+        <p><input type="submit" value="Обєднати"></p>
+    </form>
+
+</body>

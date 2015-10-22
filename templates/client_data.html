@@ -1,0 +1,26 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<h1>Клієнт: {{client.name}} ({{client.forumname}})</h1>
+
+
+<br>
+Країна: {{client.country}}
+<br>
+Місто: {{client.city}}
+
+<br>
+Телефон: {{client.phone}}
+<br>
+E-mail: {{client.email}}
+
+<br>
+<b>Опис:</b>
+{{Client.description}}
+<br>
+<b>Сума з накопиченням: {{client.summ}} грн.</b>
+
+<br>
+<a href="/client/result/search/?id={{client.id}}">Операції по клієнту</a>
+

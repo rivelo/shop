@@ -1,0 +1,98 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<html lang="en">
+<link type="text/css" rel="stylesheet" href="/media/paginator.css">
+<head>
+    <title>Список товару</title>
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+</head>
+<body>
+
+    <h1>Звіт по наявному товару</h1>
+
+    <table border="1">
+	<tr>
+    	<th>#</th>	
+    	<th>ID</th>
+    	<th>Товар</th>
+    	<th align="center">Кількість</th>
+    	<th>Ціна</th>
+    	<th>Валюта</th>
+    	<th>Сума</th>    	
+    </tr>
+    
+{% load template_math %}    
+{% for item in catalog.object_list %}
+<tr>
+	<td>
+	{{forloop.counter}}
+	</td>
+	<td>
+	{{item.id}}
+	</td>
+	<td>
+	{{item.name}}
+	</td>
+	<td align="center">
+	{{item.count}}
+	</td>
+	<td>
+	{{item.price}}
+	</td>
+	<td>
+	грн.
+	</td>
+	<td>
+	{{item.price|mul:item.count}}
+	</td>
+	
+</tr>
+{%endfor%}
+    
+	<tr>
+    	<th></th>	
+    	<th></th>
+    	<th>Кількість найменувань: {{counter}} одиниць(я)</th>
+    	<th>Кількість: {{countsum}}</th>
+    	<th></th>
+    	<th></th>
+    	<th>{{allpricesum}} грн.</th>    	
+    </tr>
+    
+    <table>
+
+<br>
+<div class="pagination">
+  <ul>
+  	{% if catalog.has_previous %}
+        <li class="prev">
+            <a href="?page={{ catalog.previous_page_number }}">&larr; Previous</a>
+        </li>
+    {% else %}
+    <li class="prev disabled">
+            <a href="?page={{ catalog.previous_page_number }}">&larr; Previous</a>
+    </li>
+    {% endif %}
+    
+    {% for i in catalog.paginator.page_range %}
+    {% ifequal i  catalog.number%}
+    <li class="disabled"><a href="">{{ i }}.</a></li>
+    {% else %}
+    <li class="active"><a href="?page={{ i }}">{{ i }}.</a></li>
+    {% endifequal %}
+    {% endfor %}   
+    
+    {% if catalog.has_next %}
+        <li class="next">
+            <a href="?page={{ catalog.next_page_number }}">Next &rarr;</a>
+        </li>
+    {% else %}
+    <li class="next disabled">
+            <a href="?page={{ catalog.previous_page_number }}">Next &rarr;</a>
+     </li>    
+    {% endif %}
+  </ul>
+</div>
+      
+
+</body>
+</html>

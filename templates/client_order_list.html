@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+<!--
+ 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+ 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+ 
+ <script type="text/javascript" src="/media/jquery-1.7.2.min.js"></script>
+-->
+    
+
+	<script type="text/javascript">
+$(document).ready(function() {
+	$( document ).tooltip();
+})
+
+
+function true_false(obj){
+            var rent_id = $(obj).attr('id'); 
+            var res = new Array();
+            res = rent_id.split('_');
+            //res = $(this).attr('id');
+            $.ajax({
+                type: "GET",
+                url: "/client/order/edit/"+res[1]+"/",
+//                url: "/rent/edit/"+res[1]+"/",
+                data: { id: res[1] },
+                dataType: "json",
+                success:function(msg){
+//                    alert("Все отлично ушло на сервер - " + msg);
+//                    $('#status_2').text(obj);
+//                    obj.innerHTML = msg;
+                    $(obj).html(''+ msg[0].status.toString().toUpperCase());
+                    if (msg[0].status){
+                    $(obj).closest("tr").attr('class', 'tr_true')
+                    } else {
+                    $(obj).closest("tr").attr('class', 'tr_false')
+                    }
+                    //$('#ttt').text(""+msg);
+                    //$('#id_deposit').val(""+msg);
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });
+}      
+
+	</script>    
+    
+
+    
+    <h1>Замовлення  <a href="/client/order/add/">(Додати)</a></h1>
+
+    <table>
+	<tr>
+		<th>№</th>
+    	<th>ID</th>
+    	<th>Назва компонентів</th>
+    	<th>Опис замовлення</th>    	
+    	<th>Кієнт</th>
+    	<th>Дата</th>
+    	<th>Кількість</th>
+    	<th>Аванс</th>
+    	<th>Ціна</th>
+    	<th>Сума</th>
+    	<th>Статус</th>
+    	<th>Відпустив</th>
+    	<th>Дії</th>
+    </tr>
+    
+{% for type in c_order %}
+{% if type.status %}
+<tr class="tr_true">
+{% else %}
+<tr class="tr_false">
+{% endif %}
+	<td onclick="window.open('/client/order/edit/{{type.id}}','Карточка',' width=800,height=800,top=0')">
+	{{forloop.counter}}
+	</td>
+	<td>       
+	<a href="/client/order/edit/{{ type.id }}">{{type.id}}</a>
+	</td>
+	<td>
+	<a href="/client/{{ type.client.id }}/invoice/catalog/{{ type.catalog.id }}/add/" title="" >
+	{{type.catalog}}
+	</a>
+	</td>
+	<td>
+	{{type.description}}
+	</td>
+	<td>
+	<span title="Телефон: {{type.client.phone}}"> 
+	<a href="/client/{{ type.client.id }}"> 
+	{{type.client}}
+	</a>
+	</span>
+	</td>
+	<td align="center" title="{{type.date|date:'d-m-Y H:i:s' }}">       
+	{{type.date|date:'d-m-Y' }}
+	</td>
+	<td align="center">       
+	{{type.count}}
+	</td>
+	<td align="center">       
+	{{type.pay}} грн.
+	</td>
+	<td>       
+	{{type.price}} 
+	</td>
+	<td>
+	{{type.sum}}
+	</td>	
+	<td align="center">       
+	<span title="Змінити статус" id="status_{{type.id}}" onclick="true_false(this)" >{{type.status}}</span>
+	</td>	
+	<td align="center">       
+	{{type.user}}
+	</td>	
+
+	<td>
+    <a href="/client/order/edit/{{ type.id }}">edit</a>
+    <a href="/client/order/delete/{{ type.id }}" onclick="return confirm('Видалити замовлення і його проплату?')">delete</a>
+    </td>
+</tr>
+{% endfor %}       
+    
+
+    <table>
+
+<br><br>
+

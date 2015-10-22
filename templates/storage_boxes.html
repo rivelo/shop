@@ -1,0 +1,75 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Список ящиків</title>
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<script src="/media/jquery-ui.min.js"></script>
+
+<style type="text/css">
+  span:visited{ text-decoration:none; color:#293d6b; }
+  span:hover{ text-decoration:underline; color:#293d6b; }
+  span {color:#293d6b; cursor: pointer; }
+</style>
+
+<script type="text/javascript">
+$(document).ready( function() {
+
+$("#dialog").dialog({
+	autoOpen: false,
+      resizable: false,
+      modal: true,
+      buttons: {
+        "Перейменувати": function() {
+			$.ajax({
+                type: "POST",
+                url: "/storage/box/rename/",
+                data: {old_name:  $("#box_name").attr("old_name"), new_name: $("#box_name").val()},
+                dataType: "text",
+                success:function(msg){
+                var $bn = $('#box_name').attr('old_name');
+                $("span[name='"+$bn+"']").html("Перейменовано в "+ $("#box_name").val());
+//					console.log("THIS = ",  $("span[name=old_name]"));
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });
+
+        
+          $( this ).dialog( "close" );
+        },
+        "Відмінити": function() {
+          $( this ).dialog( "close" );
+        }
+      }
+});
+
+
+$(".ren_boxname").click(function() {
+	$("#box_name").attr("old_name", $(this).attr("name"));
+	$("#box_name").val($(this).attr("name"));
+	$("#dialog").dialog("open");
+	$("#box_name").select();
+})
+
+})
+</script>
+
+<body>
+
+<div id="dialog" title="Перейменування ящика">
+	<p id="dtext">Змінити назву ящику</p>
+	<label for="spinner">Назва:</label>
+  	<input type="text" id="box_name">
+</div>
+	
+<h1>Список ящиків</h1>
+{% for box in boxes %}
+<li>
+<a href=/storage/box/{{box.locality}}/view/> {{box.locality}}</a>  - кількість найменувань ({{box.icount}}) 
+<span class="ren_boxname" name="{{box.locality}}">Перейменувати</span>
+</li>
+{% endfor %}
+</body>
+
+    
+
+

@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Замовлення товару</title>
+
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script type="text/javascript" src="/media/jquery-ui.min.js"></script>
+	
+
+<style>
+    .ui-combobox {
+        position: relative;
+        display: inline-block;
+    }
+    .ui-combobox-toggle {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        margin-left: -1px;
+        padding: 0;
+        /* adjust styles for IE 6/7 */
+        *height: 1.7em;
+        *top: 0.1em;
+    }
+    .ui-combobox-input {
+        margin: 0;
+        padding: 0.3em;
+    }
+  .ui-autocomplete-loading {
+    background: white url('/media/images/ui-anim_basic_16x16.gif') right center no-repeat;
+  }
+  city { width: 90em; }
+</style>
+	
+<script type="text/javascript">
+     
+    $('#id_count').bind('change', function(){
+    	$('#id_sum').val($('#id_price').val() * $('#id_count').val());
+    	$('#result').html("Сума " + $('#id_sum').val() + " грн.")		
+	});
+
+      
+
+$(document).ready(function() {
+   
+$( "#s_client" ).autocomplete({
+            source: function( request, response ) {
+                $.ajax({
+                type: "GET",
+                url: "/client/lookup",
+				data: { query: $("#s_client").val() },
+                dataType: "json",
+                success: function( data ) {
+                        	response( $.map( data, function( item ) {
+                            return {
+                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
+                                value: item.fields.name,
+                                idid: item.fields.sale,
+                                pk_id: item.pk                                
+    							}
+                        	}));                                
+                            }
+                    })
+            },
+            minLength: 3,
+            select: function( event, ui ) {
+            	$('#id_client').val(ui.item.pk_id);
+            	$('#id_description').focus();
+            	
+            },
+            open: function() {
+                $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+            },
+            close: function() {
+                $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+            }
+        });
+
+
+        $( "#catalog" ).autocomplete({
+            source: function( request, response ) {
+                $.ajax({
+                type: "GET",
+                url: "/catalog/lookup",
+//                data: { query: "r55c2" },
+				data: { query: $("#catalog").val() },
+                dataType: "json",
+                success: function( data ) {
+//                			alert("Все отлично ушло на сервер - " + data[0].fields.name);
+                        	response( $.map( data, function( item ) {
+                            return {
+                                label: item.pk + ": [" + item.fields.ids + "] "+ item.fields.name,
+                                value: item.fields.name,
+                                idid: item.fields.price,
+                                pk_id: item.pk                                
+    							}
+                        	}));                                
+                            }
+                    })
+            },
+            minLength: 3,
+            select: function( event, ui ) {
+            	$('#id_price').val(ui.item.idid);
+            	$('#id_sum').val($('#id_price').val() * $('#id_count').val());
+            	$('#val_id_catalog').val(ui.item.pk_id);
+            	$('#id_post_id').val(ui.item.pk_id);
+            	$('#id_catalog').val(ui.item.label);
+            	$('#result').html("Сума " + $('#id_sum').val() + " грн.")
+            	            
+            },
+            open: function() {
+                $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+            },
+            close: function() {
+                $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+            }
+        });
+
+      
+});    
+    </script>
+
+
+<body  onload="document.getElementById('catalog').focus()">
+
+<h1>Замовлення товару</h1>
+<div class="ui-widget" style="margin-top: 2em; font-family: Arial;">    
+
+<form action="" method="POST">
+   
+<table>
+<tr> 
+<th><label>Перелік товарів</label></th>
+<td>
+	<input id="catalog"   style = "width: 550px;" />
+</td>    
+</tr>
+<tr> 
+<th><label>Клієнт</label></th>
+<td>
+	<input id="s_client" style="width: 550px;" />
+</td>    
+</tr>
+           {{ form.as_table }}
+</table>
+        
+    <p><input type="submit" value="Save" title="Зберегти замовлення"></p>
+    <input type="hidden" id="val_id_catalog" >
+
+    <h3 id="result" style="color:red; background-color:#CCCCCC"}>Сума грн.</h3>
+    
+</body>
+    
+    <br><br>
+
+
+
+
