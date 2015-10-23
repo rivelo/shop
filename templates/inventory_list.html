@@ -21,8 +21,18 @@
 		<th>Статус виконання</th>
 		<th>Кількість в базі</th>
 	</tr>
+
 	{% for element in return_list %}
-	<tr>
+	{% if element.count > element.real_count and element.check_all %}
+	<tr BGCOLOR="#8bf68d">
+	{% endif %}
+	{% if element.count < element.real_count and element.check_all %}
+	<tr BGCOLOR="#FFB7B7">
+	{% endif %}
+	{% if element.count == element.real_count and element.check_all %}
+	<tr BGCOLOR="#feff81">
+	{% endif %}
+		
 		<td>{{ forloop.counter }}</td>
 		<td>{{ element.id }}</td>
 		<td>{{ element.catalog }}</td>

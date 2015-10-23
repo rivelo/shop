@@ -279,7 +279,7 @@ $(function() {
                 	$.each(msg,function(index,item){
 						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
 						var ed = '<a href="/clientdebts/edit/'+item['id']+'">edit</a>';
-						var cdesc = item['description'] + ed + " <a href='/clientcredits/delete/" + item['id'] + "'>delete</a>";
+						var cdesc = item['description'] + ed + " <a href='/clientdebts/delete/" + item['id'] + "'>delete</a>";
                 	    $('.in_debt').after('<tr class="tr_debt"><td>'+ fcol +'</td><td>'+ cdesc +'</td><td>' + item['price']+'</td></tr>');
                     });
                 },

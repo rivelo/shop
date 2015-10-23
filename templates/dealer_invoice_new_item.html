@@ -105,9 +105,58 @@ $("body").on("click",".locality_edit",function(e){
  }).trigger("focus");    
 });
 
+
+$("#dialog").dialog({
+	autoOpen: false,
+      resizable: false,
+      modal: true,
+      buttons: {
+        "Додати": function() {
+			$.ajax({
+                type: "GET",
+                url: "/shop/price/print/add/",
+                data: {id:  $("#dtext").attr("ids"), url: $('#spinner').val()},
+                dataType: "text",
+                success:function(msg){
+//                    alert("Все отлично ушло на сервер - " + msg);
+//               	    $('#spinner').after('<p>ajax done</p>');
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });
+
+        
+          $( this ).dialog( "close" );
+        },
+        "Відмінити": function() {
+          $( this ).dialog( "close" );
+        }
+      }
+});
+
+
+$(document).on("click", ".addprice", function(event) {
+    $("#dtext").html($(this).attr('href'));
+    $("#dtext").attr({"ids": $(this).attr('ids')});
+	var spinner = $("#spinner").spinner();
+	$("#spinner").val(1);       
+   $("#dialog").dialog("open");
+});
+
+
 });   
 </script>
 <br>    
+
+
+<!-- Dialog to add print price -->
+	<div id="dialog" title="Add price">
+	<p id="dtext">Додати цінник до списку друку</p>
+	<label for="spinner">Кількість:</label>
+  	<input id="spinner" name="value" value="1">
+	</div>
+
 
 <div id="accordion" >
 
@@ -149,7 +198,7 @@ $("body").on("click",".locality_edit",function(e){
 <tr id=row{{x.id}}>
 {% endif %}
 
-<td>{{forloop.counter}}</td>
+<td class="addprice" ids="{{x.catalog.id}}">{{forloop.counter}}</td>
 <td>{{x.catalog}}</td>
 <td id="count{{x.id}}" align="center">{{x.count}} шт.</td>
 <td>{{x.invoice.origin_id}}</td>

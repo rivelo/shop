@@ -5050,6 +5050,7 @@ def inventory_list(request):
 
 
 def inventory_add(request):
+    inv = None
     if request.is_ajax():
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
@@ -5066,14 +5067,18 @@ def inventory_add(request):
                     status = True
 
                 if desc == '':
-                    search = "Введіть текст опису"
-                    return HttpResponse(search, mimetype="text/plain")
+                    #search = "Введіть текст опису"
+                    jsonDict = {"status": "error", "message": "Вевведіть текст повідомлення!"}
+                    return HttpResponse(simplejson.dumps(jsonDict), mimetype="aplication/json")
+                    #return HttpResponse(search, mimetype="text/plain")
                 c = Catalog.objects.get(id = pid)
                 inv = InventoryList(catalog = c, count = count, date = datetime.datetime.now(), user = request.user, description=desc, edit_date = datetime.datetime.now(), check_all = status, real_count=c.count)
                 inv.save()
-
-    search = "ok"
-    return HttpResponse(search, mimetype="text/plain")
+                
+    jsonDict = {"status": "done", "message": "", "id": inv.id, "count": inv.count, "description": inv.description, "user__username": inv.user.username, "date": inv.date.strftime("%d/%m/%Y [%H:%M]"), "check_all":inv.check_all, "real_count":inv.real_count}
+    return HttpResponse(simplejson.dumps(jsonDict), mimetype="aplication/json")
+    #search = "ok"
+    #return HttpResponse(search, mimetype="text/plain")
 
 
 def inventory_get(request):
@@ -5084,7 +5089,7 @@ def inventory_get(request):
             POST = request.POST  
             if POST.has_key('catalog_id'):
                 cid = request.POST['catalog_id']
-                i_list = InventoryList.objects.filter(catalog = cid).values('id', 'count', 'description', 'user', 'user__username', 'date', 'check_all')
+                i_list = InventoryList.objects.filter(catalog = cid).values('id', 'count', 'description', 'user', 'user__username', 'date', 'check_all', 'real_count')
 
                 json = list(i_list)
                 for x in json:  

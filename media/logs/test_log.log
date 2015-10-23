@@ -3306,3 +3306,16 @@ Key = description - Value = вітрина
 Key = user - Value = 4
 Key = real_count - Value = 1
 Key = check_all - Value = False
+2015-10-23 02:20:49.734000 >>> DELETE FROM TABLE client invoice WHERE id = 33253 
+Key = id - Value = 33253
+Key = client - Value = 1293
+Key = catalog - Value = 5594
+Key = count - Value = 1
+Key = price - Value = 170.0
+Key = sum - Value = 170.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 0.0
+Key = date - Value = 2015-09-09 14:54:59
+Key = description - Value = 
+Key = user - Value = 4

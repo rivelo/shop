@@ -501,20 +501,39 @@ $("#dialog_inventory").dialog({
                 type: "POST",
                 url: "/inventory/add/",
                 data: {id:  $("#dialog_inventory").attr("ids"), count: $('#inv_spinner').val(), desc: $('#inv_desc').val(), status: document.getElementById("chk_all").checked },
-                dataType: "text",
+//                dataType: "text",
+                dataType: "json",
                 success:function(value){
-                if (value != "ok") {
-                	alert(value);
+
+                var st = JSON.stringify(value);
+				var p = jQuery.parseJSON(st);
+                
+                if (p.status == "error") {
+                	// alert("Введіть текст опису");
+                	alert(p.message);
 					}
 				else {
-					$( ".container" ).append( "<p>Count " + $('#inv_spinner').val() + " /// text" + $('#inv_desc').val() + "</p>" );
-					console.log("You add: " + $(this));
+				
+					var fcol = '<abbr title="' + p.user__username + '">' + p.date + '</abbr>';
+					var cdesc = p.description;
+					var tr_cls = "";
+					if (p.check_all) {
+						tr_cls = '<table><tr class="tr_true">';
+					}
+					else {
+						tr_cls = '<table><tr class="tr_false">';
+					}
+					var count = '<td style="background-color:#c0c5ce"><abbr title="' + p.edit_date + '">' + p.count + 'шт.</abbr>';
+                	$('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ p.check_all +'</td><td>' + p.real_count +' шт.</td></tr></table>');				
+				
+					$( ".container" ).append( "<p>Підрахунок додано!</p>" );
+					console.log("Status: " + p.status);
 					on_off_button(true);
 					
 				}
                 },
                 error:function(){
-                    alert("При отправке возникли проблемы");
+                    alert("При відправці виникли проблеми");
                 }
             });        
         },
@@ -632,9 +651,8 @@ $(document).on("click", ".inventory", function(event) {
 						else {
 							tr_cls = '<table><tr class="tr_false">';
 						}
-						
 						var count = '<td style="background-color:#c0c5ce"><abbr title="' + item['edit_date'] + '">' + item['count'] + 'шт.</abbr>';
-                	    $('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ item['check_all'] +'</td></tr></table>');
+                	    $('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ item['check_all'] +'</td><td>'+item['real_count']+' шт.</td></tr></table>');
                     });
 
                 },
