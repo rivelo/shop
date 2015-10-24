@@ -5,15 +5,19 @@
 <title>Ціна товару</title>
 
 
-	<link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
+	
 	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script type="text/javascript" src="/media/jquery-ui.min.js"></script>
+	
+<link rel="stylesheet" href="/media/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="/media/css/dataTables.jqueryui.css">
 
-	<script type="text/javascript" src="/media/jquery-ui.min.js"></script>	
+		
 		
 	
 <style type="text/css">
   span:visited{ text-decoration:none; color:#293d6b; }
-  span:hover{ text-decoration:underline; color:#FFF; }
+  span:hover{ text-decoration:underline; color:#5cb85c; }
   span {color:#293d6b; 
   		cursor: pointer; 
   		border-radius: 5px;
@@ -125,11 +129,136 @@ $( "input[type='text']" ).change(function(){
 
 
 $(document).ready(function() {
+
+$("#dialog_inventory").dialog({
+	autoOpen: false,
+      resizable: false,
+      modal: true,
+      width: 540,
+      maxWidth: 540,
+      //position: "center",
+      buttons: {
+        "Додати": function() {
+			$.ajax({
+                type: "POST",
+                url: "/inventory/add/",
+                data: {id:  $("#dialog_inventory").attr("ids"), count: $('#inv_spinner').val(), desc: $('#inv_desc').val(), status: document.getElementById("chk_all").checked },
+//                dataType: "text",
+                dataType: "json",
+                success:function(value){
+
+                var st = JSON.stringify(value);
+				var p = jQuery.parseJSON(st);
+                
+                if (p.status == "error") {
+                	// alert("Введіть текст опису");
+                	alert(p.message);
+					}
+				else {
+				
+					var fcol = '<abbr title="' + p.user__username + '">' + p.date + '</abbr>';
+					var cdesc = p.description;
+					var tr_cls = "";
+					if (p.check_all) {
+						tr_cls = '<table><tr class="tr_true">';
+					}
+					else {
+						tr_cls = '<table><tr class="tr_false">';
+					}
+					var count = '<td style="background-color:#c0c5ce"><abbr title="' + p.edit_date + '">' + p.count + 'шт.</abbr>';
+                	$('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ p.check_all +'</td><td>' + p.real_count +' шт.</td></tr></table>');				
+				
+					$( ".container" ).append( "<p>Підрахунок додано!</p>" );
+					console.log("Status: " + p.status);
+					on_off_button(true);
+					
+				}
+                },
+                error:function(){
+                    alert("При відправці виникли проблеми");
+                }
+            });        
+        },
+        "Відмінити": function() {
+          $( this ).dialog( "close" );
+        }
+      }
 });
+
+});
+
+$(document).on("click", ".inventory", function(event) {
+	   	var t = $(this).attr('cap')
+    	$("#dialog_inventory").dialog({title:  t});
+    	$("#dialog_inventory").attr({'ids': $(this).attr('ids')});
+    	$("#inv_spinner").spinner();
+    	$("#inv_spinner").val(1);
+    	$("#inv_spinner").focus();
+    	$("#inv_desc").val("");
+    	document.getElementById("chk_all").checked = false;
+    	$('.container').empty()
+    	on_off_button(false);
+		$("#dialog_inventory").dialog("open");
+		
+		var Id = $(this).attr('ids');
+            $.ajax({
+                type: "POST",
+                url: "/inventory/get/",
+                data: { catalog_id: Id },
+                dataType: "json",
+                success:function(msg){
+                	$.each(msg,function(index,item){
+						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
+						var cdesc = item['description'];
+						var tr_cls = "";
+						if (item['check_all']) {
+							tr_cls = '<table><tr class="tr_true">';
+						}
+						else {
+							tr_cls = '<table><tr class="tr_false">';
+						}
+						var count = '<td style="background-color:#c0c5ce"><abbr title="' + item['edit_date'] + '">' + item['count'] + 'шт.</abbr>';
+                	    $('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ item['check_all'] +'</td><td>'+item['real_count']+' шт.</td></tr></table>');
+                    });
+
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });      
+		
+			
+});
+
+function on_off_button(state) {
+	var dialog_selector = "#dialog_inventory";
+    $(dialog_selector).parent().find("button").each(function() {
+        if( $(this).text() == 'Додати' ) {
+            $(this).attr('disabled', state);
+        }
+    });
+}
+
 
 </script>
 
 <body>
+
+<!-- Dialog to view inventory -->
+	<div id="dialog_inventory" title="Inventory">
+	<label for="inv_spinner">Кількість:</label>
+  	<input id="inv_spinner" name="value" value="1">
+  	<label for="inv_chkbox">Загальна кількість?:</label>
+  	<input type="checkbox" name="chk_all" id="chk_all" value="" ids="" >
+  	<label>User: <b> {{user|upper}} </b></label>
+  	<br>
+  	<label for="photo_url">Опис:</label>
+	<input type="text" name="inv_description" id="inv_desc" value="" ids="" size="55">
+  	<h3>Список перевірок:</h3>
+  	<div class="container">
+	</div>
+	</div>
+
 
 <h1>Ціна товару</h1>
 <div style="float: left;">
@@ -139,7 +268,7 @@ $(document).ready(function() {
 
 <tr>
 {% with price.catalog.id|sale_url:request.get_host as url_buy %}  
-<td rowspan="4"  class="nameTD" style="border-bottom: 1px solid black; padding-left: 8px; padding-top: 5px;">
+<td rowspan="5"  class="nameTD" style="border-bottom: 1px solid black; padding-left: 8px; padding-top: 5px;">
 <img src="{{url_buy|qr:"90x90"}}" />
 </td>
 {% endwith %}
@@ -169,21 +298,46 @@ $(document).ready(function() {
 	</td>	
 </tr>
 
+
+{% ifequal cat.sale 0 %}
 <tr>
 	<td align="right" class="nameTD" style="border-bottom: 1px solid black;">
-<b style="font-size: 12pt;">	Ціна </b>
+<b style="font-size: 10pt;">	Ціна </b>
 	</td>
 	<td style="padding-left: 5px; border-bottom: 1px solid black; font-size: 12pt; font-weight: bold;" class="nameTD">       
- {{cat.price}} грн.  
+ {{cat.price}} грн.
+ </td>
+</tr>       
+
+<tr>
+</tr>       
+{% else %}
+<tr>
+	<td align="right" class="nameTD" style="border-bottom: 1px solid black;">
+<b style="font-size: 10pt;">	Ціна </b>
+	</td>
+	<td style="padding-left: 5px; border-bottom: 1px solid black; font-size: 12pt; font-weight: bold; text-decoration: line-through;"  class="nameTD">       
+ {{cat.price}} грн.
+ </td>
+</tr>       
+
+<tr>
+	<td align="right" class="nameTD">
+<b style="font-size: 10pt;"> Нова ціна </b>
+	</td>
+	<td style="padding-left: 5px; border-bottom: 1px solid black; font-size: 14pt; font-weight: bold;" class="nameTD">
+{{cat.sale|div:100|sub:1|mul:cat.price|mul:-1}} грн.
 	</td>
 </tr>       
+{% endifequal %}
+
 
 <tr>
 </tr>       
 
 <tr>
  	<td width = 70mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 11pt; vertical-align: top;" class="TableD">
-	{{cat.name|slice:"100"}}
+	{{cat.name}}
 	</td>
 </tr>
 
@@ -193,14 +347,35 @@ $(document).ready(function() {
 {% comment %}
 <div class="box" style="float: left;">
 <p style="font-style: normal;">Номер ящика:</p>
-{{box_number}}
+{{cat.locality}}
 </div>
 {% endcomment %}
 
 </div>
 
+{% if user.is_authenticated %}
+
 <div style="clear: left;">
-    <h3 id="result" style="color:red; background-color:#CCCCCC"}>Сума {{cat.price}} грн.</h3>
+    <h3 id="result" style="color:red; background-color:#CCCCCC"}>
+    Місце: {{cat.locality}}
+    </h3>
+    <h3 id="result" style="color:red; background-color:#CCCCCC"}>
+    Наявність: {{cat.count}} шт.
+    </h3>
+</div>
+
+
+<div style="float: left; width:150px; background:#d4d4d4;">
+<abbr title="Продати товар"> 
+<a href="/sale/{{cat.id}}">Продати товар
+</a>
+</abbr>
+</div>
+
+<div style="float: left; width:150px; ">
+<abbr title="Продати товар"> 
+<img cap="[{{cat.ids}}] - ({{cat.manufacturer__name}}) {{cat.name}}" class="inventory" id="link_{{cat}}" url="" ids={{cat.id}} src="/media/images/Inspection.png" width="50" height="50">
+</abbr>
 </div>
     
-    
+{% endif %}    

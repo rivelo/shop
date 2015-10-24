@@ -2558,11 +2558,16 @@ def clientcredits_delete_all(request, client_id):
     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
+def client_invoice_shorturl(request, cid=None):
+    cat = Catalog.objects.get(id = cid)
+#    if not request.user.is_authenticated():
+    return render_to_response('index.html', {'weblink': 'guestinvoice.html', 'cat': cat}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
 def client_invoice(request, cid=None, id=None):
     cat = Catalog.objects.get(id = cid)
     if not request.user.is_authenticated():
-        nbox = cat.locality
-        return render_to_response('index.html', {'weblink': 'guestinvoice.html', 'box_number': nbox, 'cat': cat}, context_instance=RequestContext(request, processors=[custom_proc]))
+        return render_to_response('index.html', {'weblink': 'guestinvoice.html', 'cat': cat}, context_instance=RequestContext(request, processors=[custom_proc]))
         #return HttpResponseRedirect('/')
     
     if (id):
@@ -5101,15 +5106,51 @@ def inventory_get(request):
     
     return HttpResponse(data_c, mimetype='application/json')        
 
+
+def inventory_set(request):
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'seller')==False:
+                return HttpResponse('Error: У вас не має прав для редагування')
+            POST = request.POST  
+            if POST.has_key('id'):
+                
+                id = request.POST['id']
+                i_list = InventoryList.objects.get(id = id)
+                i_list.check_all = not(i_list.check_all)
+                i_list.edit_date = datetime.datetime.now()
+                if request.user != i_list.user:
+                    return HttpResponse('Error: У вас не має прав для редагування')
+                i_list.save()
+                result = ''
+                if i_list.check_all: 
+                    result = "Повністю" 
+                else:
+                    result = "Частково"
+                return HttpResponse(result, mimetype="text/plain")
+                
+    return HttpResponse("Виконано", mimetype="text/plain")
+    #return HttpResponse(data_c, mimetype='application/json')        
+
     
-def inventory_delete(request, id):
+def inventory_delete(request, id=None):
+    obj = None
     if auth_group(request.user, 'admin')==False:
         return HttpResponseRedirect('/inventory/list/')
     try:
-        obj = InventoryList.objects.get(id=id)
+        if request.is_ajax():
+            if request.method == 'POST':  
+                POST = request.POST  
+                if POST.has_key('id'):
+                    wid = request.POST.get( 'id' )
+            obj = InventoryList.objects.get(id = wid)
+            del_logging(obj)
+            obj.delete()
+            return HttpResponse("Виконано", mimetype="text/plain")
+        else: 
+            obj = InventoryList.objects.get(id = id)
     except:
         pass
-
     del_logging(obj)
     obj.delete()
     return HttpResponseRedirect('/inventory/list/')

@@ -232,9 +232,9 @@ urlpatterns = patterns('',
     (r'^client/invoice/catalog/(?P<cid>\d+)/add/$', 'catalog.accounting.views.client_invoice'),
     (r'^client/(?P<id>\d+)/invoice/catalog/(?P<cid>\d+)/add/$', 'catalog.accounting.views.client_invoice'),
     (r'^sale/(?P<cid>\d+)/$', 'catalog.accounting.views.client_invoice', {'id': 138}), #short link for sale in android device
-    (r'^s/(?P<cid>\d+)/$', 'catalog.accounting.views.client_invoice', {'id': 138}), #short link for sale in android device    
+    (r'^s/(?P<cid>\d+)/$', 'catalog.accounting.views.client_invoice_shorturl'), #short link for sale in android device    
     (r'^client/invoice/catalog/(?P<id>\d+)/view/$', 'catalog.accounting.views.client_invoice_id'),
-    (r'^client/invoice/add/$', 'catalog.accounting.views.client_invoice'),
+#    (r'^client/invoice/add/$', 'catalog.accounting.views.client_invoice'),
     (r'^client/invoice/(?P<id>\d+)/delete/$', 'catalog.accounting.views.client_invoice_delete'),
     (r'^client/invoice/year/(?P<year>\d+)/month/(?P<month>\d+)/view/$', 'catalog.accounting.views.client_invoice_view', {'day':"all"}),
     (r'^client/invoice/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/view/$', 'catalog.accounting.views.client_invoice_view'),
@@ -450,7 +450,9 @@ urlpatterns += patterns('',
     (r'^inventory/list/$', 'catalog.accounting.views.inventory_list'),
     (r'^inventory/add/$', 'catalog.accounting.views.inventory_add'),
     (r'^inventory/get/$', 'catalog.accounting.views.inventory_get'),
-    (r'^inventory/delete/(?P<id>\d+)/$', 'catalog.accounting.views.inventory_delete'),
+    (r'^inventory/set/$', 'catalog.accounting.views.inventory_set'),
+#    (r'^inventory/delete/(?P<id>\d+)/$', 'catalog.accounting.views.inventory_delete'),
+    (r'^inventory/delete/$', 'catalog.accounting.views.inventory_delete'),
 
 ) 
 

@@ -4,6 +4,72 @@
 
 <link rel="stylesheet" type="text/css" href="/media/table.css">
 
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+ $(".inv_del").click(function(){
+ if (confirm("Ви дійсно бажаєте видалити запис?")) {
+ 	console.log($(this).parents("tr"));
+ 	var tr_del = $(this).parents("tr");
+	
+		$.ajax({
+                type: "POST",
+                url: "/inventory/delete/",
+                data: {id:  $(this).attr("inv_id") },
+                dataType: "text",
+                success:function(data){
+                	console.log("ajax work");
+                	tr_del.remove();
+                	console.log($(this).parents("tr"));
+                },
+                error:function(data){
+                    alert("Виникли проблеми з сервером" + data);
+                }
+            });	
+ }
+ });
+
+function addZero(i) {
+    if (i < 10) {
+        i = "0" + i;
+    }
+    return i;
+}
+
+ $(".inv_set").click(function(){
+ if (confirm("Ви дійсно бажаєте змінити статус?")) {
+ 	console.log($(this).parents("tr"));
+ 	var tr_set = $(this).parents("tr");
+ 	var td_set = $(this)
+	
+		$.ajax({
+                type: "POST",
+                url: "/inventory/set/",
+                data: {id:  $(this).attr("inv_id") },
+                dataType: "text",
+                success:function(data){
+                	console.log("ajax work");
+                	tr_set.attr("bgColor", "#4A4A4A");
+                	 
+                	var now = new Date(); 
+  					var datetime = now.getDate()+'/'+(now.getMonth()+1)+'/'+now.getFullYear(); 
+  					datetime += ' '+addZero(now.getHours())+':'+addZero(now.getMinutes())+':'+addZero(now.getSeconds());
+  					
+  					td_set.html(data); 
+  					td_set.closest("td").prev().html(datetime);
+                },
+                error:function(data){
+                    alert("Виникли проблеми з сервером" + data);
+                }
+            });	
+ }
+ });
+
+
+});
+</script> 
+
 {% load poll_extras %}    
 
 <h1>Інвентеризація товару</h1>
@@ -41,10 +107,14 @@
 		<td>{{ element.date|date:"l j/m/Y" }} - {{ element.date|time:"H:i" }}</td>
 		<td align="center">{{ element.user }}</td>
 		<td>{{ element.edit_date }}</td>		
-		<td>{{ element.check_all }}</td>
+		<td>
+		<span class="inv_set" inv_id="{{element.id}}" style="cursor: pointer;">{{ element.check_all|yesno:"Повністю,Частково"}}</span>
+		</td>
 		<td align="center">{{ element.real_count }}</td>
 		{% if request.user|has_group:"admin" %}
-		<td align="center"><a href="/inventory/delete/{{element.id}}">delete</a></td>
+		<td align="center">
+		<span class="inv_del" inv_id="{{element.id}}" style="cursor: pointer;">Видалити</span>
+		</td>
 		{% endif %}
 	</tr>
 	{% endfor %}
