@@ -5050,14 +5050,16 @@ def storage_boxes(request):
 
 
 def inventory_list(request, year=None, month=None, day=None):
-    if (year != None and month != None and day != None):
+#    if (year != None and month != None and day != None):
+    if (year == None) and (month == None) and (day == None):
+        day = datetime.datetime.now().day
+        month = datetime.datetime.now().month
+        year = datetime.datetime.now().year
+    else:
         day = day
         month = month
         year = year
-    else:
-        day = datetime.datetime.now().month
-        month = datetime.datetime.now().month
-        year = datetime.datetime.now().year
+        
     list = InventoryList.objects.filter(date__year = year, date__month = month, date__day = day)
     return render_to_response("index.html", {"weblink": 'inventory_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
 
