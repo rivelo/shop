@@ -1459,7 +1459,7 @@ def invoicecomponent_list(request, mid=None, cid=None, limit=0, focus=0):
             list = InvoiceComponentList.objects.none()        
     else:
         list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
-        list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__id').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
+#        list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__id').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
         list = list[:limit]
     
     for item in list:
@@ -5049,8 +5049,16 @@ def storage_boxes(request):
     return render_to_response("index.html", {"weblink": 'storage_boxes.html', "boxes": boxlist}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
-def inventory_list(request):
-    list = InventoryList.objects.all()
+def inventory_list(request, year=None, month=None, day=None):
+    if (year != None and month != None and day != None):
+        day = day
+        month = month
+        year = year
+    else:
+        day = datetime.datetime.now().month
+        month = datetime.datetime.now().month
+        year = datetime.datetime.now().year
+    list = InventoryList.objects.filter(date__year = year, date__month = month, date__day = day)
     return render_to_response("index.html", {"weblink": 'inventory_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -5077,6 +5085,16 @@ def inventory_add(request):
                     return HttpResponse(simplejson.dumps(jsonDict), mimetype="aplication/json")
                     #return HttpResponse(search, mimetype="text/plain")
                 c = Catalog.objects.get(id = pid)
+                
+#                try:
+                list = InvoiceComponentList.objects.filter(catalog__in=pid).values('catalog__count', 'catalog__ids')
+                list = list.annotate(sum_catalog=Sum('count'))
+#                except:
+#                    list = InvoiceComponentList.objects.none()        
+                sale_list = ClientInvoice.objects.filter(catalog__in=pid).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
+                balance = list[0]['sum_catalog'] - sale_list[0]['sum_catalog']
+                c.count = balance
+                c.save()
                 inv = InventoryList(catalog = c, count = count, date = datetime.datetime.now(), user = request.user, description=desc, edit_date = datetime.datetime.now(), check_all = status, real_count=c.count)
                 inv.save()
                 

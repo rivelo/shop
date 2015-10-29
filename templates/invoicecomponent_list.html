@@ -489,6 +489,7 @@ $("#dialog_photo").dialog({
 
 
 $("#dialog_inventory").dialog({
+	closeOnEscape: true, 
 	autoOpen: false,
       resizable: false,
       modal: true,
@@ -497,6 +498,7 @@ $("#dialog_inventory").dialog({
       //position: "center",
       buttons: {
         "Додати": function() {
+        	on_off_button(true);
 			$.ajax({
                 type: "POST",
                 url: "/inventory/add/",
@@ -511,6 +513,7 @@ $("#dialog_inventory").dialog({
                 if (p.status == "error") {
                 	// alert("Введіть текст опису");
                 	alert(p.message);
+                	on_off_button(false);
 					}
 				else {
 				
@@ -530,10 +533,13 @@ $("#dialog_inventory").dialog({
 					console.log("Status: " + p.status);
 					on_off_button(true);
 					
+					
 				}
                 },
                 error:function(){
                     alert("При відправці виникли проблеми");
+                    on_off_button(false);
+                    
                 }
             });        
         },
@@ -681,6 +687,7 @@ function on_off_button(state) {
             $(this).attr('disabled', state);
         }
     });
+    $("#inv_spinner").focus()
 }
 </script>
 
