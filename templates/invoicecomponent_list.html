@@ -13,6 +13,7 @@
 <script type="text/javascript" language="javascript" src="/media/jquery.dataTables.min.js"></script>
 <script type="text/javascript" language="javascript" src="/media/dataTables.jqueryui.js"></script>
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+<script src="/media/jssor.slider.mini.js"></script>
 
 </head>
 
@@ -74,9 +75,73 @@
 	background: #FFFFFF !important;
   }
 
+.slideme {
+max-width: 500px;
+max-height: 300px;
+width: 100%;
+height: 100%;
+}
   
 </style>
 
+<style>
+            /* jssor slider bullet navigator skin 01 css */
+            /*
+            .jssorb01 div           (normal)
+            .jssorb01 div:hover     (normal mouseover)
+            .jssorb01 .av           (active)
+            .jssorb01 .av:hover     (active mouseover)
+            .jssorb01 .dn           (mousedown)
+            */
+            .jssorb01 {
+                position: absolute;
+            }
+            .jssorb01 div, .jssorb01 div:hover, .jssorb01 .av {
+                position: absolute;
+                /* size of bullet elment */
+                width: 12px;
+                height: 12px;
+                filter: alpha(opacity=70);
+                opacity: .7;
+                overflow: hidden;
+                cursor: pointer;
+                border: #000 1px solid;
+            }
+            .jssorb01 div { background-color: gray; }
+            .jssorb01 div:hover, .jssorb01 .av:hover { background-color: #d3d3d3; }
+            .jssorb01 .av { background-color: #fff; }
+            .jssorb01 .dn, .jssorb01 .dn:hover { background-color: #555555; }
+</style>
+
+  <style>
+            /* jssor slider arrow navigator skin 03 css */
+            /*
+            .jssora03l                  (normal)
+            .jssora03r                  (normal)
+            .jssora03l:hover            (normal mouseover)
+            .jssora03r:hover            (normal mouseover)
+            .jssora03l.jssora03ldn      (mousedown)
+            .jssora03r.jssora03rdn      (mousedown)
+            */
+            .jssora03l, .jssora03r {
+                display: block;
+                position: absolute;
+                /* size of arrow element */
+                width: 55px;
+                height: 55px;
+                cursor: pointer;
+                background: url(/media/images/a02.png) no-repeat;
+                overflow: hidden;
+            }
+            .jssora03l { background-position: -3px -33px; }
+            .jssora03r { background-position: -63px -33px; }
+            .jssora03l:hover { background-position: -123px -33px; }
+            .jssora03r:hover { background-position: -183px -33px; }
+            .jssora03l.jssora03ldn { background-position: -243px -33px; }
+            .jssora03r.jssora03rdn { background-position: -303px -33px; }
+  </style>
+        
+        
 <script type="text/javascript">
 jQuery(document).ready(function ($) {
 
@@ -470,10 +535,10 @@ $("#dialog").dialog({
 
 $("#dialog_photo").dialog({
 	autoOpen: false,
-      resizable: false,
+      resizable: true,
       modal: true,
       width: 540,
-      maxWidth: 540,
+//      maxWidth: 540,
       //position: "center",
       buttons: {
         "Додати": function() {
@@ -482,8 +547,13 @@ $("#dialog_photo").dialog({
           $( this ).dialog( "close" );
         },
         "Відмінити": function() {
-          $( this ).dialog( "close" );
+        	$("#slider1_container").remove();
+        	$( this ).dialog( "close" );
         }
+      },
+      close: function( event, ui ) {
+      	//$("#dialog_photo .slideme ul").remove();
+      	$("#slider1_container").remove();
       }
 });
 
@@ -583,6 +653,8 @@ $("#dialog_photo_add").dialog({
 					$("#ui-id-2").attr({"color": '#fe011b'});
 					
 					}
+					var photo_id = $("#photo_url").attr("ids"); 
+					$("#link_"+photo_id).attr("src", "/media/images/photo_ico_true.png");
                 },
                 error:function(){
                     alert("При отправке возникли проблемы");
@@ -593,6 +665,7 @@ $("#dialog_photo_add").dialog({
         },
         "Відмінити": function() {
           $( this ).dialog( "close" );
+          
         }
       }
 });
@@ -609,14 +682,69 @@ $(document).on("click", ".c_photo", function(event) {
                 data: {id:  $(this).attr('ids') },
                 dataType: "json",
                 success:function(data){
-					if (data.aData.length > 0) {
-						document.getElementById("img_url").setAttribute("src", String(data.aData[0][0]));
-						$("#dialog_photo").dialog({ title: data.cname });
+
+                var st = JSON.stringify(data);
+				var p = jQuery.parseJSON(st);
+				if (data.aData.length > 0) {
+						
+						str_begin = '<div id="slider1_container" style="position: relative; top: 0px; left: 0px; width: 600px; height: 300px;">';
+						str_begin = str_begin + '<div u="slides" style="cursor: move; position: absolute; overflow: hidden; left: 0px; top: 0px; width: 600px; height: 300px;">';
+						str_end = '</div></div>';
+						
+//						str_photo = str_begin + '<div><img src="http://basic-slider.com/img/banner02.jpg" width="540px" height="400px"></div>;'
+//						$("#dialog_photo").append(str_photo);
+						$("#dialog_photo").append(str_begin);
+						
+						$.each(p.aData,function(index,item){
+							str_photo = '<div><img src="'+ item.url+ '" width="350px"></di>;'
+						
+						$("#slider1_container > div").append(str_photo);
+						})
+						
+						$("#dialog_photo").append(str_end);
+						
+
+str_narrow = ' <span u="arrowleft" class="jssora03l" style="top: 123px; left: 8px;">'+
+        '</span>'+
+        '<!-- Arrow Right -->'+
+        '<span u="arrowright" class="jssora03r" style="top: 123px; right: 75px;">'+
+        '</span>';
+				$("#slider1_container > div").append(str_narrow);
+
+    
+str_navi = '<div u="navigator" class="jssorb01" style="bottom: 16px; left: 10px;">'+
+            '<!-- bullet navigator item prototype -->'+
+            '<div u="prototype"></div>'+
+        '</div>';
+        
+						$("#slider1_container > div").append(str_navi);						
+
+						
+ //var options = {};
+ var options = {
+ 			$ArrowNavigatorOptions: {
+                $Class: $JssorArrowNavigator$,
+                $ChanceToShow: 2
+            },
+            $BulletNavigatorOptions: {
+                $Class: $JssorBulletNavigator$,
+                $ChanceToShow: 2
+            }
+        };
+ var jssor_slider1 = new $JssorSlider$('slider1_container', options);
+  
+    
+						
+						$("#dialog_photo").dialog({ title: p.cname });
 					    $("#dialog_photo").dialog("open");
+					    $("#dialog_photo_add").dialog({ title: p.cname });
+					    $("#photo_url").attr({'ids': p.id});
 					}
 					else {
-				   		$("#photo_url").attr({'ids': data.id});
+				   		$("#photo_url").attr({'ids': p.id});
+				   		$("#dialog_photo_add").dialog({ title: p.cname });
    						$("#dialog_photo_add").dialog("open");
+   						
    						$("#photo_url").select();
 					}   					
                 },
@@ -732,7 +860,12 @@ function on_off_button(state) {
 
 <!-- Dialog to view photo -->
 	<div id="dialog_photo" title="Photo">
-	<img id="img_url" src="" width="500">
+<!--	<div id="photo_gallery">
+	<ul class="slideme">
+ 	<img id="img_url" src="" width="500">  
+	</ul>
+	</div> -->
+
 	</div>
 
 <!-- Dialog to view inventory -->
@@ -812,7 +945,11 @@ function on_off_button(state) {
 	<a href="/invoice/manufacture/{{type.manufacturer__id}}/view/">{{type.manufacturer__name}}</a>
 	</td>
 	<td align="center" id="td_{{type.catalog}}">
+{% if type.photo_url != None %}
+	<img class="c_photo" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/photo_ico_true.png" width="24" height="24">
+{% else %}
 	<img class="c_photo" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/photo_ico.png" width="24" height="24">
+{% endif %}	
 	</td>
 	<td>
 	[{{type.catalog__ids}}] - ({{type.catalog__manufacturer__name}}) {{type.catalog__name}}

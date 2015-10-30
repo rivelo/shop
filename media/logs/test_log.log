@@ -3319,3 +3319,33 @@ Key = pay - Value = 0.0
 Key = date - Value = 2015-09-09 14:54:59
 Key = description - Value = 
 Key = user - Value = 4
+2015-10-30 14:52:33.187000 >>> DELETE FROM TABLE photo WHERE id = 332 
+Key = id - Value = 332
+Key = url - Value = http://multisport.com.ua/image/data/product-1195/Deuter_Wizard_light.jpg
+Key = date - Value = 2015-09-30 19:35:23
+Key = user - Value = 9
+Key = description - Value = 
+2015-10-30 14:52:44.015000 >>> DELETE FROM TABLE photo WHERE id = 256 
+Key = id - Value = 256
+Key = url - Value = http://www.google.com.ua/url?sa=i&rct=j&q=&esrc=s&source=images&cd=&cad=rja&uact=8&ved=0CAcQjRw&url=http%3A%2F%2Fvelomar.com.ua%2Frg_4700_&ei=j6VUVfPkOceQsAGGy4CwBA&bvm=bv.93112503,d.bGg&psig=AFQjCNEew7jt0DVlCmLZlcHHCdLKtjkkUw&ust=1431695302303469
+Key = date - Value = 2015-05-14 16:43:31
+Key = user - Value = 9
+Key = description - Value = 
+2015-10-30 14:52:53.156000 >>> DELETE FROM TABLE photo WHERE id = 255 
+Key = id - Value = 255
+Key = url - Value = http://cadence.com.ua/43767-large_default/ochki-vk-sam.jpg
+Key = date - Value = 2015-05-14 16:08:49
+Key = user - Value = 9
+Key = description - Value = 
+2015-10-30 14:52:59 >>> DELETE FROM TABLE photo WHERE id = 48 
+Key = id - Value = 48
+Key = url - Value = http://velosiped.com/bikeimg/img/312x255-dzvonik-vk-b405-t2-homut-222-mm-kolorovij-nh-b405ap-t2.e47.jpgkolorovij-nh-b405ap-t6.f1b.jpg
+Key = date - Value = 2014-11-28 15:03:50
+Key = user - Value = 4
+Key = description - Value = 
+2015-10-30 14:53:02.625000 >>> DELETE FROM TABLE photo WHERE id = 46 
+Key = id - Value = 46
+Key = url - Value = http://velodom.com.ua/i/500/500/104141.jpg
+Key = date - Value = 2014-11-28 15:00:15
+Key = user - Value = 4
+Key = description - Value = 

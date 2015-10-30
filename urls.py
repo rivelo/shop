@@ -393,6 +393,7 @@ urlpatterns += patterns('',
 
     (r'^photo/url/add/$', 'catalog.accounting.views.photo_url_add'),
     (r'^photo/url/get/$', 'catalog.accounting.views.photo_url_get'),
+    (r'^catalog/photo/delete/$', 'catalog.accounting.views.photo_url_delete'),
     (r'^catalog/photo/list/$', 'catalog.accounting.views.photo_list'),
     
     (r'^workday/user/all/report/$', 'catalog.accounting.views.workday_list'),
@@ -447,7 +448,7 @@ urlpatterns += patterns('',
     (r'^shop/sale/view/$', 'catalog.accounting.views.shopdailysales_list'),
     (r'^shop/sale/day/(?P<id>\d+)/delete/$', 'catalog.accounting.views.shopdailysales_delete'),
 
-   (r'^inventory/list/$', 'catalog.accounting.views.inventory_list'),
+    (r'^inventory/list/$', 'catalog.accounting.views.inventory_list'),
     (r'^inventory/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/list/$', 'catalog.accounting.views.inventory_list'),
     (r'^inventory/add/$', 'catalog.accounting.views.inventory_add'),
     (r'^inventory/get/$', 'catalog.accounting.views.inventory_get'),

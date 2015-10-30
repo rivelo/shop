@@ -46,6 +46,26 @@ $(document).ready(function() {
   		});
 	});
 	
+$(".photo_del").click(function(){
+ if (confirm("Ви дійсно бажаєте видалити запис?")) {
+ 	console.log($(this).parents("tr"));
+ 	var tr_del = $(this).parents("tr");
+	
+	$.ajax({
+                type: "POST",
+                url: "/catalog/photo/delete/",
+                data: {id:  $(this).attr("ids") },
+                dataType: "text",
+                success:function(data){
+                	tr_del.remove();
+                	console.log($(this).parents("tr"));
+                },
+                error:function(data){
+                    alert("Виникли проблеми з сервером" + data);
+                }
+            });	
+ }
+ });	
 	
 });
     
@@ -65,7 +85,7 @@ $(document).ready(function() {
 	<th>#</th>
 	<th>Дата</th>
 	<th>Товар</th>
-	<th>Фото</th>
+	<th width="100px">Фото</th>
 	<th>Користувач</th>
 	</tr>
 	
@@ -80,7 +100,7 @@ $(document).ready(function() {
 	<td>
 	[{{photo.catalog__ids}}] - {{photo.catalog__name}}
 	</td>
-	<td>
+	<td width="100px">
 	<span class="dropt" title="Title for the pop-up">{{photo.url}}
 	    <span><img width="300px" src="{{photo.url}}"/><br/>
 	  	</span>
@@ -90,6 +110,14 @@ $(document).ready(function() {
 	<td>
 	{{photo.user__username}}
 	</td>
+{% if request.user|has_group:"admin" %}	
+	<td>
+	<span class="photo_del" ids={{photo.id}}>
+	delete
+	</span>
+	</td>
+{%endif%}
+	
 	</tr>
 	{% endfor %}          
     </table>    

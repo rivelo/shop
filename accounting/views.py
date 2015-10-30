@@ -1467,7 +1467,7 @@ def invoicecomponent_list(request, mid=None, cid=None, limit=0, focus=0):
 
     new_list = []
     sale_list = ClientInvoice.objects.filter(catalog__in=id_list).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
-    cat_list = Catalog.objects.filter(pk__in=id_list).values('type__name_ukr', 'description', 'locality', 'id', 'manufacturer__id', 'manufacturer__name')        
+    cat_list = Catalog.objects.filter(pk__in=id_list).values('type__name_ukr', 'description', 'locality', 'id', 'manufacturer__id', 'manufacturer__name', 'photo_url')        
     for element in list:
         element['balance']=element['sum_catalog']
         element['c_sale']=0
@@ -1483,6 +1483,7 @@ def invoicecomponent_list(request, mid=None, cid=None, limit=0, focus=0):
                 element['locality']=cat['locality']
                 element['type__name_ukr']=cat['type__name_ukr']
                 element['description']=cat['description']
+                element['photo_url']=cat['photo_url']
 
         if element['balance']!=0:
             new_list.append(element)
@@ -2189,7 +2190,7 @@ def catalog_lookup(request):
 
 
 def photo_list(request):
-    list = Photo.objects.all().values('user', 'date', 'url', 'catalog__name', 'catalog__id', 'catalog__ids', 'user__username').order_by('-date')
+    list = Photo.objects.all().values('user', 'date', 'url', 'catalog__name', 'catalog__id', 'catalog__ids', 'user__username', 'id').order_by('-date')
     return render_to_response('index.html', {'weblink': 'photo_list.html', 'list': list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -4941,7 +4942,8 @@ def photo_url_get(request):
             POST = request.POST  
             if POST.has_key('id'):
                 pid = request.POST.get('id')
-                photo_list = Photo.objects.filter(catalog__id = pid).values_list('url', 'description')
+                #photo_list = Photo.objects.filter(catalog__id = pid).values_list('url', 'description', 'id')
+                photo_list = Photo.objects.filter(catalog__id = pid).values('url', 'description', 'id')
                 cat = Catalog.objects.get(id = pid)
                 c_name = "[" + cat.ids + "] - " + cat.name
                 try:
@@ -4952,6 +4954,29 @@ def photo_url_get(request):
 
     return HttpResponse(json, mimetype='application/json')
 
+
+def photo_url_delete(request, id=None):
+    obj = None
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponseRedirect('/catalog/photo/list/')
+    try:
+        if request.is_ajax():
+            if request.method == 'POST':  
+                POST = request.POST  
+                if POST.has_key('id'):
+                    wid = request.POST.get( 'id' )
+            obj = Photo.objects.get(id = wid)
+            del_logging(obj)
+            obj.delete()
+            return HttpResponse("Виконано", mimetype="text/plain")
+        else: 
+            obj = Photo.objects.get(id = id)
+    except:
+        pass
+    del_logging(obj)
+    obj.delete()
+    return HttpResponseRedirect('/catalog/photo/list/')
+    
 
 def catalog_set_type(request):
 #    if request.is_ajax():
@@ -5066,6 +5091,7 @@ def inventory_list(request, year=None, month=None, day=None):
 
 def inventory_add(request):
     inv = None
+    balance = 0
     if request.is_ajax():
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
@@ -5088,13 +5114,17 @@ def inventory_add(request):
                     #return HttpResponse(search, mimetype="text/plain")
                 c = Catalog.objects.get(id = pid)
                 
-#                try:
-                list = InvoiceComponentList.objects.filter(catalog__in=pid).values('catalog__count', 'catalog__ids')
-                list = list.annotate(sum_catalog=Sum('count'))
-#                except:
-#                    list = InvoiceComponentList.objects.none()        
-                sale_list = ClientInvoice.objects.filter(catalog__in=pid).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
-                balance = list[0]['sum_catalog'] - sale_list[0]['sum_catalog']
+                try:
+                    list = InvoiceComponentList.objects.filter(catalog=pid).values('catalog__count', 'catalog__ids')
+                    list = list.annotate(sum_catalog=Sum('count'))
+                except:
+                    list = InvoiceComponentList.objects.none()        
+                try:
+                    sale_list = ClientInvoice.objects.filter(catalog=pid).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
+                    balance = list[0]['sum_catalog'] - sale_list[0]['sum_catalog']
+                except:
+                    balance = list[0]['sum_catalog'] - 0
+                    
                 c.count = balance
                 c.save()
                 inv = InventoryList(catalog = c, count = count, date = datetime.datetime.now(), user = request.user, description=desc, edit_date = datetime.datetime.now(), check_all = status, real_count=c.count)
