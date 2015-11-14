@@ -110,13 +110,15 @@ $(document).ready(function() {
 	});
 	
 $('#client_debt_but').click(function() {
-	$("#pay").attr("value", 0);
+	$("#pay").val(0);
+	$("#pay_term").val(0);
 	$("#pay_form").submit();
 });
 
 $('#client_cred_term_but').click(function() {
-	$("#pay_term").attr("value", $("#pay").attr("value"))
-	$("#pay").attr("value", 0);
+	$("#pay_term").val($("#pay").val())
+	$("#pay").val(0);
+	console.log("PAY = "+$("#pay").val());
 	$("#pay_form").submit();
 });
 
