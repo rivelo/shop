@@ -5204,4 +5204,22 @@ def inventory_delete(request, id=None):
     del_logging(obj)
     obj.delete()
     return HttpResponseRedirect('/inventory/list/')
+
+
+def catalog_join(request,id1, id2):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponseRedirect('/')
+    if auth_group(request.user, 'seller')==False:
+                return HttpResponse('Error: У вас не має прав для обєднання')
+    c1 = Catalog.objects.get(id=id1)
+    c2 = Catalog.objects.get(id=id2)
+    inv = InventoryList.objects.filter(catalog = id2).update(catalog=id1)
+    InvoiceComponentList.objects.filter(catalog = id2).update(catalog = id1)
+    ClientInvoice.objects.filter(catalog = id2).update(catalog = id1)
+    ClientOrder.objects.filter(catalog = id2).update(catalog = id1)
+    Rent.objects.filter(catalog = id2).update(catalog = id1)
+    ShopPrice.objects.filter(catalog = id2).update(catalog = id1)
+    ClientReturn.objects.filter(catalog = id2).update(catalog = id1)
+    
+    return HttpResponseRedirect('/invoice/search/result/?name=&id='+c1.ids)
     

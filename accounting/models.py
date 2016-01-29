@@ -400,7 +400,6 @@ class Costs(models.Model):
         ordering = ["date"]
 
 
-
 #Bicycle type table
 class Bicycle_Type(models.Model):
     type = models.CharField(max_length=255) #adult, kids, mtb, road, hybrid

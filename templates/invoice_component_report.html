@@ -46,6 +46,7 @@
     	<th>Накладна</th>
     	<th>Товар</th>
     	<th align="center">Кількість</th>
+    	<th align="center">Наявність</th>
     	<th>Ціна</th>
     	<th>Валюта</th>
     	<th>Сума</th>
@@ -74,8 +75,9 @@
 	{{type.catalog}}
 	</td>
 	<td align="center">       
-	<a href="/client/invoice/catalog/{{type.catalog.id}}/add">{{type.count}}</a>
+	<a href="/client/invoice/catalog/{{type.catalog.id}}/add">{{type.count}} </a>
 	</td>
+	<td align="center">{{type.rcount}}</td>
 	<td>       
 	{{type.catalog.price}}
 	</td>
@@ -107,6 +109,7 @@
     	<th></th>
     	<th></th>
     	<th>Кількість: {{countsum}}</th>
+    	<th></th>
     	<th></th>
     	<th></th>
     	<th>{{allpricesum}} грн.</th>
