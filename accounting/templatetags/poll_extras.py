@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django import template
 from django.contrib.auth.models import Group
+import datetime
 
 register = template.Library()
 
@@ -113,5 +114,14 @@ def has_group(user, group_name):
     group = Group.objects.get(name=group_name) 
     return True if group in user.groups.all() else False
  
+
     
+@register.filter(name='date_left') 
+def date_left(date):
+    try:
+        now = datetime.datetime.now() 
+        res = now - date
+    except TypeError:
+        return "don't update" 
+    return res.days 
     

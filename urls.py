@@ -449,6 +449,7 @@ urlpatterns += patterns('',
     (r'^shop/sale/day/(?P<id>\d+)/delete/$', 'catalog.accounting.views.shopdailysales_delete'),
 
     (r'^inventory/list/$', 'catalog.accounting.views.inventory_list'),
+    (r'^inventory/mistake/list/$', 'catalog.accounting.views.inventory_mistake'),
     (r'^inventory/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/list/$', 'catalog.accounting.views.inventory_list'),
     (r'^inventory/add/$', 'catalog.accounting.views.inventory_add'),
     (r'^inventory/get/$', 'catalog.accounting.views.inventory_get'),

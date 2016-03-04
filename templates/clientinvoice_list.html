@@ -321,13 +321,13 @@ function calc_sum() {
     
 {% for type in buycomponents.object_list %}
 {% ifequal type.sum type.pay %}
-<tr ci_id={{type.id}} count="{{type.count}}" cat_id={{type.catalog.pk}}>
+<tr ci_id={{type.id}} count="{{type.count}}" cat_id={{type.catalog__pk}}>
 {% else %}
 <tr BGCOLOR="#F2AE6B" ci_id={{type.id}} cat_id={{type.catalog.pk}} count="{{type.count}}">
 {% endifequal %}
 
 	<td>
-	<abbr title="Створено користувачем {{type.user.username}}">
+	<abbr title="Створено користувачем {{type.user__username}}">
 	{{forloop.counter}}
 	</abbr>
 	</td>
@@ -335,12 +335,12 @@ function calc_sum() {
     <a href="/client/invoice/{{type.id}}/edit">{{type.id}}</a>
 	</td>
 	<td>
-	<a href="/client/result/search/?id={{type.client.id}}">
-	{{type.client}}       
+	<a href="/client/result/search/?id={{type.client__id}}">
+	{{type.client__name}} ({{type.client__forumname}})       
 	</a>
 	</td>
 	<td>       
-	{{type.catalog}}
+	[{{type.catalog__ids}}] {{type.catalog__name}}
 	</td>
 	<td align="center" class="tcount">       
 	{{type.count}}
@@ -352,7 +352,7 @@ function calc_sum() {
 	{{type.sum}}
 	</td>
 	<td>       
-	{{type.currency}}
+	{{type.currency__name}}
 	</td>
 	<td align="center">       
 	{{type.sale}}
@@ -394,8 +394,8 @@ function calc_sum() {
 {% endifequal %}
 	</td>
 	<td align="center">
-	<abbr title="Ящик номер: {{type.catalog.locality}}">
-	{{type.catalog.count}}
+	<abbr title="Ящик номер: {{type.catalog__locality}}">
+	{{type.catalog__count}}
 	</abbr>
 	</td>
 </tr>
@@ -458,6 +458,7 @@ function calc_sum() {
 
 
 <br>
-
+{% load poll_extras %}
+{% orm_debug %}
 </body>
 </html>

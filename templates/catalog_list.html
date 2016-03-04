@@ -145,6 +145,7 @@ $(document).ready(function() {
     	<th>Місце</th>
     	<th>Кількість</th>
     	<th>Наявність</th>
+    	<th>Last update</th>
     </tr>
 
 {% for type in catalog %}
@@ -161,6 +162,8 @@ $(document).ready(function() {
 	</td>
 	<td>       
 	{{type.ids}}
+	<br>
+	{{type.dealer_code}}
 	</td>
 	<td>       
 	<a href="/catalog/edit/{{ type.id }}">{{type.name}}</a>
@@ -223,6 +226,12 @@ $(document).ready(function() {
 	<td>       
 	<a href="/invoice/catalog/{{type.id}}/view/">Переглянути наявність</a>
 	</td>
+    <td align="center">
+    {{type.last_update}}
+    <br>
+    {{type.user_update}}
+    </td>
+
     
 </tr>
 {% endfor %}   
@@ -231,3 +240,5 @@ $(document).ready(function() {
 
 <br>
 
+{% load poll_extras %}  
+{% orm_debug %}

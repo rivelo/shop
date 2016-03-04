@@ -3,6 +3,9 @@
 <link rel="stylesheet" type="text/css" href="/media/menu.css">
 <script language="javascript" src="/media/menu.js" type="text/javascript"></script>
 
+
+{% if user.is_authenticated %}
+
 <ul id="hmenu" >
 	<li><a href="#">Робота з клієнтами</a>
 		<ul>
@@ -12,10 +15,8 @@
 			<li><a href="/client/view/">Клієнти</a></li>
 			<li><a href="/clientdebts/view/">Боржники</a></li>
 			<li><a href="/clientcredits/view/">Платежі (Кредитори)</a></li>
-{% if user.is_authenticated %}			
 			<li><a href="/client/join/">Обєднання клієнтів</a></li>
 			<li><a href="/clients/balance/">Баланс</a></li>
-{% endif %}			
 		</ul>
 	</li>
 	<li><a href="#">Велосипеди</a>
@@ -104,10 +105,11 @@
        		<li><a href="/catalog/search/locality/">Назва ящика</a></li>
        		<li><a href="/storage/boxes/">Список товарів по ящиках</a></li>
        		<li><a href="/inventory/list/">Інвентеризація</a></li>
+       		<li><a href="/inventory/mistake/list/">Помилки</a></li>
        	</ul>
 		</li>
 
-{% if perms.accounting.add_preorder %}		
+ {% if perms.accounting.add_preorder %}		
 		<li><a href="#">Власні затрати</a>
 		<ul>
 			<li><a href="/cost/type/view/">Види затрат</a></li>
@@ -129,10 +131,10 @@
 			<li><a href="/dealer/invoice/miss/">Нові надходження (помилки)</a></li>
 		</ul>
 	</li>
-{%endif%}	
+{%endif%}
+	
 </li>	
 
-{% if user.is_authenticated %}		
 	<li><a href="#">Довідники</a>
 		<ul>
 			<li><a href="/country/view/">Країни</a></li>
@@ -144,7 +146,6 @@
 			<li><a href="/cashtype/view/">Варіанти оплат</a></li>
 		</ul>
 	</li>
-{%endif%}	
 
 {% if request.user.is_superuser %} 
 </li>	
@@ -155,8 +156,8 @@
 		</ul>
 	</li>
 {%endif%}	
-
-{% if user.is_authenticated %}		
+ 
+	
 	<li><a href="#">Моє меню</a>
 		<ul>
 			<li><a href="/report/sales/user/report/">Продажі за місяць</a></li>
@@ -164,7 +165,101 @@
  			<li><a href="/shop/sale/day/add/">Денна каса</a></li>
 		</ul>
 	</li>
-{%endif%}	
 
+{% else %}	
+<ul id="hmenu" >
+	<li><a href="#">Робота з клієнтами</a>
+		<ul>
+			<li><a href="/client/add/">Створити нового клієнта</a></li>
+			<li><a href="/client/search/">Пошук клієнта</a></li>
+			<li><a href="/clientmessage/list/">Повідомлення для клієнтів</a></li>
+			<li><a href="/client/view/">Клієнти</a></li>
+			<li><a href="/clientdebts/view/">Боржники</a></li>
+			<li><a href="/clientcredits/view/">Платежі (Кредитори)</a></li>
+			<li><a href="/client/join/">Обєднання клієнтів</a></li>
+			<li><a href="/clients/balance/">Баланс</a></li>
+		</ul>
+	</li>
+	<li><a href="#">Велосипеди</a>
+	<ul>
+			<li><a href="/bicycle-store/view/">Магазин</a></li>
+			<li><a href="/bicycle/view/">Каталог велосипедів</a></li>
+			<li><a href="/bicycle-type/view/">Типи велосипедів</a></li>
+			<li><a href="/bicycle-framesize/view/">Розміри рам</a></li>
+			<li><a href="/bicycle/sale/add/">Продаж велосипеду</a></li>
+			<li><a href="/bicycle/sale/view/">Продані велосипеди</a></li>
+			<li><a href="/bicycle/order/add/">Замовлення велосипеду</a></li>
+			<li><a href="/bicycle/order/view/">Список замовлень</a></li>
+			<li><a href="/bicycle/store/price/">Цінники на велосипеди</a></li>
+			<li><a href="/bicycle-store/search/">Пошук велосипеду за номером рами</a></li>
+			<li><a href="/bicycle/sale/search/model/">Пошук велосипедів(проданих) по моделі</a></li>
+		</ul>
+	</li>
+	<li><a href="#">Запчастини</a>
+		<ul>
+			<li><a href="/catalog/add/">Додати до каталогу</a></li>
+			<li><a href="/catalog/view/">Каталог</a></li>
+			<li><a href="/catalog/discount/">Товари зі знижками</a></li>
+			<li><a href="/catalog/manufacture/view/">По виробнику</a></li>
+			<li><a href="/catalog/search/id/">Пошук</a></li>
+			<li><a href="/category/view/">Класифікатор</a></li>
+			<li><a href="/catalog/import/">Імпортувати з файлу</a></li>
+		</ul>
+{% if perms.accounting.add_preorder %}			
+	</li>
+		<li><a href="#">Постачальники</a>
+		<ul>
+			<li><a href="/dealer/view/">Компанії</a></li>
+			<li><a href="/dealer-manager/view/">Менеджери компаній</a></li>
+			<li><a href="/dealer/invoice/view/">Накладні</a></li>
+			<li><a href="/dealer/payment/view/">Оплати</a></li>
+			<li><a href="/dealer/invoice/search/">Пошук накладної</a></li>
+			<li><a href="/preorder/view/">Попередні замовлення</a></li>
+			<li><a href="/catalog/price/import/">Імпорт цін на товари</a></li>
+			<li><a href="/dealer/invoice/import/">Імпорт накладної</a></li>
+		</ul>
+	</li>	
+{%endif%}
+		<li><a href="#">Магазин</a>
+		<ul>
+			<li><a href="/shop/price/print/list/">Черга цінників для друку</a></li>
+			<li><a href="/shop/price/print/view/">Цінники для друку</a></li>		
+			<li><a href="/shop/price/lastadded/10/view/">Цінники по останнім товарам</a></li>
+			<li><a href="/shop/price/company/12/view/">Цінники по виробнику</a></li>
+			<li><a href="/client/invoice/return/list/">Повернений товар</a></li>
+<!-- 			<li><a href="/invoice/add/">Додати товар</a></li>  -->
+       		<li><a href="/invoice/search/">Пошук наявного товару</a></li>
+       		<li><a href="/invoice/list/10/view/">Наявний товар 10 останніх</a></li>
+       		<li><a href="/dealer/invoice/new/">Нові надходження</a></li>
+       		<li><a href="/invoice/manufacture/view/">Вибірка по виробнику</a></li>
+       		<li><a href="/invoice/category/view/">Вибірка по категоріях</a></li>
+       		<li><a href="/client/invoice/view/">Проданий товар</a></li>
+		</ul>
+		<li><a href="#">Майстерня</a>
+		<ul>
+			<li><a href="/workshop/price/list/">Прайс майстерні</a></li>
+			<li><a href="/workgroup/view/">Групи робіт</a></li>
+			<li><a href="/worktype/view/">Види робіт</a></li>
+			<li><a href="/workstatus/view/">Статус роботи</a></li>
+			<li><a href="/workshop/view/">Виконані роботи</a></li>			
+			<li><a href="/workticket/view/">Заявки</a></li>
+<!--
+			<li><a href="/manyforms/2">Тестовий формсет 1</a></li>
+			<li><a href="/manyforms/test/">Тестовий формсет 2</a></li>
+			<li><a href="/manyforms/test1/">Тестовий формсет 3</a></li>
+-->
+		</ul>
+		<li><a href="#">Прокат</a>
+		<ul>
+			<li><a href="/rent/add/">Створити</a></li>
+			<li><a href="/rent/view/">Список речей у прокаті</a></li>			
+		</ul>
+		<li><a href="#">Замовлення</a>
+		<ul>
+			<li><a href="/client/order/add/">Замовити</a></li>			
+			<li><a href="/client/order/view/">Список замовлених запчастин</a></li>
+		</ul>
+		</li>		
+{%endif%}	
 
 </ul>

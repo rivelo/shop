@@ -32,3 +32,17 @@
 9
 10. Price
 11. Currency
+
+
+###########################################
+#catalog - update price
+###########################################
+0. catalog_id
+1. dealer_code (0 = don't find)
+2. catalog_name
+3. Price
+4. curreny (2 - USD; 4 - EUR; 3	- UAH)
+5.
+6.
+
+

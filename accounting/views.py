@@ -30,7 +30,7 @@ from django.conf import settings
 import datetime
 import calendar
 
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Max
 
 from django.core.mail import send_mail
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -1441,15 +1441,15 @@ def invoicecomponent_list(request, mid=None, cid=None, limit=0, focus=0):
     
     if 'name' in request.GET and request.GET['name']:
         name = request.GET['name']
-        list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id')        
+        list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')        
     elif  'id' in request.GET and request.GET['id']:
         id = request.GET['id']
-        list = InvoiceComponentList.objects.filter(catalog__ids__icontains=id).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id')
+        list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
     if mid:
-        list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id')
+        list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
         company_name = Manufacturer.objects.get(id=mid)
     if cid:
-        list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id')
+        list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
         cat_name = type_list.get(id=cid)
     
     if limit == 0:
@@ -1467,7 +1467,7 @@ def invoicecomponent_list(request, mid=None, cid=None, limit=0, focus=0):
 
     new_list = []
     sale_list = ClientInvoice.objects.filter(catalog__in=id_list).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
-    cat_list = Catalog.objects.filter(pk__in=id_list).values('type__name_ukr', 'description', 'locality', 'id', 'manufacturer__id', 'manufacturer__name', 'photo_url')        
+    cat_list = Catalog.objects.filter(pk__in=id_list).values('type__name_ukr', 'description', 'locality', 'id', 'manufacturer__id', 'manufacturer__name', 'photo_url', 'last_update', 'user_update__username')        
     for element in list:
         element['balance']=element['sum_catalog']
         element['c_sale']=0
@@ -1484,6 +1484,8 @@ def invoicecomponent_list(request, mid=None, cid=None, limit=0, focus=0):
                 element['type__name_ukr']=cat['type__name_ukr']
                 element['description']=cat['description']
                 element['photo_url']=cat['photo_url']
+                element['last_update']=cat['last_update']
+                element['user_update']=cat['user_update__username']
 
         if element['balance']!=0:
             new_list.append(element)
@@ -1616,7 +1618,7 @@ def invoice_search_result(request):
         id = request.GET['id']
         #list = InvoiceComponentList.objects.filter(catalog__ids__icontains=id)
 #        list = InvoiceComponentList.objects.filter(catalog__ids__icontains=id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__manufacturer__id', 'catalog__price', 'catalog__sale', 'catalog__description', 'catalog__type__id').annotate(sum_catalog=Sum('count')) 
-        list = InvoiceComponentList.objects.filter(catalog__ids__icontains=id).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__manufacturer__id', 'catalog__price', 'catalog__sale', 'catalog__description', 'catalog__type__id', 'sum_catalog')
+        list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id)).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__manufacturer__id', 'catalog__price', 'catalog__sale', 'catalog__description', 'catalog__type__id', 'sum_catalog', 'catalog__dealer_code')
 #        list = InvoiceComponentList.objects.filter(catalog__ids__icontains=id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__manufacturer__id', 'catalog__price', 'catalog__sale', 'catalog__type__id').annotate(sum_catalog=Sum('count'))        
         #list = Catalog.objects.filter(ids__icontains = id).order_by('manufacturer')
 
@@ -1685,16 +1687,17 @@ def invoice_id_list(request, id=None, limit=0):
 
     list = None
     if limit == 0:
-        list = InvoiceComponentList.objects.filter(invoice=id).order_by('-id')
+        list = InvoiceComponentList.objects.filter(invoice=id).order_by('-id').values('catalog__price', 'count', 'id', 'price', 'invoice__origin_id', 'invoice__company__name', 'invoice__manager__name', 'invoice__price', 'invoice__currency__ids_char' , 'catalog__ids', 'catalog__manufacturer', 'catalog__name', 'rcount', 'price', 'catalog__currency__name', 'date', 'description', 'user__username', 'currency__ids_char', 'catalog__id')
     else:
-        list = InvoiceComponentList.objects.filter(invoice=id).order_by('-id')[:limit]
+        list = InvoiceComponentList.objects.filter(invoice=id).order_by('-id').values('catalog__price', 'count', 'id', 'price', 'invoice__origin_id', 'invoice__company__name', 'invoice__manager__name', 'invoice__price', 'invoice__currency__ids_char' , 'catalog__ids', 'catalog__manufacturer', 'catalog__name', 'rcount', 'price', 'catalog__currency__name', 'date', 'description', 'user__username', 'currency__ids_char', 'catalog__id')[:limit]
     psum = 0
     optsum = 0
     scount = 0
     for item in list:
-        psum = psum + (item.catalog.price * item.count)
-        optsum = optsum + (item.count * item.price)
-        scount = scount + item.count
+        psum = psum + (item['catalog__price'] * item['count'])
+        #psum = psum + (item.catalog.price * item.count)
+        optsum = optsum + (item['count'] * item['price'])
+        scount = scount + item['count']
     dinvoice = DealerInvoice.objects.get(id=id)    
     
     #return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'company_list':company_list, 'allpricesum':psum, 'alloptsum':optsum, 'countsum': scount, 'weblink': 'invoice_component_report.html'})
@@ -1702,12 +1705,14 @@ def invoice_id_list(request, id=None, limit=0):
 
 
 def invoice_cat_id_list(request, cid=None, limit=0):
-    list = InvoiceComponentList.objects.filter(catalog=cid).order_by('-id')
+    list = InvoiceComponentList.objects.filter(catalog=cid).order_by('-id').values('catalog__price', 'count', 'id', 'price', 'invoice__origin_id', 'invoice__company__name', 'invoice__manager__name', 'invoice__price', 'invoice__currency__ids_char' , 'catalog__ids', 'catalog__manufacturer', 'catalog__name', 'rcount', 'price', 'catalog__currency__name', 'date', 'description', 'user__username', 'currency__ids_char', 'catalog__id')
     psum = 0
     scount = 0
     for item in list:
-        psum = psum + (item.catalog.price * item.count)
-        scount = scount + item.count
+        psum = psum + (item['catalog__price'] * item['count'])
+        scount = scount + item['count']
+        #psum = psum + (item.catalog.price * item.count)
+        #scount = scount + item.count
         
     return render_to_response('index.html', {'list': list, 'allpricesum':psum, 'countsum': scount, 'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -2163,7 +2168,7 @@ def catalog_search_result(request):
         print_url = "/shop/price/bysearch_name/"+name+"/view/"
     elif 'id' in request.GET and request.GET['id']:
         id = request.GET['id']
-        list = Catalog.objects.filter(ids__icontains = id).order_by('manufacturer')
+        list = Catalog.objects.filter(Q(ids__icontains = id) | Q(dealer_code__icontains = id)).order_by('manufacturer')
         print_url = "/shop/price/bysearch_id/"+id+"/view/"
     elif 'locality' in request.GET and request.GET['locality']:
         local = request.GET['locality']
@@ -2710,19 +2715,19 @@ def client_invoice_view(request, month=None, year=None, day=None, id=None):
 
     if day == None:
         day = datetime.datetime.now().day
-        list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date", "-id")
+        list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date", "-id").values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
     else:
         if day == 'all':
-            list = ClientInvoice.objects.filter(date__year=year, date__month=month).order_by("-date", "-id")
+            list = ClientInvoice.objects.filter(date__year=year, date__month=month).order_by("-date", "-id").values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
         else:
-            list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date", "-id")
+            list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date", "-id").values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
             day = int(day)
             
     psum = 0
     scount = 0
     for item in list:
-        psum = psum + item.sum
-        scount = scount + item.count
+        psum = psum + item['sum']
+        scount = scount + item['count']
     days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
     
     paginator = Paginator(list, 15)
@@ -2756,12 +2761,12 @@ def client_invoice_lookup(request, client_id):
 
 
 def client_invoice_id(request, id):
-    list = ClientInvoice.objects.filter(catalog__id=id).order_by("-date", "-id")
+    list = ClientInvoice.objects.filter(catalog__id=id).order_by("-date", "-id").values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
     psum = 0
     scount = 0
     for item in list:
-        psum = psum + item.sum
-        scount = scount + item.count
+        psum = psum + item['sum']
+        scount = scount + item['count']
     
     paginator = Paginator(list, 15)
     page = request.GET.get('page')
@@ -3836,19 +3841,40 @@ def price_import(request):
     spamwriter = csv.writer(w_file, delimiter=';', quotechar='|') #, quoting=csv.QUOTE_MINIMAL)
     for row in pricereader:
         id = None
+        code = None
+        cat = None
         #print row[0] + " - " + row[2]
         id = row[0]
-        ids_list.append(row[0])
+        code = row[1]
+                
         try:
-            cat = Catalog.objects.get(ids = id)
-            try:
-                cat.price = row[2]
-                cat.save()
-            except:
-                spamwriter.writerow([row[0], row[1], row[2]])
-                    
-        except Catalog.DoesNotExist:          
-            spamwriter.writerow([row[0], row[1], row[2]])
+            if id <> u'0':
+                cat = Catalog.objects.get(ids = id)
+                print('Catalog =  [' +id+ ']['+code+']# '+row[3]+'')
+                ids_list.append(row[0])
+            else:
+                print(' CODE  ['+code+']# '+row[3]+'')
+                cat = Catalog.objects.get(dealer_code = code)
+                ids_list.append(row[1])
+            
+            #cat = Catalog.objects.get(ids = id)          
+                  
+            #if len(code) > 1:
+            #    cat = Catalog.objects.get(dealer_code = code)
+            if code != u'0':
+                cat.dealer_code = code
+            cat.price = row[3]
+            #cat.dealer_code = row[1]
+            cat.currency = Currency.objects.get(id = row[4])
+            cat.last_update = datetime.datetime.now()
+            #cat.user_update = request.user
+            cat.user_update = User.objects.get(username='import')
+            cat.save()
+            
+            #spamwriter.writerow([row[0], row[1], row[2], row[3], row[4]],)
+        except: # Catalog.DoesNotExist:
+                      
+            spamwriter.writerow([row[0], row[1], row[2], row[3], row[4]])
         #return HttpResponse("Виконано", mimetype="text/plain")
 
     list = Catalog.objects.filter(ids__in = ids_list)
@@ -5087,6 +5113,40 @@ def inventory_list(request, year=None, month=None, day=None):
         
     list = InventoryList.objects.filter(date__year = year, date__month = month, date__day = day)
     return render_to_response("index.html", {"weblink": 'inventory_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def inventory_mistake(request, year=None, month=None, day=None):
+#    if (year != None and month != None and day != None):
+#===============================================================================
+#    if (year == None) and (month == None) and (day == None):
+#        day = datetime.datetime.now().day
+#        month = datetime.datetime.now().month
+#        year = datetime.datetime.now().year
+#    else:
+#        day = day
+#        month = month
+#        year = year
+#===============================================================================
+
+#******** RAW SQL *******
+#mysql> select t.catalog_id, t.count, t.date from ( select catalog, MAX(date) as
+#mdate from accounting_inventorylist group by catalog) r inner join accounting_in
+#ventorylist t on t.catalog = r.catalog and t.date=r.mdate;
+
+#mysql> select count(t.catalog_id) from ( select catalog_id, MAX(date) as mdate f
+#rom accounting_inventorylist group by catalog_id) r inner join accounting_invent
+#orylist t on t.catalog_id = r.catalog_id and t.date=r.mdate where t.check_all =
+
+#mysql> select catalog_id, count, real_count, Max(date) from accounting_inventory
+#list where count != real_count and check_all=True group by catalog_id;
+
+    #im = InventoryList.objects.filter(check_all = True).annotate(dcount=Max('date')).order_by('date')
+    im = InventoryList.objects.filter(check_all = True).annotate(mdate=Max('date', distinct=True)).order_by('catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')
+    #list = im.filter(Q(real_count__lt = F('count')) | Q(real_count__gt = F('count')))#.values('id', 'catalog', )
+    list = im.exclude(real_count = F('count'))
+     
+    #list = InventoryList.objects.filter(check_all = True, real_count__lt = F('count'))
+    return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def inventory_add(request):

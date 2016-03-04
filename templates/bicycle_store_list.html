@@ -258,6 +258,7 @@ $("body").on("click", ".change_sale", function(e){
 	</tr>
 </thead>
 
+{% if request.user|has_group:"admin" %}
 <tbody>
 {% for type in bicycles %}
 <tr>
@@ -274,13 +275,10 @@ $("body").on("click", ".change_sale", function(e){
 		
 <!-- 		<td class="change_price" id_price="{{type.model.id}}">{{type.model__price}}</td>
  -->
-{% if request.user|has_group:"admin" %}
+
 	<td class="change_price" id_price="{{type.model__id}}">{{type.model__price}}</td>
 		<td>{{type.price}}</td> 
-{% else %}
- 	<td>{{type.model__price}}</td>
- 	<td></td>
-{% endif %}
+
 		
 	<td>{{type.currency}}</td>
 		
@@ -312,6 +310,62 @@ $("body").on("click", ".change_sale", function(e){
 	</tr>
 {% endfor %}
 </tbody>
+
+{% else %}
+
+<tbody>
+{% for type in bicycles %}
+<tr>
+	<td>{{forloop.counter}}</td>
+	<td><a href="/">{{type.id}}</a></td>
+	<td><span class="f_type">{{type.model__type__type}}</span></td>
+	<td><span class="f_brand">{{type.model__brand__name}}</span></td>
+	<td><a href="/bicycle/photo/{{type.model__id}}">
+	{{type.model__model}} ({{type.model__color}})
+	</a></td>
+	<td><span class="f_year">{{type.model__year|date:"Y"}}</span></td>
+		<td class="serial_edit" id_serial="{{ type.id }}"> {{type.serial_number}}</td>  
+		<td><span class="f_size">{{type.size__inch}}" / {{type.size__cm}}cm</span></td>
+		
+<!-- 		<td class="change_price" id_price="{{type.model.id}}">{{type.model__price}}</td>
+ -->
+
+ 	<td>{{type.model__price}}</td>
+ 	<td></td>
+
+		
+	<td>{{type.currency}}</td>
+		
+	<td align="center" class="change_sale" id_sale="{{type.model__id}}" >
+	{{type.model__sale|floatformat:"0"}}%       
+	</td>
+	<td align="center" class="sale_price">
+	{{type.model__sale|div:-100|sub:-1|mul:type.model__price|floatformat:"0"}} грн.       
+	</td>
+		
+ 		<td align="center">{{type.realization}}</td>
+
+		{% ifequal type.count 1 %}
+			<td align="center">
+			<abbr title="Продати велосипед">
+			<a href="/bicycle/sale/add/{{type.id}}">{{type.count}}</a>
+			</abbr>
+			</td>
+		{% else %}
+			<td align="center">{{type.count}}</td>
+		{% endifequal %}
+		
+		<td>{{type.date|date:"D d M Y"}}</td>
+		<td><a href="/bicycle-store/edit/{{ type.id }}">edit</a> <br>
+		<a href="/bicycle-store/delete/{{ type.id }}">delete</a></td>
+		<td align="center">
+		<input type="checkbox" id="bikeid_{{type.model__id}}" value="{{type.model__id}}" name="checkbox_{{ type.id }}"/ onclick="">	
+		</td>
+	</tr>
+{% endfor %}
+</tbody>
+{% endif %}
+
 <tfoot> 
 	<tr>
 		<th></th>

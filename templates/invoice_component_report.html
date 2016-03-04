@@ -7,37 +7,10 @@
 <body>
 <br>
 
-{% if company_list %}
-<table border="1">
-	<tr>
-    	<th>#</th>	
-    	<th>ID</th>
-    	<th>Сума по накладній</th>
-    	<th>Кількість товару</th>
-    </tr>
-
-{% for company in company_list %}
-<tr>
-	<td>
-	{{forloop.counter}}
-	</td>
-	<td>
-	<a href="/invoice/id/{{company.invoice}}/view/">{{company.id}} - {{company.origin_id}}</a>
-	</td>
-	<td align="center">
-	{{company.suma}} $
-	</td>	
-	<td align="center">
-	{{company.ccount}}
-	</td>
-</tr>	
-{% endfor %}
-</table>
-{% endif %}
-
 
     <h1>Список наявного товару по накладній № {{dinvoice.origin_id}} ({{dinvoice.company}})</h1>
     
+{% if perms.accounting.add_preorder %}  
 
     <table border="1">
 	<tr>
@@ -69,27 +42,27 @@
     <a href="/invoice/edit/{{type.id}}">{{type.id}}</a>
 	</td>
  	<td>
-	{{type.invoice}}       
+	{{type.invoice__origin_id}} - {{type.invoice__company__name}} - {{type.invoice__manager__name}} [{{type.invoice__price}} {{type.invoice__currency__ids_char}}]        
 	</td>	
 	<td>       
-	{{type.catalog}}
+	[{{type.catalog__ids}}] {{type.catalog__manufacturer}} - {{type.catalog__name}}
 	</td>
 	<td align="center">       
-	<a href="/client/invoice/catalog/{{type.catalog.id}}/add">{{type.count}} </a>
+	<a href="/client/invoice/catalog/{{type.catalog__id}}/add">{{type.count}} </a>
 	</td>
-	<td align="center">{{type.rcount}}</td>
+	<td align="center"><abbr title="{{type.user__username}}"> {{type.rcount}}  </abbr></td>
 	<td>       
-	{{type.catalog.price}}
+	{{type.catalog__price}}
 	</td>
 	<td>       
-	{{type.catalog.currency}}
+	{{type.catalog__currency__name}}
 	</td>
 	<td align="center">       
-	{{type.catalog.price|mul:type.count}}
+	{{type.catalog__price|mul:type.count}}
 	</td>
 {% if perms.accounting.add_preorder %}
 	<td align="center">       
-	{{type.price}} ({{type.currency.ids_char}})
+	{{type.price}} ({{type.currency__ids_char}})
 	</td>
 {% endif %}
 	<td> 
@@ -120,9 +93,82 @@
     	<th></th>
     	<th></th>
     </tr>
-    
     <table>
 
+{% else %}
+
+    <table border="1">
+	<tr>
+    	<th>#</th>	
+    	<th>ID</th>
+    	<th>Накладна</th>
+    	<th>Товар</th>
+    	<th align="center">Кількість</th>
+    	<th align="center">Наявність</th>
+    	<th>Ціна</th>
+    	<th>Валюта</th>
+    	<th>Сума</th>
+    	<th>Дата</th>
+    	<th>Опис</th>
+    </tr>
+    
+{% load template_math %}    
+    
+{% for type in list %}
+<tr>
+	<td>
+	{{forloop.counter}}
+	</td>
+	<td>       
+    {{type.id}}
+	</td>
+ 	<td>
+	{{type.invoice__origin_id}} - {{type.invoice__company__name}} - {{type.invoice__manager__name}}        
+	</td>	
+	<td>       
+	[{{type.catalog__ids}}] {{type.catalog__manufacturer}} - {{type.catalog__name}}
+	</td>
+	<td align="center">       
+	<a href="/client/invoice/catalog/{{type.catalog.id}}/add">{{type.count}} </a>
+	</td>
+	<td align="center"><abbr title="{{type.user__username}}"> {{type.rcount}}  </abbr></td>
+	<td>       
+	{{type.catalog__price}}
+	</td>
+	<td>       
+	{{type.catalog__currency__name}}
+	</td>
+	<td align="center">       
+	{{type.catalog__price|mul:type.count}}
+	</td>
+	<td> 
+	{{type.date}}
+	</td>
+	<td>
+	{{type.description}}
+	</td>
+</tr>
+{% endfor %}         
+	<tr>
+    	<th></th>	
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th>Кількість: {{countsum}}</th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th>{{allpricesum}} грн.</th>
+
+    	<th></th>    	
+    	<th></th>
+    </tr>
+    <table>
+
+{% endif %}
+
+{% load poll_extras %}    
+{% orm_debug %}
 
 </body>
 </html>
