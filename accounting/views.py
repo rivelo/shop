@@ -459,7 +459,7 @@ def bicycle_store_add(request, id=None):
             count = form.cleaned_data['count']
             date = form.cleaned_data['date']
             Bicycle_Store(model = model, serial_number=serial_number, size = size, price = price, currency = currency, description=description, realization=realization, count=count, date=date).save()
-            return HttpResponseRedirect('/bicycle-store/view/seller/')
+            return HttpResponseRedirect('/bicycle-store/view/')
     else:
         if bike != None:
             form = BicycleStoreForm(initial={'model': bike.id, 'count': '1'})
@@ -3629,6 +3629,7 @@ def shopdailysales_view(request, year, month, day):
     strdate = pytils_ua.dt.ru_strftime(u"%d %B %Y", now, inflected=True)
     return render_to_response('index.html', {'Cdeb': deb, 'Ccred':cred, 'date': strdate, 'd_sum': deb_sum, 'c_sum': cred_sum, 'cash_credsum': cash_credsum, 'cash_debsum':cash_debsum, 'casa':casa, 'weblink': 'shop_daily_sales_view.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
+from django.contrib.auth.models import Group
 
 def shopdailysales_edit(request, id):
     a = ShopDailySales.objects.get(pk=id)
@@ -3642,7 +3643,9 @@ def shopdailysales_edit(request, id):
             tcash = form.cleaned_data['tcash']
             ocash = form.cleaned_data['ocash']
             user = form.cleaned_data['user']
-            date = now
+            group = Group.objects.get(name='admin') 
+            if group not in request.user.groups.all():
+                date = now
             if request.user.is_authenticated():
                 user = request.user
 
@@ -5141,7 +5144,7 @@ def inventory_mistake(request, year=None, month=None, day=None):
 #list where count != real_count and check_all=True group by catalog_id;
 
     #im = InventoryList.objects.filter(check_all = True).annotate(dcount=Max('date')).order_by('date')
-    im = InventoryList.objects.filter(check_all = True).annotate(mdate=Max('date', distinct=True)).order_by('catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')
+    im = InventoryList.objects.filter(check_all = True).annotate(mdate=Max('date', distinct=True)).order_by('catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')
     #list = im.filter(Q(real_count__lt = F('count')) | Q(real_count__gt = F('count')))#.values('id', 'catalog', )
     list = im.exclude(real_count = F('count'))
      

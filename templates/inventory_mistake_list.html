@@ -78,6 +78,7 @@ function addZero(i) {
 	<tr>
 		<th>#</th>
 		<th>id</th>
+		<th>Виробник</th>
 		<th>Товар</th>
 		<th>Кількість</th>
 		<th>Кількість в базі</th>
@@ -104,7 +105,8 @@ function addZero(i) {
 		
 		<td>{{ forloop.counter }}</td>
 		<td>{{ element.id }}</td>
-		<td>{{ element.catalog__name }}</td>
+		<td>{{ element.catalog__manufacturer__name }}</td>
+		<td>[{{element.catalog__ids}}] {{ element.catalog__name }}</td>
 		<td align="center">{{ element.count }}</td>
 		<td align="center">{{ element.real_count }}</td>
 		<td>{{ element.description }}</td>
@@ -137,7 +139,7 @@ function addZero(i) {
 		
 		<td>{{ forloop.counter }}</td>
 		<td>{{ element.id }}</td>
-		<td>{{ element.catalog }}</td>
+		<td>[{{element.catalog__ids}}] {{ element.catalog__name }}</td>
 		<td align="center">{{ element.count }}</td>
 		<td align="center">{{ element.real_count }}</td>
 		<td>{{ element.description }}</td>
