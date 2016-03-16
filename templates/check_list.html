@@ -1,0 +1,167 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<html lang="en">
+<link type="text/css" rel="stylesheet" href="/media/paginator.css">
+<head>
+    <title>Список чеків</title>
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+</head>
+
+
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<script src="/media/jquery-ui.min.js"></script>
+
+<body>
+
+
+<br>
+<h2>
+    За місяць: 
+	{% for i in "123456789012" %}
+	{% ifequal forloop.counter sel_month %}
+	<a href="/client/invoice/year/{{sel_year}}/month/{{forloop.counter}}/view" class="select">{{forloop.counter}}</a>,
+    {% else %}
+	<a href="/client/invoice/year/{{sel_year}}/month/{{forloop.counter}}/view" class="non">{{forloop.counter}}</a>,
+    {% endifequal %}
+	{% endfor %}    
+</h2>    
+
+<h2>
+	За день:
+	{% for day in month_days %}		 
+	{% ifequal day sel_day %}
+    <a href="/client/invoice/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view" class="select">{{day}}</a>,
+    {% else %}
+	<a href="/client/invoice/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view" class="non">{{day}}</a>,
+    {% endifequal %}
+    {% endfor %}
+</h2>    
+
+
+    <h1>Список чеків на товар [{{sel_day}}/{{sel_month}}/{{sel_year}}] </h1>
+    
+    <table border="1" id="itable">
+	<tr>
+    	<th>#</th>	
+    	<th>№ чека</th>
+    	<th>Клієнт</th>
+    	<th>Назва компонента</th>
+    	<th>Кількість</th>
+    	<th>Ціна</th>
+    	<th>Сума</th>
+    	<th>Валюта</th>
+    	<th>Знижка, %</th>    	
+    	<th>Оплата</th>    	    	
+    	<th>Дата</th>
+    	<th>Опис</th>
+    	<th>Друк</th>
+    </tr>
+    
+   
+{% load template_math %}    
+    
+{% for item in check_list %}
+	<td>
+	<abbr title="Створено користувачем {{item.user.username}}">
+	{{forloop.counter}}
+	</abbr>
+	</td>
+	<td>       
+    <a href="/">{{item.check_num}}[{{item.catalog.id}}{{item.workshop.id}}]</a>
+	</td>
+	<td>
+	<a href="">
+	{{item.client.name}} ({{item.client.forumname}})       
+	</a>
+	</td>
+	<td>       
+	[{{item.catalog.catalog.ids}}{{item.workshop.work_type.id}}] {{item.catalog.catalog.name}}{{item.workshop.work_type}}
+	</td>
+	<td align="center" class="tcount">       
+	{{item.count}}
+	</td>
+	<td class="tprice">       
+	{{item.price}}
+	</td>	
+	<td class="tsum">       
+	{{item.count|mul:item.price}}
+	</td>
+	<td>       
+	{{item.cash_type.name}}
+	</td>
+	<td align="center">       
+	{{item.discount}}
+	</td>
+	<td class="tpay">       
+	{{item.pay}}
+	</td>	
+	<td> 
+	{{item.date|date:'d-m-Y H:i' }}
+	</td>
+	<td>
+	{{item.description}}
+	</td>
+	<td>
+	{{item.print_status}}
+	</td>
+
+</tr>
+{% endfor %}         
+
+    	<tr>
+    	<th></th>	
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>    	
+    	<th></th>    	    	
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    </tr>
+    
+    <table>
+
+<div class="pagination">
+  <ul>
+  	{% if buycomponents.has_previous %}
+        <li class="prev">
+            <a href="?page={{ buycomponents.previous_page_number }}">&larr; Previous</a>
+        </li>
+    {% else %}
+    <li class="prev disabled">
+            <a href="?page={{ buycomponents.previous_page_number }}">&larr; Previous</a>
+    </li>
+    {% endif %}
+    
+<!--     <li class="disabled"><a href="">Page {{ buycomponents.number }} of {{ buycomponents.paginator.num_pages }}.</a></li>
+ -->
+    {% for i in buycomponents.paginator.page_range %}
+    {% ifequal i  buycomponents.number%}
+    <li class="disabled"><a href="">{{ i }}.</a></li>
+    {% else %}
+    <li class="active"><a href="?page={{ i }}">{{ i }}.</a></li>
+    {% endifequal %}
+    {% endfor %}   
+    
+    {% if buycomponents.has_next %}
+        <li class="next">
+            <a href="?page={{ buycomponents.next_page_number }}">Next &rarr;</a>
+        </li>
+    {% else %}
+    <li class="next disabled">
+            <a href="?page={{ buycomponents.previous_page_number }}">Next &rarr;</a>
+     </li>    
+    {% endif %}
+  </ul>
+</div>
+
+
+<br>
+{% load poll_extras %}
+{% orm_debug %}
+</body>
+</html>

@@ -457,7 +457,9 @@ urlpatterns += patterns('',
 #    (r'^inventory/delete/(?P<id>\d+)/$', 'catalog.accounting.views.inventory_delete'),
     (r'^inventory/delete/$', 'catalog.accounting.views.inventory_delete'),
     (r'^catalog/join/(?P<id1>\d+)/(?P<id2>\d+)/$', 'catalog.accounting.views.catalog_join'),
-
+    
+    (r'^check/list/$', 'catalog.accounting.views.check_list'),
+    (r'^check/add/$', 'catalog.accounting.views.check_add'),
 ) 
 
 #===============================================================================

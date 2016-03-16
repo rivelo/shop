@@ -616,18 +616,25 @@ class ShopDailySales(models.Model):
 # Check table (Check)
 class Check(models.Model):
     #ids = models.CharField("code", unique=True, max_length=50)
+    check_num = models.IntegerField("mini-fp")
     client = models.ForeignKey(Client)
     date = models.DateTimeField(auto_now_add=True)
-    product = models.ForeignKey(Catalog)
-    count = models.IntegerField("how many something", default=1)
+    catalog = models.ForeignKey(ClientInvoice, blank=True, null=True)
+    bicycle = models.ForeignKey(Bicycle_Sale, blank=True, null=True)
+    workshop = models.ForeignKey(WorkShop, blank=True, null=True)
+    count = models.FloatField("how many something", default=1.00)
+    discount = models.IntegerField("%", default=0)
     price = models.FloatField()
+    cash_type = models.ForeignKey(CashType, blank=True, null=True, on_delete=models.SET_NULL) 
     description = models.CharField(max_length=255, blank=True, null=True)
+    print_status = models.BooleanField(default=False)
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)    
     
     def __unicode__(self):
-        return self.client
+        return self.catalog
 
     class Meta:
-        ordering = ["date"]    
+        ordering = ["date", "check_num"]    
 
 
 class PreOrder(models.Model):

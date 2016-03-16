@@ -15,7 +15,7 @@ from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, C
 from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType
 from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm
 
-from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay
+from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check
 from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm
 
   
@@ -39,6 +39,8 @@ from django.utils import simplejson
 from django.core import serializers
 
 import pytils_ua
+import urllib
+from django.conf import settings
 
 now = datetime.datetime.now()
 
@@ -1735,9 +1737,11 @@ def invoice_import(request):
         id = row[0]
         ids_list.append(row[0])
         try:
-            cat = Catalog.objects.get(ids = id)
-            if row[6] > 0:
+            cat = Catalog.objects.get(Q(ids = id) | Q(dealer_code = id))
+            print "ROW[6] = " + row[6]
+            if int(row[6]) > 0:
                 cat.price = row[6]
+                print "IF = " + row[6]
             c = Currency.objects.get(id = row[4])
             inv = DealerInvoice.objects.get(id = row[5])
             InvoiceComponentList(invoice = inv, catalog = cat, count = row[2], price= row[3], currency = c, date= now).save()
@@ -3585,8 +3589,8 @@ def shopdailysales_add(request):
 def shopmonthlysales_view(request, year=now.year, month=now.month):
     if auth_group(request.user, 'admin') == False:
         return HttpResponseRedirect("/.")
-    deb = ClientDebts.objects.filter(date__year=year, date__month=month).extra(select={'year': "EXTRACT(year FROM date)", 'month': "EXTRACT(month from date)", 'day': "EXTRACT(day from date)"}).values('year', 'month', 'day').annotate(suma=Sum("price")).order_by()
-    cred = ClientCredits.objects.filter(date__year=year, date__month=month).extra(select={'year': "EXTRACT(year FROM date)", 'month': "EXTRACT(month from date)", 'day': "EXTRACT(day from date)"}).values('year', 'month', 'day').annotate(suma=Sum("price")).order_by()
+    deb = ClientDebts.objects.filter(date__year=year, date__month=month ).extra(select={'year': "EXTRACT(year FROM date)", 'month': "EXTRACT(month from date)", 'day': "EXTRACT(day from date)"}).values('year', 'month', 'day').annotate(suma=Sum("price")).order_by()
+    cred = ClientCredits.objects.filter(Q(date__year=year), Q(date__month=month), Q(cash_type__name='Готівка') | Q(cash_type__name='Термінал pb.ua') | Q(cash_type=None)).extra(select={'year': "EXTRACT(year FROM date)", 'month': "EXTRACT(month from date)", 'day': "EXTRACT(day from date)"}).values('year', 'month', 'day').annotate(suma=Sum("price")).order_by()
     sum_cred = 0
     sum_deb = 0
     
@@ -4219,9 +4223,17 @@ def payform(request):
     desc = ""
     sum = 0
     bal = 0
+    if Check.objects.filter(catalog__id__in = list_id):
+        error_msg = "Дана позиція вже існує в чеку №"
+        for ichek in Check.objects.filter(catalog__id__in = list_id).values("check_num"):
+            error_msg = error_msg + "["+str(ichek['check_num'])+"]"
+        return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        
     for inv in ci:
         if client!=inv.client:
-            return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+            error_msg = "Вибрані позиції різних клієнтів"
+            return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        
         client = inv.client
         #inv.pay = inv.sum
         desc = desc + inv.catalog.name + "; "
@@ -4231,7 +4243,8 @@ def payform(request):
         text = pytils_ua.numeral.in_words(int(sum))
         month = pytils_ua.dt.ru_strftime(u"%d %B %Y", ci[0].date, inflected=True)
         request.session['invoice_id'] = list_id
-        return render_to_response('index.html', {'check_invoice': ci, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'weblink': 'client_invoice_sale_check.html', 'print': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        check_num = Check.objects.aggregate(Max('check_num'))['check_num__max']+1
+        return render_to_response('index.html', {'check_invoice': ci, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'check_num':check_num, 'weblink': 'client_invoice_sale_check.html', 'print': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
      
     user = client.id
@@ -4290,7 +4303,8 @@ def workshop_payform(request):
         text = pytils_ua.numeral.in_words(int(sum))
         month = pytils_ua.dt.ru_strftime(u"%d %B %Y", wk[0].date, inflected=True)
         request.session['invoice_id'] = list_id
-        return render_to_response('index.html', {'weblink': 'client_invoice_sale_check.html', 'check_invoice': wk, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'print':'True', 'is_workshop': 'True', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))        
+        check_num = Check.objects.aggregate(Max('check_num'))['check_num__max']+1
+        return render_to_response('index.html', {'weblink': 'client_invoice_sale_check.html', 'check_invoice': wk, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'print':'True', 'is_workshop': 'True', 'check_num':check_num, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))        
 
     user = client.id
     if user == 138:
@@ -4320,6 +4334,7 @@ def client_ws_payform(request):
     if bool(checkbox_list) == False:
         return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
     list_id = []
+    res = Check.objects.aggregate(max_count=Max('check_num'))
     for id in checkbox_list:
         list_id.append( int(id.replace('checkbox_', '')) )
     wk = WorkShop.objects.filter(id__in=list_id)
@@ -4343,10 +4358,33 @@ def client_ws_payform(request):
     if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
         pay = request.POST['pay_terminal']
         cash_type = CashType.objects.get(id = 2) # термінал
+        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+        data =  {"cmd": "open"}
+        url = base + urllib.urlencode(data)
+        page = urllib.urlopen(url).read()
         if float(request.POST['pay_terminal']) != 0:
             ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
-        
+            for inv in wk:
+                check = Check(check_num=res['max_count'] + 1)
+                check.client = client #Client.objects.get(id=client.id)
+                check.workshop = inv #ClientInvoice.objects.get(pk=inv)
+                check.description = "Майстерня. Термінал."
+                check.count = 1
+                check.discount = 0
+                check.price = inv.price
+                check.cash_type = CashType.objects.get(id = 2)
+                check.print_status = False
+                check.user = user
+                check.save()
+                price =  "%.2f" % inv.price
+                count = "%.3f" % 1
+                data =  {"cmd": "add_plu", "id":'99'+str(inv.work_type.pk), "cname":inv.work_type.name[:40].encode('utf8'), "price":price, "count": count, "discount": 0}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+            data =  {"cmd": "pay", "sum": 0, "mtype": 2}
+            url = base + urllib.urlencode(data)
+            page = urllib.urlopen(url).read()
     ccred = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
     ccred.save()
     for item in wk:
@@ -4370,17 +4408,21 @@ def client_payform(request):
     desc = ""
     sum = 0
     client = None
+    res = Check.objects.aggregate(max_count=Max('check_num'))
+    check = None
+    
     if len(checkbox_list):
         for id in checkbox_list:
             list_id.append( int(id.replace('checkbox_', '')) )
         ci = ClientInvoice.objects.filter(id__in=list_id)
         client = ci[0].client
-        
+                
         for inv in ci:
             inv.pay = inv.sum
             desc = desc + inv.catalog.name + "; "
             sum = sum + inv.sum
             inv.save()
+            
     else:
         return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext':'Не вибрано жодного товару', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
     
@@ -4397,6 +4439,35 @@ def client_payform(request):
         if float(request.POST['pay_terminal']) != 0:
             ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
+            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+            data =  {"cmd": "open"}
+            url = base + urllib.urlencode(data)
+            page = urllib.urlopen(url).read()
+            for inv in ci:
+                check = Check(check_num=res['max_count'] + 1)
+                check.client = client #Client.objects.get(id=client.id)
+                check.catalog = inv #ClientInvoice.objects.get(pk=inv)
+                check.description = "TEST check"
+                check.count = inv.count
+                check.discount = inv.sale
+                check.price = inv.price
+                check.cash_type = CashType.objects.get(id = 2)
+                check.print_status = False
+                check.user = user
+                check.save()
+                price =  "%.2f" % inv.price
+                count = "%.3f" % inv.count
+                discount = inv.sale
+                data =  {"cmd": "add_plu", "id":inv.catalog.pk, "cname":inv.catalog.name[:40].encode('utf8'), "price":price, "count": count, "discount": discount}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+            data =  {"cmd": "pay", "sum": 0, "mtype": 2}
+            url = base + urllib.urlencode(data)
+            page = urllib.urlopen(url).read()
+               
+#                data =  {"id":inv.catalog.pk, "cname":inv.catalog.name[:40].encode('utf8')}
+#                url = base + urllib.urlencode(data)
+#                page = urllib.urlopen(url).read()
         
     cdeb = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
     cdeb.save()
@@ -5285,4 +5356,68 @@ def catalog_join(request,id1, id2):
     ClientReturn.objects.filter(catalog = id2).update(catalog = id1)
     
     return HttpResponseRedirect('/invoice/search/result/?name=&id='+c1.ids)
+
+
+def check_list(request, year=None, month=None, day=None, all=False):
+    list = None
+    if (year == None) and (month == None) and (day == None):
+        day = datetime.datetime.now().day
+        month = datetime.datetime.now().month
+        year = datetime.datetime.now().year
+    else:
+        day = day
+        month = month
+        year = year
+    if all == True:
+        list = Check.objects.all()
+    else:
+        list = Check.objects.filter(date__year = year, date__month = month, date__day = day)#.values()    
+    
+    days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
+    return render_to_response("index.html", {"weblink": 'check_list.html', "check_list": list, 'sel_day':day, 'sel_month':month, 'sel_year':year, 'month_days':days}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def check_add(request):
+    checkbox_list = [x for x in request.POST if x.startswith('chk_inv')]
+    list_id = []
+    ci = None
+    cw = None
+    res = Check.objects.aggregate(max_count=Max('check_num'))
+    
+    if request.POST.has_key('inv_type'):
+        inv_t = request.POST.get( 'inv_type' )
+    for id in checkbox_list:
+        list_id.append( int(request.POST.get( id )))
+    if inv_t == 'shop':
+        ci = ClientInvoice.objects.filter(id__in=list_id)
+        for inv in ci:
+            check = Check(check_num=res['max_count'] + 1)
+            check.client = inv.client #Client.objects.get(id=client.id)
+            check.catalog = inv #ClientInvoice.objects.get(pk=inv)
+            check.description = "Готівка"
+            check.count = inv.count
+            check.discount = inv.sale
+            check.price = inv.price
+            check.cash_type = CashType.objects.get(id = 1)
+            check.print_status = False
+            check.user = request.user
+            check.save()    
+    else:
+        cw = WorkShop.objects.filter(id__in=list_id)
+        for inv in cw:
+            check = Check(check_num=res['max_count'] + 1)
+            check.client = inv.client #Client.objects.get(id=client.id)
+            check.workshop = inv #ClientInvoice.objects.get(pk=inv)
+            check.description = "Готівка"
+            check.count = 1
+            check.discount = 0
+            check.price = inv.price
+            check.cash_type = CashType.objects.get(id = 1)
+            check.print_status = False
+            check.user = request.user
+            check.save()    
+        
+    #return check_list(request, all=True)
+    return HttpResponseRedirect('/check/list/')
+    
     

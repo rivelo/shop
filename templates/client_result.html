@@ -184,7 +184,7 @@ $(function() {
 //                	    $('.in_cred').after('<tr class="tr_cred"><td>'+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</tr>');
 						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
 						var ed = '<a href="/clientcredits/edit/'+item['id']+'">edit</a>';
-						var cdesc = item['description'] + ed + " <a href='/clientcredits/delete/" + item['id'] + "'>delete</a>";
+						var cdesc = item['description'] + ed + " <a href='/clientcredits/delete/" + item['id'] + "'" + "onclick='return confirm(&#039Видалити борг?&#039)'>delete</a>";
 						var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'"><abbr title="' + item['cash_type__name'] + '">' + item['price'] + '</abbr>';
                 	    $('.in_cred').after('<tr class="tr_cred"><td>'+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
                     });
@@ -216,7 +216,7 @@ $(function() {
 //                	    $('.in_debt').after('<tr class="tr_debt"><td>'+ fcol +'</td><td>'+ cdesc +'</td><td>' + item.fields.price+'</td></tr>');
 						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
 						var ed = '<a href="/clientdebts/edit/'+item['id']+'">edit</a>';
-						var cdesc = item['description'] + ed + " <a href='/clientdebts/delete/" + item['id'] + "'>delete</a>";
+						var cdesc = item['description'] + ed + " <a href='/clientdebts/delete/" + item['id'] + "'" + "onclick='return confirm(&#039Видалити борг?&#039)'>delete</a>";
 						var price = '<td>' + item['price'];
                 	    $('.in_debt').after('<tr class="tr_debt"><td>'+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
                 	    
@@ -627,7 +627,7 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 	</td>
 	<td><a href="/clientcredits/add/{{client_name.id}}">Створити нову проплату</a>  
 	{% if perms.accounting.delete_clientcredits %}
-	 /-----/ <a href="/clientcredits/{{client_name.id}}/delete/all">(Видалити всі проплати)</a> 
+	 /-----/ <a href="/clientcredits/{{client_name.id}}/delete/all" onclick="return confirm('Видалити проплати?')">(Видалити всі проплати)</a> 
 	{% endif %}
 	{% if user.is_authenticated %}		
 	 /-----/ <a id="all_cred" href="javascript:" >(Показати всі проплати)</a>
@@ -669,7 +669,7 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 	</td>
 	<td><a href=/clientdebts/add/{{client_name.id}}> Додати борг </a>
 	{% if perms.accounting.delete_clientcredits %}
-	 /-----/ <a href="/clientdebts/{{client_name.id}}/delete/all">(Видалити всі борги)</a>
+	 /-----/ <a href="/clientdebts/{{client_name.id}}/delete/all" onclick="return confirm('Видалити борг?')">(Видалити всі борги)</a>
 	{% endif %}
 	{% if user.is_authenticated %}	
 	 /-----/ <a id="all_debt" href="javascript:">(Показати всю історію боргів)</a>  

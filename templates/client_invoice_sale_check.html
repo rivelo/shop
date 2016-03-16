@@ -1,8 +1,17 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Чек на виконані роботи</title>
+
+{% if is_workshop %}
+<title>Акт виконаних робіт №000{{check_invoice.id}}</title>
+{% else %}
+<title>Товарний чек №000{{check_invoice.id}}</title>
+{% endif %}
 
 <link rel="stylesheet" type="text/css" href="/media/table.css">
+
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script src="/media/jquery-ui.min.js"></script>	
+
 
 <style type="text/css">
    #checktable {
@@ -20,6 +29,34 @@
    }
 </style>
 
+<script language="JavaScript">
+function send_check() {
+			$.ajax({
+                type: "GET",
+                url: "http://127.0.0.1:8123/",
+                data: {user:  "ygrik", param1: "тестове поле cp1251"},
+                dataType: "text",
+                success:function(msg){
+//                    alert("Все отлично ушло на сервер - " + msg);
+//               	    $('#spinner').after('<p>ajax done</p>');
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });
+        
+        };
+        
+$(document).ready(function() {        
+$('#but_add_check').click(function() {
+//	$("#pay_term").val($("#pay").val())
+//	$("#pay").val(0);
+	$("#check_form").submit();
+	});
+});
+        
+</script>
+
 {% load template_math %} 
 
 <table id="checktable">
@@ -27,9 +64,9 @@
 <td style="text-align:center; border: 2px solid white;" colspan="2">
 
 {% if is_workshop %}
-<h1>Акт виконаних робіт №000{{check_invoice.id}}</h1>
+<h1>Акт виконаних робіт №000{{check_num}}</h1>
 {% else %}
-<h1>Товарний чек №000{{check_invoice.id}}</h1>
+<h1>Товарний чек №000{{check_num}}</h1>
 {% endif %}
 
 <h2>від {{month}} року</h2>
@@ -47,8 +84,10 @@
 </tr>
 </table>
 
+<form action="/check/add/" method="POST" id="check_form">
 
 {% if is_workshop %}
+<input type="hidden" name="inv_type" id="inv_type" value="workshop" ids="" >
 <table border="1" width="100%">
 	<tr>
 		<th>№</th>
@@ -59,6 +98,7 @@
 {% for item in check_invoice %}
 	<tr>
 		<td>{{forloop.counter}}</td>
+		<input type="hidden" name="chk_inv{{forloop.counter}}" id="chk_inv{{forloop.counter}}" value="{{item.id}}" ids="" >		
 		<td><a href="/worktype/view/group/{{item.work_type.work_group.id}}">{{item.work_type.name}}</a></td>
 		<td>{{item.price}}</td>
 		<td>{{item.price}}</td>
@@ -74,6 +114,7 @@
 </table>
 
 {% else %}
+<input type="hidden" name="inv_type" id="inv_type" value="shop" ids="" >
 <table border="1" width="100%">
 	<tr>
 		<th>№</th>
@@ -87,6 +128,7 @@
 {% for invoice in check_invoice %}
 	<tr>
 		<td>{{forloop.counter}}</td>
+		<input type="hidden" name="chk_inv{{forloop.counter}}" id="chk_inv{{forloop.counter}}" value="{{invoice.id}}" ids="" >
 		<td><a href="/invoice/catalog/{{invoice.catalog.id}}/view/">{{invoice.catalog}}</a></td>
 		<td>шт.</td>
 		<td>{{invoice.count}}</td>
@@ -106,6 +148,7 @@
 	</tr>
 
 </table>
+</form>
 {% endif %}
 <p>
 Всього на суму: {{str_number}} гривень {{ sum|dotPart:"2"|floatformat }} копійок
@@ -121,6 +164,7 @@
 {% if print %}
 <a href="/client/workshop/check/">Версія для друку</a>
 <a href="/client/workshop/check/email/">Відправити на Email</a>
+<a id="but_add_check">Друкувати чек</a>
 {% endif %}
 
 {% else %}
@@ -128,6 +172,7 @@
 {% if print %}
 <a href="/client/invoice/check/">Версія для друку</a>
 <a href="/client/invoice/check/email/">Відправити на Email</a>
+<a id="but_add_check" >Друкувати чек</a>
 {% endif %}
 
 {% endif %}

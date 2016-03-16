@@ -104,7 +104,7 @@ function addZero(i) {
 	{% endif %}
 		
 		<td>{{ forloop.counter }}</td>
-		<td>{{ element.id }}</td>
+		<td><a href="/invoice/search/result/?name=&id={{element.catalog__ids}}">{{ element.id }}</a></td>
 		<td>{{ element.catalog__manufacturer__name }}</td>
 		<td>[{{element.catalog__ids}}] {{ element.catalog__name }}</td>
 		<td align="center">{{ element.count }}</td>

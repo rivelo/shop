@@ -146,10 +146,12 @@ $( "#dialog_return" ).dialog({
 $("#dialog_return").dialog("close");
 
 	$("#maincheck").click( function() {
-    	if($('#maincheck').attr('checked')){
-        	$('.mc').attr('checked', true);
+    	if($('#maincheck').prop('checked')){
+/*        	$('.mc').attr('checked', true); */
+        	$('.mc').prop( "checked", true )
         } else {
-            $('.mc').attr('checked', false);
+/*            $('.mc').attr('checked', false); */
+            $('.mc').prop( "checked", false )
         }
      });
        
@@ -386,7 +388,7 @@ function calc_sum() {
 {% ifequal type.sum type.pay %}
 <input type="checkbox" id="model{{forloop.counter}}" class="mc" value="{{type.sum}}" onclick="res()" name="checkbox_{{ type.id }}"/>
 {% else %}
-{% ifequal request.user.username type.user.username %} 
+{% ifequal request.user.username type.user__username %} 
 <input type="checkbox" id="model{{forloop.counter}}" class="mc" value="{{type.sum}}" onclick="res()" checked name="checkbox_{{ type.id }}"/>
 {% else %}
 <input type="checkbox" id="model{{forloop.counter}}" class="mc" value="{{type.sum}}" onclick="res()" name="checkbox_{{ type.id }}"/>
