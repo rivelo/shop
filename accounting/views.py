@@ -4351,9 +4351,33 @@ def client_ws_payform(request):
     if 'pay' in request.POST and request.POST['pay']:
         pay = request.POST['pay']
         cash_type = CashType.objects.get(id = 1) # готівка
+        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+        data =  {"cmd": "open"}
+        url = base + urllib.urlencode(data)
         if float(request.POST['pay']) != 0:
             ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
+            for inv in wk:
+                check = Check(check_num=res['max_count'] + 1)
+                check.client = client #Client.objects.get(id=client.id)
+                check.workshop = inv #ClientInvoice.objects.get(pk=inv)
+                check.description = "Майстерня. Термінал."
+                check.count = 1
+                check.discount = 0
+                check.price = inv.price
+                check.cash_type = CashType.objects.get(id = 2)
+                check.print_status = False
+                check.user = user
+                check.save()
+                price =  "%.2f" % inv.price
+                count = "%.3f" % 1
+                data =  {"cmd": "add_plu", "id":'99'+str(inv.work_type.pk), "cname":inv.work_type.name[:40].encode('utf8'), "price":price, "count": count, "discount": 0}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+            data =  {"cmd": "pay", "sum": 0, "mtype": 0}
+            url = base + urllib.urlencode(data)
+            page = urllib.urlopen(url).read()
+            
 
     if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
         pay = request.POST['pay_terminal']
@@ -4432,6 +4456,32 @@ def client_payform(request):
         if float(request.POST['pay']) != 0:
             ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
+            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+            data =  {"cmd": "open"}
+            url = base + urllib.urlencode(data)
+            page = urllib.urlopen(url).read()
+            for inv in ci:
+                check = Check(check_num=res['max_count'] + 1)
+                check.client = client #Client.objects.get(id=client.id)
+                check.catalog = inv #ClientInvoice.objects.get(pk=inv)
+                check.description = "Готівка"
+                check.count = inv.count
+                check.discount = inv.sale
+                check.price = inv.price
+                check.cash_type = CashType.objects.get(id = 2)
+                check.print_status = False
+                check.user = user
+                check.save()
+                price =  "%.2f" % inv.price
+                count = "%.3f" % inv.count
+                discount = inv.sale
+                data =  {"cmd": "add_plu", "id":inv.catalog.pk, "cname":inv.catalog.name[:40].encode('utf8'), "price":price, "count": count, "discount": discount}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+            data =  {"cmd": "pay", "sum": 0, "mtype": 0}
+            url = base + urllib.urlencode(data)
+            page = urllib.urlopen(url).read()
+            
 
     if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
         pay = request.POST['pay_terminal']
@@ -4447,7 +4497,7 @@ def client_payform(request):
                 check = Check(check_num=res['max_count'] + 1)
                 check.client = client #Client.objects.get(id=client.id)
                 check.catalog = inv #ClientInvoice.objects.get(pk=inv)
-                check.description = "TEST check"
+                check.description = "Картка"
                 check.count = inv.count
                 check.discount = inv.sale
                 check.price = inv.price
@@ -5419,5 +5469,12 @@ def check_add(request):
         
     #return check_list(request, all=True)
     return HttpResponseRedirect('/check/list/')
+
+def check_delete(request, id):
+    obj = Check.objects.get(id=id)
+    del_logging(obj)
+    obj.delete()
+    return HttpResponseRedirect('/check/list/')
+
     
     

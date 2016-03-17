@@ -103,6 +103,9 @@
 	<td>
 	{{item.print_status}}
 	</td>
+	<td>
+	<a href="/check/delete/{{item.pk}}/" onclick="return confirm('Видалити позицію [{{item.catalog.catalog.ids}}{{item.workshop.work_type.id}}] {{item.catalog.catalog.name}}{{item.workshop.work_type}}?')">Видалити</a>
+	</td>
 
 </tr>
 {% endfor %}         

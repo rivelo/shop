@@ -42,6 +42,10 @@ DATETIME_FORMAT = 'D d M Y'
 SHORT_DATE_FORMAT = 'd/m/Y'
 SHORT_DATETIME_FORMAT = 'd/m/Y'
 
+HTTP_MINI_SERVER_IP = '127.0.0.1'
+HTTP_MINI_SERVER_PORT = '8123'
+
+
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
