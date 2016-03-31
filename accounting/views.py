@@ -834,12 +834,91 @@ def bicycle_sale_service(request, id=None):
 #    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
     #return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html',})
 
+def bicycle_sale_check_add(request, id):
+    if request.user.is_authenticated()==False:
+        return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
+    message = ''
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('id'):
+                b_id = request.POST.get( 'id' )
+                m_val = request.POST.get( 'm_value' )
+                t_val = request.POST.get( 't_value' )
+                bs = Bicycle_Sale.objects.get(id=id)
+                chk_list = Check.objects.filter(bicycle = bs.id)
+                if chk_list.count()>0:
+                    message = "Даний чек вже існує"
+                else:
+                    res = Check.objects.aggregate(max_count=Max('check_num'))
+                    check = Check(check_num=res['max_count'] + 1)
+                    check.client = bs.client #Client.objects.get(id=client.id)
+                    check.bicycle = bs #ClientInvoice.objects.get(pk=inv)
+                    check.description = "Продаж велосипеду"
+                    check.count = 1
+                    check.discount = bs.sale
+                    t = 1
+                    if m_val >= t_val:
+                        t = 1
+                        check.price = m_val
+                    else: 
+                        t = 2
+                        check.price = t_val 
+                    check.cash_type = CashType.objects.get(id = t)
+                    check.print_status = False
+                    check.user = request.user
+                    check.save()    
+
+                    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+                    data =  {"cmd": "open"}
+                    url = base + urllib.urlencode(data)
+                    page = urllib.urlopen(url).read()
+                    price =  "%.2f" % bs.price
+                    count = "%.3f" % 1
+                    discount = bs.sale
+#                    str = 'Велосипед '+ bs.model.model.brand +'. Модель '+ bs.model.model.model +'. '+bs.model.model.year.year+' ('+bs.model.model.color+')'
+                    bike_s = 'Велосипед '+ bs.model.model.brand.name.encode('utf8') +'. Модель '+ bs.model.model.model.encode('utf8') +'. '+str(bs.model.model.year.year)+' ('+bs.model.model.color.encode('utf8')+')'
+                    #bike_s = bs.model.model.model[:40].encode('utf8')
+                    data =  {"cmd": "add_plu", "id":'77'+str(bs.model.pk), "cname":bike_s, "price":price, "count": count, "discount": discount}
+                    url = base + urllib.urlencode(data)
+                    page = urllib.urlopen(url).read()
+                    if m_val >= t_val:
+                        data =  {"cmd": "pay", "sum": m_val, "mtype": 0}
+                        url = base + urllib.urlencode(data)
+                        page = urllib.urlopen(url).read()
+                        data =  {"cmd": "pay", "sum": t_val, "mtype": 2}
+                        url = base + urllib.urlencode(data)
+                        page = urllib.urlopen(url).read()
+                    else:
+                        data =  {"cmd": "pay", "sum": t_val, "mtype": 2}
+                        url = base + urllib.urlencode(data)
+                        page = urllib.urlopen(url).read()
+                        data =  {"cmd": "pay", "sum": m_val, "mtype": 0}
+                        url = base + urllib.urlencode(data)
+                        page = urllib.urlopen(url).read()
+                        
+                    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+                    data =  {"cmd": "close"}
+                    url = base + urllib.urlencode(data)
+                    page = urllib.urlopen(url).read()
+
+                    message = "Виконано"
+                return HttpResponse(message, mimetype="text/plain")
+    else:
+        message = "Error"
+
+
 
 def bicycle_sale_check(request, id=None, param=None):
     list = Bicycle_Sale.objects.get(id=id)
-    text = pytils_ua.numeral.in_words(int(list.price))
+    text = pytils_ua.numeral.in_words((100-int(list.sale))*0.01*int(list.price))
     month = pytils_ua.dt.ru_strftime(u"%d %B %Y", list.date, inflected=True)
-    w = render_to_response('bicycle_sale_check.html', {'bicycle': list, 'month':month, 'str_number':text,})
+    chk_list = Check.objects.filter(bicycle = list.id)
+    if chk_list.count()>0:
+        chk_num = chk_list[0].check_num
+    else:
+        chk_num = list.id
+    w = render_to_response('bicycle_sale_check.html', {'bicycle': list, 'month':month, 'str_number':text, 'chk_num':chk_num})
     if param == 'print':
         return w
     if param == 'email':
@@ -859,7 +938,7 @@ def bicycle_sale_check(request, id=None, param=None):
         except:
             return HttpResponse("<h2>Сталася помилка при відправленні. Перевірте з'єднання до інтернету.</h2>")
         
-    return render_to_response('index.html', {'bicycle': list, 'month':month, 'str_number':text, 'weblink': 'bicycle_sale_check.html', 'print':'True', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc])) 
+    return render_to_response('index.html', {'bicycle': list, 'month':month, 'chk_num':chk_num, 'str_number':text, 'weblink': 'bicycle_sale_check.html', 'print':'True', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc])) 
 
 
 def bicycle_sale_search_by_name(request):
@@ -2790,6 +2869,7 @@ def client_invoice_id(request, id):
 
 def client_invoice_check(request, param=None):
     list_id = request.session['invoice_id']
+    check_num = request.session['chk_num']
     ci = ClientInvoice.objects.filter(id__in=list_id)
     #-------- показ і відправка чеку на електронку ------
     client = ci[0].client
@@ -2798,7 +2878,7 @@ def client_invoice_check(request, param=None):
     text = pytils_ua.numeral.in_words(int(sum))
     month = pytils_ua.dt.ru_strftime(u"%d %B %Y", ci[0].date, inflected=True)
     
-    w = render_to_response('client_invoice_sale_check.html', {'check_invoice': ci, 'month':month, 'sum': sum, 'client': client, 'str_number':text})
+    w = render_to_response('client_invoice_sale_check.html', {'check_invoice': ci, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'check_num':check_num})
     if param == 'print':
         return w
     if param == 'email': 
@@ -4224,10 +4304,12 @@ def payform(request):
     sum = 0
     bal = 0
     if Check.objects.filter(catalog__id__in = list_id):
-        error_msg = "Дана позиція вже існує в чеку №"
-        for ichek in Check.objects.filter(catalog__id__in = list_id).values("check_num"):
-            error_msg = error_msg + "["+str(ichek['check_num'])+"]"
-        return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        error_msg = "Дана позиція вже існує в чеку №:"
+        chk_list = Check.objects.filter(catalog__id__in = list_id).values("check_num", "catalog__catalog__name")
+#        for ichek in Check.objects.filter(catalog__id__in = list_id).values("check_num"):
+#            url =  '<a href="/check/'+str(ichek['check_num'])+'/print/">['+str(ichek['check_num'])+'],</a>'
+            #error_msg = error_msg + "["+str(ichek['check_num'])+"]"
+        return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'chk_list': chk_list, 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
         
     for inv in ci:
         if client!=inv.client:
@@ -4244,6 +4326,7 @@ def payform(request):
         month = pytils_ua.dt.ru_strftime(u"%d %B %Y", ci[0].date, inflected=True)
         request.session['invoice_id'] = list_id
         check_num = Check.objects.aggregate(Max('check_num'))['check_num__max']+1
+        request.session['chk_num'] = check_num
         return render_to_response('index.html', {'check_invoice': ci, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'check_num':check_num, 'weblink': 'client_invoice_sale_check.html', 'print': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
      
@@ -4410,6 +4493,12 @@ def client_ws_payform(request):
             data =  {"cmd": "pay", "sum": 0, "mtype": 2}
             url = base + urllib.urlencode(data)
             page = urllib.urlopen(url).read()
+
+    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+    data =  {"cmd": "close"}
+    url = base + urllib.urlencode(data)
+    page = urllib.urlopen(url).read()
+            
     ccred = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
     ccred.save()
     for item in wk:
@@ -4515,6 +4604,11 @@ def client_payform(request):
             data =  {"cmd": "pay", "sum": 0, "mtype": 2}
             url = base + urllib.urlencode(data)
             page = urllib.urlopen(url).read()
+
+    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+    data =  {"cmd": "close"}
+    url = base + urllib.urlencode(data)
+    page = urllib.urlopen(url).read()
                
 #                data =  {"id":inv.catalog.pk, "cname":inv.catalog.name[:40].encode('utf8')}
 #                url = base + urllib.urlencode(data)
@@ -5423,9 +5517,127 @@ def check_list(request, year=None, month=None, day=None, all=False):
         list = Check.objects.all()
     else:
         list = Check.objects.filter(date__year = year, date__month = month, date__day = day)#.values()    
-    
+
+    chk_sum = 0
+    for i in list:
+        chk_sum = chk_sum + ((100-i.discount)*0.01*i.price*i.count)
     days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
-    return render_to_response("index.html", {"weblink": 'check_list.html', "check_list": list, 'sel_day':day, 'sel_month':month, 'sel_year':year, 'month_days':days}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response("index.html", {"weblink": 'check_list.html', "check_list": list, 'sel_day':day, 'sel_month':month, 'sel_year':year, 'month_days':days, 'chk_sum': chk_sum}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+#************ Друк фіскального чеку на принтері ************** 
+def check_print(request, num):
+    list = None
+    list = Check.objects.filter(check_num = num)
+    list_id = []
+    
+    for id in list:
+        list_id.append( int(id.catalog.id) )
+    ci = ClientInvoice.objects.filter(id__in=list_id)
+    client = ci[0].client
+#    sum = 555
+    ci_sum = ci.aggregate(suma=Sum('sum'))
+    sum = ci_sum['suma']
+    text = pytils_ua.numeral.in_words(int(sum))
+    month = pytils_ua.dt.ru_strftime(u"%d %B %Y", ci[0].date, inflected=True)
+    request.session['invoice_id'] = list_id
+    request.session['chk_num'] = num
+    check_num = num
+    p_msg = "(Роздрукований)"
+    return render_to_response('index.html', {'check_invoice': ci, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'check_num':check_num, 'weblink': 'client_invoice_sale_check.html', 'print': True, 'printed': p_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    
+#    return render_to_response("index.html", {"weblink": 'check_list.html', "check_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def shop_sale_check_add(request):
+    if request.user.is_authenticated()==False:
+        return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
+    message = ''
+    list_id = request.session['invoice_id']
+    
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('m_value'):
+                m_val = request.POST.get( 'm_value' )
+                t_val = request.POST.get( 't_value' )
+                ci = ClientInvoice.objects.filter(id__in = list_id)
+                chk_list = Check.objects.filter(catalog__in = ci)
+                if chk_list.count()>0:
+                    message = "Даний чек вже існує"
+                else:
+                    res = Check.objects.aggregate(max_count=Max('check_num'))
+                    for inv in ci:
+                        check = Check(check_num=res['max_count'] + 1)
+                        check.client = inv.client #Client.objects.get(id=client.id)
+                        check.catalog = inv #ClientInvoice.objects.get(pk=inv)
+                        check.description = "Готівка"
+                        check.count = inv.count
+                        check.discount = inv.sale
+                        t = 1
+                        if m_val >= t_val:
+                            t = 1
+                            check.price = inv.sum #m_val
+                        else: 
+                            t = 2
+                            check.price = t_val 
+                        check.cash_type = CashType.objects.get(id = t)
+                        check.print_status = False
+                        check.user = request.user
+                        check.save()    
+
+                    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+                    data =  {"cmd": "open"}
+                    url = base + urllib.urlencode(data)
+                    page = urllib.urlopen(url).read()
+
+                    for inv in ci:
+                        price =  "%.2f" % inv.price
+                        count = "%.3f" % inv.count
+                        discount = inv.sale
+                        data =  {"cmd": "add_plu", "id":str(inv.catalog.pk), "cname":inv.catalog, "price":price, "count": count, "discount": discount}
+                        url = base + urllib.urlencode(data)
+                        page = urllib.urlopen(url).read()
+                    
+                    if m_val >= t_val:
+                        if float(t_val) == 0:
+                            data =  {"cmd": "pay", "sum": 0, "mtype": 0}
+                            url = base + urllib.urlencode(data)
+                            page = urllib.urlopen(url).read()
+                        else:
+                            val = "%.2f" % float(m_val)
+                            data =  {"cmd": "pay", "sum": val, "mtype": 0}
+                            url = base + urllib.urlencode(data)
+                            page = urllib.urlopen(url).read()
+                            val = "%.2f" % float(t_val)
+                            data =  {"cmd": "pay", "sum": t_val, "mtype": 2}
+                            url = base + urllib.urlencode(data)
+                            page = urllib.urlopen(url).read()
+                    else:
+                        if float(m_val) == 0:
+                            data =  {"cmd": "pay", "sum": 0, "mtype": 2}
+                            url = base + urllib.urlencode(data)
+                            page = urllib.urlopen(url).read()
+                        else:
+                            val = "%.2f" % float(t_val)
+                            data =  {"cmd": "pay", "sum": val, "mtype": 2}
+                            url = base + urllib.urlencode(data)
+                            page = urllib.urlopen(url).read()
+                            val = "%.2f" % float(m_val)
+                            data =  {"cmd": "pay", "sum": val, "mtype": 0}
+                            url = base + urllib.urlencode(data)
+                            page = urllib.urlopen(url).read()
+                        
+                    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+                    data =  {"cmd": "close"}
+                    url = base + urllib.urlencode(data)
+                    page = urllib.urlopen(url).read()
+
+                message = "Виконано"
+                return HttpResponse(message, mimetype="text/plain")
+    else:
+        message = "Error"
+        return HttpResponse(message, mimetype="text/plain")
 
 
 def check_add(request):

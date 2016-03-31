@@ -37,7 +37,7 @@
 </h2>    
 
 
-    <h1>Список чеків на товар [{{sel_day}}/{{sel_month}}/{{sel_year}}] </h1>
+    <h1>Список чеків на товар [{{sel_day}}/{{sel_month}}/{{sel_year}}]  <a href="/client/invoice/check/">Друкувати чек</a> </h1>
     
     <table border="1" id="itable">
 	<tr>
@@ -66,15 +66,15 @@
 	</abbr>
 	</td>
 	<td>       
-    <a href="/">{{item.check_num}}[{{item.catalog.id}}{{item.workshop.id}}]</a>
+    <a href="/check/{{item.check_num}}/print/">{{item.check_num}}[{{item.catalog.id}}{{item.workshop.id}}{{item.bicycle.id}}]</a>
 	</td>
 	<td>
-	<a href="/client/{{item.client.id}}/">
+	<a href="/client/result/search/?id={{item.client.id}}">
 	{{item.client.name}} ({{item.client.forumname}})       
 	</a>
 	</td>
 	<td>       
-	[{{item.catalog.catalog.ids}}{{item.workshop.work_type.id}}] {{item.catalog.catalog.name}}{{item.workshop.work_type}}
+	[{{item.catalog.catalog.ids}}{{item.workshop.work_type.id}}{{item.bicycle.model}}] {{item.catalog.catalog.name}}{{item.workshop.work_type}}
 	</td>
 	<td align="center" class="tcount">       
 	{{item.count}}
@@ -117,7 +117,7 @@
     	<th></th>
     	<th></th>    	
     	<th></th>    	    	
-    	<th></th>
+    	<th>{{chk_sum}}</th>
     	<th></th>
     	<th></th>
     	<th></th>

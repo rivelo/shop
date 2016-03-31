@@ -8,6 +8,11 @@
     <h1 style="COLOR: red">Помилка!!! Не вибрано товари, або вибрано більше ніж одного клієнта!</h1>
     <br>
     <h1>{{error_msg}}</h1>
+    {% for item in chk_list %}
+    <a href="/check/{{item.check_num}}/print/">[{{item.check_num}}] - {{item.catalog__catalog__name}},</a>
+    <br>
+    {% endfor %}
+    
 <FORM>
 <INPUT TYPE="button" VALUE="Назад на попередню сторінку" 
 onClick="history.back()">

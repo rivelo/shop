@@ -107,6 +107,7 @@ urlpatterns = patterns('',
     #(r'^bicycle/sale/(?P<id>\d+)/check/print/$', 'catalog.accounting.views.bicycle_sale_check_print'),
     (r'^bicycle/sale/(?P<id>\d+)/check/print/$', 'catalog.accounting.views.bicycle_sale_check', {'param': 'print'}),
     (r'^bicycle/sale/(?P<id>\d+)/check/email/$', 'catalog.accounting.views.bicycle_sale_check', {'param': 'email'}),
+    (r'^bicycle/sale/(?P<id>\d+)/check/add/$', 'catalog.accounting.views.bicycle_sale_check_add'),
     (r'^bicycle/sale/report/brand/$', 'catalog.accounting.views.bicycle_sale_report_by_brand'),
     (r'^bicycle/sale/search/model/$', 'catalog.accounting.views.bicycle_sale_search_by_name'),        
     (r'^bicycle/sale/search/model/result/$', 'catalog.accounting.views.bsale_search_by_name_result'),
@@ -459,7 +460,9 @@ urlpatterns += patterns('',
     (r'^catalog/join/(?P<id1>\d+)/(?P<id2>\d+)/$', 'catalog.accounting.views.catalog_join'),
     
     (r'^check/list/$', 'catalog.accounting.views.check_list',{'all':True}),
+    (r'^check/(?P<num>\d+)/print/$', 'catalog.accounting.views.check_print'),
     (r'^check/add/$', 'catalog.accounting.views.check_add'),
+    (r'^check/shop/add/$', 'catalog.accounting.views.shop_sale_check_add'),
     (r'^check/delete/(?P<id>\d+)/$', 'catalog.accounting.views.check_delete'),
 ) 
 

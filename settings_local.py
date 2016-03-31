@@ -51,7 +51,7 @@ DEFAULT_FROM_EMAIL = 'user@domain.com'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'velorivne@gmail.com'
-EMAIL_HOST_PASSWORD = 'velo4velo'
+EMAIL_HOST_PASSWORD = 'gvelovelo'
 EMAIL_PORT = 587
 
 # Absolute path to the directory that holds media.

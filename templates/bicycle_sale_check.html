@@ -2,6 +2,12 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" type="text/css" href="/media/table.css">
 
+	<script type="text/javascript" src="/media/jquery-1.11.2.min.js"></script>
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script src="/media/jquery-ui.min.js"></script>	
+
+{% load template_math %}
+
 <style type="text/css">
    #checktable {
     width:100%; 
@@ -18,10 +24,75 @@
    }
 </style>
 
+<script language="JavaScript">
+$(document).ready(function() {
+	$("#dialog_pay").hide();
+	$("#msg_text").hide();
+
+	$( "#print_chk" ).click(function() {
+  		$( "#dialog_pay" ).dialog({
+  		resizable: false,
+      	modal: true,
+  		width: 300,
+      	buttons: {
+        "Додати": function() {
+        	var res_sum = parseFloat($("#t_spinner").val()) + parseFloat($("#m_spinner").val())
+//        	$("#t_spinner").val() + $("#m_spinner").val()
+        	if (res_sum != {{bicycle.price|percentage:bicycle.sale}}) {
+	        	$('#msg_text').show();
+	        	$('#msg_text').text("Невірна сума");
+        	}
+        	else {
+			$.ajax({
+                type: "POST",
+                url: "/bicycle/sale/{{bicycle.id}}/check/add/",
+                data: {id:  {{bicycle.id}}, t_value: $('#t_spinner').val(), m_value: $('#m_spinner').val()},
+                dataType: "text",
+                beforeSend:function(){
+               	    $(".ui-dialog-buttonpane button:contains('Додати')").button("disable");                
+                },
+                success:function(msg){
+               	    $('#msg_text').text(msg);
+               	    $('#msg_text').show();
+               	    $(".ui-dialog-buttonpane button:contains('Додати')").button("disable");
+                },
+                error:function(){
+                	$('#msg_text').text(msg);
+               	    $('#msg_text').show();
+                    $(".ui-dialog-buttonpane button:contains('Додати')").button("enable");
+                }
+            });
+			};
+       	
+        	//$( this ).dialog( "close" );
+        },
+        "Відмінити": function() {
+        	$( this ).dialog( "close" );	
+        },
+        
+        }  		
+  		});
+	});
+	
+});
+</script>
+
+{% if print %}
+	<div id="dialog_pay" title="Оплата велосипеду">
+	<p id="dtext">Готівка</p>
+	<label for="spinner">Сума:</label>
+  	<input id="m_spinner" name="value" value="0.00"> грн.
+	<p id="dtext">Термінал</p>
+	<label for="spinner">Сума:</label>
+  	<input id="t_spinner" name="value" value="{{bicycle.price|percentage:bicycle.sale}}"> грн.
+	<h2 type="text" id="msg_text" name="mytext[]" rows="10" cols="40" style="color:#ff0000""> рядок стану </h2>  	
+	</div>
+{% endif %}
+
 <table id="checktable">
 <tr>
 <td style="text-align:center; border: 2px solid white;" colspan="2">
-<h1>Товарний чек №{{bicycle.id}}</h1>
+<h1>Товарний чек №000{{chk_num}}</h1>
 <h2>від {{month}} року</h2>
 </td>
 </tr>
@@ -37,7 +108,6 @@
 </tr>
 </table>
 
-{% load template_math %}   
 
 <table border="1" width="100%">
 	<tr>
@@ -81,7 +151,11 @@
 </p>
 
 {% if print %}
-<a href="/bicycle/sale/{{bicycle.id}}/check/print">Версія для друку</a> 
-<a href="/bicycle/sale/{{bicycle.id}}/check/email">Відправити на Email</a>
+/ <a href="/bicycle/sale/{{bicycle.id}}/check/print">Версія для друку (принтер)</a> / 
+<a href="/bicycle/sale/{{bicycle.id}}/check/email">Відправити на Email</a> / 
+<a href="#" id="print_chk" >Друк чеку (фіскальний)</a> /
+<!--   <h3 id="print_chk">Друкувати чек (фіскальний)</h3>
+ href="/bicycle/sale/{{bicycle.id}}/check/add/"
+ -->
 {% endif %}
 

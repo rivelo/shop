@@ -6,11 +6,11 @@
 {% else %}
 <title>Товарний чек №000{{check_invoice.id}}</title>
 {% endif %}
-
 <link rel="stylesheet" type="text/css" href="/media/table.css">
-
+<script type="text/javascript" src="/media/jquery-1.11.2.min.js"></script>
 	<link rel="stylesheet" href="/media/jquery-ui.min.css">
 	<script src="/media/jquery-ui.min.js"></script>	
+		
 
 
 <style type="text/css">
@@ -30,43 +30,79 @@
 </style>
 
 <script language="JavaScript">
-function send_check() {
+$(document).ready(function() {
+	$("#dialog_pay").hide();
+	$("#msg_text").hide();
+
+	$( "#print_chk" ).click(function() {
+  		$( "#dialog_pay" ).dialog({
+  		resizable: false,
+      	modal: true,
+  		width: 300,
+      	buttons: {
+        "Додати": function() {
+        	var res_sum = parseFloat($("#t_spinner").val()) + parseFloat($("#m_spinner").val())
+        	if (res_sum != {{sum}}) {
+	        	$('#msg_text').show();
+	        	$('#msg_text').text("Невірна сума");
+        	}
+        	else {
 			$.ajax({
-                type: "GET",
-                url: "http://127.0.0.1:8123/",
-                data: {user:  "ygrik", param1: "тестове поле cp1251"},
+                type: "POST",
+                url: "/check/shop/add/",
+                data: {t_value: $('#t_spinner').val(), m_value: $('#m_spinner').val()},
                 dataType: "text",
+                beforeSend:function(){
+               	    $(".ui-dialog-buttonpane button:contains('Додати')").button("disable");                
+                },
                 success:function(msg){
-//                    alert("Все отлично ушло на сервер - " + msg);
-//               	    $('#spinner').after('<p>ajax done</p>');
+               	    $('#msg_text').text(msg);
+               	    $('#msg_text').show();
+               	    $(".ui-dialog-buttonpane button:contains('Додати')").button("disable");
+               	    $("#print_chk").hide();
                 },
                 error:function(){
-                    alert("При отправке возникли проблемы");
-                }
-            });
+                	$('#msg_text').text(msg);
+               	    $('#msg_text').show();
+                    $(".ui-dialog-buttonpane button:contains('Додати')").button("enable");
+                },
+            });        	
+        	};
+		},
+        "Відмінити": function() {
+        	$( this ).dialog( "close" );	
+        },
         
-        };
-        
-$(document).ready(function() {        
-$('#but_add_check').click(function() {
-//	$("#pay_term").val($("#pay").val())
-//	$("#pay").val(0);
-	$("#check_form").submit();
+        }  		
+  		});
 	});
-});
-        
+	
+});       
 </script>
 
 {% load template_math %} 
+
+{% if print %}
+	<div id="dialog_pay" title="Оплата чеку">
+	<p id="dtext">Готівка</p>
+	<label for="spinner">Сума:</label>
+  	<input id="m_spinner" name="value" value="0.00"> грн.
+	<p id="dtext">Термінал</p>
+	<label for="spinner">Сума:</label>
+  	<input id="t_spinner" name="value" value="{{sum}}"> грн.
+	<h2 type="text" id="msg_text" name="mytext[]" rows="10" cols="40" style="color:#ff0000""> рядок стану </h2>  	
+	</div>
+{% endif %}
+
 
 <table id="checktable">
 <tr>
 <td style="text-align:center; border: 2px solid white;" colspan="2">
 
 {% if is_workshop %}
-<h1>Акт виконаних робіт №000{{check_num}}</h1>
+<h1>Акт виконаних робіт №000{{check_num}} {{printed}}</h1>
 {% else %}
-<h1>Товарний чек №000{{check_num}}</h1>
+<h1>Товарний чек №000{{check_num}} {{printed}}</h1>
 {% endif %}
 
 <h2>від {{month}} року</h2>
@@ -76,7 +112,7 @@ $('#but_add_check').click(function() {
 <tr>
 <td style="text-align:left;" valign="bottom">
 <p>Продавець: ПП. Панчук Ігор Олексійович (ІПН 3084020932)</p>
-<p> Покупець: <a href="/client/{{client.id}}">{{client.name}}</a></p>
+<p> Покупець: <a href="/client/result/search/?id={{client.id}}">{{client.name}}</a></p>
 </td>
 <td id="tdchecklogo" ALIGN="right">
 <a href="/"><img src="/media/images/site_logo_small.gif" alt="" title="" ></a>
@@ -164,7 +200,7 @@ $('#but_add_check').click(function() {
 {% if print %}
 <a href="/client/workshop/check/">Версія для друку</a>
 <a href="/client/workshop/check/email/">Відправити на Email</a>
-<a id="but_add_check">Друкувати чек</a>
+<h3 id="print_chk"></h3>
 {% endif %}
 
 {% else %}
@@ -172,7 +208,9 @@ $('#but_add_check').click(function() {
 {% if print %}
 <a href="/client/invoice/check/">Версія для друку</a>
 <a href="/client/invoice/check/email/">Відправити на Email</a>
-<a id="but_add_check" >Друкувати чек</a>
+{% if not printed %}
+<h3 id="print_chk">Фіскальний чек</h3>
+{% endif %}
 {% endif %}
 
 {% endif %}
