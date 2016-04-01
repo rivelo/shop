@@ -4430,14 +4430,16 @@ def client_ws_payform(request):
         client = inv.client
         desc = desc + inv.work_type.name + "; "
         sum = sum + inv.price
-            
-    if 'pay' in request.POST and request.POST['pay']:
-        pay = request.POST['pay']
-        cash_type = CashType.objects.get(id = 1) # готівка
+
+    if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
         base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
         data =  {"cmd": "open"}
         url = base + urllib.urlencode(data)
         page = urllib.urlopen(url).read()
+            
+    if 'pay' in request.POST and request.POST['pay']:
+        pay = request.POST['pay']
+        cash_type = CashType.objects.get(id = 1) # готівка
         if float(request.POST['pay']) != 0:
             ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
@@ -4466,10 +4468,6 @@ def client_ws_payform(request):
     if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
         pay = request.POST['pay_terminal']
         cash_type = CashType.objects.get(id = 2) # термінал
-        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-        data =  {"cmd": "open"}
-        url = base + urllib.urlencode(data)
-        page = urllib.urlopen(url).read()
         if float(request.POST['pay_terminal']) != 0:
             ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
@@ -4539,6 +4537,13 @@ def client_payform(request):
             
     else:
         return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext':'Не вибрано жодного товару', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+    if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
+        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+        data =  {"cmd": "open"}
+        url = base + urllib.urlencode(data)
+        page = urllib.urlopen(url).read()
+
     
     if 'pay' in request.POST and request.POST['pay']:
         pay = request.POST['pay']
@@ -4546,10 +4551,12 @@ def client_payform(request):
         if float(request.POST['pay']) != 0:
             ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
-            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-            data =  {"cmd": "open"}
-            url = base + urllib.urlencode(data)
-            page = urllib.urlopen(url).read()
+#===============================================================================
+#            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+#            data =  {"cmd": "open"}
+#            url = base + urllib.urlencode(data)
+#            page = urllib.urlopen(url).read()
+#===============================================================================
             for inv in ci:
                 check = Check(check_num=res['max_count'] + 1)
                 check.client = client #Client.objects.get(id=client.id)
@@ -4579,10 +4586,12 @@ def client_payform(request):
         if float(request.POST['pay_terminal']) != 0:
             ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
-            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-            data =  {"cmd": "open"}
-            url = base + urllib.urlencode(data)
-            page = urllib.urlopen(url).read()
+#===============================================================================
+#            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+#            data =  {"cmd": "open"}
+#            url = base + urllib.urlencode(data)
+#            page = urllib.urlopen(url).read()
+#===============================================================================
             for inv in ci:
                 check = Check(check_num=res['max_count'] + 1)
                 check.client = client #Client.objects.get(id=client.id)
