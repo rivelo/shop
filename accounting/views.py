@@ -3710,7 +3710,8 @@ def shopdailysales_view(request, year, month, day):
         cred_sum = cred_sum + c.price
     for d in deb:    
         deb_sum = deb_sum + d.price
-    strdate = pytils_ua.dt.ru_strftime(u"%d %B %Y", now, inflected=True)
+    sel_date = datetime.date(int(year), int(month), int(day))
+    strdate = pytils_ua.dt.ru_strftime(u"%d %B %Y", sel_date, inflected=True)
     return render_to_response('index.html', {'Cdeb': deb, 'Ccred':cred, 'date': strdate, 'd_sum': deb_sum, 'c_sum': cred_sum, 'cash_credsum': cash_credsum, 'cash_debsum':cash_debsum, 'casa':casa, 'weblink': 'shop_daily_sales_view.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 from django.contrib.auth.models import Group
@@ -4578,6 +4579,12 @@ def client_payform(request):
             data =  {"cmd": "pay", "sum": 0, "mtype": 0}
             url = base + urllib.urlencode(data)
             page = urllib.urlopen(url).read()
+
+        if float(pay) <> 0:
+            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+            data =  {"cmd": "close"}
+            url = base + urllib.urlencode(data)
+            page = urllib.urlopen(url).read()
             
 
     if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
@@ -4613,11 +4620,12 @@ def client_payform(request):
             data =  {"cmd": "pay", "sum": 0, "mtype": 2}
             url = base + urllib.urlencode(data)
             page = urllib.urlopen(url).read()
-
-    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-    data =  {"cmd": "close"}
-    url = base + urllib.urlencode(data)
-    page = urllib.urlopen(url).read()
+ 
+        if float(pay) <> 0:
+            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+            data =  {"cmd": "close"}
+            url = base + urllib.urlencode(data)
+            page = urllib.urlopen(url).read()
                
 #                data =  {"id":inv.catalog.pk, "cname":inv.catalog.name[:40].encode('utf8')}
 #                url = base + urllib.urlencode(data)
@@ -5529,7 +5537,13 @@ def check_list(request, year=None, month=None, day=None, all=False):
 
     chk_sum = 0
     for i in list:
-        chk_sum = chk_sum + ((100-i.discount)*0.01*i.price*i.count)
+        if i.catalog != None:
+            chk_sum = chk_sum + ((100-i.discount)*0.01*i.catalog.catalog.price*i.count)
+        if i.bicycle != None:
+            chk_sum = chk_sum + ((100-i.discount)*0.01*i.bicycle.price*i.count)
+        if i.workshop != None :
+            chk_sum = chk_sum + ((100-i.discount)*0.01*i.workshop.price*i.count)
+            
     days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
     return render_to_response("index.html", {"weblink": 'check_list.html', "check_list": list, 'sel_day':day, 'sel_month':month, 'sel_year':year, 'month_days':days, 'chk_sum': chk_sum}, context_instance=RequestContext(request, processors=[custom_proc]))
 

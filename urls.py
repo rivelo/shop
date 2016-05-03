@@ -460,6 +460,7 @@ urlpatterns += patterns('',
     (r'^catalog/join/(?P<id1>\d+)/(?P<id2>\d+)/$', 'catalog.accounting.views.catalog_join'),
     
     (r'^check/list/$', 'catalog.accounting.views.check_list',{'all':True}),
+    (r'^check/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/view/$', 'catalog.accounting.views.check_list',{'all':False}),
     (r'^check/(?P<num>\d+)/print/$', 'catalog.accounting.views.check_print'),
     (r'^check/add/$', 'catalog.accounting.views.check_add'),
     (r'^check/shop/add/$', 'catalog.accounting.views.shop_sale_check_add'),

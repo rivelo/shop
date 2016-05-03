@@ -40,6 +40,7 @@
 </style>	
 	
 <script type="text/javascript">
+{% load poll_extras %}
 
 function payed() {
 $("#id_pay").val($('#id_sum').val())
@@ -51,6 +52,18 @@ document.getElementById("UserEnter").submit();
 $(document).ready(function() {
 	$("#s_client").val($('#id_client').val());
 	$("#s_client").select();
+	$("#id_sale").attr('sale', $("#id_sale").val() ); 
+
+{% if request.user|has_group:"admin" %}
+	$("#id_pay").show();
+	$("#id_pay").show();
+	$("#id_pay").prev().show();
+	$("#id_pay").parent().show();
+{% else %}
+	$("#id_pay").hide();
+	$("#id_pay").prev().hide();
+	$("#id_pay").parent().hide();
+{% endif %}
 	
 {% if b_len %}
 $("#id_count").after("м");
@@ -80,7 +93,10 @@ $( "input[type='text']" ).change(function(){
     	//$(this).hide();
     	$("#s_client").val($(this).attr('vname'));
     	$('#id_client').val($(this).attr('val'));
-    	$('#id_sale').val($(this).attr('sale'));
+    	if (parseFloat($(this).attr('sale')) >= parseFloat($("#id_sale").attr('sale'))){
+    		$('#id_sale').val($(this).attr('sale'));
+    	};
+    	
     	sum();
     	$('#id_count').focus();
     	$('#id_count').select();
@@ -110,7 +126,7 @@ $( "input[type='text']" ).change(function(){
             },
             minLength: 3,
             select: function( event, ui ) {
-            if (sale==0){
+            if (parseFloat(sale) >= parseFloat($("#id_sale").attr('sale'))){
             	$('#id_sale').val(ui.item.idid);
             }
             $('#id_client').val(ui.item.pk_id);
