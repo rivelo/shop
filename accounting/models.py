@@ -4,6 +4,7 @@ from django.db import models
 from django.forms import ModelForm
 from django.contrib import admin
 from django.contrib.auth.models import User
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 # Type = Component category 
 class Type(models.Model):
@@ -332,11 +333,11 @@ class ClientCredits(models.Model):
 class ClientInvoice(models.Model):
     client = models.ForeignKey(Client)
     catalog = models.ForeignKey(Catalog)
-    count = models.IntegerField()
+    count = models.FloatField() #IntegerField()
     price = models.FloatField(blank = True, null = True)
     sum = models.FloatField()
     currency = models.ForeignKey(Currency)
-    sale = models.IntegerField(blank = True, null = True) 
+    sale = models.IntegerField(blank = True, null = True, validators=[ MaxValueValidator(100), MinValueValidator(0) ]) 
     pay = models.FloatField(blank = True, null = True)    
 #    date = models.DateField(auto_now_add=False)
     date = models.DateTimeField(auto_now_add = False)    
@@ -612,11 +613,26 @@ class ShopDailySales(models.Model):
 #        ordering = ["invoice_id"]    
 #===============================================================================
 
+class CheckPay(models.Model):
+    check_num = models.IntegerField("mini-fp")
+    cash = models.FloatField()
+    term = models.FloatField()
+    date = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL) 
+    description = models.CharField(max_length=255)
+    
+    def __unicode__(self):
+        return u'%s / [%s / %s]' % (self.check_num, self.cash, self.term)
+
+    class Meta:
+        ordering = ["check_num"]    
+
 
 # Check table (Check)
 class Check(models.Model):
     #ids = models.CharField("code", unique=True, max_length=50)
     check_num = models.IntegerField("mini-fp")
+    checkPay = models.ForeignKey(CheckPay, blank=True, null=True)
     client = models.ForeignKey(Client)
     date = models.DateTimeField(auto_now_add=True)
     catalog = models.ForeignKey(ClientInvoice, blank=True, null=True)
@@ -635,6 +651,7 @@ class Check(models.Model):
 
     class Meta:
         ordering = ["date", "check_num"]    
+
 
 
 class PreOrder(models.Model):

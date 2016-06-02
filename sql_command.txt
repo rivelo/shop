@@ -110,4 +110,18 @@ alter table accounting_catalog add `c_price` double precision;
 alter table accounting_rent add `cred_id` integer ;
 
 alter table accounting_clientreturn add `cash` bool NOT NULL;
+
+mysql> alter table accounting_clientinvoice modify count double;
+CREATE TABLE `accounting_checkpay` (
+    `id` integer AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    `check_num` integer NOT NULL,
+    `cash` double precision NOT NULL,
+    `term` double precision NOT NULL,
+    `date` datetime NOT NULL,
+    `user_id` integer,
+    `description` varchar(255) NOT NULL
+)
+;
+
+mysql> alter table accounting_check add `checkPay_id` integer;
  

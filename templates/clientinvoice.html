@@ -45,7 +45,8 @@
 function payed() {
 $("#id_pay").val($('#id_sum').val())
 $("#id_length").val($("#id_count").val());
-$("#id_count").val(Math.round($("#id_count").val()));
+//$("#id_count").val(Math.round($("#id_count").val()));
+$("#id_count").val($("#id_count").val());
 document.getElementById("UserEnter").submit();
 }
 
@@ -77,7 +78,8 @@ $("#id_count").val({{desc_len}});
 $("#UserEnter").submit(function() {
       if ($("#id_sum").val()) {
       	$("#id_length").val($("#id_count").val());
-      	$("#id_count").val(Math.round($("#id_count").val()));
+//      	$("#id_count").val(Math.round($("#id_count").val()));
+      	$("#id_count").val($("#id_count").val());      	
         return true;
       }
       $("#id_count").after("FALSE");

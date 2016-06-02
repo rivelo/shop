@@ -18,9 +18,9 @@
     За місяць: 
 	{% for i in "123456789012" %}
 	{% ifequal forloop.counter sel_month %}
-	<a href="/client/invoice/year/{{sel_year}}/month/{{forloop.counter}}/view" class="select">{{forloop.counter}}</a>,
+	<a href="/check/year/{{sel_year}}/month/{{forloop.counter}}/day/1/view/" class="select">{{forloop.counter}}</a>,
     {% else %}
-	<a href="/client/invoice/year/{{sel_year}}/month/{{forloop.counter}}/view" class="non">{{forloop.counter}}</a>,
+	<a href="/check/year/{{sel_year}}/month/{{forloop.counter}}/day/1/view/" class="non">{{forloop.counter}}</a>,
     {% endifequal %}
 	{% endfor %}    
 </h2>    
@@ -29,15 +29,65 @@
 	За день:
 	{% for day in month_days %}		 
 	{% ifequal day sel_day %}
-    <a href="/client/invoice/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view" class="select">{{day}}</a>,
+    <a href="/check/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view/" class="select">{{day}}</a>,
     {% else %}
-	<a href="/client/invoice/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view" class="non">{{day}}</a>,
+	<a href="/check/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view/" class="non">{{day}}</a>,
     {% endifequal %}
     {% endfor %}
 </h2>    
 
 
-    <h1>Список чеків на товар [{{sel_day}}/{{sel_month}}/{{sel_year}}]  <a href="/client/invoice/check/">Друкувати чек</a> </h1>
+    <h1>Список чеків на товар [{{sel_day}}/{{sel_month}}/{{sel_year}}]</h1>
+
+    <table border="1" id="itable">
+	<tr>
+    	<th>#</th>	
+    	<th>№ чека</th>
+    	<th>Готівка</th>
+    	<th>Термінал</th>
+    	<th>Дата</th>
+    	<th>Опис</th>
+	</tr>    
+{% for item in pay_list %}
+<tr>
+	<td>
+	<abbr title="Створено користувачем {{item.user.username}}">
+	{{forloop.counter}}
+	</abbr>       
+<!-- 	{{item.id}}  -->
+	</td>
+	<td>       
+	{{item.check_num}}
+	</td>	
+	<td>       
+	{{item.cash}}
+	</td>
+	<td>       
+	{{item.term}}
+	</td>	
+	<td>       
+	{{item.date|date:'d-m-Y H:i'}}
+	</td>	
+	<td>       
+	{{item.description}}
+	</td>
+</tr>	
+{% endfor %}
+<tr>
+<td>
+</td>
+<td>Сума
+</td>
+<td>
+{{sum_cash}}
+</td>
+<td>
+{{sum_term}}
+</td>
+</tr>
+</table>
+<br>
+
     
     <table border="1" id="itable">
 	<tr>
@@ -60,6 +110,7 @@
 {% load template_math %}    
     
 {% for item in check_list %}
+<tr>
 	<td>
 	<abbr title="Створено користувачем {{item.user.username}}">
 	{{forloop.counter}}
@@ -77,7 +128,7 @@
 	[{{item.catalog.catalog.ids}}{{item.workshop.work_type.id}}{{item.bicycle.model}}] {{item.catalog.catalog.name}}{{item.workshop.work_type}}
 	</td>
 	<td align="center" class="tcount">       
-	{{item.count}}
+	{{item.count|floatformat}}
 	</td>
 	<td class="tprice">       
 	{{item.price}}
@@ -118,7 +169,7 @@
     	<th></th>    	
     	<th></th>    	    	
     	<th>{{chk_sum}}</th>
-    	<th></th>
+    	<th>{{chk_sum_term}}</th>
     	<th></th>
     	<th></th>
     	<th></th>

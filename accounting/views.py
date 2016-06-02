@@ -15,7 +15,7 @@ from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, C
 from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType
 from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm
 
-from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check
+from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay
 from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm
 
   
@@ -850,8 +850,23 @@ def bicycle_sale_check_add(request, id):
                 if chk_list.count()>0:
                     message = "Даний чек вже існує"
                 else:
+                    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+                    data =  {"cmd": "open"}
+                    url = base + urllib.urlencode(data)
+#                    page = urllib.urlopen(url).read()
+                    try:
+                        page = urllib.urlopen(url).read()
+                    except:
+                        message = "Сервер не відповідає"
+                        return HttpResponse(message, mimetype="text/plain")
+
+                    res = Check.objects.aggregate(max_count=Max('check_num'))
+                    chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
+                    chkPay.save()
+                    
                     res = Check.objects.aggregate(max_count=Max('check_num'))
                     check = Check(check_num=res['max_count'] + 1)
+                    check.checkPay = chkPay
                     check.client = bs.client #Client.objects.get(id=client.id)
                     check.bicycle = bs #ClientInvoice.objects.get(pk=inv)
                     check.description = "Продаж велосипеду"
@@ -869,10 +884,6 @@ def bicycle_sale_check_add(request, id):
                     check.user = request.user
                     check.save()    
 
-                    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-                    data =  {"cmd": "open"}
-                    url = base + urllib.urlencode(data)
-                    page = urllib.urlopen(url).read()
                     price =  "%.2f" % bs.price
                     count = "%.3f" % 1
                     discount = bs.sale
@@ -2079,6 +2090,7 @@ def catalog_add(request):
         form = CatalogForm(request.POST, request.FILES)
         if form.is_valid():
             ids = form.cleaned_data['ids']
+            dealer_code = form.cleaned_data['dealer_code']
             name = form.cleaned_data['name']
             manufacturer = form.cleaned_data['manufacturer']
             type = form.cleaned_data['type']
@@ -2097,7 +2109,7 @@ def catalog_add(request):
             description = form.cleaned_data['description']
             if photo != None:               
                 upload_path = processUploadedImage(photo, 'catalog/') 
-            Catalog(ids=ids, name=name, manufacturer=manufacturer, type=type, size=size, weight=weight, year=year, sale=sale, sale_to=sale_to, color=color, description=description, photo=upload_path, country=country, price=price, currency=currency, count=count, length=length).save()
+            Catalog(ids=ids, dealer_code=dealer_code, name=name, manufacturer=manufacturer, type=type, size=size, weight=weight, year=year, sale=sale, sale_to=sale_to, color=color, description=description, photo=upload_path, country=country, price=price, currency=currency, count=count, length=length).save()
             #return HttpResponseRedirect('/catalog/view/')
             return HttpResponseRedirect('/catalog/manufacture/' + str(manufacturer.id) + '/view/5')
     else:
@@ -4436,17 +4448,27 @@ def client_ws_payform(request):
         base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
         data =  {"cmd": "open"}
         url = base + urllib.urlencode(data)
-        page = urllib.urlopen(url).read()
-            
+        try:
+            page = urllib.urlopen(url).read()
+        except:
+            return HttpResponse("Включіть комп'ютер з касовим апаратом")
+           
     if 'pay' in request.POST and request.POST['pay']:
         pay = request.POST['pay']
         cash_type = CashType.objects.get(id = 1) # готівка
         if float(request.POST['pay']) != 0:
             ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
+            
+            res = Check.objects.aggregate(max_count=Max('check_num'))
+            chkPay = CheckPay(check_num = res['max_count'] + 1, cash = pay, term = 0)
+            chkPay.user = request.user
+            chkPay.save()
+
             for inv in wk:
                 check = Check(check_num=res['max_count'] + 1)
                 check.client = client #Client.objects.get(id=client.id)
+                check.checkPay = chkPay
                 check.workshop = inv #ClientInvoice.objects.get(pk=inv)
                 check.description = "Майстерня. Готівка."
                 check.count = 1
@@ -4465,16 +4487,20 @@ def client_ws_payform(request):
             url = base + urllib.urlencode(data)
             page = urllib.urlopen(url).read()
             
-
     if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
         pay = request.POST['pay_terminal']
         cash_type = CashType.objects.get(id = 2) # термінал
         if float(request.POST['pay_terminal']) != 0:
             ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
+            res = Check.objects.aggregate(max_count=Max('check_num'))
+            chkPay = CheckPay(check_num = res['max_count'] + 1, cash = 0, term = pay)
+            chkPay.save()
+            
             for inv in wk:
                 check = Check(check_num=res['max_count'] + 1)
                 check.client = client #Client.objects.get(id=client.id)
+                check.checkPay = chkPay
                 check.workshop = inv #ClientInvoice.objects.get(pk=inv)
                 check.description = "Майстерня. Термінал."
                 check.count = 1
@@ -4511,6 +4537,7 @@ def client_ws_payform(request):
     return HttpResponseRedirect(url)
 
 
+
 def client_payform(request):
     checkbox_list = [x for x in request.POST if x.startswith('checkbox_')]
     list_id = []
@@ -4519,6 +4546,7 @@ def client_payform(request):
         user = request.user
 
     desc = ""
+    count = None
     sum = 0
     client = None
     res = Check.objects.aggregate(max_count=Max('check_num'))
@@ -4529,6 +4557,14 @@ def client_payform(request):
             list_id.append( int(id.replace('checkbox_', '')) )
         ci = ClientInvoice.objects.filter(id__in=list_id)
         client = ci[0].client
+        
+        try: 
+            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+            data =  {"cmd": "open"}
+            url = base + urllib.urlencode(data)
+            page = urllib.urlopen(url).read()            
+        except:
+            return HttpResponse("Включіть комп'ютер з касовим апаратом")
                 
         for inv in ci:
             inv.pay = inv.sum
@@ -4544,7 +4580,11 @@ def client_payform(request):
         data =  {"cmd": "open"}
         url = base + urllib.urlencode(data)
         page = urllib.urlopen(url).read()
-
+        try:
+            page = urllib.urlopen(url).read()
+        except:
+            message = "Сервер не відповідає"
+            return HttpResponse(message, mimetype="text/plain")
     
     if 'pay' in request.POST and request.POST['pay']:
         pay = request.POST['pay']
@@ -4558,8 +4598,14 @@ def client_payform(request):
 #            url = base + urllib.urlencode(data)
 #            page = urllib.urlopen(url).read()
 #===============================================================================
+            res = Check.objects.aggregate(max_count=Max('check_num'))
+            chkPay = CheckPay(check_num = res['max_count'] + 1, cash = pay, term = 0)
+            chkPay.user = request.user
+            chkPay.save()
+
             for inv in ci:
                 check = Check(check_num=res['max_count'] + 1)
+                check.checkPay = chkPay
                 check.client = client #Client.objects.get(id=client.id)
                 check.catalog = inv #ClientInvoice.objects.get(pk=inv)
                 check.description = "Готівка"
@@ -4571,7 +4617,7 @@ def client_payform(request):
                 check.user = user
                 check.save()
                 price =  "%.2f" % inv.price
-                count = "%.3f" % inv.count
+                count = "%.3f" % inv.count                
                 discount = inv.sale
                 data =  {"cmd": "add_plu", "id":inv.catalog.pk, "cname":inv.catalog.name[:40].encode('utf8'), "price":price, "count": count, "discount": discount}
                 url = base + urllib.urlencode(data)
@@ -4599,10 +4645,15 @@ def client_payform(request):
 #            url = base + urllib.urlencode(data)
 #            page = urllib.urlopen(url).read()
 #===============================================================================
+            res = Check.objects.aggregate(max_count=Max('check_num'))
+            chkPay = CheckPay(check_num = res['max_count'] + 1, cash = 0, term = pay)
+            chkPay.save()
+
             for inv in ci:
                 check = Check(check_num=res['max_count'] + 1)
                 check.client = client #Client.objects.get(id=client.id)
                 check.catalog = inv #ClientInvoice.objects.get(pk=inv)
+                check.checkPay = chkPay
                 check.description = "Картка"
                 check.count = inv.count
                 check.discount = inv.sale
@@ -5522,6 +5573,10 @@ def catalog_join(request,id1, id2):
 
 def check_list(request, year=None, month=None, day=None, all=False):
     list = None
+    listPay = None
+    day = day
+    month = month
+    year = year
     if (year == None) and (month == None) and (day == None):
         day = datetime.datetime.now().day
         month = datetime.datetime.now().month
@@ -5533,19 +5588,36 @@ def check_list(request, year=None, month=None, day=None, all=False):
     if all == True:
         list = Check.objects.all()
     else:
-        list = Check.objects.filter(date__year = year, date__month = month, date__day = day)#.values()    
-
+        list = Check.objects.filter(date__year = year, date__month = month, date__day = day)#.values()
+        listPay = CheckPay.objects.filter(date__year = year, date__month = month, date__day = day)
+    
+    sum_term = 0
+    sum_cash = 0
+    for lp in listPay :
+        sum_term = sum_term + lp.term
+        sum_cash = sum_cash + lp.cash
+    
     chk_sum = 0
+    chk_sum_term = 0
     for i in list:
         if i.catalog != None:
-            chk_sum = chk_sum + ((100-i.discount)*0.01*i.catalog.catalog.price*i.count)
+            if i.cash_type.id == 1:
+                chk_sum = chk_sum + ((100-i.discount)*0.01*i.catalog.catalog.price*i.count)
+            else:
+                chk_sum_term = chk_sum_term + ((100-i.discount)*0.01*i.catalog.catalog.price*i.count)
         if i.bicycle != None:
-            chk_sum = chk_sum + ((100-i.discount)*0.01*i.bicycle.price*i.count)
+            if i.cash_type.id == 1:
+                chk_sum = chk_sum + ((100-i.discount)*0.01*i.bicycle.price*i.count)
+            else:
+                chk_sum_term = chk_sum_term + ((100-i.discount)*0.01*i.bicycle.price*i.count)                
         if i.workshop != None :
-            chk_sum = chk_sum + ((100-i.discount)*0.01*i.workshop.price*i.count)
-            
+            if i.cash_type.id == 1:
+                chk_sum = chk_sum + ((100-i.discount)*0.01*i.workshop.price*i.count)
+            else:
+                chk_sum_term = chk_sum_term + ((100-i.discount)*0.01*i.workshop.price*i.count)                
+                
     days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
-    return render_to_response("index.html", {"weblink": 'check_list.html', "check_list": list, 'sel_day':day, 'sel_month':month, 'sel_year':year, 'month_days':days, 'chk_sum': chk_sum}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response("index.html", {"weblink": 'check_list.html', "check_list": list, "sum_term":sum_term, "sum_cash":sum_cash, "pay_list": listPay, 'sel_day':day, 'sel_month':month, 'sel_year':year, 'month_days':days, 'chk_sum': chk_sum, 'chk_sum_term': chk_sum_term}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 #************ Друк фіскального чеку на принтері ************** 
@@ -5577,7 +5649,7 @@ def shop_sale_check_add(request):
         return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
     message = ''
     list_id = request.session['invoice_id']
-    
+    count = None
     if request.is_ajax():
         if request.method == 'POST':  
             POST = request.POST  
@@ -5589,12 +5661,26 @@ def shop_sale_check_add(request):
                 if chk_list.count()>0:
                     message = "Даний чек вже існує"
                 else:
+                    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+                    data =  {"cmd": "open"}
+                    url = base + urllib.urlencode(data)
+                    try:
+                        page = urllib.urlopen(url).read()
+                    except:
+                        message = "Сервер не відповідає"
+                        return HttpResponse(message, mimetype="text/plain")
+
                     res = Check.objects.aggregate(max_count=Max('check_num'))
+                    chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
+                    chkPay.user = request.user
+                    chkPay.save()
+                    
                     for inv in ci:
                         check = Check(check_num=res['max_count'] + 1)
+                        checkPay = chkPay
                         check.client = inv.client #Client.objects.get(id=client.id)
                         check.catalog = inv #ClientInvoice.objects.get(pk=inv)
-                        check.description = "Готівка"
+                        check.description = "Готівка / Термінал"
                         check.count = inv.count
                         check.discount = inv.sale
                         t = 1
@@ -5609,10 +5695,6 @@ def shop_sale_check_add(request):
                         check.user = request.user
                         check.save()    
 
-                    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-                    data =  {"cmd": "open"}
-                    url = base + urllib.urlencode(data)
-                    page = urllib.urlopen(url).read()
 
                     for inv in ci:
                         price =  "%.2f" % inv.price
@@ -5663,6 +5745,112 @@ def shop_sale_check_add(request):
         return HttpResponse(message, mimetype="text/plain")
 
 
+def workshop_sale_check_add(request):
+    if request.user.is_authenticated()==False:
+        return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
+    message = ''
+    list_id = request.session['invoice_id']
+    count = None
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('m_value'):
+                m_val = request.POST.get( 'm_value' )
+                t_val = request.POST.get( 't_value' )
+                cw = WorkShop.objects.filter(id__in = list_id)
+                chk_list = Check.objects.filter(catalog__in = cw)
+                if chk_list.count()>0:
+                    message = "Даний чек вже існує"
+                else:
+                    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+                    data =  {"cmd": "open"}
+                    url = base + urllib.urlencode(data)
+                    try:
+                        page = urllib.urlopen(url).read()
+                    except:
+                        message = "Сервер не відповідає"
+                        return HttpResponse(message, mimetype="text/plain")
+
+                    res = Check.objects.aggregate(max_count=Max('check_num'))
+                    chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
+                    chkPay.user = request.user
+                    chkPay.save()
+                    
+                    
+                    for inv in cw:
+                        check = Check(check_num=res['max_count'] + 1)
+                        check.client = inv.client #Client.objects.get(id=client.id)
+                        check.checkPay = chkPay
+                        check.workshop = inv #ClientInvoice.objects.get(pk=inv)
+                        check.description = "Майстерня. Готівка / Термінал"
+                        check.count = 1
+                        check.discount = 0
+                        check.price = inv.price
+                        t = 1
+                        if m_val >= t_val:
+                            t = 1
+                        else: 
+                            t = 2
+
+                        check.cash_type = CashType.objects.get(id = t)
+                        check.print_status = False
+                        check.user = request.user
+                        check.save()
+                        
+
+
+                    for inv in cw:
+                        price =  "%.2f" % inv.price
+                        count = "%.3f" % 1
+                        data =  {"cmd": "add_plu", "id":'99'+str(inv.work_type.pk), "cname":inv.work_type.name[:40].encode('utf8'), "price":price, "count": count, "discount": 0}
+                        url = base + urllib.urlencode(data)
+                        page = urllib.urlopen(url).read()
+                        data =  {"cmd": "pay", "sum": 0, "mtype": 0}
+                        url = base + urllib.urlencode(data)
+                        page = urllib.urlopen(url).read()
+                    
+                    if m_val >= t_val:
+                        if float(t_val) == 0:
+                            data =  {"cmd": "pay", "sum": 0, "mtype": 0}
+                            url = base + urllib.urlencode(data)
+                            page = urllib.urlopen(url).read()
+                        else:
+                            val = "%.2f" % float(m_val)
+                            data =  {"cmd": "pay", "sum": val, "mtype": 0}
+                            url = base + urllib.urlencode(data)
+                            page = urllib.urlopen(url).read()
+                            val = "%.2f" % float(t_val)
+                            data =  {"cmd": "pay", "sum": t_val, "mtype": 2}
+                            url = base + urllib.urlencode(data)
+                            page = urllib.urlopen(url).read()
+                    else:
+                        if float(m_val) == 0:
+                            data =  {"cmd": "pay", "sum": 0, "mtype": 2}
+                            url = base + urllib.urlencode(data)
+                            page = urllib.urlopen(url).read()
+                        else:
+                            val = "%.2f" % float(t_val)
+                            data =  {"cmd": "pay", "sum": val, "mtype": 2}
+                            url = base + urllib.urlencode(data)
+                            page = urllib.urlopen(url).read()
+                            val = "%.2f" % float(m_val)
+                            data =  {"cmd": "pay", "sum": val, "mtype": 0}
+                            url = base + urllib.urlencode(data)
+                            page = urllib.urlopen(url).read()
+                        
+                    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+                    data =  {"cmd": "close"}
+                    url = base + urllib.urlencode(data)
+                    page = urllib.urlopen(url).read()
+
+                message = "Виконано"
+                return HttpResponse(message, mimetype="text/plain")
+    else:
+        message = "Error"
+        return HttpResponse(message, mimetype="text/plain")
+
+
+
 def check_add(request):
     checkbox_list = [x for x in request.POST if x.startswith('chk_inv')]
     list_id = []
@@ -5704,13 +5892,13 @@ def check_add(request):
             check.save()    
         
     #return check_list(request, all=True)
-    return HttpResponseRedirect('/check/list/')
+    return HttpResponseRedirect('/check/list/now/')
 
 def check_delete(request, id):
     obj = Check.objects.get(id=id)
     del_logging(obj)
     obj.delete()
-    return HttpResponseRedirect('/check/list/')
+    return HttpResponseRedirect('/check/list/now/')
 
     
     

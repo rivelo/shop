@@ -378,7 +378,7 @@ class ClientInvoiceForm(forms.ModelForm):
     #client = forms.ModelChoiceField(widget=forms.Select(attrs={'class':'autocomplete'}), queryset = Client.objects.all(), empty_label="")
     client = forms.ModelChoiceField(widget=forms.HiddenInput(), queryset = Client.objects.all(), empty_label="")
     #catalog = forms.ModelChoiceField(queryset = Catalog.objects.filter(manufacturer=36))
-    count = forms.IntegerField(min_value=0, initial = 1, label = "Кількість")
+    count = forms.FloatField(min_value=0, initial = 1, label = "Кількість")
     catalog = forms.ModelChoiceField(queryset = Catalog.objects.all(), label="Товар")    
     
     price = forms.FloatField(initial=0, label="Ціна")

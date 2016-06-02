@@ -49,7 +49,12 @@ $(document).ready(function() {
         	else {
 			$.ajax({
                 type: "POST",
+                
+                {% if is_workshop %}
+                url: "/check/workshop/add/",
+                {% else %}
                 url: "/check/shop/add/",
+                {% endif %}
                 data: {t_value: $('#t_spinner').val(), m_value: $('#m_spinner').val()},
                 dataType: "text",
                 beforeSend:function(){

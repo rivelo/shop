@@ -968,7 +968,7 @@ function on_off_button(state) {
 	</td>
 	<td align="center">
 	<a href="/client/invoice/catalog/{{type.catalog}}/view/">
-	{{type.c_sale}}
+	{{type.c_sale|floatformat }}
 	</a>
 	</td>
 	<td align="center">
@@ -982,7 +982,7 @@ function on_off_button(state) {
 		 {{type.catalog__count}} 
 {% endcomment %} 
 
-		{{type.balance}}
+		{{type.balance|floatformat }}
 		</a>
 		</abbr>
 {% comment %}		
