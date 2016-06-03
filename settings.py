@@ -45,6 +45,11 @@ SHORT_DATETIME_FORMAT = 'd/m/Y'
 HTTP_MINI_SERVER_IP = '127.0.0.1'
 HTTP_MINI_SERVER_PORT = '8123'
 
+CLIENT_SALE_1 = 2500
+CLIENT_SALE_3 = 5000
+CLIENT_SALE_5 = 7500
+CLIENT_SALE_7 = 10000 
+CLIENT_SALE_10 = 15000
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html

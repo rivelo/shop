@@ -3219,25 +3219,31 @@ def client_result(request, tdelta = 30):
     status_order = order.filter(status=False).exists()
         
     isum = ClientInvoice.objects.filter(client=user).aggregate(Sum('sum'))
-    bsum = Bicycle_Sale.objects.filter(client=user).aggregate(Sum('sum'))
+#    bsum = Bicycle_Sale.objects.filter(client=user).aggregate(Sum('sum'))
     client = Client.objects.get(id = user)
-    #if (isum['sum__sum'] is not None) and (bsum['sum__sum'] is not None):
-    #    client.summ = isum['sum__sum'] + client_workshop_sum + int(bsum['sum__sum'])
-    #else:
-    client.summ = float(isum['sum__sum'] or 0) + float(bsum['sum__sum'] or 0) + client_workshop_sum 
-    #client.summ = b_bike['sum__sum']
-    sale_cat = [1,3,5]
-    if (client.summ > 1000) and (client.summ < 3700):
+#    client.summ = float(isum['sum__sum'] or 0) + float(bsum['sum__sum'] or 0) + client_workshop_sum 
+    client.summ = float(isum['sum__sum'] or 0) + client_workshop_sum
+    
+    sale_cat = [1,3,5,7,10]
+    if (client.summ > settings.CLIENT_SALE_1) and (client.summ < settings.CLIENT_SALE_3):
         if client.sale < sale_cat[0] :
             client.sale = sale_cat[0]
-    if (client.summ > 3700) and (client.summ < 7000):
+    if (client.summ > settings.CLIENT_SALE_3) and (client.summ < settings.CLIENT_SALE_5):
         if client.sale < sale_cat[1] :
             client.sale = sale_cat[1]
-    if (client.summ > 7000):
+    if (client.summ > settings.CLIENT_SALE_5) and (client.summ < settings.CLIENT_SALE_7):
         if client.sale < sale_cat[2] :
             client.sale = sale_cat[2]
-    if (client.id == 138) or (client.id == 1277):
+    if (client.summ > settings.CLIENT_SALE_7) and (client.summ < settings.CLIENT_SALE_10):
+        if client.sale < sale_cat[3] :
+            client.sale = sale_cat[3]
+    if (client.summ > settings.CLIENT_SALE_10):
+        if client.sale < sale_cat[4] :
+            client.sale = sale_cat[4]
+    if client.sale_on == False:
+    #if (client.id == 138) or (client.id == 1277):
         client.sale = 0
+        
     if (client.id == 1257):
         client.sale = 100
         

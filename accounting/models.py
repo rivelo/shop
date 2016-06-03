@@ -287,11 +287,12 @@ class Client(models.Model):
     city = models.CharField(max_length=255)
     email = models.CharField(max_length=100)
     phone = models.CharField(max_length=100)
+    phone1 = models.CharField(max_length=100, blank = True, null = True)
     sale = models.IntegerField("how many percent for sale", default=0)
     summ = models.FloatField()
     birthday = models.DateField(auto_now_add=False, blank = True, null = True)
+    sale_on = models.BooleanField(default=True, verbose_name="Знижка включена")
     description = models.TextField(blank = True, null = True)
-    #birthday = models.DateField()
     
     def __unicode__(self):
         return "%s - [%s]" % (self.name, self.forumname)
@@ -470,7 +471,7 @@ class Bicycle_Sale(models.Model):
     price = models.FloatField()
     currency = models.ForeignKey(Currency)
     sale = models.IntegerField()
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField(auto_now_add=False)
     service = models.BooleanField(default = False) 
     description = models.TextField(blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)

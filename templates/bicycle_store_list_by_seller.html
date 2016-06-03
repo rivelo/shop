@@ -75,6 +75,7 @@ $(document).ready(function() {
 <a href="/bicycle-store/view/seller/year/2013/">2013</a>
 <a href="/bicycle-store/view/seller/year/2014/">2014</a>
 <a href="/bicycle-store/view/seller/year/2015/">2015</a>
+<a href="/bicycle-store/view/seller/year/2016/">2016</a>
 
 <br>
 <b>Розмір рами:</b>
@@ -252,7 +253,11 @@ $(document).ready(function() {
     </p>
 {% endif %}
 
+{% load poll_extras %}
+{% if request.user|has_group:"admin" %}
 <br><br>
 <a href="/bicycle/store/report/sum/">Сумарна вартість велосипедів у магазині</a>
+{% endif %}
 <br>
+
 

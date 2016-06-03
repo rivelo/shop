@@ -343,7 +343,7 @@ class ClientForm(forms.ModelForm):
     phone = forms.CharField(max_length=255, required=False)
     sale = forms.IntegerField(required=False, initial=0)
     summ = forms.FloatField(initial=0)
-    birthday = forms.DateField(label='Дата народженя', input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), required=False)
+    birthday = forms.DateField(label='Дата народженя (d/m/Y)', input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), required=False)
     description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255, required=False)    
 
     class Meta:
