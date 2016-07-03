@@ -642,7 +642,7 @@ def bicycle_sale_add(request, id=None):
         serial_number = bike.serial_number
         
     if request.method == 'POST':
-        form = BicycleSaleForm(request.POST, initial={'currency': 3}, instance=a)
+        form = BicycleSaleForm(request.POST, initial={'currency': 3, 'date': datetime.date.today()}, instance=a)
         if form.is_valid():
             model = form.cleaned_data['model']
             client = form.cleaned_data['client']
@@ -681,7 +681,7 @@ def bicycle_sale_add(request, id=None):
             return HttpResponseRedirect(redirect)
     else:
         if bike != None:
-            form = BicycleSaleForm(initial={'model': bike.id, 'price': bike.model.price, 'currency': bike.model.currency.id, 'sale': bike.model.sale}, instance=a)
+            form = BicycleSaleForm(initial={'model': bike.id, 'price': bike.model.price, 'currency': bike.model.currency.id, 'sale': bike.model.sale, 'date': datetime.date.today()}, instance=a)
         else:
             form = BicycleSaleForm(initial={'currency': 3}, instance=a)
     
@@ -2755,8 +2755,11 @@ def client_invoice_edit(request, id):
                     cat.length = cat.length - float(old_length) + float(clen)
                 else:
                     cat.length = 0 - float(old_length) + float(clen)
-                description = description + '\nlength:' + str(clen)            
-            cat.count = cat.count - (old_count - count)
+                description = description + '\nlength:' + str(clen)
+            if old_count > count:
+                cat.count = cat.count - (old_count - count)*-1
+            else: 
+                cat.count = cat.count - (old_count - count)
             cat.save()
             user = a.user
             if request.user.is_authenticated():
@@ -4452,12 +4455,23 @@ def client_ws_payform(request):
 
     if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
         base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-        data =  {"cmd": "open"}
+        data =  {"cmd": "get_status"}
         url = base + urllib.urlencode(data)
         try:
             page = urllib.urlopen(url).read()
         except:
             return HttpResponse("Включіть комп'ютер з касовим апаратом")
+    
+    if (float(request.POST['pay']) == 0) and (float(request.POST['pay_terminal']) == 0):
+        ccred = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
+        ccred.save()
+        for item in wk:
+            item.pay = True
+            item.save()
+        if client.id == 138:
+            return HttpResponseRedirect('/workshop/view/')
+        url = '/client/result/search/?id=' + str(client.id)
+        return HttpResponseRedirect(url)
            
     if 'pay' in request.POST and request.POST['pay']:
         pay = request.POST['pay']
@@ -4566,7 +4580,7 @@ def client_payform(request):
         
         try: 
             base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-            data =  {"cmd": "open"}
+            data =  {"cmd": "get_status"}
             url = base + urllib.urlencode(data)
             page = urllib.urlopen(url).read()            
         except:
@@ -4583,7 +4597,7 @@ def client_payform(request):
 
     if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
         base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-        data =  {"cmd": "open"}
+        data =  {"cmd": "get_status"}
         url = base + urllib.urlencode(data)
         page = urllib.urlopen(url).read()
         try:
@@ -4591,6 +4605,14 @@ def client_payform(request):
         except:
             message = "Сервер не відповідає"
             return HttpResponse(message, mimetype="text/plain")
+    
+    if (float(request.POST['pay']) == 0) and (float(request.POST['pay_terminal']) == 0):
+        cdeb = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
+        cdeb.save()
+        if client.id == 138:
+            return HttpResponseRedirect('/client/invoice/view/')
+        url = '/client/result/search/?id=' + str(client.id)
+        return HttpResponseRedirect(url)
     
     if 'pay' in request.POST and request.POST['pay']:
         pay = request.POST['pay']
