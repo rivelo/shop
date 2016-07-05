@@ -5833,9 +5833,9 @@ def workshop_sale_check_add(request):
                         data =  {"cmd": "add_plu", "id":'99'+str(inv.work_type.pk), "cname":inv.work_type.name[:40].encode('utf8'), "price":price, "count": count, "discount": 0}
                         url = base + urllib.urlencode(data)
                         page = urllib.urlopen(url).read()
-                        data =  {"cmd": "pay", "sum": 0, "mtype": 0}
-                        url = base + urllib.urlencode(data)
-                        page = urllib.urlopen(url).read()
+#                        data =  {"cmd": "pay", "sum": 0, "mtype": 0}
+#                        url = base + urllib.urlencode(data)
+#                        page = urllib.urlopen(url).read()
                     
                     if m_val >= t_val:
                         if float(t_val) == 0:
