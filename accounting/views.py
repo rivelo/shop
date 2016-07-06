@@ -4459,6 +4459,10 @@ def client_ws_payform(request):
         url = base + urllib.urlencode(data)
         try:
             page = urllib.urlopen(url).read()
+            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+            data =  {"cmd": "open"}
+            url = base + urllib.urlencode(data)
+            page = urllib.urlopen(url).read()
         except:
             return HttpResponse("Включіть комп'ютер з касовим апаратом")
     
@@ -4583,6 +4587,10 @@ def client_payform(request):
             data =  {"cmd": "get_status"}
             url = base + urllib.urlencode(data)
             page = urllib.urlopen(url).read()            
+            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+            data =  {"cmd": "open"}
+            url = base + urllib.urlencode(data)
+            page = urllib.urlopen(url).read()
         except:
             return HttpResponse("Включіть комп'ютер з касовим апаратом")
                 
@@ -5833,9 +5841,9 @@ def workshop_sale_check_add(request):
                         data =  {"cmd": "add_plu", "id":'99'+str(inv.work_type.pk), "cname":inv.work_type.name[:40].encode('utf8'), "price":price, "count": count, "discount": 0}
                         url = base + urllib.urlencode(data)
                         page = urllib.urlopen(url).read()
-#                        data =  {"cmd": "pay", "sum": 0, "mtype": 0}
-#                        url = base + urllib.urlencode(data)
-#                        page = urllib.urlopen(url).read()
+                        data =  {"cmd": "pay", "sum": 0, "mtype": 0}
+                        url = base + urllib.urlencode(data)
+                        page = urllib.urlopen(url).read()
                     
                     if m_val >= t_val:
                         if float(t_val) == 0:
