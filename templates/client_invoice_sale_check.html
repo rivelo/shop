@@ -81,6 +81,48 @@ $(document).ready(function() {
         }  		
   		});
 	});
+
+$('#m_spinner').spinner({
+    min: 0,
+    max: {{sum}},
+    step: 0.01,
+    stop: function(event, ui) {
+    	var res = {{sum}} - $('#m_spinner').val();
+    	console.log("M_VAL = " + $('#m_spinner').val());
+		$('#t_spinner').val(res);        
+    }
+});
+
+$('#t_spinner').spinner({
+    min: 0,
+    max: {{sum}},
+    step: 0.01,
+    stop: function(event, ui) {
+    	var res = parseFloat({{sum}}) - parseFloat($('#t_spinner').spinner( "value" ));
+    	console.log("T_VAL = " + $('#t_spinner').spinner( "value" ) );
+    	console.log("RES = " + res );
+		$('#m_spinner').val(parseFloat(res));        
+    }
+});
+
+$('#t_spinner').spinner({
+  change: function( event, ui ) {
+    	var res = parseFloat({{sum}}) - parseFloat($('#t_spinner').val());
+    	console.log("T_VAL = " + $('#t_spinner').spinner( "value" ) );
+    	console.log("RES = " + res );
+		$('#m_spinner').spinner( "value", parseFloat(res) );        
+  }
+});
+
+$('#m_spinner').spinner({
+  change: function( event, ui ) {
+    	var res = parseFloat({{sum}}) - parseFloat($('#m_spinner').val());
+    	console.log("M_VAL = " + $('#t_spinner').spinner( "value" ) );
+    	console.log("RES = " + res );
+		$('#t_spinner').spinner( "value", res );        
+  }
+});
+
 	
 });       
 </script>
