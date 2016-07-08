@@ -4472,6 +4472,14 @@ def client_ws_payform(request):
         for item in wk:
             item.pay = True
             item.save()
+        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+        data =  {"cmd": "cancel_receipt"}
+        url = base + urllib.urlencode(data)
+        page = urllib.urlopen(url).read()
+        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+        data =  {"cmd": "close"}
+        url = base + urllib.urlencode(data)
+        page = urllib.urlopen(url).read()
         if client.id == 138:
             return HttpResponseRedirect('/workshop/view/')
         url = '/client/result/search/?id=' + str(client.id)
@@ -4617,6 +4625,15 @@ def client_payform(request):
     if (float(request.POST['pay']) == 0) and (float(request.POST['pay_terminal']) == 0):
         cdeb = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
         cdeb.save()
+        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+        data =  {"cmd": "cancel_receipt"}
+        url = base + urllib.urlencode(data)
+        page = urllib.urlopen(url).read()
+        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+        data =  {"cmd": "close"}
+        url = base + urllib.urlencode(data)
+        page = urllib.urlopen(url).read()
+
         if client.id == 138:
             return HttpResponseRedirect('/client/invoice/view/')
         url = '/client/result/search/?id=' + str(client.id)

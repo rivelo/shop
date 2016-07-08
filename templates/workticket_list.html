@@ -13,11 +13,11 @@
 	}
 {% comment %}   	// виконано {% endcomment %}
 	tr.w_done_done {
-		background-color: white;
+		background-color: #ffffff;
 	}
 {% comment %}   	// виконано не видано {% endcomment %}
 	tr.w_done {
-		background-color: #ССFF89;
+		background-color: #bbbbbb;
 	}
 	
 {% comment %}   	// не виконано {% endcomment %}
@@ -96,6 +96,8 @@ $(".w_desc").each(function() {
 
 </script>
 
+{% load poll_extras %}
+
 <br>
 <h2>
     За рік: 
@@ -156,8 +158,8 @@ $(".w_desc").each(function() {
 	</td>
 	<td>       
 <!--	<a href="/workshop/done/client/{{ type.client.id }}/"> -->  
-	<a href="/client/result/search/?id={{ type.client.id }}">
-	{{type.client}}
+	<a href="/client/result/search/?id={{ type.client.id }}" title="{{type.client}} {{type.client.phone|phone2Str}}">
+	{{type.client}} 
 	</a>
 	</td>
 	<td title={{type.user.username}}>       
