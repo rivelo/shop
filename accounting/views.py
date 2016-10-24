@@ -5557,6 +5557,30 @@ def inventory_get(request):
     return HttpResponse(data_c, mimetype='application/json')        
 
 
+
+def inventory_get_listid(request):
+    date_before = datetime.datetime.today() - datetime.timedelta(days=180)
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'seller')==False:
+                return HttpResponse('Error: У вас не має прав для перегляду')
+            POST = request.POST  
+            if POST.has_key('catalog_ids'):
+                cid = request.POST['catalog_ids']
+                cid1 = simplejson.loads(cid)
+                i_list = InventoryList.objects.filter(catalog__in = cid1, date__gt = date_before, check_all = True).values('id', 'catalog__id', 'count', 'description', 'user', 'user__username', 'date', 'real_count')
+
+                json = list(i_list)
+                for x in json:  
+                    x['date'] = x['date'].strftime("%d/%m/%Y [%H:%M]")
+                
+                #json = serializers.serialize('json', p_cred_month, fields=('id', 'date', 'price', 'description', 'user', 'user_username'))
+                return HttpResponse(simplejson.dumps(json), mimetype='application/json')
+        
+    
+    return HttpResponse(i_list, mimetype='application/json')        
+
+
 def inventory_set(request):
     if request.is_ajax():
         if request.method == 'POST':  

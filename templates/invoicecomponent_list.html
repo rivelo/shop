@@ -8,10 +8,13 @@
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
 <link rel="stylesheet" href="/media/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="/media/css/dataTables.jqueryui.css">
+<link rel="stylesheet" href="/media/css/select.dataTables.min.css">
  
 <script type="text/javascript" src="/media/jquery-ui.min.js"></script>
 <script type="text/javascript" language="javascript" src="/media/jquery.dataTables.min.js"></script>
 <script type="text/javascript" language="javascript" src="/media/dataTables.jqueryui.js"></script>
+<script type="text/javascript" language="javascript" src="/media/dataTables.select.min.js"></script>
+{# <script type="text/javascript" language="javascript" src="/media/dataTables.buttons.min.js"></script> #}
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 <script src="/media/jssor.slider.mini.js"></script>
 
@@ -307,6 +310,7 @@ $(document).ready(function() {
     var table = $('#iTable').DataTable({
         "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
         "iDisplayLength": 100,        
+        select: {style: 'multi'},
 //        "dom": '<"toolbar">frtip',
         "columnDefs": [
             {
@@ -327,6 +331,11 @@ $(document).ready(function() {
                 "visible": true,
                 "sType": "currency-html",
             },
+            {
+                "targets": [ 13 ],
+                "visible": false,
+                "sType": "currency-html",
+            },
             
             
         ],
@@ -343,8 +352,10 @@ $(document).ready(function() {
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="3">Виробник</a></div>');
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-3">Опис</a></div>');
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-2">Місце</a></div>');
-	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-1">Інв.</a></div>');
+	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-1" id="show_inv" val="0">Інв.</a></div>');
 	$('#iTable_length').append('<div class="cdiv"><a href="javascript:void(0);" id="show_hide" val="0">Наявні</a></div>');
+	$("#iTable_length").append('<a href="javascript:void(0);" id="sel_all" val="0">Виділити всі</a>');
+
 
  
     // Apply the search in add field
@@ -363,10 +374,31 @@ $(document).ready(function() {
         column.visible( ! column.visible() );
     } );
  
+ $("body").on('click', '#sel_all', function() {
+	var status = $('#sel_all').attr('val')
+	if ( status == 1) {
+		$('#sel_all').attr('val', 0);
+		$('#sel_all').html('Виділити всі');
+		table.rows().deselect();
+// 		table.draw();
+	}
+	if ( status == 0) {
+		$('#sel_all').attr('val', 1);
+		$('#sel_all').html('Зняти виділення');
+		table.rows().select();
+	}
+ });
+
  $("body").on('click', '#show_hide', function() {
 	var status = $('#show_hide').attr('val')
 	if ( status == 1) {
 		$('#show_hide').attr('val', 0);
+		$('#show_hide').html('Наявні');
+		$.fn.dataTableExt.afnFiltering.pop();				
+ 		table.draw();
+	}
+	if ( status == 0) {
+		$('#show_hide').attr('val', 1);
 		$('#show_hide').html('Всі');
 		$.fn.dataTableExt.afnFiltering.push(
         function(oSettings, aData, iDataIndex) {
@@ -378,14 +410,8 @@ $(document).ready(function() {
         });
  		table.draw();
 	}
-	if ( status == 0) {
-		$('#show_hide').attr('val', 1);
-		$('#show_hide').html('Наявні');
-		$.fn.dataTableExt.afnFiltering.pop();
- 		table.draw();
-	}
-
  });
+
  	
  	$('#show_hide_1').on('click', function() {
  		$.fn.dataTableExt.afnFiltering.pop();
@@ -754,11 +780,12 @@ str_navi = '<div u="navigator" class="jssorb01" style="bottom: 16px; left: 10px;
             });
 });
 
+{% load poll_extras %}
 
-$(document).on("click", ".inventory", function(event) {
+$(document).on("click", ".inv_td", function(event) {
 	   	var t = $(this).attr('cap')
     	$("#dialog_inventory").dialog({title:  t});
-    	$("#dialog_inventory").attr({'ids': $(this).attr('ids')});
+    	$("#dialog_inventory").attr({'ids': $(this).parents('tr').attr('id')});
     	$("#inv_spinner").spinner();
     	$("#inv_spinner").val(1);
     	$("#inv_spinner").focus();
@@ -768,7 +795,7 @@ $(document).on("click", ".inventory", function(event) {
     	on_off_button(false);
 		$("#dialog_inventory").dialog("open");
 		
-		var Id = $(this).attr('ids');
+		var Id = $(this).parents('tr').attr('id');
             $.ajax({
                 type: "POST",
                 url: "/inventory/get/",
@@ -786,7 +813,11 @@ $(document).on("click", ".inventory", function(event) {
 							tr_cls = '<table><tr class="tr_false">';
 						}
 						var count = '<td style="background-color:#c0c5ce"><abbr title="' + item['edit_date'] + '">' + item['count'] + 'шт.</abbr>';
+	{% if request.user|has_group:"admin" %}						
+                	    $('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ item['check_all'] +'</td><td>'+item['real_count']+' шт.</td><td><span class="inv_del" inv_id="'+item['id']+'" style="cursor: pointer;">Видалити</span></td></tr></table>');
+	{% else %}                	    
                 	    $('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ item['check_all'] +'</td><td>'+item['real_count']+' шт.</td></tr></table>');
+    {% endif %}
                     });
 
                 },
@@ -797,6 +828,29 @@ $(document).on("click", ".inventory", function(event) {
 		
 			
 });
+
+
+$(document).on("click", ".inv_del", function(event) {
+ if (confirm("Ви дійсно бажаєте видалити запис?")) {
+ 	console.log($(this).parents("tr"));
+ 	var tr_del = $(this).parents("tr");
+	
+		$.ajax({
+                type: "POST",
+                url: "/inventory/delete/",
+                data: {id:  $(this).attr("inv_id") },
+                dataType: "text",
+                success:function(data){
+                	console.log("ajax work");
+                	tr_del.remove();
+                	console.log($(this).parents("tr"));
+                },
+                error:function(data){
+                    alert("Виникли проблеми з сервером" + data);
+                }
+            });	
+ }
+ });
 
 
 $(document).on("click", ".addprice", function(event) {
@@ -817,6 +871,60 @@ function on_off_button(state) {
     });
     $("#inv_spinner").focus()
 }
+
+
+$("body").on('click', '#show_inv', function() {
+
+var table = $('#iTable').DataTable();
+	var status = $('#show_hide').attr('val')
+	if ( status == 1) {
+		$('#show_hide').attr('val', 0);
+        }
+	
+	if ( status == 0) {
+		$('#show_hide').attr('val', 1);
+		var ids = []
+$('tr .price_edit').each(function(){
+// $(this).html($(this).attr("id_price")); 
+//console.log( $(this).attr("id_price") );
+//ids.push( $(this).attr("id_price") );
+
+//table.cell( 0, 13 ).data( 'Change' ).draw();
+//table.rows().indexes();
+//$(table.rows().nodes()[1]).attr('id');
+//table.rows({ selected: true }).indexes();
+});
+
+table.rows().eq( 0 ).each( function (idx) {
+	console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
+	ids.push( $(table.row( idx ).node()).attr('id') );
+});
+
+
+console.log("ids[]= ", ids );
+            $.ajax({
+                type: "POST",
+                url: "/inventory/get/listid/",
+                data: { catalog_ids: JSON.stringify(ids) },
+                dataType: "json",
+                success:function(msg){
+                	$.each(msg,function(index,item){
+//						$(".price_edit[id_price="+item['catalog__id']+"]").html(item['count']);
+						var inx =  table.row("[id="+ item['catalog__id'] +"]").index();
+						table.cell(inx, 13).data('<b>'+item['count']+'</b>');
+						//$("tr[id="+item['catalog__id']+"] td.inv_td").html('<b>'+item['count']+'</b>');
+                    });
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });      
+	
+	}
+
+
+});
+
 
 </script>
 
@@ -915,7 +1023,7 @@ function on_off_button(state) {
     
 <tbody>
     
-{% load poll_extras %}     
+     
 {% load template_math %}    
 
 {% if request.user|has_group:"admin" %}
@@ -923,12 +1031,12 @@ function on_off_button(state) {
 {% for type in componentlist %}
 
 {% ifequal type.sum_catalog type.c_sale %}
-<tr class="zero">
+<tr class="zero" id="{{type.catalog}}">
 {% else %}
 {% ifequal type.balance 1 %}
-<tr class="last">
+<tr class="last" id="{{type.catalog}}">
 {% else %}
-<tr>
+<tr id="{{type.catalog}}">
 {% endifequal %}
 {% endifequal %}
 
@@ -1014,9 +1122,8 @@ function on_off_button(state) {
 	<td align="center" class="locality_edit" id_locality="{{type.catalog}}">
 	{{type.locality}}
 	</td>
-	<td>
-	<img cap="[{{type.catalog__ids}}] - ({{type.catalog__manufacturer__name}}) {{type.catalog__name}}" class="inventory" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/Inspection.png" width="50" height="50">
-	
+	<td class="inv_td" align="center" cap="[{{type.catalog__ids}}] - ({{type.catalog__manufacturer__name}}) {{type.catalog__name}}">
+ 	<img  class="inventory" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/Inspection.png" width="50" height="50">
 	</td>
 </tr>
 {% endfor %}
@@ -1125,7 +1232,7 @@ function on_off_button(state) {
 	<td align="center" class="locality_edit" id_locality="{{type.catalog}}">
 	{{type.locality}}
 	</td>
-	<td>
+	<td class="inv_td" align="center" cap="[{{type.catalog__ids}}] - ({{type.catalog__manufacturer__name}}) {{type.catalog__name}}">
 	<img cap="[{{type.catalog__ids}}] - ({{type.catalog__manufacturer__name}}) {{type.catalog__name}}" class="inventory" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/Inspection.png" width="50" height="50">
 	
 	</td>
