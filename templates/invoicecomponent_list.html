@@ -1134,12 +1134,12 @@ console.log("ids[]= ", ids );
 {% for type in componentlist %}
 
 {% ifequal type.sum_catalog type.c_sale %}
-<tr class="zero">
+<tr class="zero" id="{{type.catalog}}">
 {% else %}
 {% ifequal type.balance 1 %}
-<tr class="last">
+<tr class="last" id="{{type.catalog}}">
 {% else %}
-<tr>
+<tr id="{{type.catalog}}">
 {% endifequal %}
 {% endifequal %}
 
