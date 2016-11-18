@@ -76,6 +76,7 @@ $("#id_count").val({{desc_len}});
 {% endif %}
 
 $("#UserEnter").submit(function() {
+	$('#but_submit').attr('disabled', 'true');
       if ($("#id_sum").val()) {
       	$("#id_length").val($("#id_count").val());
 //      	$("#id_count").val(Math.round($("#id_count").val()));
@@ -197,7 +198,7 @@ $(document).ready(function() {
         	<input id="s_client" style="width: 550px;" />
             {{ form.as_ul }}
         </table>
-        <p><input type="submit" value="Save"><input id="bpay" onclick="payed()" type="button" value="Оплатити"></p>
+        <p><input type="submit" value="Save" id="but_submit"><input id="bpay" onclick="payed()" type="button" value="Оплатити"></p>
     </form>
 </div>
 

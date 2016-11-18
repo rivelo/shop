@@ -121,6 +121,7 @@ $('#client_cred_term_but').click(function() {
 
 $('#client_cred_but').click(function() {
 	$("#pay_form").submit();
+	$('#client_cred_but').off("click");
 });
 
 $('#pay').change(function() {

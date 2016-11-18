@@ -38,6 +38,8 @@ width: 150px;
 </style>
 
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
+<link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
+
 <script src="/media/jquery-ui.min.js"></script>
 
 <body onLoad="res()">
@@ -73,10 +75,71 @@ for(var i = 0; i < All.elements.length; ++i) {
 
 $(document).ready( function() {
 
+$("#dialog_client").dialog({
+	autoOpen: false,
+    resizable: true,
+    modal: true,
+    width: 450,
+//      position: "center",
+	open: function( event, ui ) {
+		$('.context-menu').remove(); //видалення меню
+		$(".container").empty();
+		$("#inv_count").spinner({min: 0,max: 1000,});
+		var inv_chk = $(".mc:checked")
+		jQuery.each(inv_chk, function() {
+			var id = $(this).attr('name').replace('checkbox_','')
+			$(".container").append("<br>[<mark class='mark_id'>" + $(this).attr('name').replace('checkbox_','') +"</mark>]");
+			$(".container").append("<br> " + $("tr[ci_id='"+id+"']").find('td.cat_name').text() ); 			 
+		})
+	},
+      buttons: {
+        "Додати": function() {
+        var inv_chk = $(".mc:checked")
+        var inv_ids = []
+		jQuery.each(inv_chk, function() {
+			var id = $(this).attr('name').replace('checkbox_','')
+			inv_ids.push(id);
+			console.log ( $("tr[ci_id='"+id+"']").find('td.client > a').text() ); 			 
+			$("tr[ci_id='"+id+"']").find('td.client > a').text($("#dialog_client").attr("client_name")) ;
+			$("tr[ci_id='"+id+"']").find('td.client > a').attr("href", "/client/result/search/?id=" + $("#dialog_client").val()) ;
+			if ($("#inv_count").val() > 0) {
+				$("tr[ci_id='"+id+"']").find('td.tcount').text($("#inv_count").val());
+				var sum = $("tr[ci_id='"+id+"']").find('td.tprice').text() * $("#inv_count").val();
+				$("tr[ci_id='"+id+"']").find('td.tsum').text(sum);
+				$("input[name='checkbox_"+ id +"']").val(sum);
+			}
+		})
+	$.ajax({
+       type: "POST",
+       	url: "/client/invoice/set/",
+       	data: {ids:  inv_ids, client: $("#dialog_client").attr("client_id"), count: $("#inv_count").val()},
+       	dataType: "text",
+	    success:function(msg){
+    	    var td_count = $("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"'] td.tcount"); 
+      	
+       },
+       error:function(){
+         alert("При отправке возникли проблемы");
+       }
+    });
+	
+          $( this ).dialog( "close" );
+        },
+        "Відмінити": function() {
+        	$( this ).dialog( "close" );
+        }
+      },
+      close: function( event, ui ) {
+//      	$("#slider1_container").remove();
+      }
+});
+
+
 $( "#dialog_return" ).dialog({
 	modal: true,
 	closeOnEscape: true,
-	width: 400,
+	autoOpen: false,
+	width: 380,
 	open: function( event, ui ) {
 		$('.context-menu').remove(); //видалення меню
 		$("#sp_count").spinner({
@@ -121,8 +184,7 @@ $( "#dialog_return" ).dialog({
        	if (td_count.html() == 0) { 
        		$("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"']").hide();
        	}
-       	
-       	
+      	
        },
        error:function(){
          alert("При отправке возникли проблемы");
@@ -143,7 +205,41 @@ $( "#dialog_return" ).dialog({
     }
 });
 
-$("#dialog_return").dialog("close");
+
+$( "#client_name" ).autocomplete({
+            source: function( request, response ) {
+                $.ajax({
+                type: "GET",
+                url: "/client/lookup",
+				data: { query: $("#client_name").val() },
+                dataType: "json",
+                success: function( data ) {
+                        	response( $.map( data, function( item ) {
+                            return {
+                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
+                                value: item.fields.name,
+                                idid: item.fields.sale,
+                                pk_id: item.pk                                
+    							}
+                        	}));                                
+                            }
+                    })
+            },
+            minLength: 3,
+            select: function( event, ui ) {
+            	$("#dialog_client").val(ui.item.pk_id);
+            	$("#dialog_client").attr("client_name",ui.item.value);
+            	$("#dialog_client").attr("client_id", ui.item.pk_id);
+            },
+            open: function() {
+                $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+            },
+            close: function() {
+                $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+            }
+});
+
+
 
 	$("#maincheck").click( function() {
     	if($('#maincheck').prop('checked')){
@@ -153,6 +249,7 @@ $("#dialog_return").dialog("close");
 /*            $('.mc').attr('checked', false); */
             $('.mc').prop( "checked", false )
         }
+        res();
      });
        
 	$(".menu").menu({
@@ -234,7 +331,7 @@ $('<ul/>').append('<li><a href="/client/invoice/'+ iid +'/delete/" onclick="retu
 .append('<li><a href="/client/invoice/catalog/'+ cat_id +'/add/">Продати ще</a></li>')
 //.append('<li><a href="/client/invoice/return/'+ iid +'/add/">Обмін/Повернення</a></li>')
 .append('<li><a href="#" onclick="show_ret();return false">Обмін/Повернення</a></li>')
-//.append('<li><a href="#">Open Inspector</a></li>'))
+.append('<li><a href="#" onclick="show_client();return false">Змінити клієнта/кількість</a></li>')
 ).show('fast'); 
 // Показываем меню с небольшим стандартным эффектом jQuery. Как раз очень хорошо подходит для меню   
 //}
@@ -242,9 +339,16 @@ $('<ul/>').append('<li><a href="/client/invoice/'+ iid +'/delete/" onclick="retu
 
 });
 
+
 function show_ret() {
 	$( "#dialog_return" ).dialog("open");
 }
+
+
+function show_client() {
+	$( "#dialog_client" ).dialog("open");
+}
+
 
 function calc_sum() {
 	var dsum = $("#sp_count").val() * $("#dialog_return").attr("price");  
@@ -284,6 +388,16 @@ function calc_sum() {
     <h1>Список проданого товару [{{sel_day}}/{{sel_month}}/{{sel_year}}] </h1>
     
 <form action="/payform/" method="post" name="formSum">   
+
+<div id="dialog_client" title="Змінити клієнта" id_target="">
+<label>Клієнт</label>
+<input id="client_name" value="" style="width: 350px;">
+<br>
+<label>Введіть кількість</label>
+<input id="inv_count" value="0" max="1000" style="width: 260px;">
+<div class="container">Вибрані товари:</div>
+</div>
+
 
 <div id="dialog_return" title="Повернення/Обмін" id_target="">
 <label>Введіть причину відмови/повернення</label>
@@ -325,7 +439,7 @@ function calc_sum() {
 {% ifequal type.sum type.pay %}
 <tr ci_id={{type.id}} count="{{type.count}}" cat_id={{type.catalog__pk}}>
 {% else %}
-<tr BGCOLOR="#F2AE6B" ci_id={{type.id}} cat_id={{type.catalog.pk}} count="{{type.count}}">
+<tr BGCOLOR="#F2AE6B" ci_id={{type.id}} cat_id={{type.catalog__pk}} count="{{type.count}}">
 {% endifequal %}
 
 	<td>
@@ -336,12 +450,12 @@ function calc_sum() {
 	<td>       
     <a href="/client/invoice/{{type.id}}/edit">{{type.id}}</a>
 	</td>
-	<td>
+	<td class="client">
 	<a href="/client/result/search/?id={{type.client__id}}">
 	{{type.client__name}} ({{type.client__forumname}})       
 	</a>
 	</td>
-	<td>       
+	<td class="cat_name">       
 	[{{type.catalog__ids}}] {{type.catalog__name}}
 	</td>
 	<td align="center" class="tcount">       

@@ -226,6 +226,7 @@ urlpatterns = patterns('',
     
 #delete    (r'^client/result/$', 'catalog.accounting.views.search_client_id'),
     (r'^client/invoice/view/$', 'catalog.accounting.views.client_invoice_view'),
+    (r'^client/invoice/set/$', 'catalog.accounting.views.client_invoice_set'),
     (r'^client/invoice/(?P<id>\d+)/edit/$', 'catalog.accounting.views.client_invoice_edit'),
     (r'^client/(?P<cid>\d+)/invoice/add/$', 'catalog.accounting.views.client_invoice'),
 # ajax table for client invoice    
@@ -458,6 +459,7 @@ urlpatterns += patterns('',
     (r'^inventory/set/$', 'catalog.accounting.views.inventory_set'),
 #    (r'^inventory/delete/(?P<id>\d+)/$', 'catalog.accounting.views.inventory_delete'),
     (r'^inventory/delete/$', 'catalog.accounting.views.inventory_delete'),
+    (r'^catalog/join/$', 'catalog.accounting.views.catalog_join'),
     (r'^catalog/join/(?P<id1>\d+)/(?P<id2>\d+)/$', 'catalog.accounting.views.catalog_join'),
     
     (r'^check/list/$', 'catalog.accounting.views.check_list',{'all':True}),

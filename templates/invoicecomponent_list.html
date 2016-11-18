@@ -311,7 +311,6 @@ $(document).ready(function() {
         "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
         "iDisplayLength": 100,        
         select: {style: 'multi'},
-//        "dom": '<"toolbar">frtip',
         "columnDefs": [
             {
                 "targets": [ 1 ],
@@ -332,17 +331,23 @@ $(document).ready(function() {
                 "sType": "currency-html",
             },
             {
-                "targets": [ 13 ],
+                "targets": [ 10 ],
                 "visible": false,
+                "searchable": false
+            },
+            {
+                "targets": [ 13 ],
+                "visible": true,
                 "sType": "currency-html",
             },
             
             
         ],
     });
-
 	table.column(11).visible(false);
-	table.column(13).visible(false);
+	table.column(10).visible(false); //sale
+	table.column(12).visible(false); //decription
+	table.column(14).visible(false);
 	
 	$('#iTable_length').append('<div class="cdiv"><label> Тип:</label><input type="text" id="s_type" placeholder="Search type" /> </div>');    
 	$('#iTable_length').append('<div class="cdiv"><label> Назва:</label><input type="text" id="s_name" placeholder="Search name" /></div>' );
@@ -350,11 +355,15 @@ $(document).ready(function() {
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="1">Id</a></div>');
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="2">Тип</a></div>');
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="3">Виробник</a></div>');
+	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-5">Знижка</a></div>');
+	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-4">Сума</a></div>');	
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-3">Опис</a></div>');
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-2">Місце</a></div>');
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-1" id="show_inv" val="0">Інв.</a></div>');
 	$('#iTable_length').append('<div class="cdiv"><a href="javascript:void(0);" id="show_hide" val="0">Наявні</a></div>');
-	$("#iTable_length").append('<a href="javascript:void(0);" id="sel_all" val="0">Виділити всі</a>');
+	$("#iTable_length").append('  <a href="javascript:void(0);" id="sel_all" val="0">Виділити всі</a> ');
+	$("#iTable_length").append(' <a href="javascript:void(0);" id="c_join" val="0">Обєднати товари</a>');
+	
 
 
  
@@ -456,6 +465,30 @@ $("body").on("click",".price_edit",function(e){
      });
     });
 
+
+$("body").on("click",".sale_edit",function(e){ 	    
+     $(this).editable('/catalog/edit/', {
+     	 id   : 'id',
+         name : 'sale',
+         data : function(value, settings) {
+	     	var retval = value.split(" ")[0];
+      	 	return retval;
+      	 },
+      
+         submitdata : function() {
+      	 	return {id : $(this).parents('tr').attr('id')};
+    	 },
+         indicator : 'Saving...',
+         select : true,
+         event : "dblclick",
+         style : "inherit",
+         callback : function(value, settings) {
+         	$(this).html(value + " %");
+     	 }
+     });
+    });
+
+
 $("body").on("click",".locality_edit",function(e){ 	    
 //$('.locality_edit').each(function() {
   $(this).editable('/catalog/edit/', {
@@ -478,6 +511,7 @@ $("body").on("click",".locality_edit",function(e){
      	 }
  }).trigger("focus");    
 });
+ 
  	
 $("body").on("click",".edit_type",function(e){ 	
 //$('.edit_type').each(function() {
@@ -559,6 +593,47 @@ $("#dialog").dialog({
 });
 
 
+$("#dialog_catalog_join").dialog({
+	autoOpen: false,
+      resizable: false,
+      modal: true,
+      buttons: {
+        "Додати": function() {
+				                        
+        	$("#dialog_catalog_join").dialog('widget').find("button:contains('Додати')").button("option", "disabled", false);
+        	
+			$.ajax({
+                type: "POST",
+                url: "/catalog/join/",
+                data: {id:  $("#main_id").val(), ids:  $("#jtext").attr("ids") },
+                dataType: "text",
+                success:function(msg){
+                
+                $("#dialog_catalog_join").dialog('widget').find("button:contains('Додати')").button("option", "disabled", true);
+                if (msg != 'ok'){
+                	alert("Помилка: " + msg);
+                	$("#dialog_catalog_join").dialog('widget').find("button:contains('Додати')").button("option", "disabled", false);
+                }
+                if (msg == 'ok') {
+                	$("#dialog_catalog_join").dialog("close");
+                }
+
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });
+			
+//			$( this ).dialog( "close" );
+
+        },
+        "Відмінити": function() {
+          $( this ).dialog( "close" );
+        }
+      }
+});
+
+
 $("#dialog_photo").dialog({
 	autoOpen: false,
       resizable: true,
@@ -594,7 +669,8 @@ $("#dialog_inventory").dialog({
       //position: "center",
       buttons: {
         "Додати": function() {
-        	on_off_button(true);
+//        	on_off_button(true);
+        	$("#dialog_inventory").dialog('widget').find("button:contains('Додати')").button("option", "disabled", true);
 			$.ajax({
                 type: "POST",
                 url: "/inventory/add/",
@@ -609,7 +685,8 @@ $("#dialog_inventory").dialog({
                 if (p.status == "error") {
                 	// alert("Введіть текст опису");
                 	alert(p.message);
-                	on_off_button(false);
+//                	on_off_button(false);
+                	$("#dialog_inventory").dialog('widget').find("button:contains('Додати')").button("option", "disabled", false);
 					}
 				else {
 				
@@ -627,14 +704,15 @@ $("#dialog_inventory").dialog({
 				
 					$( ".container" ).append( "<p>Підрахунок додано!</p>" );
 					console.log("Status: " + p.status);
-					on_off_button(true);
-					
+//					on_off_button(true);
+					$("#dialog_inventory").dialog('widget').find("button:contains('Додати')").button("option", "disabled", false);				
 					
 				}
                 },
                 error:function(){
                     alert("При відправці виникли проблеми");
-                    on_off_button(false);
+//                    on_off_button(false);
+                    $("#dialog_inventory").dialog('widget').find("button:contains('Додати')").button("option", "disabled", false);
                     
                 }
             });        
@@ -792,7 +870,7 @@ $(document).on("click", ".inv_td", function(event) {
     	$("#inv_desc").val("");
     	document.getElementById("chk_all").checked = false;
     	$('.container').empty()
-    	on_off_button(false);
+//    	on_off_button(false);
 		$("#dialog_inventory").dialog("open");
 		
 		var Id = $(this).parents('tr').attr('id');
@@ -852,16 +930,61 @@ $(document).on("click", ".inv_del", function(event) {
  }
  });
 
+/*
+$(document).on("click", ".sorting_1", function(event) {
+	var table = $('#iTable').DataTable();
+	table.row(this).select();
+	console.log("ROW SELECT " +  table.row(this).col().data());
+	
+});
+*/
 
-$(document).on("click", ".addprice", function(event) {
-    $("#dtext").html($(this).attr('href'));
-    $("#dtext").attr({"ids": $(this).attr('ids')});
+$("body").on('click', '.addprice', function() {
+//$(document).on("click", ".addprice", function(event) {
+//    $("#dtext").html($(this).attr('href'));
+	console.log("JUST WORK")
+	$("#dtext").html('<b>Додати цінник до списку друку:</b>');
+//    $("#dtext").attr({"ids": $(this).attr('ids')});
 	var spinner = $("#spinner").spinner();
 	$("#spinner").val(1);       
-   $("#dialog").dialog("open");
+    $("#dialog").dialog("open");
+
+	var table = $('#iTable').DataTable();
+    var ids = []
+	table.rows({ selected: true }).eq( 0 ).each( function (idx) {
+		console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
+		ids.push( $(table.row( idx ).node()).attr('id') );
+		$("#dtext").append("<br>" + table.cell( idx,5 ).data());
+	});
+	$("#dtext").append("<br>ROW = " + ids)
+	$("#dtext").attr({"ids": ids});
+
 });
 
 
+$("body").on('click', '#c_join', function() {
+	$("#jtext").html('<b>Обєднати товари:</b>');
+    $("#dialog_catalog_join").dialog("open");
+
+	var table = $('#iTable').DataTable();
+    var ids = []
+	table.rows({ selected: true }).eq( 0 ).each( function (idx) {
+		console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
+		ids.push( $(table.row( idx ).node()).attr('id') );
+		$("#jtext").append("<br>[<mark class='mark_id'>" + $(table.row( idx ).node()).attr('id') +"</mark>]"+ table.cell( idx,5 ).data());
+	});
+	$("#jtext").attr({"ids": ids});
+
+});
+
+
+$("body").on('click', '.mark_id', function() {
+	console.log("Click on: " +  $(this).text() );
+	$("#main_id").val($(this).text());
+})
+
+
+/*
 function on_off_button(state) {
 	var dialog_selector = "#dialog_inventory";
     $(dialog_selector).parent().find("button").each(function() {
@@ -871,7 +994,7 @@ function on_off_button(state) {
     });
     $("#inv_spinner").focus()
 }
-
+*/
 
 $("body").on('click', '#show_inv', function() {
 
@@ -896,7 +1019,7 @@ $('tr .price_edit').each(function(){
 });
 
 table.rows().eq( 0 ).each( function (idx) {
-	console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
+//	console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
 	ids.push( $(table.row( idx ).node()).attr('id') );
 });
 
@@ -961,6 +1084,15 @@ console.log("ids[]= ", ids );
   	<input id="spinner" name="value" value="1">
 	</div>
 
+
+<!-- Dialog to join catalog -->
+	<div id="dialog_catalog_join" title="Обєднання товарів">
+	<p id="jtext">Об'єднати компоненти:</p>
+	<label for="spinner">ID компонента:</label>
+  	<input type="text" id="main_id" name="value" value="">
+	</div>
+
+
 <!-- Dialog to add photo -->
 	<div id="dialog_photo_add" title="Add Photo">
 	<label for="photo_url">Посилання на фото:</label>
@@ -1007,10 +1139,12 @@ console.log("ids[]= ", ids );
     	<th align="center" COLSPAN="3" >Кількість</th>
     	
     	<th ROWSPAN="2">Ціна</th>
-    	<th ROWSPAN="2">Сума</th>    	
+    	<th ROWSPAN="2">Знижка</th>
+    	<th ROWSPAN="2">Сума</th>
     	<th ROWSPAN="2">Опис</th>
     	<th ROWSPAN="2">Місце</th>
     	<th ROWSPAN="2">Інв.</th>
+    	
     </tr>
     
     <tr>
@@ -1101,17 +1235,32 @@ console.log("ids[]= ", ids );
 	
 {% ifequal type.catalog__sale 0 %}
 <td align="center" class="price_edit" id_price={{type.catalog}}>
+{{type.catalog__price}} грн.
+</td>
 {% else %}
 <td align="center" BGCOLOR="#FF6600" class="price_edit" id_price={{type.catalog}}>
 <abbr title="Знижка - {{type.catalog__sale}}%. Ціна зі знижкою {{type.catalog__sale|div:100|sub:1|mul:type.catalog__price}}">
+<s style="font-size:small">{{type.catalog__price}} грн.</s><br>
+<b>{{type.catalog__sale|div:100|sub:1|mul:type.catalog__price|mul:-1}} грн.</b>
+</abbr>
+</td>
 {% endifequal %}
 	
 	
-	{{type.catalog__price}} грн.
+
+	
+	<td align="center" class="sale_edit">
+	{{type.catalog__sale}}
 	</td>
-	<td align="center">       
+	
+	
+	<td align="center">    
+{% comment %}
 	{{type.catalog__price|mul:type.balance}}
+{% endcomment %}	
 	</td>
+
+	
 {% if user.is_authenticated %}	
 	<td align="center" id_desc={{type.catalog}} class="td_desc">
 {% else %}
@@ -1234,7 +1383,6 @@ console.log("ids[]= ", ids );
 	</td>
 	<td class="inv_td" align="center" cap="[{{type.catalog__ids}}] - ({{type.catalog__manufacturer__name}}) {{type.catalog__name}}">
 	<img cap="[{{type.catalog__ids}}] - ({{type.catalog__manufacturer__name}}) {{type.catalog__name}}" class="inventory" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/Inspection.png" width="50" height="50">
-	
 	</td>
 </tr>
 {% endfor %}

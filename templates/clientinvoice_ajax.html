@@ -18,7 +18,7 @@
 	{{inv.date}}
 	</td>
 	<td>
-	{{inv.catalog}}
+	[{{inv.catalog__ids}}] {{inv.catalog__manufacturer__name}} - {{inv.catalog__name}}
 	</td>
 	<td>
 	{{inv.count}}
@@ -35,14 +35,14 @@
 	{{inv.pay}}
 	</td>	
 	<td>
-	{{inv.currency}}
+	{{inv.currency__name}}
 	</td>
 {% else %}
 	<td BGCOLOR="#FF6600">
 	{{inv.pay}}
 	</td>	
 	<td>
-	{{inv.currency}}
+	{{inv.currency__name}}
 	</td>
 {% endifequal %}
 	</tr>
