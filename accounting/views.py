@@ -1519,7 +1519,7 @@ def invoicecomponent_add(request, mid=None, cid=None):
 #    return render_to_response('index.html', {'form': form, 'weblink': 'invoicecomponent.html', 'company_list': company_list, 'price_ua': price, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def invoicecomponent_list(request, mid=None, cid=None, limit=0, focus=0):
+def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focus=0):
     #company_list = Manufacturer.objects.none()
     company_list = Manufacturer.objects.all().only('id', 'name')
     #type_list = Type.objects.none() 
@@ -1543,6 +1543,9 @@ def invoicecomponent_list(request, mid=None, cid=None, limit=0, focus=0):
     if cid:
         list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
         cat_name = type_list.get(id=cid)
+    if isale == True:
+        list = InvoiceComponentList.objects.filter(catalog__sale__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+
     
     if limit == 0:
         try:
@@ -2346,6 +2349,8 @@ def client_join(request, id=None):
         if POST.has_key('client_main') and POST.has_key('client_1'): # and POST.has_key('client_1'):
             main_id = request.POST.get('client_main')
             first_id = request.POST.get('client_1')
+            if (main_id == first_id):
+                return HttpResponse("ПОМИЛКА: Вибрано одного клієнта!!!")
             mc = Client.objects.get(pk=main_id)
             fc = Client.objects.get(pk=first_id)
             
@@ -2790,6 +2795,39 @@ def client_invoice_edit(request, id):
     return render_to_response('index.html', {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'box_number': nbox, 'b_len': b_len, 'desc_len':dlen, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
+def client_invoice_set(request):
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'seller')==False:
+                return HttpResponse('Error: У вас не має прав для редагування')
+            POST = request.POST  
+            if POST.has_key('ids[]'):
+                ids = request.POST.getlist('ids[]')
+                if POST.has_key('client'):
+                    client = request.POST['client']
+                else:
+                    client = False
+                if POST.has_key('count'):
+                    count = request.POST['count']
+                
+                ci_list = ClientInvoice.objects.filter(id__in = ids)
+                for ci in ci_list:
+                    if int(count) != 0:
+                        ci.count = count
+                        ci.sum = ci.price * int(count) * (1-ci.sale/100.0)
+                    if client:
+                        ci.client = Client.objects.get(id = client)
+                    ci.save()
+                    
+#                if request.user != ci_list.user:
+#                    return HttpResponse('Error: У вас не має прав для редагування')
+                #ci.save()
+                result = 'Виконано'
+                return HttpResponse(result, mimetype="text/plain")
+                
+            return HttpResponse("Помилка", mimetype="text/plain")
+
+
 def client_invoice_delete(request, id):
     obj = ClientInvoice.objects.get(id=id)
     cat = Catalog.objects.get(id = obj.catalog.id)
@@ -2848,13 +2886,16 @@ def client_invoice_lookup(request, client_id):
     list = None
     client_invoice_sum = 0
     if request.is_ajax():
-        list = ClientInvoice.objects.filter(client=client_id).order_by("-date", "-id")
+#        list = ClientInvoice.objects.filter(client=client_id).order_by("-date", "-id")
+        list = ClientInvoice.objects.filter(client=client_id).values('date', 'catalog', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__name', 'count', 'price', 'sum', 'pay', 'currency__name').order_by("-date", "-id")
         for a in list:
-            client_invoice_sum = client_invoice_sum + a.sum
+            client_invoice_sum = client_invoice_sum + a['sum']
 
         #return HttpResponse("AJAX - TEST TAB for myTable")            
         return render_to_response('clientinvoice_ajax.html', {'invoice': list, 'client_invoice_sum': client_invoice_sum})
     #return HttpResponse("TEST TAB for myTable")
+    
+    list = ClientInvoice.objects.filter(client=client_id).values('date', 'catalog', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__name', 'count', 'price', 'sum', 'pay', 'currency__name').order_by("-date", "-id")
     return render_to_response('clientinvoice_ajax.html', {'invoice': list})
 
 
@@ -3089,8 +3130,8 @@ def client_order_delete(request, id):
 #    return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
-
-def client_invoice_sale_report(request):
+# Report sold components by month 
+def client_invoice_report(request):
     if auth_group(request.user, "admin") == False:
         return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу до даної сторінки!', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
     query = "SELECT EXTRACT(year FROM date) as year, EXTRACT(month from date) as month, MONTHNAME(date) as month_name, COUNT(*) as bike_count, sum(pay) as s_price FROM accounting_clientinvoice GROUP BY year,month;"
@@ -3883,13 +3924,24 @@ def shop_price_print_add(request, id=None):
                 s = 1 
                 if GET.has_key('scount'):
                     s = request.GET.get( 'scount' )
-                cat = Catalog.objects.get(id=q)
-                sp = ShopPrice()
-                sp.catalog = cat
-                sp.scount = s
-                sp.dcount = 0
-                sp.user = request.user
-                sp.save()
+                ids = q.split(',')
+                if len(ids) > 1:
+                    for i in ids:
+                        cat = Catalog.objects.get(id = i)
+                        sp = ShopPrice()
+                        sp.catalog = cat
+                        sp.scount = s
+                        sp.dcount = 0
+                        sp.user = request.user
+                        sp.save()
+                else:
+                    cat = Catalog.objects.get(id=ids[0])
+                    sp = ShopPrice()
+                    sp.catalog = cat
+                    sp.scount = s
+                    sp.dcount = 0
+                    sp.user = request.user
+                    sp.save()
                 return HttpResponse("Виконано", mimetype="text/plain")
 
     if request.method == 'POST':
@@ -5630,11 +5682,49 @@ def inventory_delete(request, id=None):
     return HttpResponseRedirect('/inventory/list/')
 
 
-def catalog_join(request,id1, id2):
+def catalog_join(request,id1=None, id2=None, ids=None):
     if auth_group(request.user, 'admin')==False:
         return HttpResponseRedirect('/')
     if auth_group(request.user, 'seller')==False:
-                return HttpResponse('Error: У вас не має прав для обєднання')
+        return HttpResponse('Error: У вас не має прав для обєднання')
+    if (id1 == id2) and (id1 != None):
+        return HttpResponse('Не можливо обєднати товар')
+    
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'seller')==False:
+                return HttpResponse('Error: У вас не має прав для редагування')
+            POST = request.POST  
+            if POST.has_key('id'):
+                id1 = request.POST['id']
+            else:
+                result = "Введіть ID товару для обєднання"
+                return HttpResponse(result, mimetype="text/plain")
+            if POST.has_key('id2'):
+                id2 = request.POST['id2']
+            if POST.has_key('ids'):
+                ids = request.POST['ids'].split(',')
+                try:
+                    ids.remove(id1)
+                except:
+                    result = "Введіть правильний ID товару для обєднання"
+                    return HttpResponse(result, mimetype="text/plain")
+
+            for i in ids:
+                inv = InventoryList.objects.filter(catalog = i).update(catalog=id1)
+                InvoiceComponentList.objects.filter(catalog = i).update(catalog = id1)
+                ClientInvoice.objects.filter(catalog = i).update(catalog = id1)
+                ClientOrder.objects.filter(catalog = i).update(catalog = id1)
+                Rent.objects.filter(catalog = i).update(catalog = id1)
+                ShopPrice.objects.filter(catalog = i).update(catalog = id1)
+                ClientReturn.objects.filter(catalog = i).update(catalog = id1)
+                obj_del = Catalog.objects.get(id = i)
+                #obj_del.delete()
+                
+#                result = ''
+            result = "ok"
+            return HttpResponse(result, mimetype="text/plain")
+    
     c1 = Catalog.objects.get(id=id1)
     c2 = Catalog.objects.get(id=id2)
     inv = InventoryList.objects.filter(catalog = id2).update(catalog=id1)
