@@ -5684,7 +5684,8 @@ def inventory_delete(request, id=None):
 
 def catalog_join(request,id1=None, id2=None, ids=None):
     if auth_group(request.user, 'admin')==False:
-        return HttpResponseRedirect('/')
+        #return HttpResponseRedirect('/')
+        return HttpResponse('Error: У вас не має прав для обєднання')
     if auth_group(request.user, 'seller')==False:
         return HttpResponse('Error: У вас не має прав для обєднання')
     if (id1 == id2) and (id1 != None):
@@ -5736,6 +5737,36 @@ def catalog_join(request,id1=None, id2=None, ids=None):
     ClientReturn.objects.filter(catalog = id2).update(catalog = id1)
     
     return HttpResponseRedirect('/invoice/search/result/?name=&id='+c1.ids)
+
+
+def catalog_sale_edit(request, ids=None):
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'admin')==False:
+                return HttpResponse('Error: У вас не має прав для редагування')
+            POST = request.POST  
+            #if POST.has_key('ids'):
+            if POST.has_key('ids') and POST.has_key('sale'):                
+                ids = request.POST['ids'].split(',')
+                s = request.POST.get('sale')
+            else:
+                result = "невірні параметри"
+                return HttpResponse(result, mimetype="text/plain")
+#                result = "Введіть правильний ID товару для обєднання"
+#                return HttpResponse(result, mimetype="text/plain")
+
+            for i in ids:
+                obj = Catalog.objects.get(id = i)                                
+                obj.sale = s
+                obj.last_update = datetime.datetime.now()
+                obj.user_update = request.user
+                obj.save() 
+                
+                
+                #obj_del.delete()
+                
+            result = "ok"
+            return HttpResponse(result, mimetype="text/plain")
 
 
 def check_list(request, year=None, month=None, day=None, all=False):
