@@ -3349,3 +3349,16 @@ Key = url - Value = http://velodom.com.ua/i/500/500/104141.jpg
 Key = date - Value = 2014-11-28 15:00:15
 Key = user - Value = 4
 Key = description - Value = 
+2016-11-22 13:32:17.375000 >>> DELETE FROM TABLE client invoice WHERE id = 42452 
+Key = id - Value = 42452
+Key = client - Value = 138
+Key = catalog - Value = 6360
+Key = count - Value = 1.0
+Key = price - Value = 506.0
+Key = sum - Value = 506.0
+Key = currency - Value = 3
+Key = sale - Value = 0
+Key = pay - Value = 0.0
+Key = date - Value = 2016-11-22 13:31:59
+Key = description - Value = None
+Key = user - Value = 2

@@ -2828,22 +2828,59 @@ def client_invoice_set(request):
             return HttpResponse("Помилка", mimetype="text/plain")
 
 
-def client_invoice_delete(request, id):
+def client_invoice_delete(request, id=None):
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'seller')==False:
+                return HttpResponse('Error: У вас не має прав для видалення')
+            POST = request.POST  
+            if POST.has_key('ids[]'):
+                ids = request.POST.getlist('ids[]')
+                ci_list = ClientInvoice.objects.filter(id__in = ids)
+                for ci in ci_list:
+                    if ci.pay == ci.sum:
+                        result = "Товар [" + str(ci.id) + "]" + str(ci.catalog) + "не можливо видалити. Його можливо тільки повернути!"
+                        return HttpResponse(result, mimetype="text/plain")
+                    else:
+                        ci.delete()
+                    
+#                if request.user != ci_list.user:
+#                    return HttpResponse('Error: У вас не має прав для редагування')
+                #ci.save()
+                result = 'ok'
+                return HttpResponse(result, mimetype="text/plain")
+        else:
+            result = 'Помилка запиту'
+            return HttpResponse(result, mimetype="text/plain")
+            
+                
+        
     obj = ClientInvoice.objects.get(id=id)
     cat = Catalog.objects.get(id = obj.catalog.id)
     if cat.type.pk == 13:
         if obj.description.find('length:')==0:
             old_length = obj.description.split('\n')[-1].split(':')[1]
             cat.length = cat.length - float(old_length)
-    del_logging(obj)
-    obj.delete()
-    cat.count = cat.count + obj.count
-    cat.save()
+    
+    if auth_group(request.user, 'seller')==False:
+        return HttpResponse('Error: У вас не має прав для видалення')
+    if (obj.pay == obj.sum) and auth_group(request.user, 'admin')==True:
+        del_logging(obj)
+        obj.delete()
+        cat.count = cat.count + obj.count
+        cat.save()
+        return HttpResponseRedirect('/client/invoice/view/')
+    if (obj.pay == obj.sum) and auth_group(request.user, 'admin')==False:
+        return HttpResponse("Помилка: Даний товар можливо лише повернути")
+    else:    
+        del_logging(obj)
+        obj.delete()
+        cat.count = cat.count + obj.count
+        cat.save()
     return HttpResponseRedirect('/client/invoice/view/')
 
 
 def client_invoice_view(request, month=None, year=None, day=None, id=None):
-    
     if year == None:
         year = datetime.datetime.now().year
     if month == None:
@@ -5749,7 +5786,7 @@ def catalog_sale_edit(request, ids=None):
             if POST.has_key('ids') and POST.has_key('sale'):                
                 ids = request.POST['ids'].split(',')
                 s = request.POST.get('sale')
-            else:
+            if s == '':
                 result = "невірні параметри"
                 return HttpResponse(result, mimetype="text/plain")
 #                result = "Введіть правильний ID товару для обєднання"
@@ -5764,6 +5801,30 @@ def catalog_sale_edit(request, ids=None):
                 
                 
                 #obj_del.delete()
+                
+            result = "ok"
+            return HttpResponse(result, mimetype="text/plain")
+
+
+def client_invoice_add(request, ids=None):
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'seller')==False:
+                return HttpResponse('Error: У вас не має прав для редагування')
+            POST = request.POST  
+            #if POST.has_key('ids'):
+            if POST.has_key('ids') and POST.has_key('count'):                
+                ids = request.POST['ids'].split(',')
+                count = request.POST.get('count')
+            if count == '':
+                result = "невірні параметри"
+                return HttpResponse(result, mimetype="text/plain")
+#                result = "Введіть правильний ID товару для обєднання"
+#                return HttpResponse(result, mimetype="text/plain")
+            client = Client.objects.get(id=138)
+            for i in ids:
+                c_obj = Catalog.objects.get(id = i)
+                ClientInvoice(client=client, catalog = c_obj, count=count, price=c_obj.price, sum=c_obj.price*int(count), currency=c_obj.currency, sale=c_obj.sale, pay=0, user=request.user, date=datetime.datetime.now()).save()
                 
             result = "ok"
             return HttpResponse(result, mimetype="text/plain")

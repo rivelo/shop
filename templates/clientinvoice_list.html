@@ -170,7 +170,7 @@ $( "#dialog_return" ).dialog({
 	$.ajax({
        type: "POST",
        	url: "/client/invoice/return/"+$('#dialog_return').attr('id_target')+"/add/",
-       	data: {msg:  $("#msg_return").val(), count: $("#sp_count").val(), cash: cash},
+       	data: {msg: i$("#msg_return").val(), count: $("#sp_count").val(), cash: cash},
        	dataType: "text",
        success:function(msg){
         var td_count = $("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"'] td.tcount"); 
@@ -203,6 +203,71 @@ $( "#dialog_return" ).dialog({
     },
        
     }
+});
+
+
+$( "#dialog_delete" ).dialog({
+	modal: true,
+	closeOnEscape: true,
+	autoOpen: false,
+	width: 400,
+	open: function( event, ui ) {
+		$('.del_container').empty()
+		$('.context-menu').remove(); //видалення меню
+		var inv_chk = $(".mc:checked")
+		jQuery.each(inv_chk, function() {
+			var id = $(this).attr('name').replace('checkbox_','')
+			$(".del_container").append("<br>[<mark class='mark_id'>" + $(this).attr('name').replace('checkbox_','') +"</mark>]");
+			$(".del_container").append("<br> " + $("tr[ci_id='"+id+"']").find('td.cat_name').text() ); 			 
+		})
+		
+	},
+    buttons: {
+    "Видалити": function() {
+        var inv_chk = $(".mc:checked")
+        var inv_ids = []
+		jQuery.each(inv_chk, function() {
+			var id = $(this).attr('name').replace('checkbox_','')
+			inv_ids.push(id);
+			console.log ( $("tr[ci_id='"+id+"']").find('td.client > a').text() ); 			 
+		})
+
+	$.ajax({
+       type: "POST",
+       	url: "/client/invoice/delete/",
+       	data: {ids:  inv_ids},
+       	dataType: "text",
+       success:function(msg){
+       	if (msg == "ok"){
+       		alert("Товари видалено");
+       	}
+      	else {
+      		alert("Помилка: " + msg);
+      	}
+       },
+       error:function(){
+        alert("При отправке возникли проблемы");
+       }
+    });
+                
+      	$( this ).dialog( "close" );
+	
+/*	else {
+	alert("Введіть причину обміну/повернення");
+	}
+*/	
+    },
+    "Відмінити": function() {
+       	$( this ).dialog( "close" );	
+    },
+       
+    }
+});
+
+
+$("body").on('click', '#clear_basket', function() {
+//	$("#buy_c").html('<b>Продати товари:</b>');
+    $("#dialog_delete").dialog("open");
 });
 
 
@@ -385,7 +450,7 @@ function calc_sum() {
 </h2>    
 {% endif %}
 
-    <h1>Список проданого товару [{{sel_day}}/{{sel_month}}/{{sel_year}}] </h1>
+    <h1>Список проданого товару [{{sel_day}}/{{sel_month}}/{{sel_year}}] <span id="clear_basket"><img src="/media/images/Ecommerce Return.ico" width="32" height="32"> </span> </h1> 
     
 <form action="/payform/" method="post" name="formSum">   
 
@@ -396,6 +461,11 @@ function calc_sum() {
 <label>Введіть кількість</label>
 <input id="inv_count" value="0" max="1000" style="width: 260px;">
 <div class="container">Вибрані товари:</div>
+</div>
+
+
+<div id="dialog_delete" title="Видалити товари" id_target="">
+<div class="del_container">Вибрані товари:</div>
 </div>
 
 
