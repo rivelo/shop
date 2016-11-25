@@ -129,7 +129,8 @@ class Catalog(models.Model):
     sale_to = models.DateField(auto_now_add=True)
     color = models.CharField(max_length=255, blank=True, null=True)
     price = models.FloatField()
-#    c_price = models.FloatField(blank=True, null=True)
+    last_price = models.FloatField(blank=True, null=True)
+    rating = models.FloatField(blank=True, null=True)
     currency = models.ForeignKey(Currency)
     sale = models.FloatField()
     country = models.ForeignKey(Country, null=True)
@@ -139,6 +140,7 @@ class Catalog(models.Model):
     user_update = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     description = models.CharField(max_length=255)
     locality = models.CharField("locality", blank=True, null=True, max_length=50)
+    show = models.BooleanField(default=False, verbose_name="Статус відображення")
     
     def __unicode__(self):
         return "[%s] %s - %s" % (self.ids, self.manufacturer, self.name)
@@ -235,6 +237,7 @@ class InventoryList(models.Model):
     user = user = models.ForeignKey(User, blank=False, null=False)
     real_count = models.IntegerField()
     check_all = models.BooleanField(default=False, verbose_name="Загальна кількість?")
+    chk_del = models.BooleanField(default=False, verbose_name="Мітка на видалення")
             
     def __unicode__(self):
         return "[%s] - %s (%s) ***%s***" % (self.date, self.count, self.description, self.user) 
@@ -343,7 +346,8 @@ class ClientInvoice(models.Model):
 #    date = models.DateField(auto_now_add=False)
     date = models.DateTimeField(auto_now_add = False)    
     description = models.TextField(blank = True, null = True)
-    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)    
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    chk_del = models.BooleanField(default=False, verbose_name="Мітка на видалення")    
             
     def __unicode__(self):
         return "%s - %s шт." % (self.catalog.name, self.count) 
@@ -417,6 +421,22 @@ class Bicycle_Type(models.Model):
         ordering = ["type"]    
 
 
+#Bicycle wheel size table
+class Wheel_Size(models.Model):
+    type = models.CharField(max_length=255) #20, 24, 26, 27.5, 29, 29+
+    description = models.TextField(blank=True, null=True)
+    iso = models.CharField(max_length=255) #559, 622, 630 ... (mm)
+
+#    def natural_key(self):
+#        return (self.id, self.type)
+
+    def __unicode__(self):
+        return self.type
+
+    class Meta:
+        ordering = ["type"]    
+
+
 # Bicycle table (Bicycle)
 class Bicycle(models.Model):
     model = models.CharField(max_length=255)
@@ -424,6 +444,7 @@ class Bicycle(models.Model):
     brand = models.ForeignKey(Manufacturer)
     year = models.DateField(blank = True, null=True)
     color = models.CharField(max_length=255)
+    wheel_size = models.ForeignKey(Wheel_Size, blank=True, null=True) #20, 24, 26, 27.5, 29, 29+
     #sizes = models.CharField(max_length=255)    
     sizes = models.CommaSeparatedIntegerField(max_length=10)
     photo = models.ImageField(upload_to = 'media/upload/', max_length=255, blank=True, null=True)
@@ -561,6 +582,17 @@ class WorkStatus(models.Model):
 
     class Meta:
         ordering = ["name"]
+
+       
+class PhoneStatus(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        ordering = ["name"]
        
 
 class WorkTicket(models.Model):
@@ -569,6 +601,7 @@ class WorkTicket(models.Model):
     end_date = models.DateField()
     status = models.ForeignKey(WorkStatus)
     description = models.TextField(blank=True, null=True)
+    phone_status = models.ForeignKey(PhoneStatus, blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)    
     
     def __unicode__(self):
@@ -580,7 +613,6 @@ class WorkTicket(models.Model):
 
 class ShopDailySales(models.Model):
     date = models.DateTimeField(auto_now_add=True)
-    #date = models.DateField(auto_now_add=True)
     price = models.FloatField() #В касі на кінець дня
     description = models.TextField(blank=True, null=True)
     user = models.ForeignKey(User, blank=False, null=False)
@@ -652,7 +684,6 @@ class Check(models.Model):
 
     class Meta:
         ordering = ["date", "check_num"]    
-
 
 
 class PreOrder(models.Model):

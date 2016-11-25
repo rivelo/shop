@@ -1595,6 +1595,35 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
     return render_to_response('index.html', {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_name':cat_name, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
+def invoicecomponent_print(request):
+    list = None
+    id_list=[]
+    map_id = []
+    
+    if 'ids' in request.POST and request.POST['ids']:
+        id_list = request.POST['ids'].split(',')
+#        map_id = map(int, id_list)
+        list = Catalog.objects.filter(id__in = id_list).values('name', 'ids', 'manufacturer__name', 'price', 'sale', 'count', 'type__name').order_by('manufacturer')
+    else:
+        return HttpResponse("Не вибрано жодного товару")
+
+    response = HttpResponse()
+    response.write(u"<table>")
+    response.write(u"<tr> <td>Артикул</td> <td>Виробник</td> <td>Назва</td> <td>Ціна</td> <td>Знижка %</td> <td>Нова ціна</td> </tr>")
+
+    for i in list:
+         response.write("<tr>")
+         new_price = float(i['price']) / 100.0 * (100 - int(i['sale']))
+         response.write("<td>"+ i['ids'] +"</td><td>"+ i['manufacturer__name'] +"</td><td>"+ i['name'] +"</td><td>" + str(i['price']) +u" грн.</td><td>"+ str(i['sale']) +"</td><td>"+ str(new_price) +u" грн.</td>")
+         #response.write("<td>"+ i['ids'] +"</td><td>"+ i['name'] +"</td><td>" + i['ids'] +u" грн.</td><td>"+i['ids'] +"</td><td>") #+ str(new_price) +"</td>")
+         response.write("</tr>")
+    response.write("</table>")
+#    response = response.replace("<", "[")
+#    response = response.replace(">", "]")
+    return response
+#    return render_to_response("POST done!!!")
+
+
 def invoicecomponent_manufacturer_html(request, mid):
     list = Catalog.objects.filter(manufacturer__id=mid, count__gt=0).order_by('type__id')
     
@@ -3515,7 +3544,10 @@ def workticket_add(request, id=None):
             end_date = form.cleaned_data['end_date']
             status = form.cleaned_data['status']
             description = form.cleaned_data['description']
-            WorkTicket(client=client, date=date, end_date=end_date, status=status, description=description).save()
+            user = form.cleaned_data['user']
+            if user == '' or user == None:
+                user = request.user 
+            WorkTicket(client=client, date=date, end_date=end_date, status=status, description=description, user=user).save()
             return HttpResponseRedirect('/workticket/view/')
     else:
         #form = WorkTicketForm()

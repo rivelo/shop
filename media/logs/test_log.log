@@ -3362,3 +3362,14 @@ Key = pay - Value = 0.0
 Key = date - Value = 2016-11-22 13:31:59
 Key = description - Value = None
 Key = user - Value = 2
+2016-11-25 12:54:50.593000 >>> DELETE FROM TABLE inventory list WHERE id = 18970 
+Key = id - Value = 18970
+Key = catalog - Value = 10061
+Key = count - Value = 1
+Key = date - Value = 2016-11-25 12:54:44
+Key = edit_date - Value = 2016-11-25 12:54:44
+Key = description - Value = тест
+Key = user - Value = 4
+Key = real_count - Value = 1
+Key = check_all - Value = False
+Key = chk_del - Value = False

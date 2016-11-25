@@ -1,11 +1,86 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Редагування заявки</title>
 
+	<link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+
+	<script type="text/javascript" src="/media/jquery-ui.min.js"></script>	
+
+<script type="text/javascript">
+$(function() {
+	var sale = $('#id_sale').val();
+        $( "#s_client" ).autocomplete({
+            source: function( request, response ) {
+                $.ajax({
+                type: "GET",
+                url: "/client/lookup",
+				data: { query: $("#s_client").val() },
+                dataType: "json",
+                success: function( data ) {
+                        	response( $.map( data, function( item ) {
+                            return {
+                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
+                                value: item.fields.name,
+                                idid: item.fields.sale,
+                                pk_id: item.pk                                
+    							}
+                        	}));                                
+                            }
+                    })
+            },
+            minLength: 3,
+            select: function( event, ui ) {
+	            $('#id_client').val(ui.item.pk_id);
+            },
+            open: function() {
+                $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+            },
+            close: function() {
+                $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+            }
+        });
+
+//      $(".ac_input").focus();
+//  		$('#id_client').hide();
+});      
+
+
+//$('#s_client').bind('change', 
+function id2name(){
+
+            $.ajax({
+                type: "GET",
+                url: "/client/lookup/byid/",
+                data: { client_id: $("#s_client").val() },
+                dataType: "json",
+                success:function(msg){
+                	$.each(msg,function(index,item){
+                	$("#s_client").val(item)    
+                    });
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });      
+
+};
+
+
+$(document).ready(function() {
+	if ($("#s_client").val() != '') {
+		id2name();
+	}
+});
+</script>
+
+
 <body onload="document.getElementById('id_description').focus()">
 
     <h1>Заявка на ремонт</h1>
     <form action="./" method="POST" enctype="multipart/form-data">
         <table>
+        <label>Клієнт: </label>
+        <input id="s_client" style="width: 550px;" /> <span> <a href="/client/add/"> Створити клієнта </a> </span>
             {{ form.as_table }}
         </table>
         <p><input type="submit" value="Save"></p>

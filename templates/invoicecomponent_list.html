@@ -397,7 +397,7 @@ $(document).ready(function() {
 	$("#iTable_length").append(' <a href="javascript:void(0);" id="c_join" val="0">Обєднати товари</a>');
 	$("#iTable_length").append(' <a href="javascript:void(0);" id="sale_change" val="0">Змінити знижку</a>');
 {% endif %}	
-
+	$("#iTable_length").append('  <a href="javascript:void(0);" id="print_phpbb" val="0">Створити таблицю</a> ');
 
  
     // Apply the search in add field
@@ -660,7 +660,7 @@ $("#dialog_catalog_join").dialog({
                 	row_list.splice( $.inArray($("#main_id").attr("index"), row_list), 1 );
                 	/* for (index = row_list.length-1; index >= 0; --index) {
                 		console.log("delete index = " + row_list[index])
-                		table.row(row_list[index]).remove().draw();
+                		table.row(row_list[index]).remove().draw(false);
                 	} */
                 	table.row(row_list).remove().draw();
 
@@ -908,6 +908,22 @@ $("#dialog_photo_add").dialog({
 });
 
 
+$("#dialog_print").dialog({
+	autoOpen: false,
+      resizable: true,
+      width: 750,
+      modal: true,
+      open: function( event, ui ) {
+		console.log("Table width = " +  $("#print_container").find("table").width() ); //очищення поля
+//		$("#dialog_print").dialog( "option", "width", $("#dialog_print").find("table").width() );
+	  },
+      buttons: {
+        "Відмінити": function() {
+          $( this ).dialog( "close" );
+        }
+      }
+});
+
 });
 
 $(document).on("click", ".c_photo", function(event) {
@@ -1061,14 +1077,6 @@ $(document).on("click", ".inv_del", function(event) {
  }
  });
 
-/*
-$(document).on("click", ".sorting_1", function(event) {
-	var table = $('#iTable').DataTable();
-	table.row(this).select();
-	console.log("ROW SELECT " +  table.row(this).col().data());
-	
-});
-*/
 
 $("body").on('click', '.addprice', function() {
 //$(document).on("click", ".addprice", function(event) {
@@ -1091,6 +1099,28 @@ $("body").on('click', '.addprice', function() {
 	$("#dtext").attr({"ids": ids});
 
 });
+
+
+$("body").on('click', '#print_phpbb', function() {
+
+	var table = $('#iTable').DataTable();
+    var ids = []
+	table.rows({ selected: true }).eq( 0 ).each( function (idx) {
+		console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
+		ids.push( $(table.row( idx ).node()).attr('id') );
+	});
+	$.post( "/invoice/print/forum/", { ids: ids.join() } )
+	.done(function( data ) {
+//    alert( "Data Loaded: " + data );
+	data = data.replace(/</g, "[");
+	data = data.replace(/>/g, "]");
+		console.log("replace = " + data );	
+    $("#dialog_print").dialog("open");
+    $("#print_container").html(data);
+  	});
+
+});
+
 
 
 $("body").on('click', '#c_join', function() {
@@ -1252,6 +1282,13 @@ console.log("ids[]= ", ids );
 <div style="clear:left;">
      <h1>Список наявного товару <span id="c_c">({{company_name|capfirst}}{{category_name|capfirst}})</span> <span id="b_buy"><img src="/media/images/Ecommerce Buy.ico" width="32" height="32"> </span></h1>
 </div>
+
+<!-- Dialog print PHPbb -->
+	<div id="dialog_print" title="Таблиця для форуму">
+	<div id="print_container">
+	</div>
+	</div>
+
 
 <!-- Dialog to add print price -->
 	<div id="dialog" title="Add price">

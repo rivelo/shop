@@ -181,6 +181,7 @@ urlpatterns = patterns('',
     #(r'^invoice/search/result/$', 'catalog.accounting.views.invoice_search_result'),
     (r'^invoice/search/result/$', 'catalog.accounting.views.invoicecomponent_list'),
     (r'^invoice/sale/list/$', 'catalog.accounting.views.invoicecomponent_list', {'isale': True}),
+    (r'^invoice/print/forum/$', 'catalog.accounting.views.invoicecomponent_print'),
 
     # Component Type operation
     (r'^category/add/$', 'catalog.accounting.views.category_add'),
