@@ -1046,8 +1046,8 @@ $(document).on("click", ".inv_td", function(event) {
                     });
 
                 },
-                error:function(){
-                    alert("При отправке возникли проблемы");
+                error:function(msg){
+                    alert(msg.responseText);
                 }
             });      
 		
@@ -1213,7 +1213,7 @@ var table = $('#iTable').DataTable();
 	if ( status == 0) {
 		$('#show_hide').attr('val', 1);
 		var ids = []
-$('tr .price_edit').each(function(){
+//$('tr .price_edit').each(function(){
 // $(this).html($(this).attr("id_price")); 
 //console.log( $(this).attr("id_price") );
 //ids.push( $(this).attr("id_price") );
@@ -1222,7 +1222,7 @@ $('tr .price_edit').each(function(){
 //table.rows().indexes();
 //$(table.rows().nodes()[1]).attr('id');
 //table.rows({ selected: true }).indexes();
-});
+//});
 
 table.rows().eq( 0 ).each( function (idx) {
 //	console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
@@ -1244,8 +1244,8 @@ console.log("ids[]= ", ids );
 						//$("tr[id="+item['catalog__id']+"] td.inv_td").html('<b>'+item['count']+'</b>');
                     });
                 },
-                error:function(){
-                    alert("При отправке возникли проблемы");
+                error:function(xhr, ajaxOptions, thrownError){
+                    alert( xhr.responseText );
                 }
             });      
 	

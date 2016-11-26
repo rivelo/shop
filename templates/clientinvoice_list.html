@@ -170,7 +170,7 @@ $( "#dialog_return" ).dialog({
 	$.ajax({
        type: "POST",
        	url: "/client/invoice/return/"+$('#dialog_return').attr('id_target')+"/add/",
-       	data: {msg: i$("#msg_return").val(), count: $("#sp_count").val(), cash: cash},
+       	data: {msg: $("#msg_return").val(), count: $("#sp_count").val(), cash: cash},
        	dataType: "text",
        success:function(msg){
         var td_count = $("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"'] td.tcount"); 

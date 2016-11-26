@@ -5684,7 +5684,8 @@ def inventory_get_listid(request):
     if request.is_ajax():
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
-                return HttpResponse('Error: У вас не має прав для перегляду')
+                message = 'Error: У вас не має прав для перегляду' #, mimetype="text/plain")
+                return HttpResponse(message)
             POST = request.POST  
             if POST.has_key('catalog_ids'):
                 cid = request.POST['catalog_ids']
@@ -5706,7 +5707,7 @@ def inventory_set(request):
     if request.is_ajax():
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
-                return HttpResponse('Error: У вас не має прав для редагування')
+                return HttpResponse('Error: У вас не має прав для редагування', mimetype="text/plain")
             POST = request.POST  
             if POST.has_key('id'):
                 
@@ -5715,7 +5716,7 @@ def inventory_set(request):
                 i_list.check_all = not(i_list.check_all)
                 i_list.edit_date = datetime.datetime.now()
                 if request.user != i_list.user:
-                    return HttpResponse('Error: У вас не має прав для редагування')
+                    return HttpResponse('Error: У вас не має прав для редагування', mimetype="text/plain")
                 i_list.save()
                 result = ''
                 if i_list.check_all: 
