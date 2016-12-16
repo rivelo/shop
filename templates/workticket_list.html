@@ -179,7 +179,7 @@ $(".w_desc").each(function() {
 	{{type.description}}
 	</td>
 	<td>
-    <a href="/workticket/delete/{{ type.id }}">delete</a>
+    <a href="/workticket/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')">delete</a>
     </td>
 </tr>
 {% endfor %}       
