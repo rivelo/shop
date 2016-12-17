@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from django import forms
+from django.forms import ModelForm
 from models import Manufacturer, Country, Type, Bicycle_Type, Bicycle, Currency, FrameSize, Bicycle_Store, Catalog, Size, Bicycle_Sale, Bicycle_Order, InventoryList 
-from models import DealerManager, DealerPayment, DealerInvoice, Dealer, Bank, ShopDailySales, PreOrder, InvoiceComponentList
-from models import Client, ClientDebts, CostType, Costs, ClientCredits, WorkGroup, WorkType, WorkShop, WorkTicket, WorkStatus, Rent, ClientInvoice, CashType
+from models import DealerManager, DealerPayment, DealerInvoice, Dealer, Bank, ShopDailySales, PreOrder, InvoiceComponentList 
+from models import Client, ClientDebts, CostType, Costs, ClientCredits, WorkGroup, WorkType, WorkShop, WorkTicket, WorkStatus, Rent, ClientInvoice, CashType, Exchange, Type, ClientMessage, WorkDay
 
+from django.contrib.auth.models import User
 import datetime
 
 TOPIC_CHOICES = (
@@ -38,20 +40,27 @@ class SelectFromModel(forms.Field):
         raise forms.ValidationError(u'Error Country')
 
 
-class ManufacturerForm(forms.ModelForm):
+class ManufacturerForm(ModelForm):
     name = forms.CharField()
     www = forms.URLField(initial='http://', help_text='url')
     country = forms.ModelChoiceField(queryset = Country.objects.all())
     logo = forms.ImageField()
     description = forms.CharField(widget=forms.Textarea())
-
+    class Meta:
+        model = Manufacturer
+        fields = '__all__'
 
 class CountryForm(forms.ModelForm):
     name = forms.CharField(label='Country name')
-
+    class Meta:
+        model = Country
+        fields = '__all__'
 
 class BankForm(forms.ModelForm):
     name = forms.CharField(label='Bank name')
+    class Meta:
+        model = Bank
+        fields = '__all__'
 
 
 class CurencyForm(forms.ModelForm):
@@ -59,6 +68,9 @@ class CurencyForm(forms.ModelForm):
     ids_char = forms.CharField()
     name = forms.CharField()
     country = forms.ModelChoiceField(queryset = Country.objects.all())
+    class Meta:
+        model = Currency
+        fields = '__all__'
 
 
 class ExchangeForm(forms.ModelForm):
@@ -67,7 +79,9 @@ class ExchangeForm(forms.ModelForm):
     #currency = SelectFromModel(objects = Currency.objects.all())
     currency = forms.ModelChoiceField(queryset = Currency.objects.all())
     value = forms.DecimalField()
-    
+    class Meta:
+        model = Exchange
+        fields = '__all__'    
 
 #Type model
 class CategoryForm(forms.ModelForm):
@@ -75,19 +89,25 @@ class CategoryForm(forms.ModelForm):
     description = forms.CharField(label='Description of type', widget=forms.Textarea())
     name_ukr = forms.CharField(label='Назва (українською)')
     description_ukr = forms.CharField(label='Опис (українською)', widget=forms.Textarea())
-
+    class Meta:
+        model = Type
+        fields = '__all__'
 
 # --------- Bicycle -------------
 class BicycleTypeForm(forms.ModelForm):
     type = forms.CharField(label='Bicycle type')
     description = forms.CharField(label='Description of type', widget=forms.Textarea(), max_length=255)
-
+    class Meta:
+        model = Bicycle_Type
+        fields = '__all__'
 
 class BicycleFrameSizeForm(forms.ModelForm):
     name = forms.CharField(label='Назва')
     cm = forms.FloatField(min_value=0, label='Розмір, см (cm)')
     inch = forms.FloatField(min_value=0, label='Розмір, дюйми (inch)')
-    
+    class Meta:
+        model = FrameSize
+        fields = '__all__'    
 
 class BicycleForm(forms.ModelForm):
     model = forms.CharField(max_length=255)
@@ -109,7 +129,7 @@ class BicycleForm(forms.ModelForm):
 
     class Meta:
         model = Bicycle
-   
+        fields = '__all__'
 
 class BicycleStoreForm(forms.ModelForm):
     model = forms.ModelChoiceField(queryset = Bicycle.objects.all(), required=False)
@@ -124,9 +144,9 @@ class BicycleStoreForm(forms.ModelForm):
     
     class Meta:
         model = Bicycle_Store
+        fields = '__all__'
 
 
-from django.contrib.auth.models import User
 class BicycleSaleForm(forms.ModelForm):
     model = forms.ModelChoiceField(queryset = Bicycle_Store.objects.filter(count = 1), required=False, label="Модель")
     client = forms.ModelChoiceField(queryset = Client.objects.all()) #.order_by("-id"))
@@ -141,8 +161,9 @@ class BicycleSaleForm(forms.ModelForm):
     #debt = forms.IntegerField(widget=forms.HiddenInput(), required=False)
     user = forms.ModelChoiceField(queryset = User.objects.all(), widget=forms.HiddenInput(), required=False)
     
-#    class Meta:
-#        model = Bicycle_Sale
+    class Meta:
+        model = Bicycle_Sale
+        fields = '__all__'
                          
     def __init__(self, *args, **kwargs):
         bike_id = kwargs.pop('bike_id', None)
@@ -167,8 +188,9 @@ class BicycleSaleEditForm(forms.ModelForm):
         if bike_id<>None:
             self.fields['model'].queryset = Bicycle_Store.objects.filter(model = bike_id)             
     
-#    class Meta:
-#        model = Bicycle_Sale
+    class Meta:
+        model = Bicycle_Sale
+        fields = '__all__'
 
 
 class BicycleOrderEditForm(forms.ModelForm):
@@ -194,6 +216,10 @@ class BicycleOrderEditForm(forms.ModelForm):
         if bike_id<>None:
             self.fields['model'].queryset = Bicycle.objects.filter(id = bike_id)             
 
+    class Meta:
+        model = Bicycle_Order
+        fields = '__all__'
+
 
 class BicycleOrderForm(forms.ModelForm):
     cur_year = datetime.datetime.today().year
@@ -210,8 +236,9 @@ class BicycleOrderForm(forms.ModelForm):
     done = forms.BooleanField(required=False) 
     description = forms.CharField(label='Description', widget=forms.Textarea(), required=False)
     
-#    class Meta:
-#        model = Bicycle_Order
+    class Meta:
+        model = Bicycle_Order
+        fields = '__all__'
 
     
 # --------- Dealers ------------
@@ -223,6 +250,9 @@ class DealerForm(forms.ModelForm):
     www = forms.URLField()
     description = forms.CharField(label='Description of type', widget=forms.Textarea())
     director = forms.CharField()
+    class Meta:
+        model = Dealer
+        fields = '__all__'
 
 
 class DealerManagerForm(forms.ModelForm):
@@ -232,7 +262,10 @@ class DealerManagerForm(forms.ModelForm):
     description = forms.CharField(label='Description', widget=forms.Textarea())
     company = forms.ModelChoiceField(queryset = Dealer.objects.all())
     #company = SelectFromModel(objects=Dealer.objects.all())
-
+    class Meta:
+        model = DealerManager
+        fields = '__all__'
+    
 
 class DealerPaymentForm(forms.ModelForm):
     dealer_invoice = forms.ModelChoiceField(queryset = DealerInvoice.objects.filter(payment=False))
@@ -243,6 +276,10 @@ class DealerPaymentForm(forms.ModelForm):
     currency = forms.ModelChoiceField(queryset = Currency.objects.all())
     letter = forms.BooleanField(initial = False, required=False)
     description = forms.CharField(label='Description', widget=forms.Textarea(), required=False)
+    class Meta:
+        model = DealerPayment
+        fields = '__all__'
+    
   
 
 class DealerInvoiceForm(forms.ModelForm):
@@ -256,6 +293,9 @@ class DealerInvoiceForm(forms.ModelForm):
     received = forms.BooleanField(initial = False, required=False) 
     payment = forms.BooleanField(initial = False, required=False)
     description = forms.CharField(label='Description', widget=forms.Textarea(), required=False)
+    class Meta:
+        model = DealerInvoice
+        fields = '__all__'
 
 
 class InvoiceComponentListForm(forms.ModelForm):
@@ -277,6 +317,10 @@ class InvoiceComponentListForm(forms.ModelForm):
             self.fields['catalog'].queryset = Catalog.objects.filter(manufacturer = test1) 
         if catalog_id<>None:
             self.fields['catalog'].queryset = Catalog.objects.filter(id = catalog_id)             
+
+    class Meta:
+        model = InvoiceComponentList
+        fields = '__all__'
 
 
 class InvoiceComponentForm(forms.ModelForm):
@@ -300,12 +344,16 @@ class InvoiceComponentForm(forms.ModelForm):
         self.fields['catalog'] = choices_field
     class Meta:
         model = InvoiceComponentList
+        fields = '__all__'
 
   
 class ContactForm(forms.ModelForm):
     topic = forms.ChoiceField(choices=TOPIC_CHOICES)
     message = forms.CharField(widget=forms.Textarea())
     sender = forms.EmailField(required=False)
+    class Meta:
+        model = ClientMessage
+        fields = '__all__'
 
 
 # --------- Product Catalog ------------
@@ -331,7 +379,7 @@ class CatalogForm(forms.ModelForm):
 
     class Meta:
         model = Catalog
-
+        fields = '__all__'
 
 # ---------- Client -------------
 class ClientForm(forms.ModelForm):
@@ -348,6 +396,7 @@ class ClientForm(forms.ModelForm):
 
     class Meta:
         model = Client
+        fields = '__all__'
 
 
 class ClientDebtsForm(forms.ModelForm):
@@ -360,6 +409,7 @@ class ClientDebtsForm(forms.ModelForm):
 
     class Meta:
         model = ClientDebts
+        fields = '__all__'
 
 
 class ClientCreditsForm(forms.ModelForm):
@@ -371,7 +421,7 @@ class ClientCreditsForm(forms.ModelForm):
 
     class Meta:
         model = ClientCredits
-
+        fields = '__all__'
 
 
 class ClientInvoiceForm(forms.ModelForm):
@@ -395,7 +445,11 @@ class ClientInvoiceForm(forms.ModelForm):
         cid = kwargs.pop('catalog_id', None)
         super(ClientInvoiceForm, self).__init__(*args, **kwargs)
         self.fields['catalog'].queryset = Catalog.objects.filter(id = cid)
-         
+    
+    class Meta:
+        model = ClientInvoice
+        fields = '__all__'
+        exclude = ['chk_del', 'user']         
 
 
 class ClientOrderForm(forms.ModelForm):
@@ -414,18 +468,26 @@ class ClientOrderForm(forms.ModelForm):
     cash_type = forms.ModelChoiceField(queryset = CashType.objects.all())
     date = forms.DateTimeField(initial = datetime.datetime.now(), label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'))
     status = forms.BooleanField(initial = False, required=False)
+    class Meta:
+        model = ClientInvoice
+        fields = '__all__'
+        exclude = ['chk_del', 'user']         
+    
 #===============================================================================
 #    def __init__(self, *args, **kwargs):
 #        cid = kwargs.pop('catalog_id', None)
 #        super(ClientOrderForm, self).__init__(*args, **kwargs)
 #        self.fields['catalog'].queryset = Catalog.objects.filter(id = cid)
 #===============================================================================
+
+
 class CashTypeForm(forms.ModelForm):
     name = forms.CharField(max_length=100)
     description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255)    
  
     class Meta:
         model = CostType
+        fields = '__all__'        
 
 
 class CostTypeForm(forms.ModelForm):
@@ -434,7 +496,7 @@ class CostTypeForm(forms.ModelForm):
  
     class Meta:
         model = CostType
-
+        fields = '__all__'
 
     
 class CostsForm(forms.ModelForm):
@@ -446,7 +508,7 @@ class CostsForm(forms.ModelForm):
 
     class Meta:
         model = Costs
-
+        fields = '__all__'
 
 
 # ================== WorkShop ==========================
@@ -456,6 +518,7 @@ class WorkGroupForm(forms.ModelForm):
 
     class Meta:
         model = WorkGroup
+        fields = '__all__'
 
         
 class WorkTypeForm(forms.ModelForm):
@@ -465,7 +528,7 @@ class WorkTypeForm(forms.ModelForm):
     description = forms.CharField(label='Description', widget=forms.Textarea())
     class Meta:
         model = WorkType
-    
+        fields = '__all__'    
 
 class WorkShopForm(forms.ModelForm):
     #client = forms.ModelChoiceField(widget=forms.Select(attrs={'class':'autocomplete'}), queryset = Client.objects.all(), empty_label="", label="Клієнт")
@@ -479,6 +542,7 @@ class WorkShopForm(forms.ModelForm):
     
     class Meta:
         model = WorkShop
+        fields = '__all__'
 
 
 class WorkStatusForm(forms.ModelForm):
@@ -487,6 +551,7 @@ class WorkStatusForm(forms.ModelForm):
     
     class Meta:
         model = WorkStatus
+        fields = '__all__'
 
 
 class WorkTicketForm(forms.ModelForm):
@@ -500,6 +565,7 @@ class WorkTicketForm(forms.ModelForm):
     
     class Meta:
         model = WorkTicket
+        fields = '__all__'
 
 
 class ShopDailySalesForm(forms.ModelForm):
@@ -513,6 +579,7 @@ class ShopDailySalesForm(forms.ModelForm):
     ocash = forms.FloatField(label="Видано з каси")
     class Meta:
         model = ShopDailySales
+        fields = '__all__'
 
 
 class PreOrderForm(forms.ModelForm):
@@ -532,6 +599,7 @@ class PreOrderForm(forms.ModelForm):
 
     class Meta:
         model = PreOrder
+        fields = '__all__'
 
 
 class RentForm(forms.ModelForm):
@@ -544,8 +612,9 @@ class RentForm(forms.ModelForm):
     status = forms.BooleanField(initial = False, required=False)
     description = forms.CharField(label='Description', widget=forms.Textarea(), required=False)
 
-#    class Meta:
-#        model = Rent
+    class Meta:
+        model = Rent
+        fields = '__all__'
 
 
 class WorkDayForm(forms.ModelForm):
@@ -553,3 +622,7 @@ class WorkDayForm(forms.ModelForm):
     date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), label='Дата')
     status = forms.IntegerField(min_value=0, initial = 0, label='Статус')
     description = forms.CharField(widget=forms.Textarea(), required=False, label='Опис')
+    class Meta:
+        model = WorkDay
+        fields = '__all__'
+    
