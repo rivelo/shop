@@ -12,22 +12,27 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-#===============================================================================
-#DATABASE_ENGINE = 'mysql'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-#DATABASE_NAME = 'catalog'             # Or path to database file if using sqlite3.
-#DATABASE_USER = 'django'             # Not used with sqlite3.
-#DATABASE_PASSWORD = 'djangodjango'         # Not used with sqlite3.
-#DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
-#DATABASE_PORT = '3306'             # Set to empty string for default. Not used with sqlite3.
-#===============================================================================
+# Database
+# https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
-DATABASE_ENGINE = 'mysql'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-DATABASE_NAME = 'rivelo'             # Or path to database file if using sqlite3.
-DATABASE_USER = 'rivelo'             # Not used with sqlite3.
-DATABASE_PASSWORD = 'Pnj5i5zjF6uC7nv'         # Not used with sqlite3.
-DATABASE_HOST = '195.154.74.135'             # Set to empty string for localhost. Not used with sqlite3.
-#DATABASE_HOST = '192.168.88.1'             # Set to empty string for localhost. Not used with sqlite3.
-DATABASE_PORT = '3306'             # Set to empty string for default. Not used with sqlite3.
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'rivelo',
+        'USER': 'rivelo',
+        'PASSWORD': 'Pnj5i5zjF6uC7nv',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',        
+        
+    }
+}
+ 
+#DATABASE_ENGINE = 'mysql'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+#DATABASE_NAME = 'rivelo'             # Or path to database file if using sqlite3.
+#DATABASE_USER = 'rivelo'             # Not used with sqlite3.
+#DATABASE_PASSWORD = 'Pnj5i5zjF6uC7nv'         # Not used with sqlite3.
+#DATABASE_HOST = '195.154.74.135'             # Set to empty string for localhost. Not used with sqlite3.
+#DATABASE_PORT = '3306'             # Set to empty string for default. Not used with sqlite3.
 
 
 # Local time zone for this installation. Choices can be found here:

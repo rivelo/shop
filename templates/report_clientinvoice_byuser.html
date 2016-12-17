@@ -188,7 +188,7 @@ for(var i = 0; i < All.elements.length; ++i) {
         </li>
     {% else %}
     <li class="prev disabled">
-            <a href="?page={{ buycomponents.previous_page_number }}">&larr; Previous</a>
+            <a href="?page={{ buycomponents.number }}">&larr; Previous</a>
     </li>
     {% endif %}
     
@@ -208,7 +208,7 @@ for(var i = 0; i < All.elements.length; ++i) {
         </li>
     {% else %}
     <li class="next disabled">
-            <a href="?page={{ buycomponents.previous_page_number }}">Next &rarr;</a>
+            <a href="?page={{ buycomponents.number }}">Next &rarr;</a>
      </li>    
     {% endif %}
   </ul>

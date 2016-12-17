@@ -67,7 +67,7 @@
         </li>
     {% else %}
     <li class="prev disabled">
-            <a href="?page={{ clients.previous_page_number }}">&larr; Previous</a>
+            <a href="?page={{ clients.number }}">&larr; Previous</a>
     </li>
     {% endif %}
     
@@ -87,7 +87,7 @@
         </li>
     {% else %}
     <li class="next disabled">
-            <a href="?page={{ clients.previous_page_number }}">&larr; Previous</a>
+            <a href="?page={{ clients.number }}">&larr; Previous</a>
      </li>    
     {% endif %}
   </ul>

@@ -35,7 +35,7 @@ from django.db.models import Sum, Count, Max
 from django.core.mail import send_mail
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from django.utils import simplejson
+import simplejson
 from django.core import serializers
 
 import pytils_ua
@@ -220,7 +220,7 @@ def cashtype_list(request):
                 dictionary[el[0]] = str
             dictionary['selected'] = request.POST['sel']
             json = simplejson.dumps(dictionary)
-            return HttpResponse(json, mimetype='application/json')            
+            return HttpResponse(json, content_type='application/json')            
 
     list = CashType.objects.all()
     return render_to_response('index.html', {'list': list, 'weblink': 'cashtype_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -820,12 +820,12 @@ def bicycle_sale_service(request, id=None):
                     list.service = False
                     list.save()
                     
-                return HttpResponse(message, mimetype="text/plain")
+                return HttpResponse(message, content_type="text/plain")
             
     else:
         message = "Error"
 
-#    return HttpResponse(message, mimetype="text/plain")
+#    return HttpResponse(message, content_type="text/plain")
    
 #    list = Bicycle_Sale.objects.get(id=id)
     
@@ -858,7 +858,7 @@ def bicycle_sale_check_add(request, id):
                         page = urllib.urlopen(url).read()
                     except:
                         message = "Сервер не відповідає"
-                        return HttpResponse(message, mimetype="text/plain")
+                        return HttpResponse(message, content_type="text/plain")
 
                     res = Check.objects.aggregate(max_count=Max('check_num'))
                     chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
@@ -914,7 +914,7 @@ def bicycle_sale_check_add(request, id):
                     page = urllib.urlopen(url).read()
 
                     message = "Виконано"
-                return HttpResponse(message, mimetype="text/plain")
+                return HttpResponse(message, content_type="text/plain")
     else:
         message = "Error"
 
@@ -1087,12 +1087,12 @@ def bicycle_order_done(request, id=None):
                 obj.done = not obj.done
                 res = obj.done 
                 obj.save()
-                return HttpResponse(res, mimetype="text/plain")
+                return HttpResponse(res, content_type="text/plain")
                 #search = Bicycle_Order.objects.filter(id=o_id).values('done', 'description')
-                #return HttpResponse(simplejson.dumps(list(search)), mimetype="application/json")
+                #return HttpResponse(simplejson.dumps(list(search)), content_type="application/json")
 
-    #            return HttpResponse(simplejson.dumps(list()), mimetype="application/json")
-    return HttpResponse("Помилка скрипта", mimetype="text/plain")
+    #            return HttpResponse(simplejson.dumps(list()), content_type="application/json")
+    return HttpResponse("Помилка скрипта", content_type="text/plain")
     #return HttpResponseRedirect('/bicycle/order/view/')
 
 # lookup bicycle price
@@ -1115,7 +1115,7 @@ def bicycle_lookup_ajax(request):
         message = "Error"
 
     #search = Bicycle.objects.filter(id=q).values('price', 'sale')
-    return HttpResponse(simplejson.dumps(list(search)), mimetype="application/json")
+    return HttpResponse(simplejson.dumps(list(search)), content_type="application/json")
 
 def ValuesQuerySetToDict(vqs):
     return [item for item in vqs]
@@ -1899,7 +1899,7 @@ def category_get_list(request):
     #json = simplejson.dumps(list) #{'aData': "None", 'id': pid, 'cname': c_name})
 #    list = {'E':'Letter E','F':'Letter F','G':'Letter G', 'selected':'F'}
     json = simplejson.dumps(dictionary)
-    return HttpResponse(json, mimetype='application/json')
+    return HttpResponse(json, content_type='application/json')
    
 #    return render_to_response('index.html', {'categories': list, 'weblink': 'category_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -2110,7 +2110,7 @@ def catalog_import(request):
             country = Country.objects.get(id=row[5])                                        
             Catalog(ids=row[0], name=row[1], manufacturer=m, type=t, year=2015, color=row[4], price=row[10], currency=c, sale=0, country=country, count = 0).save()          
             spamwriter.writerow([row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10]])
-        #return HttpResponse("Виконано", mimetype="text/plain")
+        #return HttpResponse("Виконано", content_type="text/plain")
 
     list = Catalog.objects.filter(ids__in = ids_list)
     return render_to_response('index.html', {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -2331,7 +2331,7 @@ def catalog_get_locality(request):
     if request.method == 'POST':
         sel_id = request.POST.get('sel_id')
     list = Catalog.objects.get(id=sel_id)#.values_list("id", "locality")
-    return HttpResponse(unicode(list.locality), mimetype='text')
+    return HttpResponse(unicode(list.locality), content_type='text')
 
 
 # ------------- Clients -------------
@@ -2852,9 +2852,9 @@ def client_invoice_set(request):
 #                    return HttpResponse('Error: У вас не має прав для редагування')
                 #ci.save()
                 result = 'Виконано'
-                return HttpResponse(result, mimetype="text/plain")
+                return HttpResponse(result, content_type="text/plain")
                 
-            return HttpResponse("Помилка", mimetype="text/plain")
+            return HttpResponse("Помилка", content_type="text/plain")
 
 
 def client_invoice_delete(request, id=None):
@@ -2869,7 +2869,7 @@ def client_invoice_delete(request, id=None):
                 for ci in ci_list:
                     if ci.pay == ci.sum:
                         result = "Товар [" + str(ci.id) + "]" + str(ci.catalog) + "не можливо видалити. Його можливо тільки повернути!"
-                        return HttpResponse(result, mimetype="text/plain")
+                        return HttpResponse(result, content_type="text/plain")
                     else:
                         ci.delete()
                     
@@ -2877,10 +2877,10 @@ def client_invoice_delete(request, id=None):
 #                    return HttpResponse('Error: У вас не має прав для редагування')
                 #ci.save()
                 result = 'ok'
-                return HttpResponse(result, mimetype="text/plain")
+                return HttpResponse(result, content_type="text/plain")
         else:
             result = 'Помилка запиту'
-            return HttpResponse(result, mimetype="text/plain")
+            return HttpResponse(result, content_type="text/plain")
             
                 
         
@@ -3087,7 +3087,7 @@ def client_invioce_return_add(request, id):
                     ci.pay = res_count * ci.price
                     ci.save()
                             
-    return HttpResponse("ok", mimetype="text/plain")
+    return HttpResponse("ok", content_type="text/plain")
  
 #    cr_list = ClientReturn.objects.all()
 #    return render_to_response('index.html', {'return_list': cr_list, 'weblink': 'ci_return_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))    
@@ -3742,7 +3742,7 @@ def worktype_ajax(request):
         message = "Error"
 
     search = WorkType.objects.filter(id=q).values('price', 'description')
-    return HttpResponse(simplejson.dumps(list(search)), mimetype="application/json")
+    return HttpResponse(simplejson.dumps(list(search)), content_type="application/json")
 
 
 def workshop_pricelist(request, pprint=False):
@@ -4011,7 +4011,7 @@ def shop_price_print_add(request, id=None):
                     sp.dcount = 0
                     sp.user = request.user
                     sp.save()
-                return HttpResponse("Виконано", mimetype="text/plain")
+                return HttpResponse("Виконано", content_type="text/plain")
 
     if request.method == 'POST':
         cat = Catalog.objects.get(id=id)
@@ -4105,7 +4105,7 @@ def price_import(request):
         except: # Catalog.DoesNotExist:
                       
             spamwriter.writerow([row[0], row[1], row[2], row[3], row[4]])
-        #return HttpResponse("Виконано", mimetype="text/plain")
+        #return HttpResponse("Виконано", content_type="text/plain")
 
     list = Catalog.objects.filter(ids__in = ids_list)
     return render_to_response('index.html', {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -4741,7 +4741,7 @@ def client_payform(request):
             page = urllib.urlopen(url).read()
         except:
             message = "Сервер не відповідає"
-            return HttpResponse(message, mimetype="text/plain")
+            return HttpResponse(message, content_type="text/plain")
     
     if (float(request.POST['pay']) == 0) and (float(request.POST['pay_terminal']) == 0):
         cdeb = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
@@ -5125,7 +5125,7 @@ def ajax_search1(request):
             matches = ""
             for result in results:
                 matches = matches + "%s\n" % (result.name)
-            return HttpResponse(matches, mimetype="text/plain")
+            return HttpResponse(matches, content_type="text/plain")
 
 # search client in autocomplete field
 def ajax_search(request):
@@ -5207,7 +5207,7 @@ def login(request):
     else:
         # Отображение страницы с ошибкой
         
-            #return HttpResponse(simplejson.dumps(TheStory), mimetype="application/json")
+            #return HttpResponse(simplejson.dumps(TheStory), content_type="application/json")
         if next:
             return HttpResponseRedirect(next)
         else:
@@ -5244,7 +5244,7 @@ def client_history_cred(request):
                     x['date'] = x['date'].strftime("%d/%m/%Y")
                 
                 #json = serializers.serialize('json', p_cred_month, fields=('id', 'date', 'price', 'description', 'user', 'user_username'))
-                return HttpResponse(simplejson.dumps(json), mimetype='application/json')
+                return HttpResponse(simplejson.dumps(json), content_type='application/json')
         
             if 'clientId' in request.POST and request.POST['clientId']:
                 clientId = request.POST['clientId']
@@ -5254,12 +5254,12 @@ def client_history_cred(request):
                 for x in json:  
                     x['date'] = x['date'].strftime("%d/%m/%Y")
 
-                return HttpResponse(simplejson.dumps(json), mimetype='application/json')
+                return HttpResponse(simplejson.dumps(json), content_type='application/json')
 
 #                search_c = ClientCredits.objects.filter(client = clientId)
 #                data_c = serializers.serialize('json',search_c)
     
-    return HttpResponse(data_c, mimetype='application/json')    
+    return HttpResponse(data_c, content_type='application/json')    
     #return HttpResponse(simplejson.dumps(list(search)))
 
 
@@ -5279,7 +5279,7 @@ def client_history_debt(request):
                 for x in json:  
                     x['date'] = x['date'].strftime("%d/%m/%Y")
 
-                return HttpResponse(simplejson.dumps(json), mimetype='application/json')
+                return HttpResponse(simplejson.dumps(json), content_type='application/json')
                 
                 
             if 'clientId' in request.POST and request.POST['clientId']:
@@ -5290,13 +5290,13 @@ def client_history_debt(request):
                 for x in json:  
                     x['date'] = x['date'].strftime("%d/%m/%Y")
 
-                return HttpResponse(simplejson.dumps(json), mimetype='application/json')
+                return HttpResponse(simplejson.dumps(json), content_type='application/json')
     
 #                search_c = ClientDebts.objects.filter(client = clientId).prefetch_related('user__username')
 #                data_c = serializers.serialize('json', search_c)
                 
     
-    return HttpResponse(data_c, mimetype='application/json')    
+    return HttpResponse(data_c, content_type='application/json')    
 
 
 def client_history_invoice(request):
@@ -5314,9 +5314,9 @@ def client_history_invoice(request):
                 for x in json:  
                     x['date'] = x['date'].strftime("%d/%m/%Y")
 
-                return HttpResponse(simplejson.dumps(json), mimetype='application/json')
+                return HttpResponse(simplejson.dumps(json), content_type='application/json')
             
-    return HttpResponse()#result, mimetype='application/json')
+    return HttpResponse()#result, content_type='application/json')
 
 
 def insertstory(request):
@@ -5335,8 +5335,8 @@ def xhr_test(request):
         message = "Hello"
 #    if 'TextStory' in request.POST and request.POST['TextStory']:
 #        TheStory = request.POST['TextStory']
-    #return HttpResponse(message, mimetype="text/plain")
-    return HttpResponse(simplejson.dumps({'response': message, 'result': 'success', 'param1':'Ти таки', 'param2':'натиснув його!'}), mimetype='application/json')
+    #return HttpResponse(message, content_type="text/plain")
+    return HttpResponse(simplejson.dumps({'response': message, 'result': 'success', 'param1':'Ти таки', 'param2':'натиснув його!'}), content_type='application/json')
 
 
 def ajax_test(request):
@@ -5353,10 +5353,10 @@ def ajax_test(request):
     #search = Catalog.objects.filter(id=q).values_list('price', flat=True)
     search = Catalog.objects.filter(id=q).values('price', 'sale', 'name')
     
-    #return HttpResponse(simplejson.dumps(response), mimetype="application/json")#    return HttpResponse(simplejson.dumps(list(search)), mimetype='application/json')
-    return HttpResponse(simplejson.dumps(list(search)), mimetype="application/json")
-    #return HttpResponse(serialized_queryset, mimetype='application/json')
-#    return HttpResponse(message, mimetype="text/plain")
+    #return HttpResponse(simplejson.dumps(response), content_type="application/json")#    return HttpResponse(simplejson.dumps(list(search)), content_type='application/json')
+    return HttpResponse(simplejson.dumps(list(search)), content_type="application/json")
+    #return HttpResponse(serialized_queryset, content_type='application/json')
+#    return HttpResponse(message, content_type="text/plain")
 
 
 def ajax_price_print(request):
@@ -5372,8 +5372,8 @@ def ajax_price_print(request):
         message = "Error"
     search = "ok"
     #search = Catalog.objects.filter(id=q).values('price', 'sale', 'name')
-    #return HttpResponse(simplejson.dumps(list(search)), mimetype="application/json")
-    return HttpResponse(search, mimetype="text/plain")
+    #return HttpResponse(simplejson.dumps(list(search)), content_type="application/json")
+    return HttpResponse(search, content_type="text/plain")
 
 
 def invoice_new_edit(request):
@@ -5391,11 +5391,11 @@ def invoice_new_edit(request):
                 obj.save()
 
                 c = InvoiceComponentList.objects.filter(id = id).values('rcount', 'user__username', 'id')
-                #return HttpResponse(c, mimetype='text/plain')
+                #return HttpResponse(c, content_type='text/plain')
             
     results = {'value': c[0]['rcount'], 'user': c[0]['user__username'], 'id':c[0]['id']}
     json = simplejson.dumps(results)
-    return HttpResponse(json, mimetype='application/json')
+    return HttpResponse(json, content_type='application/json')
     
 
 def photo_url_add(request):
@@ -5409,7 +5409,7 @@ def photo_url_add(request):
                 p_url = request.POST.get('url')
                 
                 if Photo.objects.filter(url = p_url):
-                    return HttpResponse("Таке фото вже існує", mimetype="text/plain")
+                    return HttpResponse("Таке фото вже існує", content_type="text/plain")
                 
                 p1 = Photo(url = p_url, date = datetime.datetime.now(), user = request.user, description="")
                 p1.save()
@@ -5418,7 +5418,7 @@ def photo_url_add(request):
                 c.save()
 
     search = "ok"
-    return HttpResponse(search, mimetype="text/plain")
+    return HttpResponse(search, content_type="text/plain")
 
 
 def photo_url_get(request):
@@ -5439,7 +5439,7 @@ def photo_url_get(request):
                     json = simplejson.dumps({'aData': "None", 'id': pid, 'cname': c_name})
 #                json = simplejson.dumps(photo_list)
 
-    return HttpResponse(json, mimetype='application/json')
+    return HttpResponse(json, content_type='application/json')
 
 
 def photo_url_delete(request, id=None):
@@ -5455,7 +5455,7 @@ def photo_url_delete(request, id=None):
             obj = Photo.objects.get(id = wid)
             del_logging(obj)
             obj.delete()
-            return HttpResponse("Виконано", mimetype="text/plain")
+            return HttpResponse("Виконано", content_type="text/plain")
         else: 
             obj = Photo.objects.get(id = id)
     except:
@@ -5484,9 +5484,9 @@ def catalog_set_type(request):
     t_catalog.save()
     
     cat = Catalog.objects.filter(id = cid).values('type__name', 'type__id')
-    return HttpResponse(simplejson.dumps(list(cat)), mimetype="application/json")
+    return HttpResponse(simplejson.dumps(list(cat)), content_type="application/json")
 
-#    return HttpResponse(cat[0][0], mimetype="text/plain")
+#    return HttpResponse(cat[0][0], content_type="text/plain")
 
 def bicycle_price_set(request):
     if request.is_ajax():
@@ -5539,7 +5539,7 @@ def storage_box_delete(request, id=None):
     obj = Catalog.objects.get(id=id)
     obj.locality = ''
     obj.save()
-    return HttpResponse("Виконано", mimetype="text/plain")
+    return HttpResponse("Виконано", content_type="text/plain")
     #return HttpResponseRedirect('/workshop/view/')
 
 
@@ -5553,7 +5553,7 @@ def storage_box_rename(request):
                 obj = Catalog.objects.filter(locality = box_name).update(locality=new_name)
 #                obj.locality = ''
 #                obj.save()
-    return HttpResponse("Виконано", mimetype="text/plain")
+    return HttpResponse("Виконано", content_type="text/plain")
 
 
 def storage_boxes(request):
@@ -5631,8 +5631,8 @@ def inventory_add(request):
                 if desc == '':
                     #search = "Введіть текст опису"
                     jsonDict = {"status": "error", "message": "Вевведіть текст повідомлення!"}
-                    return HttpResponse(simplejson.dumps(jsonDict), mimetype="aplication/json")
-                    #return HttpResponse(search, mimetype="text/plain")
+                    return HttpResponse(simplejson.dumps(jsonDict), content_type="aplication/json")
+                    #return HttpResponse(search, content_type="text/plain")
                 c = Catalog.objects.get(id = pid)
                 
                 try:
@@ -5652,9 +5652,9 @@ def inventory_add(request):
                 inv.save()
                 
     jsonDict = {"status": "done", "message": "", "id": inv.id, "count": inv.count, "description": inv.description, "user__username": inv.user.username, "date": inv.date.strftime("%d/%m/%Y [%H:%M]"), "check_all":inv.check_all, "real_count":inv.real_count}
-    return HttpResponse(simplejson.dumps(jsonDict), mimetype="aplication/json")
+    return HttpResponse(simplejson.dumps(jsonDict), content_type="aplication/json")
     #search = "ok"
-    #return HttpResponse(search, mimetype="text/plain")
+    #return HttpResponse(search, content_type="text/plain")
 
 
 def inventory_get(request):
@@ -5672,10 +5672,10 @@ def inventory_get(request):
                     x['date'] = x['date'].strftime("%d/%m/%Y [%H:%M]")
                 
                 #json = serializers.serialize('json', p_cred_month, fields=('id', 'date', 'price', 'description', 'user', 'user_username'))
-                return HttpResponse(simplejson.dumps(json), mimetype='application/json')
+                return HttpResponse(simplejson.dumps(json), content_type='application/json')
         
     
-    return HttpResponse(data_c, mimetype='application/json')        
+    return HttpResponse(data_c, content_type='application/json')        
 
 
 
@@ -5684,7 +5684,7 @@ def inventory_get_listid(request):
     if request.is_ajax():
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
-                message = 'Error: У вас не має прав для перегляду' #, mimetype="text/plain")
+                message = 'Error: У вас не має прав для перегляду' #, content_type="text/plain")
                 return HttpResponse(message)
             POST = request.POST  
             if POST.has_key('catalog_ids'):
@@ -5697,17 +5697,17 @@ def inventory_get_listid(request):
                     x['date'] = x['date'].strftime("%d/%m/%Y [%H:%M]")
                 
                 #json = serializers.serialize('json', p_cred_month, fields=('id', 'date', 'price', 'description', 'user', 'user_username'))
-                return HttpResponse(simplejson.dumps(json), mimetype='application/json')
+                return HttpResponse(simplejson.dumps(json), content_type='application/json')
         
     
-    return HttpResponse(i_list, mimetype='application/json')        
+    return HttpResponse(i_list, content_type='application/json')        
 
 
 def inventory_set(request):
     if request.is_ajax():
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
-                return HttpResponse('Error: У вас не має прав для редагування', mimetype="text/plain")
+                return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain")
             POST = request.POST  
             if POST.has_key('id'):
                 
@@ -5716,17 +5716,17 @@ def inventory_set(request):
                 i_list.check_all = not(i_list.check_all)
                 i_list.edit_date = datetime.datetime.now()
                 if request.user != i_list.user:
-                    return HttpResponse('Error: У вас не має прав для редагування', mimetype="text/plain")
+                    return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain")
                 i_list.save()
                 result = ''
                 if i_list.check_all: 
                     result = "Повністю" 
                 else:
                     result = "Частково"
-                return HttpResponse(result, mimetype="text/plain")
+                return HttpResponse(result, content_type="text/plain")
                 
-    return HttpResponse("Виконано", mimetype="text/plain")
-    #return HttpResponse(data_c, mimetype='application/json')        
+    return HttpResponse("Виконано", content_type="text/plain")
+    #return HttpResponse(data_c, content_type='application/json')        
 
     
 def inventory_delete(request, id=None):
@@ -5742,7 +5742,7 @@ def inventory_delete(request, id=None):
             obj = InventoryList.objects.get(id = wid)
             del_logging(obj)
             obj.delete()
-            return HttpResponse("Виконано", mimetype="text/plain")
+            return HttpResponse("Виконано", content_type="text/plain")
         else: 
             obj = InventoryList.objects.get(id = id)
     except:
@@ -5770,7 +5770,7 @@ def catalog_join(request,id1=None, id2=None, ids=None):
                 id1 = request.POST['id']
             else:
                 result = "Введіть ID товару для обєднання"
-                return HttpResponse(result, mimetype="text/plain")
+                return HttpResponse(result, content_type="text/plain")
             if POST.has_key('id2'):
                 id2 = request.POST['id2']
             if POST.has_key('ids'):
@@ -5779,7 +5779,7 @@ def catalog_join(request,id1=None, id2=None, ids=None):
                     ids.remove(id1)
                 except:
                     result = "Введіть правильний ID товару для обєднання"
-                    return HttpResponse(result, mimetype="text/plain")
+                    return HttpResponse(result, content_type="text/plain")
 
             for i in ids:
                 inv = InventoryList.objects.filter(catalog = i).update(catalog=id1)
@@ -5794,7 +5794,7 @@ def catalog_join(request,id1=None, id2=None, ids=None):
                 
 #                result = ''
             result = "ok"
-            return HttpResponse(result, mimetype="text/plain")
+            return HttpResponse(result, content_type="text/plain")
     
     c1 = Catalog.objects.get(id=id1)
     c2 = Catalog.objects.get(id=id2)
@@ -5821,9 +5821,9 @@ def catalog_sale_edit(request, ids=None):
                 s = request.POST.get('sale')
             if s == '':
                 result = "невірні параметри"
-                return HttpResponse(result, mimetype="text/plain")
+                return HttpResponse(result, content_type="text/plain")
 #                result = "Введіть правильний ID товару для обєднання"
-#                return HttpResponse(result, mimetype="text/plain")
+#                return HttpResponse(result, content_type="text/plain")
 
             for i in ids:
                 obj = Catalog.objects.get(id = i)                                
@@ -5836,7 +5836,7 @@ def catalog_sale_edit(request, ids=None):
                 #obj_del.delete()
                 
             result = "ok"
-            return HttpResponse(result, mimetype="text/plain")
+            return HttpResponse(result, content_type="text/plain")
 
 
 def client_invoice_add(request, ids=None):
@@ -5851,16 +5851,16 @@ def client_invoice_add(request, ids=None):
                 count = request.POST.get('count')
             if count == '':
                 result = "невірні параметри"
-                return HttpResponse(result, mimetype="text/plain")
+                return HttpResponse(result, content_type="text/plain")
 #                result = "Введіть правильний ID товару для обєднання"
-#                return HttpResponse(result, mimetype="text/plain")
+#                return HttpResponse(result, content_type="text/plain")
             client = Client.objects.get(id=138)
             for i in ids:
                 c_obj = Catalog.objects.get(id = i)
                 ClientInvoice(client=client, catalog = c_obj, count=count, price=c_obj.price, sum=c_obj.price*int(count), currency=c_obj.currency, sale=c_obj.sale, pay=0, user=request.user, date=datetime.datetime.now()).save()
                 
             result = "ok"
-            return HttpResponse(result, mimetype="text/plain")
+            return HttpResponse(result, content_type="text/plain")
 
 
 def check_list(request, year=None, month=None, day=None, all=False):
@@ -5960,7 +5960,7 @@ def shop_sale_check_add(request):
                         page = urllib.urlopen(url).read()
                     except:
                         message = "Сервер не відповідає"
-                        return HttpResponse(message, mimetype="text/plain")
+                        return HttpResponse(message, content_type="text/plain")
 
                     res = Check.objects.aggregate(max_count=Max('check_num'))
                     chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
@@ -6031,10 +6031,10 @@ def shop_sale_check_add(request):
                     page = urllib.urlopen(url).read()
 
                 message = "Виконано"
-                return HttpResponse(message, mimetype="text/plain")
+                return HttpResponse(message, content_type="text/plain")
     else:
         message = "Error"
-        return HttpResponse(message, mimetype="text/plain")
+        return HttpResponse(message, content_type="text/plain")
 
 
 def workshop_sale_check_add(request):
@@ -6061,7 +6061,7 @@ def workshop_sale_check_add(request):
                         page = urllib.urlopen(url).read()
                     except:
                         message = "Сервер не відповідає"
-                        return HttpResponse(message, mimetype="text/plain")
+                        return HttpResponse(message, content_type="text/plain")
 
                     res = Check.objects.aggregate(max_count=Max('check_num'))
                     chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
@@ -6136,10 +6136,10 @@ def workshop_sale_check_add(request):
                     page = urllib.urlopen(url).read()
 
                 message = "Виконано"
-                return HttpResponse(message, mimetype="text/plain")
+                return HttpResponse(message, content_type="text/plain")
     else:
         message = "Error"
-        return HttpResponse(message, mimetype="text/plain")
+        return HttpResponse(message, content_type="text/plain")
 
 
 

@@ -85,7 +85,7 @@ class Exchange(models.Model):
 # list of manufectures 
 class Manufacturer(models.Model):
     name = models.CharField(max_length=100)
-    www = models.URLField(verify_exists=False, blank=True, null=True)
+    www = models.URLField(blank=True, null=True)
     logo = models.ImageField(upload_to = 'media/upload/', blank=True, null=True)
     country = models.ForeignKey(Country, null=True)
     description = models.TextField(blank=True, null=True)    
