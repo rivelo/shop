@@ -358,8 +358,8 @@ class ContactForm(forms.ModelForm):
 
 # --------- Product Catalog ------------
 class CatalogForm(forms.ModelForm):
-    ids = forms.CharField(max_length=50)
-    name = forms.CharField(max_length=255)
+    ids = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'size': 30, 'title': 'код товару',}))
+    name = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'size': 100, 'title': 'Назва',}))
     manufacturer = forms.ModelChoiceField(queryset = Manufacturer.objects.all())
     type = forms.ModelChoiceField(queryset = Type.objects.all())
     size = forms.ModelChoiceField(queryset = Size.objects.all(), required=False)
@@ -445,6 +445,19 @@ class ClientInvoiceForm(forms.ModelForm):
         cid = kwargs.pop('catalog_id', None)
         super(ClientInvoiceForm, self).__init__(*args, **kwargs)
         self.fields['catalog'].queryset = Catalog.objects.filter(id = cid)
+        
+    def clean(self):
+        cleaned_data = super(ClientInvoiceForm, self).clean()
+        sale = cleaned_data.get("sale")
+        client = cleaned_data.get("client")
+        cid = cleaned_data.get("catalog")
+        #cat = Catalog.objects.get(id = cid)
+        cat = cid        
+
+        if (sale > 100) or (sale > cat.sale+20) :
+            # Only do something if both fields are valid so far.
+            ssale = cat.sale + 20
+            raise forms.ValidationError(u"Знижка не може бути більше 100% або більша за встановлену на товар " + str(ssale))
     
     class Meta:
         model = ClientInvoice

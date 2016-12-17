@@ -88,7 +88,8 @@ $("#UserEnter").submit(function() {
 });
 
 
-$( "input[type='text']" ).change(function(){
+//$( "input[type='text']" ).change(function(){
+$( "input" ).change(function(){
   sum();
 });
 	
@@ -98,15 +99,17 @@ $( "input[type='text']" ).change(function(){
     	$('#id_client').val($(this).attr('val'));
     	if (parseFloat($(this).attr('sale')) >= parseFloat($("#id_sale").attr('sale'))){
     		$('#id_sale').val($(this).attr('sale'));
-    	};
+    	}
+    	else {
+    		$('#id_sale').val($('#id_sale').attr('sale'));
+    	}
     	
     	sum();
     	$('#id_count').focus();
     	$('#id_count').select();
     });
-//});
 
-//$(function() {
+
 	var sale = $('#id_sale').val();
         $( "#s_client" ).autocomplete({
             source: function( request, response ) {
@@ -129,11 +132,14 @@ $( "input[type='text']" ).change(function(){
             },
             minLength: 3,
             select: function( event, ui ) {
-            if (parseFloat(sale) >= parseFloat($("#id_sale").attr('sale'))){
+            if (parseFloat(ui.item.idid) >= parseFloat($("#id_sale").attr('sale'))){
+            	console.log('SALE = '+ sale);
             	$('#id_sale').val(ui.item.idid);
             }
+            else {
+            	$('#id_sale').val($('#id_sale').attr('sale'));
+            }
             $('#id_client').val(ui.item.pk_id);
-			//alert ("OK+ sale = " + ui.item.idid)
 			sum();            	            
             },
             open: function() {

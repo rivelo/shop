@@ -2,6 +2,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
 <script type="text/javascript">
+
 function sum() {
 	sale = 1 - ((parseFloat(document.getElementById('id_sale').value)||0)/100)
     res = document.getElementById('result').innerHTML = (parseFloat(document.getElementById('id_price').value)||0) * sale
@@ -9,16 +10,18 @@ function sum() {
     document.getElementById('id_sum').value = res 
 }
 
-//setTimeout(sum, 100)
-
-setInterval(sum, 100)
+$(document).ready( function() {
+	$( "input" ).change(function(){
+  		sum();
+	});
+})
 
 </script>
 
 <body onload="document.getElementById('id_ids').focus()">
 
 
-    <h1>Додати нову запчастину до каталогу</h1>
+    <h1>Додати/Редагувати опис запчастини</h1>
     <form action="" method="POST" enctype="multipart/form-data">
     <p><input type="submit" value="Save"></p>
         <table>

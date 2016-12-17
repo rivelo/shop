@@ -2117,6 +2117,9 @@ def catalog_import(request):
 
 
 def catalog_add(request):
+    if auth_group(request.user, 'seller')==False:
+        return HttpResponse('Error: У вас не має прав для редагування')
+
     upload_path = ''
     if request.method == 'POST':
         form = CatalogForm(request.POST, request.FILES)
@@ -2151,6 +2154,9 @@ def catalog_add(request):
 
 
 def catalog_edit(request, id=None):
+    if auth_group(request.user, 'seller')==False:
+        return HttpResponse('Error: У вас не має прав для редагування')
+
     if request.is_ajax():
         if request.method == 'POST':
             POST = request.POST
@@ -2216,11 +2222,13 @@ def catalog_edit(request, id=None):
             a.save()
             form.save()
             #return HttpResponseRedirect('/catalog/manufacture/' + str(manufacturer.id) + '/view/5')
-            return HttpResponseRedirect('/catalog/manufacture/' + str(manufacturer.id) + '/type/'+str(type.id)+'/view')
+#            return HttpResponseRedirect('/catalog/manufacture/' + str(manufacturer.id) + '/type/'+str(type.id)+'/view')
+            return catalog_list(request, id = id)
             #return HttpResponseRedirect(str(url1))
     else:
         form = CatalogForm(instance=a)
     #url=request.META['HTTP_REFERER']
+
     return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -2764,6 +2772,9 @@ def client_invoice(request, cid=None, id=None):
 
 def client_invoice_edit(request, id):
     a = ClientInvoice.objects.get(id=id)
+    cat = Catalog.objects.get(id = a.catalog.id)
+    if not request.user.is_authenticated():
+        return render_to_response('index.html', {'weblink': 'guestinvoice.html', 'cat': cat}, context_instance=RequestContext(request, processors=[custom_proc]))
     old_count = a.count
     old_length = 0
     cat_id = a.catalog.id
