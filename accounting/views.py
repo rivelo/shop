@@ -634,7 +634,7 @@ def store_report_bytype(request, id):
 
 
 def bicycle_sale_add(request, id=None):
-    a = Bicycle_Sale()
+#    a = Bicycle_Sale(currency = Currency.objects.get(pk = 3))
     bike = None
     serial_number = ''
     if id != None:
@@ -642,7 +642,7 @@ def bicycle_sale_add(request, id=None):
         serial_number = bike.serial_number
         
     if request.method == 'POST':
-        form = BicycleSaleForm(request.POST, initial={'currency': 3, 'date': datetime.date.today()}, instance=a)
+        form = BicycleSaleForm(request.POST, initial={'currency': 3, 'date': datetime.date.today()})
         if form.is_valid():
             model = form.cleaned_data['model']
             client = form.cleaned_data['client']
@@ -681,9 +681,11 @@ def bicycle_sale_add(request, id=None):
             return HttpResponseRedirect(redirect)
     else:
         if bike != None:
-            form = BicycleSaleForm(initial={'model': bike.id, 'price': bike.model.price, 'currency': bike.model.currency.id, 'sale': bike.model.sale, 'date': datetime.date.today()}, instance=a)
+            form = BicycleSaleForm(initial={'model': bike.id, 'price': bike.model.price, 'currency': bike.model.currency.id, 'sale': bike.model.sale, 'date': datetime.date.today()})
+#            form = BicycleSaleForm()
         else:
-            form = BicycleSaleForm(initial={'currency': 3}, instance=a)
+            form = BicycleSaleForm(initial={'currency': 3})
+#            form = BicycleSaleForm(instance=a)
     
     return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_sale.html', 'serial_number': serial_number, 'bike_id': bike.id, 'text': 'Продаж велосипеду', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -5455,7 +5457,7 @@ def photo_url_get(request):
 
 def photo_url_delete(request, id=None):
     obj = None
-    if auth_group(request.user, 'admin')==False:
+    if auth_group(request.user, 'seller')==False:
         return HttpResponseRedirect('/catalog/photo/list/')
     try:
         if request.is_ajax():

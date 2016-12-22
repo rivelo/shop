@@ -297,7 +297,7 @@ class Client(models.Model):
     description = models.TextField(blank = True, null = True)
     
     def __unicode__(self):
-        return "%s - [%s]" % (self.name, self.forumname)
+        return u"%s - [%s]" % (self.name, self.forumname)
 
     class Meta:
         ordering = ["name"]    
@@ -312,7 +312,7 @@ class ClientDebts(models.Model):
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)    
     
     def __unicode__(self):
-        return "[%s] - %s (%s) %" % (self.date, self.client, self.description)
+        return u"[%s] - %s (%s)" % (self.date, self.client, self.description)
 
     class Meta:
         ordering = ["client", "date"]    
@@ -501,7 +501,7 @@ class Bicycle_Sale(models.Model):
     
     def __unicode__(self):
         #return self.model
-        return u'%s' % self.model
+        return u'%s' % (self.model)
 
     class Meta:
         ordering = ["client", "model", "date"]

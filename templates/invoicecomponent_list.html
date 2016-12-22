@@ -775,15 +775,37 @@ $("#dialog_photo").dialog({
 //      maxWidth: 540,
       //position: "center",
       buttons: {
+        "Видалити": {
+        	id: "delete_p",
+        	text: "Видалити",
+        	click: function(){
+        	if (confirm("Ви дійсно бажаєте видалити запис?")) {
+        		// $("#slider1_container").remove();
+			$.ajax({
+                type: "POST",
+                url: "/catalog/photo/delete/",
+                data: {id:  $("#delete_p").attr("pk") },
+                dataType: "text",
+                success:function(data){
+                	console.log("Видалено");
+                	$("#dialog_photo").dialog( "close" );
+                },
+                error:function(data){
+                    alert("Виникли проблеми з сервером" + data);
+                }
+            });        		
+        		
+        	}
+        	},
+        },
         "Додати": function() {
         	$("#dialog_photo_add").dialog("open");
-        	           
           $( this ).dialog( "close" );
         },
         "Відмінити": function() {
         	$("#slider1_container").remove();
         	$( this ).dialog( "close" );
-        }
+        },
       },
       close: function( event, ui ) {
       	//$("#dialog_photo .slideme ul").remove();
@@ -940,18 +962,16 @@ $(document).on("click", ".c_photo", function(event) {
 				var p = jQuery.parseJSON(st);
 				if (data.aData.length > 0) {
 						
-						str_begin = '<div id="slider1_container" style="position: relative; top: 0px; left: 0px; width: 600px; height: 300px;">';
-						str_begin = str_begin + '<div u="slides" style="cursor: move; position: absolute; overflow: hidden; left: 0px; top: 0px; width: 600px; height: 300px;">';
-						str_end = '</div></div>';
+						$("#delete_p").attr("pk", p.aData[0].id); 
 						
-//						str_photo = str_begin + '<div><img src="http://basic-slider.com/img/banner02.jpg" width="540px" height="400px"></div>;'
-//						$("#dialog_photo").append(str_photo);
+						str_begin = '<div id="slider1_container" style="position: relative; top: 0px; left: 0px; width: 600px; height: 400px;">';
+						str_begin = str_begin + '<div u="slides" style="cursor: move; position: absolute; overflow: hidden; left: 0px; top: 0px; width: 600px; height: 400px;">';
+						str_end = '</div></div>';
 						$("#dialog_photo").append(str_begin);
 						
 						$.each(p.aData,function(index,item){
-							str_photo = '<div><img src="'+ item.url+ '" width="350px"></di>;'
-						
-						$("#slider1_container > div").append(str_photo);
+							str_photo = '<div><img id="image_' + index + '" src="'+ item.url+ '" width="350px" pk="'+ item.id +'"></di>'
+							$("#slider1_container > div").append(str_photo);
 						})
 						
 						$("#dialog_photo").append(str_end);
@@ -982,9 +1002,19 @@ str_navi = '<div u="navigator" class="jssorb01" style="bottom: 16px; left: 10px;
             $BulletNavigatorOptions: {
                 $Class: $JssorBulletNavigator$,
                 $ChanceToShow: 2
-            }
+            },
+            $DragOrientation: 3 
         };
  var jssor_slider1 = new $JssorSlider$('slider1_container', options);
+ 
+ function SlideParkEventHandler(slideIndex, fromIndex) {
+            var src = $("#image_" + slideIndex).attr("src");
+            console.log("CUR SRC = " + src);
+            var id = $("#image_" + slideIndex).attr("pk");
+            console.log("Photo Id = " + id);
+        }
+
+ jssor_slider1.$On($JssorSlider$.$EVT_PARK, SlideParkEventHandler);
 						
 						$("#dialog_photo").dialog({ title: p.cname });
 					    $("#dialog_photo").dialog("open");

@@ -565,7 +565,7 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
      loadurl : '/workstatus/view/',
      type   : 'select',
      submit : 'OK',
-     event: 'dblclick',
+     event: 'click', //'dblclick',
      submitdata : function() {
       	 	return {id_w : $(this).attr('id_workticket')};
      },

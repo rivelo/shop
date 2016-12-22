@@ -161,15 +161,16 @@ class BicycleSaleForm(forms.ModelForm):
     #debt = forms.IntegerField(widget=forms.HiddenInput(), required=False)
     user = forms.ModelChoiceField(queryset = User.objects.all(), widget=forms.HiddenInput(), required=False)
     
-    class Meta:
-        model = Bicycle_Sale
-        fields = '__all__'
-                         
     def __init__(self, *args, **kwargs):
         bike_id = kwargs.pop('bike_id', None)
         super(BicycleSaleForm, self).__init__(*args, **kwargs)
         if bike_id<>None:
             self.fields['model'].queryset = Bicycle_Store.objects.filter(model = bike_id)             
+
+    class Meta:
+        model = Bicycle_Sale
+        fields = '__all__'
+        exclude = ['debt']
 
 
 class BicycleSaleEditForm(forms.ModelForm):
@@ -191,6 +192,7 @@ class BicycleSaleEditForm(forms.ModelForm):
     class Meta:
         model = Bicycle_Sale
         fields = '__all__'
+        
 
 
 class BicycleOrderEditForm(forms.ModelForm):

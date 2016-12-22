@@ -150,6 +150,7 @@ $('.click').editable('/bicycle-store/edit/', {
 </div>
 
 <table>
+	{% csrf_token %}
 	{{ form.as_ul }}
 	<p><input type="submit" value="Save"></p>
 </table>
