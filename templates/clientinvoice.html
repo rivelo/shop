@@ -191,6 +191,11 @@ $(document).ready(function() {
 	if ($("#s_client").val() != '') {
 		id2name();
 	}
+{% if request.user|has_group:"admin" %}
+	$("#id_price").attr("readonly", "false");
+{% else %}
+	$("#id_price").attr("readonly", "true");
+{% endif %}
 });
 
 </script>

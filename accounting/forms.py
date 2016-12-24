@@ -426,6 +426,10 @@ class ClientCreditsForm(forms.ModelForm):
         fields = '__all__'
 
 
+def auth_group(user, group):
+    return True if user.groups.filter(name=group) else False
+
+
 class ClientInvoiceForm(forms.ModelForm):
     #client = forms.ModelChoiceField(widget=forms.Select(attrs={'class':'autocomplete'}), queryset = Client.objects.all(), empty_label="")
     client = forms.ModelChoiceField(widget=forms.HiddenInput(), queryset = Client.objects.all(), empty_label="")
@@ -445,6 +449,7 @@ class ClientInvoiceForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         cid = kwargs.pop('catalog_id', None)
+        self.request = kwargs.pop("request")
         super(ClientInvoiceForm, self).__init__(*args, **kwargs)
         self.fields['catalog'].queryset = Catalog.objects.filter(id = cid)
         
@@ -455,11 +460,10 @@ class ClientInvoiceForm(forms.ModelForm):
         cid = cleaned_data.get("catalog")
         #cat = Catalog.objects.get(id = cid)
         cat = cid        
-
-        if (sale > 100) or (sale > cat.sale+20) :
+        if ((sale > 100) or (sale > cat.sale+20)) and (auth_group(self.request.user, 'admin')==False):
             # Only do something if both fields are valid so far.
             ssale = cat.sale + 20
-            raise forms.ValidationError(u"Знижка не може бути більше 100% або більша за встановлену на товар " + str(ssale))
+            raise forms.ValidationError(u"Знижка не може бути більше 100% або більша за встановлену на товар " + str(int(ssale)) + "%")
     
     class Meta:
         model = ClientInvoice

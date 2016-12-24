@@ -2721,7 +2721,7 @@ def client_invoice(request, cid=None, id=None):
     else:
         a = ClientInvoice(date=datetime.datetime.today(), price=cat.price, sum=Catalog.objects.get(id = cid).price, sale=int(Catalog.objects.get(id = cid).sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=Catalog.objects.get(id = cid))
     if request.method == 'POST':
-        form = ClientInvoiceForm(request.POST, instance = a, catalog_id=cid)
+        form = ClientInvoiceForm(request.POST, instance = a, catalog_id=cid, request = request)
         if form.is_valid():
             client = form.cleaned_data['client']
             catalog = form.cleaned_data['catalog']
@@ -2760,7 +2760,7 @@ def client_invoice(request, cid=None, id=None):
             #WorkGroup(name=name, description=description).save()
             return HttpResponseRedirect('/client/invoice/view/')
     else:
-        form = ClientInvoiceForm(instance = a, catalog_id=cid)
+        form = ClientInvoiceForm(instance = a, catalog_id=cid, request = request)
     nday = 3
     nbox = cat.locality
     b_len = False
@@ -2782,7 +2782,7 @@ def client_invoice_edit(request, id):
     cat_id = a.catalog.id
     cat = Catalog.objects.get(id = cat_id)
     if request.method == 'POST':
-        form = ClientInvoiceForm(request.POST, instance = a, catalog_id = cat_id)
+        form = ClientInvoiceForm(request.POST, instance = a, catalog_id = cat_id, request = request)
         if form.is_valid():
             client = form.cleaned_data['client']
             catalog = form.cleaned_data['catalog']
@@ -2823,7 +2823,7 @@ def client_invoice_edit(request, id):
             
             return HttpResponseRedirect('/client/invoice/view/')
     else:
-        form = ClientInvoiceForm(instance = a, catalog_id = cat_id)
+        form = ClientInvoiceForm(instance = a, catalog_id = cat_id, request = request)
         
     nday = 3 # користувачі за останні n-днів
     dlen = None
@@ -3571,7 +3571,7 @@ def workticket_add(request, id=None):
             form = WorkTicketForm(initial={'date': datetime.datetime.today(), 'status': 1, 'end_date': datetime.datetime.now()+datetime.timedelta(3)})
         
         
-    return render_to_response('index.html', {'form': form, 'weblink': 'workticket.html'})
+    return render_to_response('index.html', {'form': form, 'weblink': 'workticket.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workticket_edit(request, id=None):
@@ -4601,21 +4601,24 @@ def client_ws_payform(request):
             return HttpResponse("Включіть комп'ютер з касовим апаратом")
     
     if (float(request.POST['pay']) == 0) and (float(request.POST['pay_terminal']) == 0):
+        if client.id == settings.CLIENT_UNKNOWN:
+            #return HttpResponseRedirect('/workshop/view/')
+            return HttpResponse("Невідомому клієнту не можна додати борг")
         ccred = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
         ccred.save()
         for item in wk:
             item.pay = True
             item.save()
-        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-        data =  {"cmd": "cancel_receipt"}
-        url = base + urllib.urlencode(data)
-        page = urllib.urlopen(url).read()
+#===============================================================================
+#        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+#        data =  {"cmd": "cancel_receipt"}
+#        url = base + urllib.urlencode(data)
+#        page = urllib.urlopen(url).read()
+#===============================================================================
         base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
         data =  {"cmd": "close"}
         url = base + urllib.urlencode(data)
         page = urllib.urlopen(url).read()
-        if client.id == 138:
-            return HttpResponseRedirect('/workshop/view/')
         url = '/client/result/search/?id=' + str(client.id)
         return HttpResponseRedirect(url)
            
@@ -4649,9 +4652,27 @@ def client_ws_payform(request):
                 data =  {"cmd": "add_plu", "id":'99'+str(inv.work_type.pk), "cname":inv.work_type.name[:40].encode('utf8'), "price":price, "count": count, "discount": 0}
                 url = base + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
-            data =  {"cmd": "pay", "sum": 0, "mtype": 0}
-            url = base + urllib.urlencode(data)
-            page = urllib.urlopen(url).read()
+                
+            if (float(pay) >= sum):
+                data =  {"cmd": "pay", "sum": 0, "mtype": 0}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+                base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+                data =  {"cmd": "close"}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()                
+            else:
+                data =  {"cmd": "pay", "sum": pay, "mtype": 0}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+                data =  {"cmd": "pay", "sum": 0, "mtype": 2}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+                base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+                data =  {"cmd": "close"}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+                
             
     if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
         pay = request.POST['pay_terminal']
@@ -4681,9 +4702,19 @@ def client_ws_payform(request):
                 data =  {"cmd": "add_plu", "id":'99'+str(inv.work_type.pk), "cname":inv.work_type.name[:40].encode('utf8'), "price":price, "count": count, "discount": 0}
                 url = base + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
-            data =  {"cmd": "pay", "sum": 0, "mtype": 2}
-            url = base + urllib.urlencode(data)
-            page = urllib.urlopen(url).read()
+            
+            if (float(pay) >= sum):
+                data =  {"cmd": "pay", "sum": 0, "mtype": 2}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+            else:
+                data =  {"cmd": "pay", "sum": pay, "mtype": 2}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+                data =  {"cmd": "pay", "sum": 0, "mtype": 0}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+                
 
     base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
     data =  {"cmd": "close"}
@@ -4729,10 +4760,12 @@ def client_payform(request):
             data =  {"cmd": "get_status"}
             url = base + urllib.urlencode(data)
             page = urllib.urlopen(url).read()            
-            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-            data =  {"cmd": "open"}
-            url = base + urllib.urlencode(data)
-            page = urllib.urlopen(url).read()
+#===============================================================================
+#            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+#            data =  {"cmd": "open"}
+#            url = base + urllib.urlencode(data)
+#            page = urllib.urlopen(url).read()
+#===============================================================================
         except:
             return HttpResponse("Включіть комп'ютер з касовим апаратом")
                 
@@ -4746,30 +4779,40 @@ def client_payform(request):
         return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext':'Не вибрано жодного товару', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
     if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
+        if client.id == settings.CLIENT_UNKNOWN:
+            if (float(request.POST['pay']) + float(request.POST['pay_terminal']) < sum):
+                return HttpResponse("Невідомий клієнт не може мати борг");
         base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
         data =  {"cmd": "get_status"}
         url = base + urllib.urlencode(data)
-        page = urllib.urlopen(url).read()
+
         try:
             page = urllib.urlopen(url).read()
         except:
             message = "Сервер не відповідає"
             return HttpResponse(message, content_type="text/plain")
-    
-    if (float(request.POST['pay']) == 0) and (float(request.POST['pay_terminal']) == 0):
-        cdeb = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
-        cdeb.save()
-        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-        data =  {"cmd": "cancel_receipt"}
+        
+        data =  {"cmd": "open"}
         url = base + urllib.urlencode(data)
         page = urllib.urlopen(url).read()
+    
+    if (float(request.POST['pay']) == 0) and (float(request.POST['pay_terminal']) == 0):
+        if client.id == settings.CLIENT_UNKNOWN:
+            return HttpResponse("Невідомий клієнт не може мати борг");
+        cdeb = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
+        cdeb.save()
+#===============================================================================
+#        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+#        data =  {"cmd": "cancel_receipt"}
+#        url = base + urllib.urlencode(data)
+#        page = urllib.urlopen(url).read()
+#===============================================================================
         base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
         data =  {"cmd": "close"}
         url = base + urllib.urlencode(data)
         page = urllib.urlopen(url).read()
 
-        if client.id == 138:
-            return HttpResponseRedirect('/client/invoice/view/')
+            #return HttpResponseRedirect('/client/invoice/view/')
         url = '/client/result/search/?id=' + str(client.id)
         return HttpResponseRedirect(url)
     
@@ -4809,9 +4852,20 @@ def client_payform(request):
                 data =  {"cmd": "add_plu", "id":inv.catalog.pk, "cname":inv.catalog.name[:40].encode('utf8'), "price":price, "count": count, "discount": discount}
                 url = base + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
-            data =  {"cmd": "pay", "sum": 0, "mtype": 0}
-            url = base + urllib.urlencode(data)
-            page = urllib.urlopen(url).read()
+
+            if (float(pay) >= sum):
+                data =  {"cmd": "pay", "sum": 0, "mtype": 0}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+            else:
+                data =  {"cmd": "pay", "sum": pay, "mtype": 0}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+                data =  {"cmd": "pay", "sum": 0, "mtype": 2}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+
+                
 
         if float(pay) <> 0:
             base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
@@ -4855,9 +4909,19 @@ def client_payform(request):
                 data =  {"cmd": "add_plu", "id":inv.catalog.pk, "cname":inv.catalog.name[:40].encode('utf8'), "price":price, "count": count, "discount": discount}
                 url = base + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
-            data =  {"cmd": "pay", "sum": 0, "mtype": 2}
-            url = base + urllib.urlencode(data)
-            page = urllib.urlopen(url).read()
+
+            if (float(pay) >= sum):                
+                data =  {"cmd": "pay", "sum": 0, "mtype": 2}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+            else:
+                data =  {"cmd": "pay", "sum": pay, "mtype": 2}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+                data =  {"cmd": "pay", "sum": 0, "mtype": 0}
+                url = base + urllib.urlencode(data)
+                page = urllib.urlopen(url).read()
+                
  
         if float(pay) <> 0:
             base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
@@ -4871,7 +4935,7 @@ def client_payform(request):
         
     cdeb = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
     cdeb.save()
-    if client.id == 138:
+    if client.id == settings.CLIENT_UNKNOWN:
         return HttpResponseRedirect('/client/invoice/view/')
     url = '/client/result/search/?id=' + str(client.id)
     return HttpResponseRedirect(url)
