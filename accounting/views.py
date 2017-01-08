@@ -42,8 +42,6 @@ import pytils_ua
 import urllib
 from django.conf import settings
 
-now = datetime.datetime.now()
-
 
 def custom_proc(request):
 # "A context processor that provides 'app', 'user' and 'ip_address'."
@@ -1847,6 +1845,7 @@ def invoice_import(request):
 # id / name / company / type / color / country / count/ price / currency / invoice_id / rrp_price / currency /
 # id / name / count / price / currency / invoice number
     ids_list = []
+    now = datetime.datetime.now()
 #    if 'name' in request.GET and request.GET['name']:
 #        name = request.GET['name']
     name = 'id'
@@ -1868,7 +1867,7 @@ def invoice_import(request):
                 print "IF = " + row[6]
             c = Currency.objects.get(id = row[4])
             inv = DealerInvoice.objects.get(id = row[5])
-            InvoiceComponentList(invoice = inv, catalog = cat, count = row[2], price= row[3], currency = c, date= now).save()
+            InvoiceComponentList(invoice = inv, catalog = cat, count = row[2], price= row[3], currency = c, date = now).save()
             cat.count = cat.count + int(row[2])
             cat.save()
             #if row[6]: 
@@ -3068,6 +3067,7 @@ def client_invioce_return_view(request):
 
 def client_invioce_return_add(request, id):
     ci = ClientInvoice.objects.get(id=id)
+    now = datetime.datetime.now()
     if request.is_ajax():
         if request.method == 'POST':  
             POST = request.POST  
@@ -3107,6 +3107,7 @@ def client_invioce_return_add(request, id):
 
 
 def client_order_list(request):
+    now = datetime.datetime.now()
     #list = ClientOrder.objects.filter(Q(status = False) | Q(date__year__gt = 2015))
     list = ClientOrder.objects.filter((Q(status = False)) | Q(date__gt=now-datetime.timedelta(days=360)))
     return render_to_response('index.html', {'c_order': list, 'weblink': 'client_order_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
@@ -3288,7 +3289,7 @@ from django.db import connection
 
 #----- Виписка клієнта -----
 def client_result(request, tdelta = 30):
-    
+    now = datetime.datetime.now()
     user = request.GET['id'] 
     sql1 = "SELECT sum(price) FROM accounting_clientcredits WHERE client_id = %s;"
     sql2 = "SELECT sum(price) FROM accounting_clientdebts WHERE client_id = %s;"
@@ -3647,6 +3648,7 @@ def workticket_delete(request, id):
 
 
 def workshop_add(request, id=None, id_client=None):
+    now = datetime.datetime.now()
     work = None
     wclient = None
     if id != None:
@@ -3683,6 +3685,7 @@ def workshop_add(request, id=None, id_client=None):
 
 
 def workshop_edit(request, id):
+    now = datetime.datetime.now()
     a = WorkShop.objects.get(pk=id)
     if request.method == 'POST':
         form = WorkShopForm(request.POST, instance=a)
@@ -3810,7 +3813,11 @@ def shopdailysales_add(request):
     return render_to_response('index.html', {'form': form, 'weblink': 'shop_daily_sales.html', 'lastcasa': lastCasa}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def shopmonthlysales_view(request, year=now.year, month=now.month):
+def shopmonthlysales_view(request, year=None, month=None):
+    if (month == None) or (year == None):
+        now = datetime.datetime.now()
+        year = now.year
+        month = now.month
     if auth_group(request.user, 'admin') == False:
         return HttpResponseRedirect("/.")
     deb = ClientDebts.objects.filter(date__year=year, date__month=month ).extra(select={'year': "EXTRACT(year FROM date)", 'month': "EXTRACT(month from date)", 'day': "EXTRACT(day from date)"}).values('year', 'month', 'day').annotate(suma=Sum("price")).order_by()
@@ -3861,6 +3868,7 @@ def shopdailysales_view(request, year, month, day):
 from django.contrib.auth.models import Group
 
 def shopdailysales_edit(request, id):
+    now = datetime.datetime.now()
     a = ShopDailySales.objects.get(pk=id)
     if request.method == 'POST':
         form = ShopDailySalesForm(request.POST, instance=a)
@@ -3885,7 +3893,10 @@ def shopdailysales_edit(request, id):
     return render_to_response('index.html', {'form': form, 'weblink': 'shop_daily_sales.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def shopdailysales_list(request, month=now.month):
+def shopdailysales_list(request, month=None):
+    if month == None:
+        now = datetime.datetime.now()
+        month = now.month
     list = ShopDailySales.objects.filter(date__year=now.year, date__month=month)
     sum = 0 
     for item in list:
@@ -5173,6 +5184,7 @@ def rent_edit(request, id):
 
 
 def rent_list(request):
+    now = datetime.datetime.now()
     list = Rent.objects.filter((Q(status = False)) | Q(date_end__gt=now-datetime.timedelta(days=360)))    
     return render_to_response('index.html', {'rent': list, 'weblink': 'rent_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
@@ -5307,6 +5319,7 @@ def client_history_cred(request):
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
                 return HttpResponse('Error: У вас не має прав для перегляду')
+            now = datetime.datetime.now()
             POST = request.POST  
             if POST.has_key('client_id') and POST.has_key('cred_day'):
                 cid = request.POST['client_id']
@@ -5346,6 +5359,7 @@ def client_history_debt(request):
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
                 return HttpResponse('Error: У вас не має прав для перегляду')
+            now = datetime.datetime.now()
             POST = request.POST  
             if POST.has_key('client_id') and POST.has_key('cred_day'):
                 cid = request.POST['client_id']
@@ -6174,9 +6188,9 @@ def workshop_sale_check_add(request):
                         data =  {"cmd": "add_plu", "id":'99'+str(inv.work_type.pk), "cname":inv.work_type.name[:40].encode('utf8'), "price":price, "count": count, "discount": 0}
                         url = base + urllib.urlencode(data)
                         page = urllib.urlopen(url).read()
-                        data =  {"cmd": "pay", "sum": 0, "mtype": 0}
-                        url = base + urllib.urlencode(data)
-                        page = urllib.urlopen(url).read()
+#                        data =  {"cmd": "pay", "sum": 0, "mtype": 0}
+#                        url = base + urllib.urlencode(data)
+#                        page = urllib.urlopen(url).read()
                     
                     if m_val >= t_val:
                         if float(t_val) == 0:
