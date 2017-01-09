@@ -2713,6 +2713,7 @@ def client_invoice(request, cid=None, id=None):
     if not request.user.is_authenticated():
         return render_to_response('index.html', {'weblink': 'guestinvoice.html', 'cat': cat}, context_instance=RequestContext(request, processors=[custom_proc]))
         #return HttpResponseRedirect('/')
+    now = datetime.datetime.now()
     
     if (id):
         client = Client.objects.get(pk = id)
@@ -2751,9 +2752,9 @@ def client_invoice(request, cid=None, id=None):
             if pay == sum:
                 desc = catalog.name
                 ct = CashType.objects.get(id=1)
-                ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=ct)
+                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=ct)
                 ccred.save()
-                cdeb = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
+                cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
                 cdeb.save()
 
             #WorkGroup(name=name, description=description).save()
@@ -2776,6 +2777,7 @@ def client_invoice_edit(request, id):
     cat = Catalog.objects.get(id = a.catalog.id)
     if not request.user.is_authenticated():
         return render_to_response('index.html', {'weblink': 'guestinvoice.html', 'cat': cat}, context_instance=RequestContext(request, processors=[custom_proc]))
+    now = datetime.datetime.now()
     old_count = a.count
     old_length = 0
     cat_id = a.catalog.id
@@ -2815,9 +2817,9 @@ def client_invoice_edit(request, id):
             if pay == sum:
                 desc = catalog.name
                 ct = CashType.objects.get(id=1)
-                ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=ct)
+                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=ct)
                 ccred.save()
-                cdeb = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
+                cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
                 cdeb.save()
             
             return HttpResponseRedirect('/client/invoice/view/')
@@ -4579,7 +4581,7 @@ def client_ws_payform(request):
     user = None            
     if request.user.is_authenticated():
         user = request.user
-    
+    now = datetime.datetime.now()
     checkbox_list = [x for x in request.POST if x.startswith('checkbox_')]
     if bool(checkbox_list) == False:
         return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -4615,7 +4617,7 @@ def client_ws_payform(request):
         if client.id == settings.CLIENT_UNKNOWN:
             #return HttpResponseRedirect('/workshop/view/')
             return HttpResponse("Невідомому клієнту не можна додати борг")
-        ccred = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
+        ccred = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
         ccred.save()
         for item in wk:
             item.pay = True
@@ -4637,7 +4639,7 @@ def client_ws_payform(request):
         pay = request.POST['pay']
         cash_type = CashType.objects.get(id = 1) # готівка
         if float(request.POST['pay']) != 0:
-            ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=cash_type)
+            ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
             
             res = Check.objects.aggregate(max_count=Max('check_num'))
@@ -4689,7 +4691,7 @@ def client_ws_payform(request):
         pay = request.POST['pay_terminal']
         cash_type = CashType.objects.get(id = 2) # термінал
         if float(request.POST['pay_terminal']) != 0:
-            ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=cash_type)
+            ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
             res = Check.objects.aggregate(max_count=Max('check_num'))
             chkPay = CheckPay(check_num = res['max_count'] + 1, cash = 0, term = pay)
@@ -4732,7 +4734,7 @@ def client_ws_payform(request):
     url = base + urllib.urlencode(data)
     page = urllib.urlopen(url).read()
             
-    ccred = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
+    ccred = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
     ccred.save()
     for item in wk:
         item.pay = True
@@ -4753,6 +4755,7 @@ def client_payform(request):
     if request.user.is_authenticated():
         user = request.user
 
+    now = datetime.datetime.now()
     desc = ""
     count = None
     sum = 0
@@ -4810,7 +4813,7 @@ def client_payform(request):
     if (float(request.POST['pay']) == 0) and (float(request.POST['pay_terminal']) == 0):
         if client.id == settings.CLIENT_UNKNOWN:
             return HttpResponse("Невідомий клієнт не може мати борг");
-        cdeb = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
+        cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
         cdeb.save()
 #===============================================================================
 #        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
@@ -4831,7 +4834,7 @@ def client_payform(request):
         pay = request.POST['pay']
         cash_type = CashType.objects.get(id = 1) # готівка
         if float(request.POST['pay']) != 0:
-            ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=cash_type)
+            ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
 #===============================================================================
 #            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
@@ -4889,7 +4892,7 @@ def client_payform(request):
         pay = request.POST['pay_terminal']
         cash_type = CashType.objects.get(id = 2) # термінал
         if float(request.POST['pay_terminal']) != 0:
-            ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=desc, user=user, cash_type=cash_type)
+            ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
 #===============================================================================
 #            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
@@ -4944,7 +4947,7 @@ def client_payform(request):
 #                url = base + urllib.urlencode(data)
 #                page = urllib.urlopen(url).read()
         
-    cdeb = ClientDebts(client=client, date=datetime.datetime.now(), price=sum, description=desc, user=user, cash=0)
+    cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
     cdeb.save()
     if client.id == settings.CLIENT_UNKNOWN:
         return HttpResponseRedirect('/client/invoice/view/')
