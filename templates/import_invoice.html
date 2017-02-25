@@ -1,0 +1,51 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Імпорт накладної</title>
+
+    <h1>Імпорт накладної:</h1>
+    <form action="/dealer/invoice/import/file/" method="POST" enctype="multipart/form-data">
+        <table>
+            {{ form.as_table }}
+        </table>
+        <p><input type="submit" value="Save"></p>
+    </form>
+
+<h3>Структура файлу:</h3>
+<ul>
+<li>
+0. catalog_id
+</li>
+<li>
+1. catalog_name
+</li>
+<li>
+2. count
+</li>
+<li>
+3. price
+</li>
+<li>
+4. curreny (2 - USD; 4 - EUR; 3	- UAH)
+</li>
+<li>
+5. id_nakladna
+</li>
+<li>
+6. catalog_price_recomended
+</li>
+<li>
+7. catalog_price_curreny (3	- UAH)
+</li>
+<li>
+8. catalog_manufacture
+</li>
+<li>
+9. catalog_type_id
+</li>
+<li>
+10. catalog_color
+</li>
+<li>
+11. catalog_country
+</li>
+</ul>
+    

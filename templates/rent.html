@@ -18,11 +18,10 @@
 	$(document).ready(function() {
       $('select.autocomplete').select_autocomplete();
       $('#id_catalog').focus();
-//      $(".ac_input").focus();
       
             $('#ttt').click(function(){
             var TextStory = "ygrik" 
-            var MailStory = $("#mail_story").val();
+//            var MailStory = $("#mail_story").val();
             $.ajax({
                 type: "POST",
                 url: "/insertstory/",
@@ -63,18 +62,11 @@
   
     <form action="" method="POST">
         <table>
-            {{ form.as_ul }}
+            {{ form.as_table }}
         </table>
         <p><input type="submit" value="Save"></p>
     </form>
-    <a href="/">back</a>
-{% comment %}  
-  <div id="ttt" class="facts">New DIV</div>      
-  <div id="1" class="fact">I love bugs</div>
-  <div id="2" class="fact">I love hugs</div>
-  <div id="3" class="fact">I love pugs</div>
-  <div id="result">Click on the lie!</div>
-{% endcomment %}  
+<br>
 
 </body>
 </html>

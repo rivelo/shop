@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.contrib import admin
-from catalog.accounting.models import Type, Size, Exchange, Manufacturer, Catalog, Country, Dealer, Currency, Rent
+from catalog.accounting.models import Type, Size, Exchange, Manufacturer, Catalog, Country, Dealer, Currency, Rent, Wheel_Size
 
 
 
@@ -79,6 +79,10 @@ class RentAdmin(admin.ModelAdmin):
 admin.site.register(Rent, RentAdmin)
 
 
+class Wheel_SizeAdmin(admin.ModelAdmin):
+    pass 
+
+admin.site.register(Wheel_Size, Wheel_SizeAdmin)
 
 
 

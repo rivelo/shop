@@ -444,12 +444,11 @@ class Bicycle(models.Model):
     year = models.DateField(blank = True, null=True)
     color = models.CharField(max_length=255)
     wheel_size = models.ForeignKey(Wheel_Size, blank=True, null=True) #20, 24, 26, 27.5, 29, 29+
-    #sizes = models.CharField(max_length=255)    
     sizes = models.CommaSeparatedIntegerField(max_length=10)
-    photo = models.ImageField(upload_to = 'media/upload/', max_length=255, blank=True, null=True)
+    photo = models.ImageField(upload_to = 'media/upload/bicycle/', max_length=255, blank=True, null=True)
     photo_url = models.ManyToManyField(Photo, blank=True)
+    offsite_url = models.URLField(blank=True, null=True)
     weight = models.FloatField()
-    #PositiveIntegerField()
     price = models.FloatField()
     currency = models.ForeignKey(Currency)
     sale = models.FloatField(default = 0, blank=True, null=True)
@@ -458,7 +457,6 @@ class Bicycle(models.Model):
     def __unicode__(self):
         #return u'Велосипед %s. Ціна %s грн.' % (self.model, self.brand)
         return u'Велосипед %s. Модель %s. %s (%s)' % (self.brand, self.model, self.year.year, self.color)
-        #return u'Велосипед %s. Ціна %d грн.' % (self.model, self.price)
         
     class Meta:
         ordering = ["brand", "year", "type", "model", "price"]    
@@ -472,7 +470,7 @@ class Bicycle_Store(models.Model):
     price = models.FloatField()
     currency = models.ForeignKey(Currency)
     count = models.PositiveIntegerField()
-    realization = models.BooleanField()
+    realization = models.BooleanField(default=False,)
     date = models.DateField(auto_now_add=True)
     description = models.TextField(blank=True, null=True)
     
@@ -697,7 +695,7 @@ class PreOrder(models.Model):
     file = models.CharField(max_length=255)
     received = models.BooleanField(default=False, verbose_name="Товар отримано?")
     #payment = models.ForeignKey(DealerPayment, blank = True, null = True)
-    payment = models.BooleanField(verbose_name="Оплачено?")
+    payment = models.BooleanField(default=False, verbose_name="Оплачено?")
     description = models.TextField(blank = True, null = True)
             
     def __unicode__(self):

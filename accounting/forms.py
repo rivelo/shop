@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from django import forms
 from django.forms import ModelForm
-from models import Manufacturer, Country, Type, Bicycle_Type, Bicycle, Currency, FrameSize, Bicycle_Store, Catalog, Size, Bicycle_Sale, Bicycle_Order, InventoryList 
-from models import DealerManager, DealerPayment, DealerInvoice, Dealer, Bank, ShopDailySales, PreOrder, InvoiceComponentList 
+from models import Manufacturer, Country, Type, Bicycle_Type, Bicycle, Currency, FrameSize, Bicycle_Store, Catalog, Size, Bicycle_Sale, Bicycle_Order, InventoryList, Wheel_Size 
+from models import DealerManager, DealerPayment, DealerInvoice, Dealer, Bank, ShopDailySales, PreOrder, InvoiceComponentList, ClientOrder
 from models import Client, ClientDebts, CostType, Costs, ClientCredits, WorkGroup, WorkType, WorkShop, WorkTicket, WorkStatus, Rent, ClientInvoice, CashType, Exchange, Type, ClientMessage, WorkDay
 
 from django.contrib.auth.models import User
@@ -42,9 +42,9 @@ class SelectFromModel(forms.Field):
 
 class ManufacturerForm(ModelForm):
     name = forms.CharField()
-    www = forms.URLField(initial='http://', help_text='url')
+    www = forms.URLField(initial='http://', help_text='url', )
     country = forms.ModelChoiceField(queryset = Country.objects.all())
-    logo = forms.ImageField()
+    logo = forms.ImageField(required=False)
     description = forms.CharField(widget=forms.Textarea())
     class Meta:
         model = Manufacturer
@@ -110,22 +110,23 @@ class BicycleFrameSizeForm(forms.ModelForm):
         fields = '__all__'    
 
 class BicycleForm(forms.ModelForm):
-    model = forms.CharField(max_length=255)
+    model = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'size': '80'}), )
     type = forms.ModelChoiceField(queryset = Bicycle_Type.objects.all()) #adult, kids, mtb, road, hybrid
     #brand = SelectFromModel(objects=Manufacturer.objects.all())
     brand = forms.ModelChoiceField(queryset = Manufacturer.objects.all())
     #year = forms.DateField(initial=datetime.date.today, input_formats=("%d.%m.%Y"), widget=forms.DateTimeInput(format='%d.%m.%Y'))
     year = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))    
     color = forms.CharField(max_length=255)
-    #sizes = forms.MultipleChoiceField()
+    wheel_size = forms.ModelChoiceField(queryset = Wheel_Size.objects.all())
     sizes = forms.CharField(required=False)
     photo = forms.ImageField(required=False)
     weight = forms.FloatField(min_value=0, initial=0)
     price = forms.FloatField(initial=0)
+    offsite_url = forms.URLField(required=False)
     #currency = SelectFromModel(objects=Currency.objects.all())
-    currency = forms.ModelChoiceField(queryset = Currency.objects.all())
+    currency = forms.ModelChoiceField(queryset = Currency.objects.all(), initial=Currency.objects.get(ids_char = 'UAH'))
     sale = forms.FloatField(min_value=0, initial=0, required=False)
-    description = forms.CharField(label='Description', widget=forms.Textarea(), required=False)    
+    description = forms.CharField(label='Description', widget=forms.Textarea(attrs={'size': '180'}), required=False)    
 
     class Meta:
         model = Bicycle
@@ -295,10 +296,17 @@ class DealerInvoiceForm(forms.ModelForm):
     received = forms.BooleanField(initial = False, required=False) 
     payment = forms.BooleanField(initial = False, required=False)
     description = forms.CharField(label='Description', widget=forms.Textarea(), required=False)
+
     class Meta:
         model = DealerInvoice
         fields = '__all__'
 
+
+class ImportDealerInvoiceForm(forms.Form):
+    csv_file = forms.FileField(allow_empty_file=False)
+    name = forms.BooleanField(label='Назва товару', required=False)
+    recomended = forms.BooleanField(label='Ціна товару', initial=True, required=False)
+    
 
 class InvoiceComponentListForm(forms.ModelForm):
     invoice = forms.ModelChoiceField(queryset = DealerInvoice.objects.filter(received=False))
@@ -484,13 +492,14 @@ class ClientOrderForm(forms.ModelForm):
     sum = forms.FloatField(initial=0, label='Сума')
     currency = forms.ModelChoiceField(queryset = Currency.objects.all(), label='Валюта')
     pay = forms.FloatField(initial=0, label='Передоплата')
-    cash_type = forms.ModelChoiceField(queryset = CashType.objects.all())
+    cash_type = forms.ModelChoiceField(queryset = CashType.objects.all(), initial=CashType.objects.get(name="Готівка"))
     date = forms.DateTimeField(initial = datetime.datetime.now(), label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'))
     status = forms.BooleanField(initial = False, required=False)
+
     class Meta:
-        model = ClientInvoice
+        model = ClientOrder
         fields = '__all__'
-        exclude = ['chk_del', 'user']         
+        exclude = ['user', 'catalog', 'credit']         
     
 #===============================================================================
 #    def __init__(self, *args, **kwargs):
@@ -622,18 +631,21 @@ class PreOrderForm(forms.ModelForm):
 
 
 class RentForm(forms.ModelForm):
-    catalog = forms.ModelChoiceField(queryset = Catalog.objects.filter(id__in = ClientInvoice.objects.filter(client__id=516).values('catalog__id')))
+#    catalog = forms.ModelChoiceField(queryset = Catalog.objects.filter(id__in = ClientInvoice.objects.filter(client__id=516).values('catalog__id')))
+    catalog = forms.ModelChoiceField(queryset = Catalog.objects.filter(id__in = ClientInvoice.objects.filter(client__name='Прокат').values('catalog__id')))
     client = forms.ModelChoiceField(widget=forms.Select(attrs={'class':'autocomplete'}), queryset = Client.objects.all(), empty_label="")    
     date_start = forms.DateTimeField(initial = datetime.datetime.today(), label='Дата початку')
     date_end = forms.DateTimeField(initial = datetime.date.today() + datetime.timedelta(days=3), label='Закінчення прокату')
-    count = forms.IntegerField(initial=1)
-    deposit = forms.FloatField(initial=0)
-    status = forms.BooleanField(initial = False, required=False)
+#    count = forms.IntegerField(initial=1)
+    deposit = forms.FloatField(label='Завдаток', initial=0)
+#    status = forms.BooleanField(initial = False, required=False)
     description = forms.CharField(label='Description', widget=forms.Textarea(), required=False)
 
     class Meta:
         model = Rent
         fields = '__all__'
+        exclude = ['cred', 'user', 'status', 'count']
+
 
 
 class WorkDayForm(forms.ModelForm):

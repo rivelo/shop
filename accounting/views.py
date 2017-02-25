@@ -16,12 +16,13 @@ from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerIn
 from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm
 
 from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay
-from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm
+from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm
 
   
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import auth
+from django.core.files.uploadedfile import InMemoryUploadedFile, UploadedFile
 
 from django.http import HttpResponse 
 from django.http import Http404  
@@ -29,6 +30,7 @@ from django.http import Http404
 from django.conf import settings
 import datetime
 import calendar
+import codecs
 
 from django.db.models import Sum, Count, Max
 
@@ -41,6 +43,10 @@ from django.core import serializers
 import pytils_ua
 import urllib
 from django.conf import settings
+
+from django.core.mail import EmailMultiAlternatives
+from urlparse import urlsplit
+from django.db.models import F
 
 
 def custom_proc(request):
@@ -100,7 +106,17 @@ def del_logging(obj):
     log_file.close()
 
 
-from urlparse import urlsplit
+
+def send_shop_mail(request, mto, w, subject='Наявний товар'):
+    from_email = 'rivelo@ymail.com' 
+    to = mto
+    text_content = 'www.rivelo.com.ua'
+    html_content = w.content
+    msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+    msg.attach_alternative(html_content, "text/html")
+    msg.send()
+    return True #render_to_response("index.html", {'success_data': "Лист відправлено на пошту" + to}, context_instance=RequestContext(request, processors=[custom_proc]))
+
 
 def prev_url(request):
     #referer = request.META.get('HTTP_REFERER', None)
@@ -361,30 +377,31 @@ def processUploadedImage(file, dir=''):
 def bicycle_add(request):
     if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
         return HttpResponseRedirect('/bicycle/view/')
-#    a = Bicycle(year=datetime.date.today())
     a = Bicycle()    
     if request.method == 'POST':
 #        form = BicycleForm(request.POST, request.FILES, instance=a)
         form = BicycleForm(request.POST, request.FILES)        
         if form.is_valid():
-            #bicycle = form.save()
             model = form.cleaned_data['model']
             type = form.cleaned_data['type']
             brand = form.cleaned_data['brand']
             color = form.cleaned_data['color']
-            photo = form.cleaned_data['photo']
             year = form.cleaned_data['year']
             weight = form.cleaned_data['weight']
             price = form.cleaned_data['price']
             currency = form.cleaned_data['currency']
             description = form.cleaned_data['description']
             sale = form.cleaned_data['sale']
-            #processUploadedImage(request.FILES['photo']) 
-            #photo = photo,
-            #upload_path = processUploadedImage(photo)
-            upload_path = ""
-            #handle_uploaded_file(photo)
-            Bicycle(model = model, type=type, brand = brand, color = color, photo=upload_path, weight = weight, price = price, currency = currency, description=description, year=year, sale=sale).save()
+            offsite_url = form.cleaned_data['offsite_url']
+            photo = form.cleaned_data['photo']            
+            folder = year.year
+            if photo == None:
+                upload_path_p = None
+            if isinstance(photo, InMemoryUploadedFile):
+                upload_path_p = processUploadedImage(photo, 'bicycle/'+str(folder)+'/') 
+                a.photo=upload_path_p
+            
+            Bicycle(model = model, type=type, brand = brand, color = color, photo=photo, weight = weight, price = price, currency = currency, offsite_url=offsite_url, description=description, year=year, sale=sale).save()
             return HttpResponseRedirect('/bicycle/view/')
             #return HttpResponseRedirect(bicycle.get_absolute_url())
     else:
@@ -431,8 +448,10 @@ def bicycle_list(request, year=None, brand=None, percent=None):
         if percent!=None:
             Bicycle.objects.filter(year__year=year, brand=brand).update(sale=percent)
     bike_company = Bicycle.objects.filter(year__year=year).values('brand', 'brand__name').annotate(num_company=Count('model'))
+    #bike_year = Bicycle.objects.values('year').annotate(n_year=Count('year__year'))
+    bike_year = Bicycle.objects.filter().extra({'yyear':"Extract(year from year)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('yyear')
     #return render_to_response('bicycle_list.html', {'bicycles': list.values_list()})
-    return render_to_response('index.html', {'bicycles': list, 'year': year, 'b_company': bike_company, 'sale': percent, 'weblink': 'bicycle_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'bicycles': list, 'year': year, 'b_company': bike_company, 'byear': bike_year, 'sale': percent, 'weblink': 'bicycle_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def bicycle_photo(request, id):
@@ -1341,7 +1360,6 @@ def dealer_invoice_del(request, id):
     obj.delete()
     return HttpResponseRedirect('/dealer/invoice/view/')
  
-
  
 def dealer_invoice_list(request, id=False, pay='all'):
     if id == False:
@@ -1592,7 +1610,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
         #upd.count = element['balance'] 
         #upd.save()
     
-    return render_to_response('index.html', {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_name':cat_name, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def invoicecomponent_print(request):
@@ -1625,35 +1643,53 @@ def invoicecomponent_print(request):
 
 
 def invoicecomponent_manufacturer_html(request, mid):
+    email = ""
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'admin')==False:
+                return HttpResponse('Error: У вас не має прав для редагування')
+            POST = request.POST  
+            if POST.has_key('email'):        
+                email = request.POST.get('email')
     list = Catalog.objects.filter(manufacturer__id=mid, count__gt=0).order_by('type__id')
-    
     zcount = 0
     for elem in list:
         zcount = zcount + elem.count
-    
     if mid == None:
         company_name = ""
     else:
         company_name = Manufacturer.objects.get(id=mid)
-        
-    return render_to_response('index.html', {'componentlist': list, 'company_name': company_name, 'zcount': zcount, 'weblink': 'component_list_by_manufacturer_html.html'})
+    w = render_to_response('component_list_by_manufacturer_html.html', {'componentlist': list, 'company_name': company_name, 'zcount': zcount})        
+#    return render_to_response('index.html', {'componentlist': list, 'company_name': company_name, 'zcount': zcount, 'weblink': 'component_list_by_manufacturer_html.html'})
+    send_shop_mail(request, email, w, 'Наявний товар')
+    return HttpResponse('Ваш лист відправлено')
 
-
-def invoicecomponent_category_html(request, mid):
+# send Email all in shop by category
+def invoicecomponent_category_html(request, mid): 
+#    if auth_group(request.user, 'admin') == False:
+#        return HttpResponseRedirect("/.")
+    email = ""
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'admin')==False:
+                return HttpResponse('Error: У вас не має прав для редагування')
+            POST = request.POST  
+            if POST.has_key('email'):        
+                email = request.POST.get('email')
     list = Catalog.objects.filter(type__id=mid, count__gt=0).order_by('manufacturer__id')
     zcount = 0
     for elem in list:
         zcount = zcount + elem.count
-    
     if mid == None:
         category = ""
     else:
         category = Type.objects.get(id=mid)
-        
-    return render_to_response('index.html', {'componentlist': list, 'type_name': category, 'zcount': zcount, 'weblink': 'component_list_by_type_html.html'})
+    w = render_to_response('component_list_by_type_html.html', {'componentlist': list, 'type_name': category, 'zcount': zcount})
+#    w = render_to_response('index.html', {'componentlist': list, 'type_name': category, 'zcount': zcount, 'weblink': 'component_list_by_type_html.html'})
+    send_shop_mail(request, email, w, 'Наявний товар')
+    return HttpResponse('Ваш лист відправлено')
+    #return render_to_response('index.html', {'componentlist': list, 'type_name': category, 'zcount': zcount, 'weblink': 'component_list_by_type_html.html'})
 
-
-from django.db.models import F
 
 def invoicecomponent_sum(request):
     if auth_group(request.user, 'admin') == False:
@@ -1841,33 +1877,50 @@ def invoice_cat_id_list(request, cid=None, limit=0):
     return render_to_response('index.html', {'list': list, 'allpricesum':psum, 'countsum': scount, 'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
+def invoice_import_form(request):
+    form = ImportDealerInvoiceForm()
+    return render_to_response('index.html', {'form': form, 'weblink': 'import_invoice.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    
+
 def invoice_import(request):
 # id / name / company / type / color / country / count/ price / currency / invoice_id / rrp_price / currency /
 # id / name / count / price / currency / invoice number
+
     ids_list = []
     now = datetime.datetime.now()
 #    if 'name' in request.GET and request.GET['name']:
 #        name = request.GET['name']
+    if request.POST and request.FILES:
+#    if request.FILES:
+        csvfile = request.FILES['csv_file']
+        dialect = csv.Sniffer().sniff(codecs.EncodedFile(csvfile, "utf-8").read(1024))
+        csvfile.open()
+        invoice_reader = csv.reader(codecs.EncodedFile(csvfile, "utf-8"), delimiter=';', dialect=dialect)
+        #invoice_reader = csv.reader(csvfile, delimiter=';', quotechar='|')
+
     name = 'id'
-    path = settings.MEDIA_ROOT + 'csv/' + name + '.csv'
-    csvfile = open(path, 'rb')
-    invoice_reader = csv.reader(csvfile, delimiter=';', quotechar='|')
+#    path = settings.MEDIA_ROOT + 'csv/' + name + '.csv'
+#    csvfile = open(path, 'rb')
+#    invoice_reader = csv.reader(csvfile, delimiter=';', quotechar='|')
     w_file = open(settings.MEDIA_ROOT + 'csv/' + name + '_miss.csv', 'wb')
     spamwriter = csv.writer(w_file, delimiter=';', quotechar='|') #, quoting=csv.QUOTE_MINIMAL)
     for row in invoice_reader:
         id = None
-        #print row[0] + " - " + row[2]
+        print "ROW[0] = " + row[0]
         id = row[0]
         ids_list.append(row[0])
         try:
             cat = Catalog.objects.get(Q(ids = id) | Q(dealer_code = id))
-            print "ROW[6] = " + row[6]
+            print "ID = " + row[0]
+#            print "ROW[6] = " + row[6]
             if int(row[6]) > 0:
                 cat.price = row[6]
-                print "IF = " + row[6]
             c = Currency.objects.get(id = row[4])
             inv = DealerInvoice.objects.get(id = row[5])
             InvoiceComponentList(invoice = inv, catalog = cat, count = row[2], price= row[3], currency = c, date = now).save()
+            if request.POST.has_key('name'): 
+                if request.POST['name'] == 'on':
+                    cat.name = row[1] 
             cat.count = cat.count + int(row[2])
             cat.save()
             #if row[6]: 
@@ -2033,7 +2086,10 @@ def manufacturer_add(request):
             www = form.cleaned_data.get('www')
             country = form.cleaned_data.get('country')
             logo = form.cleaned_data.get('logo')
-            upload_path = processUploadedImage(logo, 'manufecturer/') 
+            if not logo:
+                upload_path = ''
+            else:
+                upload_path = processUploadedImage(logo, 'manufecturer/') 
             #country = SelectFromModel(objects=Country.objects.all())
             Manufacturer(name=name, description=description, www=www, logo=upload_path, country=country).save()
             return HttpResponseRedirect('/manufacturer/view/')
@@ -3896,8 +3952,8 @@ def shopdailysales_edit(request, id):
 
 
 def shopdailysales_list(request, month=None):
+    now = datetime.datetime.now()
     if month == None:
-        now = datetime.datetime.now()
         month = now.month
     list = ShopDailySales.objects.filter(date__year=now.year, date__month=month)
     sum = 0 
@@ -5129,9 +5185,11 @@ def rent_add(request):
             client = form.cleaned_data['client']
             date_start = form.cleaned_data['date_start']
             date_end = form.cleaned_data['date_end']
-            count = form.cleaned_data['count']
+#            count = form.cleaned_data['count']
+            count = 1
             deposit = form.cleaned_data['deposit']
-            status = form.cleaned_data['status']
+#            status = form.cleaned_data['status']
+            status = False
             description = form.cleaned_data['description']
             user = None            
             if request.user.is_authenticated():
@@ -5238,7 +5296,7 @@ def ajax_search(request):
     return HttpResponse(simplejson.dumps(list(search)))
 
        
-from django.core.mail import EmailMultiAlternatives
+
 def sendemail(request):
     list = Catalog.objects.filter(manufacturer = 28, count__gt=0).order_by("type")    
     company = Manufacturer.objects.get(id=28)
@@ -5394,6 +5452,7 @@ def client_history_debt(request):
 
 
 def client_history_invoice(request):
+    now = datetime.datetime.now()
     if request.is_ajax():
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
@@ -6286,5 +6345,11 @@ def check_delete(request, id):
     obj.delete()
     return HttpResponseRedirect('/check/list/now/')
 
+def send_workshop_sound(request):
+    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+    data =  {"cmd": "playsound"} #, "id":'77', "cname":bike_s, "price":price, "count": count, "discount": discount}
+    url = base + urllib.urlencode(data)
+    page = urllib.urlopen(url).read()
+    return HttpResponse("Повідомлення на склад відправлено")
     
     

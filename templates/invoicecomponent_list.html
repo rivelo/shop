@@ -105,7 +105,7 @@ width: 100%;
 height: 100%;
 }
  
-#b_buy {
+#b_buy, #email_send{
 cursor: pointer; 
 }  
 
@@ -946,6 +946,29 @@ $("#dialog_print").dialog({
       }
 });
 
+
+$("#dialog_edit_email").dialog({
+	autoOpen: false,
+      resizable: true,
+      width: 400,
+      modal: true,
+      open: function( event, ui ) {
+//		console.log("Table width = " +  $("#print_container").find("table").width() ); //очищення поля
+//		$("#dialog_print").dialog( "option", "width", $("#dialog_print").find("table").width() );
+	  },
+      buttons: {
+        "Надіслати": function() {
+          $( this ).dialog( "close" );
+          $(this).trigger('confirm');
+        }, 
+        "Відмінити": function() {
+          $( this ).dialog( "close" );
+          $(this).trigger('cancel');
+        }, 
+        
+      }
+});
+
 });
 
 $(document).on("click", ".c_photo", function(event) {
@@ -1152,7 +1175,6 @@ $("body").on('click', '#print_phpbb', function() {
 });
 
 
-
 $("body").on('click', '#c_join', function() {
 	$("#jtext").html('<b>Обєднати товари:</b>');
     $("#dialog_catalog_join").dialog("open");
@@ -1215,9 +1237,52 @@ $("body").on('click', '#b_buy', function() {
 	});
 	$("#dialog_b_buy").attr({"ids": ids});
 	$("#dialog_b_buy").attr({"index": index});
-
 });
 
+
+function showbox(okCallback, cancelCallback) {
+	var divId = $('#dialog_edit_email');
+    divId.dialog('open').off('confirm cancel').on('confirm', okCallback).on('cancel', cancelCallback);
+}
+
+
+$("body").on('click', '#email_send', function() {
+showbox(function(){
+
+//if (confirm("Ви впевненні що хочете відправити лист на пошту rivelo@ymail.com")) {
+//	parent.location='http://www.jsp.newmail.ru/les12.htm';
+//	console.log("EMAIL_send!!!");
+
+{% if company_id %}	
+	$.ajax("/invoice/manufacture/{{company_id}}/availability/view/html/", {
+    	type: 'POST',
+    	data: {
+      		email: $('#email_name').val(), //'rivelo@ymail.com',
+    	},
+		success: function(msg){
+					alert(msg);
+        },
+  	})	
+{% endif %}
+{% if category_id %}
+	$.ajax("/invoice/category/{{category_id}}/availability/view/html/", {
+    	type: 'POST',
+    	data: {
+      		email: 'rivelo@ymail.com',
+    	},
+		success: function(msg){
+					alert(msg);
+        },
+  	})
+{% endif %}	
+//}
+            alert('ok')
+        }, function(){
+            //alert('cancelled')
+        });
+    //}
+
+});
 
 /*
 function on_off_button(state) {
@@ -1278,10 +1343,7 @@ console.log("ids[]= ", ids );
                     alert( xhr.responseText );
                 }
             });      
-	
 	}
-
-
 });
 
 
@@ -1310,13 +1372,27 @@ console.log("ids[]= ", ids );
 </div>
 
 <div style="clear:left;">
-     <h1>Список наявного товару <span id="c_c">({{company_name|capfirst}}{{category_name|capfirst}})</span> <span id="b_buy"><img src="/media/images/Ecommerce Buy.ico" width="32" height="32"> </span></h1>
+     <h1>Список наявного товару <span id="c_c">({{company_name|capfirst}}{{category_name|capfirst}})</span> 
+     <span id="b_buy"><img src="/media/images/Ecommerce Buy.ico" width="32" height="32"> </span>
+{% if request.user|has_group:"admin" %}     
+     <span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="42" height="42"></span>
+{% endif %}
+     
+     </h1>
 </div>
 
 <!-- Dialog print PHPbb -->
 	<div id="dialog_print" title="Таблиця для форуму">
 	<div id="print_container">
 	</div>
+	</div>
+
+
+<!-- Dialog to edit email -->
+	<div id="dialog_edit_email" title="Edit email">
+	<p id="emtext">Адреса для відправки пошти:</p>
+	<label for="spinner">Введіть Email:</label>
+  	<input type="text" id="email_name" value="" size="45">
 	</div>
 
 
