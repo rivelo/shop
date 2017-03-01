@@ -1,0 +1,37 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Імпорт даних про товар</title>
+
+    <h1>Імпорт товарів:</h1>
+    <form action="/catalog/price/import/file/" method="POST" enctype="multipart/form-data">
+        <table>
+            {{ form.as_table }}
+        </table>
+        <p><input type="submit" value="Save"></p>
+    </form>
+
+<h3>Структура файлу:</h3>
+<ul>
+<li>
+0. catalog_id
+</li>
+<li>
+1. dealer_code (0 = don't find)
+</li>
+<li>
+2. catalog_name
+</li>
+<li>
+3. Price
+</li>
+<li>
+4. curreny (2 - USD; 4 - EUR; 3	- UAH)
+</li>
+<li>
+5. description
+</li>
+<li>
+6. photo
+</li>
+
+</ul>
+    

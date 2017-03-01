@@ -28,7 +28,8 @@
     <tr>
     	<th>ID</th>
     	<th>Дата</th>
-    	<th>Сума (грн.)</th>
+    	<th>Каса (грн.)</th>
+    	<th>Готівка за День</th>
     	<th>Опис</th>
     	<th>Готівка</th>
     	<th>Термінал</th>
@@ -45,7 +46,10 @@
 	<abbr title="[{{type.date|time:"H:i"}}]"> {{type.date|date}} </abbr>
 	</td>
 	<td>       
-	{{type.price}}
+	{{type.price}} 
+	</td>
+	<td>
+	{{type.day_sale}}
 	</td>
 	<td>       
 	{{type.description}}
@@ -71,6 +75,7 @@
     	<th></th>
     	<th>Сума</th>
     	<th>{{summ}} грн.</th>
+    	<th></th>
     	<th></th>
     	<th></th>
     	<th></th>

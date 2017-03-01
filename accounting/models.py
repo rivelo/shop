@@ -4,6 +4,7 @@ from django.forms import ModelForm
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db.models import Count, Sum
 
 # Type = Component category 
 class Type(models.Model):
@@ -140,6 +141,37 @@ class Catalog(models.Model):
     description = models.CharField(max_length=255)
     locality = models.CharField("locality", blank=True, null=True, max_length=50)
     show = models.BooleanField(default=False, verbose_name="Статус відображення")
+#    full_description = models.TextField(blank=True, null=True)
+
+    def inv_price(self):
+        usd = Currency.objects.get(pk=2)
+        eur = Currency.objects.get(pk=4)
+        uah = Currency.objects.get(pk=3)
+        r = self.invoicecomponentlist_set.filter(price__gt = 0, currency = uah).values('currency').annotate(count_p=Count('currency'), sum_p=Sum('price'), count_s=Sum('count'))
+        #r = self.invoicecomponentlist_set.filter(currency = eur).values('currency').annotate(count_p=Count('currency'), sum_p=Sum('price'))
+        #r = self.invoicecomponentlist_set.filter(price__gt = 0, currency = usd).values('currency').annotate(count_p=Count('currency'), sum_p=Sum('price'))
+        #r = self.invoicecomponentlist_set.filter(currency = uah).values('price', 'currency').annotate(sum_p=Sum('price'), count_p=Count('currency'))
+        #values('price', 'currency')
+        return r
+
+    def client_price(self):
+        usd = Currency.objects.get(pk=2)
+        eur = Currency.objects.get(pk=4)
+        uah = Currency.objects.get(pk=3)
+        #r = self.clientinvoice_set.filter(pay__gt = 0, currency = uah).values('currency').annotate(count_p=Count('currency'), sum_p=Sum('pay'))
+        #r = self.invoicecomponentlist_set.filter(currency = eur).values('currency').annotate(count_p=Count('currency'), sum_p=Sum('price'))
+        #r = self.invoicecomponentlist_set.filter(price__gt = 0, currency = usd).values('currency').annotate(count_p=Count('currency'), sum_p=Sum('price'))
+        r = self.clientinvoice_set.filter(currency = uah).values('currency').annotate(sum_p=Sum('sum'), count_p=Count('currency'), count_s=Sum('count'))
+        #values('price', 'currency')
+        return r
+
+    def _get_full_name(self):
+        p = self.inv_price()
+        cprice = p[0]['sum_p']/p[0]['count_s']
+        if self.price < cprice:
+            return "Ahtung!!!"
+        return 'Price OK = ' + str(cprice)
+    chk_price = property(_get_full_name)
     
     def __unicode__(self):
         return "[%s] %s - %s" % (self.ids, self.manufacturer, self.name)
@@ -616,6 +648,11 @@ class ShopDailySales(models.Model):
     cash = models.FloatField() #Готівка
     tcash = models.FloatField() #Термінал
     ocash = models.FloatField() #Взято з каси
+
+    def day_sale(self):
+        r = ShopDailySales.objects.filter(date__lt = self.date).latest('date')
+        res = r.price + self.cash - self.price
+        return int(round(res, 0))
     
     def __unicode__(self):
         return "[%s] - %s" % self.date, self.price 

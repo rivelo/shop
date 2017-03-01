@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-
 from django.db.models import Q
 from django.db.models import F
+from django.db import connection
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.core.urlresolvers import resolve
 
 from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,  FrameSize, Bicycle_Store, Bicycle_Sale, Bicycle_Order
-from forms import ContactForm, ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm, BicycleOrderEditForm 
+from forms import ContactForm, ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm 
 
 from models import Catalog, Client, ClientDebts, ClientCredits, ClientInvoice, ClientOrder, ClientMessage, ClientReturn, InventoryList
 from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, ClientInvoiceForm, ClientOrderForm
@@ -16,8 +16,7 @@ from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerIn
 from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm
 
 from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay
-from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm
-
+from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm
   
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.core.exceptions import ObjectDoesNotExist
@@ -31,11 +30,13 @@ from django.conf import settings
 import datetime
 import calendar
 import codecs
+import csv
 
 from django.db.models import Sum, Count, Max
 
 from django.core.mail import send_mail
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.auth.models import Group
 
 import simplejson
 from django.core import serializers
@@ -1033,7 +1034,8 @@ def bicycle_sale_report_by_brand(request):
 
 
 def bicycle_order_add(request):
-    
+    if auth_group(request.user, 'seller') == False:
+        return HttpResponse('Для виконання дій авторизуйтесь', content_type="text/plain")
     a = Bicycle_Order(prepay=0, sale=0, currency=Currency.objects.get(id=3))
     if request.method == 'POST':
         form = BicycleOrderForm(request.POST, instance = a)
@@ -1048,7 +1050,7 @@ def bicycle_order_add(request):
             prepay = form.cleaned_data['prepay']
             currency = form.cleaned_data['currency']
             date = form.cleaned_data['date']
-            done = form.cleaned_data['done']
+            #done = form.cleaned_data['done']
             description = form.cleaned_data['description']
             user = None             
             cashtype = None
@@ -1059,7 +1061,7 @@ def bicycle_order_add(request):
                 o_id = request.POST.get( 'cash' )            
                 cashtype = CashType.objects.get(id = o_id)
                 
-            Bicycle_Order(client=client, model=model, size=size, price=price, sale=sale, currency=currency, date=date, done=done, description=description, prepay=prepay, user=user).save()
+            Bicycle_Order(client=client, model=model, size=size, price=price, sale=sale, currency=currency, date=date,  description=description, prepay=prepay, user=user).save()
             ClientCredits(client=client, date=date, price=prepay, description="Передоплата за "+str(model), user=user, cash_type=cashtype).save()                        
             return HttpResponseRedirect('/bicycle/order/view/')
     else:
@@ -1075,17 +1077,13 @@ def bicycle_order_list(request):
 
 def bicycle_order_edit(request, id):
     a = Bicycle_Order.objects.get(pk=id)
-    
     if request.method == 'POST':
-        #form = BicycleOrderEditForm(request.POST, instance=a, bike_id=a.model.id)
-        form = BicycleOrderEditForm(request.POST, instance=a)
+        form = BicycleOrderForm(request.POST, instance=a)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect('/bicycle/order/view/')
     else:
-        #form = BicycleOrderEditForm(instance=a, bike_id=a.model.id)
-        form = BicycleOrderEditForm(instance=a)
-   
+        form = BicycleOrderForm(instance=a)
     return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_order.html'})
 
 
@@ -1147,7 +1145,7 @@ def bike_lookup(request):
         if request.POST.has_key(u'query'):
             value = request.POST[u'query']
             if len(value) > 2:
-                model_results = Bicycle.objects.filter(year__gte=datetime.datetime(cur_year-1, 1, 1)).filter(Q(model__icontains = value) | Q(brand__name__icontains = value)).order_by('-year')
+                model_results = Bicycle.objects.filter(year__gte=datetime.datetime(cur_year-2, 1, 1)).filter(Q(model__icontains = value) | Q(brand__name__icontains = value)).order_by('-year')
                 #.values('id', 'model', 'type__type', 'brand__name',  'color', 'price', 'sale')
                 #.values('id', 'model', 'type__type', 'brand__name', 'year', 'color', 'price', 'sale');
                 data = serializers.serialize("json", model_results, fields = ('id', 'model', 'type', 'brand', 'color', 'price', 'year', 'sale'), use_natural_keys=False)
@@ -1885,7 +1883,7 @@ def invoice_import_form(request):
 def invoice_import(request):
 # id / name / company / type / color / country / count/ price / currency / invoice_id / rrp_price / currency /
 # id / name / count / price / currency / invoice number
-
+    invoice_reader = None
     ids_list = []
     now = datetime.datetime.now()
 #    if 'name' in request.GET and request.GET['name']:
@@ -2547,6 +2545,25 @@ def client_list(request):
         contacts = paginator.page(paginator.num_pages)
     
     return render_to_response('index.html', {'clients': contacts, 'weblink': 'client_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def client_email_list(request):
+    list = Client.objects.exclude(email = '')
+    
+    paginator = Paginator(list, 50)
+    page = request.GET.get('page')
+    if page == None:
+        page = 1
+    try:
+        contacts = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        contacts = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        contacts = paginator.page(paginator.num_pages)
+    
+    return render_to_response('index.html', {'clients': contacts, 'weblink': 'client_email_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def client_delete(request, id):
@@ -3314,6 +3331,8 @@ def client_search_result(request):
     phone = request.GET['phone']
     city = request.GET['city']
     description = request.GET['description']
+    cred = request.GET['cred']
+    debt = request.GET['debt']
     client = None
     #clients = Client.objects.filter(name__icontains=username)
     if description:
@@ -3324,10 +3343,14 @@ def client_search_result(request):
         clients = Client.objects.filter(Q(phone__icontains=phone))
     if username:
         clients = Client.objects.filter(Q(name__icontains=username) | Q(forumname__icontains=username))
-        
+    if cred:
+        clients = ClientCredits.objects.filter(Q(description__icontains=cred))
+    if debt:
+        clients = ClientCredits.objects.filter(Q(description__icontains=debt))
+
     if clients.count() == 1:
         return HttpResponseRedirect("/client/result/search/?id=" + str(clients[0].id))
-    paginator = Paginator(clients, 25)
+    paginator = Paginator(clients, 50)
     page = request.GET.get('page')
     if page == None:
         page = 1
@@ -3340,10 +3363,14 @@ def client_search_result(request):
         # If page is out of range (e.g. 9999), deliver last page of results.
         contacts = paginator.page(paginator.num_pages)
     
+    if cred:
+        return render_to_response('index.html', {'clients': contacts, 'weblink': 'clientcredits_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))        
+    if debt:
+        return render_to_response('index.html', {'clients': contacts, 'weblink': 'clientdebts_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        
     return render_to_response('index.html', {'clients':contacts, 'weblink': 'client_list.html', 'c_count': clients.count(), 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-from django.db import connection
 
 #----- Виписка клієнта -----
 def client_result(request, tdelta = 30):
@@ -3828,6 +3855,8 @@ def workshop_pricelist(request, pprint=False):
 
 #------------- Shop operation --------------
 def shopdailysales_add(request):
+    if auth_group(request.user, 'seller')==False:
+        return HttpResponse('Error: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
     lastCasa = None
     now = datetime.datetime.now()
     if request.method == 'POST':
@@ -3923,7 +3952,6 @@ def shopdailysales_view(request, year, month, day):
     strdate = pytils_ua.dt.ru_strftime(u"%d %B %Y", sel_date, inflected=True)
     return render_to_response('index.html', {'Cdeb': deb, 'Ccred':cred, 'date': strdate, 'd_sum': deb_sum, 'c_sum': cred_sum, 'cash_credsum': cash_credsum, 'cash_debsum':cash_debsum, 'casa':casa, 'weblink': 'shop_daily_sales_view.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-from django.contrib.auth.models import Group
 
 def shopdailysales_edit(request, id):
     now = datetime.datetime.now()
@@ -3951,11 +3979,15 @@ def shopdailysales_edit(request, id):
     return render_to_response('index.html', {'form': form, 'weblink': 'shop_daily_sales.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def shopdailysales_list(request, month=None):
+def shopdailysales_list(request, month=None, year=None):
+    if auth_group(request.user, 'seller')==False:
+        return HttpResponse('Error: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
     now = datetime.datetime.now()
     if month == None:
         month = now.month
-    list = ShopDailySales.objects.filter(date__year=now.year, date__month=month)
+    if year == None:
+        year = now.year
+    list = ShopDailySales.objects.filter(date__year=year, date__month=month)
     sum = 0 
     for item in list:
         sum = sum + item.price
@@ -3963,6 +3995,8 @@ def shopdailysales_list(request, month=None):
 
 
 def shopdailysales_delete(request, id):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse('Error: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
     obj = ShopDailySales.objects.get(id=id)
     del_logging(obj)
     obj.delete()
@@ -4138,17 +4172,30 @@ def shop_price_print_delete(request, id):
     return HttpResponseRedirect('/shop/price/print/list/')
 
 
-import csv
+def price_import_form(request):
+    form = ImportPriceForm()
+    return render_to_response('index.html', {'form': form, 'weblink': 'import_price.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
+
 
 def price_import(request):
-
+    
+    pricereader = None
     ids_list = []
+    now = datetime.datetime.now()
 #    if 'name' in request.GET and request.GET['name']:
 #        name = request.GET['name']
-    name = 'import'
-    path = settings.MEDIA_ROOT + 'csv/' + name + '.csv'
-    csvfile = open(path, 'rb')
-    pricereader = csv.reader(csvfile, delimiter=';', quotechar='|')
+    if request.POST and request.FILES:
+#    if request.FILES:
+        csvfile = request.FILES['csv_file']
+        dialect = csv.Sniffer().sniff(codecs.EncodedFile(csvfile, "utf-8").read(1024))
+        csvfile.open()
+        pricereader = csv.reader(codecs.EncodedFile(csvfile, "utf-8"), delimiter=';', dialect=dialect)
+#===============================================================================
+#    name = 'import'
+#    path = settings.MEDIA_ROOT + 'csv/' + name + '.csv'
+#    csvfile = open(path, 'rb')
+#    pricereader = csv.reader(csvfile, delimiter=';', quotechar='|')
+#===============================================================================
     w_file = open(settings.MEDIA_ROOT + 'csv/miss.csv', 'wb')
     spamwriter = csv.writer(w_file, delimiter=';', quotechar='|') #, quoting=csv.QUOTE_MINIMAL)
     for row in pricereader:
@@ -4162,33 +4209,37 @@ def price_import(request):
         try:
             if id <> u'0':
                 cat = Catalog.objects.get(ids = id)
-                print('Catalog =  [' +id+ ']['+code+']# '+row[3]+'')
+                print('Catalog =  [' +id+ ']['+code+']# '+cat.ids+'|')
                 ids_list.append(row[0])
+                # заміна старого коду на новий
+                cat.dealer_code = id
+                cat.ids = code
+#                cat.description = "Updated!!!"
+                cat.save()
             else:
                 print(' CODE  ['+code+']# '+row[3]+'')
                 cat = Catalog.objects.get(dealer_code = code)
                 ids_list.append(row[1])
             
-            #cat = Catalog.objects.get(ids = id)          
-                  
-            #if len(code) > 1:
-            #    cat = Catalog.objects.get(dealer_code = code)
-            if code != u'0':
-                cat.dealer_code = code
-            cat.price = row[3]
+#            if code != u'0':
+                #cat.dealer_code = code
+            price = row[3]
+                
+            if price <> u'0': 
+                cat.price = row[3]
             #cat.dealer_code = row[1]
-            cat.currency = Currency.objects.get(id = row[4])
-            cat.last_update = datetime.datetime.now()
+                cat.currency = Currency.objects.get(id = row[4])
+                cat.last_update = datetime.datetime.now()
             #cat.user_update = request.user
-            cat.user_update = User.objects.get(username='import')
-            cat.save()
+                cat.user_update = User.objects.get(username='import')
+ #           cat.description = row[5]
+ #           cat.save()
             
             #spamwriter.writerow([row[0], row[1], row[2], row[3], row[4]],)
         except: # Catalog.DoesNotExist:
                       
             spamwriter.writerow([row[0], row[1], row[2], row[3], row[4]])
         #return HttpResponse("Виконано", content_type="text/plain")
-
     list = Catalog.objects.filter(ids__in = ids_list)
     return render_to_response('index.html', {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
     

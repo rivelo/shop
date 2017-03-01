@@ -193,55 +193,29 @@ class BicycleSaleEditForm(forms.ModelForm):
     class Meta:
         model = Bicycle_Sale
         fields = '__all__'
-        
-
-
-class BicycleOrderEditForm(forms.ModelForm):
-#    cur_year = datetime.datetime.today().year
-    now = datetime.datetime.today()
-    resn = now - datetime.timedelta(days=365)
-#    model = forms.ModelChoiceField(queryset = Bicycle.objects.filter(year__year = cur_year-1))
-    model = forms.ModelChoiceField(queryset = Bicycle.objects.filter(year__gt = resn))
-    client = forms.ModelChoiceField(queryset = Client.objects.all())
-    size = forms.CharField(max_length=50)
-    price = forms.FloatField(initial = 0)
-    sale = forms.IntegerField(initial = 0)
-    prepay = forms.FloatField(initial = 0)
-    currency = forms.ModelChoiceField(queryset = Currency.objects.all())
-    date = forms.DateTimeField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))
-    done = forms.BooleanField(required=False) 
-    description = forms.CharField(label='Description', widget=forms.Textarea(), required=False)
-    
-    def __init__(self, *args, **kwargs):
-        client_id = kwargs.pop('client_id', None)
-        bike_id = kwargs.pop('bike_id', None)
-        super(BicycleOrderEditForm, self).__init__(*args, **kwargs)
-        if bike_id<>None:
-            self.fields['model'].queryset = Bicycle.objects.filter(id = bike_id)             
-
-    class Meta:
-        model = Bicycle_Order
-        fields = '__all__'
 
 
 class BicycleOrderForm(forms.ModelForm):
     cur_year = datetime.datetime.today().year
-    client_id = forms.CharField(max_length=50, label = 'Клієнт')
+    client_id = forms.CharField(widget=forms.TextInput(attrs={'size': '50'}), max_length=50, label = 'Клієнт')
     #client = forms.ModelChoiceField(widget=forms.Select(attrs={'class':'autocomplete'}), queryset = Client.objects.all(), empty_label="", label = 'Клієнт')    
+#    client = forms.IntegerField(widget=forms.HiddenInput(), label = 'Клієнт')
+#    model = forms.IntegerField(widget=forms.HiddenInput(), label = 'Модель велосипеду')
     #model = forms.ModelChoiceField(queryset = Bicycle.objects.filter(year__gte=datetime.datetime(cur_year-1, 1, 1)).order_by('-year'), empty_label="", label = 'Модель велосипеду')
-    model_id = forms.CharField(label = 'Модель велосипеду')    
+    model_id = forms.CharField(widget=forms.TextInput(attrs={'size': '100'}), label = 'Модель велосипеду')    
     size = forms.CharField(max_length=50, label = 'Розмір рами')
     price = forms.FloatField(initial = 0, label = 'Ціна')
     sale = forms.IntegerField(initial = 0, label = 'Знижка (%)')
     prepay = forms.FloatField(initial = 0, label = 'Аванс')
-    currency = forms.ModelChoiceField(queryset = Currency.objects.all())
-    date = forms.DateTimeField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))
-    done = forms.BooleanField(required=False) 
-    description = forms.CharField(label='Description', widget=forms.Textarea(), required=False)
+    currency = forms.ModelChoiceField(queryset = Currency.objects.all(), label='Валюта')
+    date = forms.DateTimeField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), label='Дата')
+    #done = forms.BooleanField(required=False) 
+    description = forms.CharField(label='Опис', widget=forms.Textarea(), required=False)
     
     class Meta:
         model = Bicycle_Order
         fields = '__all__'
+        exclude = ['user', 'done', 'client', 'model']         
 
     
 # --------- Dealers ------------
@@ -306,6 +280,14 @@ class ImportDealerInvoiceForm(forms.Form):
     csv_file = forms.FileField(allow_empty_file=False)
     name = forms.BooleanField(label='Назва товару', required=False)
     recomended = forms.BooleanField(label='Ціна товару', initial=True, required=False)
+
+
+class ImportPriceForm(forms.Form):
+    csv_file = forms.FileField(allow_empty_file=False)
+    change_ids = forms.BooleanField(label='Замінити артикул на новий', required=False)
+    recomended = forms.BooleanField(label='Ціна товару', required=False)
+    description = forms.BooleanField(label='Опис', required=False)
+    photo = forms.BooleanField(label='Фото', required=False)
     
 
 class InvoiceComponentListForm(forms.ModelForm):

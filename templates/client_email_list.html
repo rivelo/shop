@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link type="text/css" rel="stylesheet" href="/media/paginator.css">
+
+{% load poll_extras %}
+
+<head>
+    <title>Список клієнтів з поштовими скринями</title>
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+</head>
+
+    <h1>Список Клієнтів з поштовими скринями <a href="/client/add/">(Створити клієнта)</a></h1>
+	
+    <table border="1">
+    <tr>
+    	<th>#</th>
+    	<th>ID</th>
+    	<th>ПІБ</th>
+    	<th>Нік на форумі</th>
+    	<th>Країна</th>
+    	<th>Місто</th>
+    	<th>email</th>
+    	<th>Телефон</th>
+{% if request.user|has_group:"admin" %}    	
+    	<th>Знижка (%)</th>
+    	<th>Сумарна вартість покупок</th>
+{% endif %}    	
+    	<th>Опис</th>
+    	<th>Дія</th>
+    </tr>    
+
+
+{% for type in clients.object_list  %}
+<tr>
+	<td>{{forloop.counter}}</td>
+	<td>       
+	{{type.id}}
+	</td>
+	<td>       
+	<a href="/client/result/search/?id={{ type.id }}">{{type.name}}</a>
+	</td>
+	<td>       
+	{{type.forumname}}
+	</td>
+	<td>       
+	{{type.country}}
+	</td>
+	<td>       
+	{{type.city}}
+	</td>
+	<td>       
+	{{type.email}}
+	</td>
+	<td>       
+	{{type.phone}}
+	</td>
+{% if request.user|has_group:"admin" %}    		
+	<td>       
+	{{type.sale}}
+	</td>
+	<td>       
+	{{type.summ}}
+	</td>
+{% endif %}	
+	<td>       
+	{{type.description}}
+	</td>
+	<td align="center">
+	<a href="/client/edit/{{ type.id }}" >edit</a>            
+{% if request.user|has_group:"admin" %}	
+    <a href="/client/delete/{{ type.id }}" onclick="return confirm('Видалити клієнта?')">delete</a>
+{% endif %}    
+    </td>
+</tr>
+{% endfor %}           
+
+</table>
+
+<div class="pagination">
+  <ul>
+  	{% if clients.has_previous %}
+        <li class="prev">
+            <a href="?page={{ clients.previous_page_number }}">&larr; Previous</a>
+        </li>
+    {% else %}
+    <li class="prev disabled">
+            <a href="?page={{ clients.number }}">&larr; Previous</a>
+    </li>
+    {% endif %}
+    
+<!--     <li class="disabled"><a href="">Page {{ clients.number }} of {{ clients.paginator.num_pages }}.</a></li>
+ -->
+    {% for i in clients.paginator.page_range %}
+    {% ifequal i  clients.number%}
+    <li class="disabled"><a href="">{{ i }}.</a></li>
+    {% else %}
+    <li class="active"><a href="?page={{ i }}">{{ i }}.</a></li>
+    {% endifequal %}
+    {% endfor %}   
+    
+    {% if clients.has_next %}
+        <li class="next">
+            <a href="?page={{ clients.next_page_number }}">Next &rarr;</a>
+        </li>
+    {% else %}
+    <li class="next disabled">
+            <a href="?page={{ clients.number }}">&larr; Previous</a>
+     </li>    
+    {% endif %}
+  </ul>
+</div>
+
+<br><br>
+<a href="/client/search/">Повторний пошук клієнта</a>
+<br>
+<a href="/client/add/">Створити нового клієнта (Add)</a>       

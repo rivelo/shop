@@ -32,15 +32,18 @@
 </style>
 	
 <script type="text/javascript">
-     
+$(document).ready(function() {
+
     $('#id_count').bind('change', function(){
     	$('#id_sum').val($('#id_price').val() * $('#id_count').val());
     	$('#result').html("Сума " + $('#id_sum').val() + " грн.")		
 	});
 
-      
+    $('#id_price').bind('change', function(){
+    	$('#id_sum').val($('#id_price').val() * $('#id_count').val());
+    	$('#result').html("Сума " + $('#id_sum').val() + " грн.")		
+	});
 
-$(document).ready(function() {
    
 $( "#s_client" ).autocomplete({
             source: function( request, response ) {
@@ -76,7 +79,7 @@ $( "#s_client" ).autocomplete({
         });
 
 
-        $( "#catalog" ).autocomplete({
+$( "#catalog" ).autocomplete({
             source: function( request, response ) {
                 $.ajax({
                 type: "GET",
