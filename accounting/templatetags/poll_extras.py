@@ -67,7 +67,7 @@ def phone2Str(value):
 
 
 @register.filter
-def qr(value,size="150x150"):
+def qr(value,size="120x120"):
     """
         Usage:
         <img src="{{object.code|qr:"120x130"}}" />
@@ -84,8 +84,8 @@ def sale_url(value,host):
         {{object.code|sale_url}}"
     """
 #    host="192.168.0.102:8001"
-    host="10.0.0.5:8001"
-    return "%s/s/%s/" % (host, value)
+    host="rivelo.com.ua/price"
+    return "%s/%s/" % (host, value)
 
 
 @register.filter

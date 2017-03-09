@@ -20,11 +20,11 @@ $("#qr_tr1").qrcode({
 </script>
 
 <style type="text/css">
-.table {
+table {
 	border: 1px solid black; /* Граница вокруг ячеек */
- 	width: 80mm;
+// 	width: 300mm;
  	height: 33mm;
-    table-layout: fixed;
+//    table-layout: fixed;
 }
 
 .TableD {
@@ -42,7 +42,7 @@ TR {
 	/* border-bottom: 1px solid black; */ 
 	}
 TD{
-
+	width: 100mm;
 	}
 
 .nameTD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
@@ -60,17 +60,54 @@ a {
 
 <!-- <table border="1" CELLPADDING=0px style="padding: 1px;">  --> 
 <table>
-<tr height= 125mm>
+<tr>
 {% for price in price_list %}
+<td>
 
+<div style="background:#FA911D; width:120px; height:120px; float:left;">
+{% with price.catalog.id|sale_url:request.get_host as url_buy %}  
+<img src="{{url_buy|qr:"120x120"}}" />
+{% endwith %}
+</div>
+
+<div style="width:100px; float:left; ">
+<b>Код</b><br>
+<b>	Виробник </b><br>
+<b style="font-size: 8pt;"> Країна виробник </b><br>
+<b style="font-size: 8pt;">	Ціна </b><br>
+</div>
+<div style="width:150px; float:left;">
+{{price.catalog.ids|slice:"20"}}<br>
+{{price.catalog.manufacturer}}<br>
+{{price.catalog.country}}<br>
+<b>{{price.catalog.price}} грн. <br></b>
+</div>
+<div style="">
+{% with price.catalog.name|lenght as s_len %}
+<a 
+{% if s_len > 64  %}
+	style="padding-left: 5px; text-align: center; font-size: 8pt; vertical-align: top;"
+{% endif %}
+{% if s_len >= 32 and  s_len < 64 %} 
+	style="padding-left: 5px; text-align: center; font-size: 9pt; vertical-align: top;"
+{% endif %}
+{% if s_len < 32 %}		       
+	style="padding-left: 5px; text-align: center; font-size: 11pt; vertical-align: top;"
+{% endif %}
+{% endwith %}
+	 href="/catalog/edit/{{ type.id }}" style="margin-right:20px">{{price.catalog.name|slice:"100"}}</a>
+</div>
+
+
+
+{% comment %}
 <td class="nameTD">
-
 <table class="table">
 
 <tr>
 {% with price.catalog.id|sale_url:request.get_host as url_buy %}  
 <td rowspan="4"  class="nameTD" style="border-bottom: 1px solid black; padding-left: 8px; padding-top: 5px;">
-<img src="{{url_buy|qr:"90x90"}}" />
+<img src="{{url_buy|qr:"120x120"}}" />
 </td>
 {% endwith %}
 
@@ -99,8 +136,8 @@ a {
 	</td>	
 </tr>
 
-{% comment %}
-{% endcomment %}
+
+
 <tr>
 	<td align="right" class="nameTD" style="border-bottom: 1px solid black;">
 <b style="font-size: 8pt;">	Ціна </b>
@@ -121,13 +158,13 @@ a {
 --> 
 {% with price.catalog.name|lenght as s_len %}
 {% if s_len > 64  %}
-	<td width = 70mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 7pt; vertical-align: top;" class="TableD">
+	<td width = 70mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 7pt; vertical-align: top;" >
 {% endif %}
 {% if s_len >= 32 and  s_len < 64 %} 
-	<td width = 70mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 8pt; vertical-align: top;" class="TableD">
+	<td width = 70mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 8pt; vertical-align: top;" >
 {% endif %}
 {% if s_len < 32 %}		       
-	<td width = 70mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 10pt; vertical-align: top;" class="TableD">
+	<td width = 70mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 10pt; vertical-align: top;">
 {% endif %}
 {% endwith %}
 	<a href="/catalog/edit/{{ type.id }}" style="margin-right:20px">{{price.catalog.name|slice:"100"}}</a>
@@ -137,7 +174,7 @@ a {
 
 </table>
 </td>
-
+{% endcomment %}
 
 {% if forloop.counter|divisibleby:"3"  %}
 </tr><tr height= 125mm>
