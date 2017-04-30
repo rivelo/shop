@@ -228,6 +228,7 @@ urlpatterns = patterns('',
     url(r'^client/lookup/$', 'catalog.accounting.views.client_lookup'),
     url(r'^client/lookup/byid/$', 'catalog.accounting.views.client_lookup_by_id'),
     url(r'^client/join/$', 'catalog.accounting.views.client_join'),
+    url(r'^client/(?P<id>\d+)/sendcard/', 'catalog.accounting.views.client_card_sendemail'),
     
 #delete    url(r'^client/result/$', 'catalog.accounting.views.search_client_id'),
     url(r'^client/invoice/view/$', 'catalog.accounting.views.client_invoice_view'),

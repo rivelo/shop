@@ -452,6 +452,28 @@ $(document).ready(function() {
     	$(this).removeClass('standart').addClass('read');
     	$(this).attr("data-title", "Клікніть для зміни статусу. Статус: В черзі")
 	});    
+ 
+$("body").on('click', '#email_send', function() {
+//showbox(function(){
+
+	
+if (confirm("Ви впевненні що хочете відправити лист на пошту {{client_name.email}} - {{client_name.id}}")) {
+{% comment %}
+//	parent.location='http://www.jsp.newmail.ru/les12.htm';
+//	console.log("EMAIL_send!!!");
+{% endcomment %}
+
+	$.ajax("/client/{{client_name.id}}/sendcard/", {
+    	type: 'POST',
+    	data: {
+      		status: 'email', //'rivelo@ymail.com',
+    	},
+		success: function(msg){
+					alert(msg);
+        },
+  	})	
+}
+}); 
     
 });
          
@@ -517,6 +539,8 @@ $(document).ready(function() {
 <img style="display: None;" id="img_rent" src="/media/images/test_icon.png" height="50px" title="Тест сидінь">
 {% endif %}
 
+<span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="56px" height="56px" title="Відправити картку клієнта на Email"></span>
+     
 <div id="dialog_r" title="Заявки на ремонт:">
 <table width='100%' id="t_workticket">
   <script>
