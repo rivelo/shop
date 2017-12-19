@@ -6,8 +6,8 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.core.urlresolvers import resolve
 
-from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,  FrameSize, Bicycle_Store, Bicycle_Sale, Bicycle_Order
-from forms import ContactForm, ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm 
+from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,  FrameSize, Bicycle_Store, Bicycle_Sale, Bicycle_Order, Bicycle_Storage, Bicycle_Photo, Storage_Type
+from forms import ContactForm, ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm, BicycleStorage_Form, StorageType_Form 
 
 from models import Catalog, Client, ClientDebts, ClientCredits, ClientInvoice, ClientOrder, ClientMessage, ClientReturn, InventoryList
 from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, ClientInvoiceForm, ClientOrderForm
@@ -32,7 +32,7 @@ import calendar
 import codecs
 import csv
 
-from django.db.models import Sum, Count, Max
+from django.db.models import Sum, Count, Max, Avg
 
 from django.core.mail import send_mail
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -367,13 +367,86 @@ def processUploadedImage(file, dir=''):
     upload_suffix = 'upload/' + dir + file.name
     upload_path = settings.MEDIA_ROOT + 'upload/' + file.name
         
-    destination = open(settings.MEDIA_ROOT + '/upload/'+ dir + file.name, 'wb+')
+    destination = open(settings.MEDIA_ROOT + 'upload/'+ dir + file.name, 'wb+')
     #destination = open('/media/upload/'+file.name, 'wb+')
     for chunk in file.chunks():
         destination.write(chunk)
     destination.close()        
     return upload_suffix
 
+
+def image_view(request):
+    a = Bicycle()
+    if request.method == 'POST':
+        form = BicycleForm(request.POST, instance=a)
+        if form.is_valid():
+#            name = form.cleaned_data['name']
+#            cm = form.cleaned_data['cm']
+#            inch = form.cleaned_data['inch']
+            Bicycle(name=name, cm=cm, inch=inch).save()
+    
+            return HttpResponseRedirect('/bicycle/view/list/')
+    else:
+        form = BicycleForm(instance=a)
+    
+    items = Bicycle.objects.all()
+    return render_to_response('bicycle.html', {'bicycles':items, 'form': form})
+
+
+def multiuploader(request):
+    if request.method == 'POST':
+        if request.FILES == None:
+            return HttpResponseBadRequest('Must have files attached!')
+
+        #getting file data for farther manipulations
+        file = request.FILES[u'files[]']
+        wrapped_file = UploadedFile(file)
+        filename = wrapped_file.name
+        file_size = wrapped_file.file.size
+
+        #writing file manually into model
+        #because we don't need form of any type.
+        image = Bicycle()
+        image.title=str(filename)
+        image.photo=file
+        image.save()
+
+        #getting url for photo deletion
+        file_delete_url = '/delete/'
+        
+        #getting file url here
+        file_url = '/'
+
+        #getting thumbnail url using sorl-thumbnail
+        im = get_thumbnail(image, "80x80", quality=50)
+        thumb_url = im.url
+
+        #generating json response array
+        result = []
+        result.append({"name":filename, 
+                       "size":file_size, 
+                       "url":file_url, 
+                       "thumbnail_url":thumb_url,
+                       "delete_url":file_delete_url+str(image.pk)+'/', 
+                       "delete_type":"POST",})
+        response_data = simplejson.dumps(result)
+        return HttpResponse(response_data, mimetype='application/json')
+    else: #GET
+        return render_to_response('bicycle.html', 
+                                  {'static_url':settings.MEDIA_URL,
+                                   'open_tv':u'{{',
+                                   'close_tv':u'}}'}, 
+                                  )
+        
+
+def multiuploader_delete(request, pk):
+    if request.method == 'POST':
+        image = get_object_or_404(Bicycle, pk=pk)
+        image.delete()
+        return HttpResponse(str(pk))
+    else:
+        return HttpResponseBadRequest('Only POST accepted')
+    
 
 def bicycle_add(request):
     if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
@@ -396,13 +469,14 @@ def bicycle_add(request):
             offsite_url = form.cleaned_data['offsite_url']
             photo = form.cleaned_data['photo']            
             folder = year.year
+            upload_path_p = ''
             if photo == None:
                 upload_path_p = None
             if isinstance(photo, InMemoryUploadedFile):
                 upload_path_p = processUploadedImage(photo, 'bicycle/'+str(folder)+'/') 
-                a.photo=upload_path_p
-            
-            Bicycle(model = model, type=type, brand = brand, color = color, photo=photo, weight = weight, price = price, currency = currency, offsite_url=offsite_url, description=description, year=year, sale=sale).save()
+                #a.photo=upload_path_p
+                
+            Bicycle(model = model, type=type, brand = brand, color = color, photo=upload_path_p, weight = weight, price = price, currency = currency, offsite_url=offsite_url, description=description, year=year, sale=sale).save()
             return HttpResponseRedirect('/bicycle/view/')
             #return HttpResponseRedirect(bicycle.get_absolute_url())
     else:
@@ -416,11 +490,20 @@ def bicycle_add(request):
 def bicycle_edit(request, id):
     if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
         return HttpResponseRedirect('/bicycle/view/')
-    
     a = Bicycle.objects.get(pk=id)
     if request.method == 'POST':
-        form = BicycleForm(request.POST, instance=a)
+        form = BicycleForm(request.POST, request.FILES, instance=a)
         if form.is_valid():
+            year = form.cleaned_data['year']
+            photo = form.cleaned_data['photo']            
+            folder = year.year
+            upload_path_p = ''
+            if photo == None:
+                upload_path_p = None
+            if isinstance(photo, InMemoryUploadedFile):
+                upload_path_p = processUploadedImage(photo, 'bicycle/'+str(folder)+'/') 
+                a.photo=upload_path_p
+                a.save()
             form.save()
             return HttpResponseRedirect('/bicycle/view/')
     else:
@@ -435,6 +518,32 @@ def bicycle_del(request, id):
     del_logging(obj)
     obj.delete()
     return HttpResponseRedirect('/bicycle/view/')
+
+
+def bike_photo_url_add(request):
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'seller')==False:
+                return HttpResponse('Error: У вас не має прав для редагування')
+            POST = request.POST  
+            if POST.has_key('id') and POST.has_key('url'):
+                pid = request.POST.get('id')
+                p_url = request.POST.get('url')
+                
+                if Photo.objects.filter(url = p_url):
+                    p = Photo.objects.get(url = p_url)
+                    bike = Bicycle.objects.get(id = pid)
+                    bike.photo_url.add(p)
+                    bike.save()
+                    return HttpResponse("This photo is present. Таке фото вже існує", content_type="text/plain;charset=UTF-8")
+                
+                bp = Photo(url = p_url, date = datetime.datetime.now(), user = request.user, description="")
+                bp.save()
+                bike = Bicycle.objects.get(id = pid)
+                bike.photo_url.add(bp)
+                bike.save()
+    search = "ok"
+    return HttpResponse(search, content_type="text/plain")
 
 
 def bicycle_list(request, year=None, brand=None, percent=None):
@@ -539,22 +648,26 @@ def bicycle_store_del(request, id):
     obj.delete()
     return HttpResponseRedirect('/bicycle-store/view/seller/')
 
-#стара функція, можна видалити
+
 def bicycle_store_list(request, all=False):
     list = None
     if all==True:
         list = Bicycle_Store.objects.all()
     else:
-        list = Bicycle_Store.objects.filter(count=1).values('model__model', 'model__sale', 'model__year', 'model__brand__name', 'model__price', 'model__color', 'model__id', 'size__name', 'size__cm', 'size__inch', 'model__type__type', 'serial_number', 'size', 'price', 'currency', 'count', 'description', 'date', 'id')
+        list = Bicycle_Store.objects.filter(count=1) #.values('model__model', 'model__sale', 'model__year', 'model__brand__name', 'model__price', 'model__color', 'model__id', 'size__name', 'size__cm', 'size__inch', 'model__type__type', 'serial_number', 'size', 'price', 'currency', 'count', 'description', 'date', 'id')
         
     price_summ = 0
     bike_summ = 0
+    price_profit_summ = 0
     for item in list:
-        price_summ = price_summ + item['price'] * item['count'] 
-        bike_summ = bike_summ + item['count']
-    
+        price_profit_summ = price_profit_summ + item.get_profit()[1] #item['price'] * item['count']
+        price_summ = price_summ + item.get_uaprice() 
+#        bike_summ = bike_summ + item['count']
+#    price_summ = Exchange.objects.filter(currency__ids_char = 'EUR').aggregate(average_val = Avg('value'))['average_val']
+    #price_summ = price_summ['average_val']
+    bike_sum = list.count()
 #    fsize = FrameSize.objects.all().values('name', 'id')
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_store_list.html', 'price_summ': price_summ, 'bike_summ': bike_summ}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_store_list.html', 'price_summ': price_summ, 'price_profit_summ':price_profit_summ, 'bike_summ': bike_summ}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def bicycle_store_list_by_seller(request, all=False, size='all', year='all', brand='all', html=False):
@@ -773,6 +886,8 @@ def bicycle_sale_del(request, id):
 
 def bicycle_sale_list(request, year=False, month=False, id=None):
     list = None
+    if (year != '') & (month == False):
+        list = Bicycle_Sale.objects.filter(date__year=year).order_by('model__model__brand', 'date')
     if (year==False) & (month==False):
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
@@ -781,18 +896,26 @@ def bicycle_sale_list(request, year=False, month=False, id=None):
             list = Bicycle_Sale.objects.filter(model=id).order_by('date')
         else:
             list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
-    else:
-       list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
+    if (year != '') & (month != ''):
+        list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
        
+    header_bike = Bicycle_Sale.objects.filter().extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')
+#     Order.objects.filter().extra({'month':"Extract(month from created)"}).values_list('month').annotate(Count('id'))
+#     Order.objects.filter().extra({'day':"Extract(day from created)"}).values_list('day').annotate(Count('id'))
+
     psum = 0
     price_summ = 0
+    profit_summ = 0
     service_summ = 0
     for item in list:
-        price_summ = price_summ + item.price
-        psum = psum + item.sum
+        #price_summ = price_summ + item.price
+        price_summ = price_summ + item.price * ((100-item.sale)*0.01)
+        profit_summ = profit_summ + item.get_profit()[1]
+        if item.sum:
+            psum = psum + item.sum
         if item.service == False:
             service_summ =  service_summ + 1
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ':price_summ, 'pay_sum':psum, 'service_summ':service_summ, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'header_links':header_bike, 'price_summ':price_summ, 'profit_summ':profit_summ, 'pay_sum':psum, 'service_summ':service_summ, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def bicycle_sale_list_by_brand(request, year=False, month=False, id=None):
@@ -808,16 +931,19 @@ def bicycle_sale_list_by_brand(request, year=False, month=False, id=None):
     else:
        #list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
        list = Bicycle_Sale.objects.filter(model__model__brand=id, date__year=year).order_by('date')
-       
+    header_bike = Bicycle_Sale.objects.filter().extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')       
     price_summ = 0
     price_opt = 0
+    profit_summ = 0
     service_summ = 0
     for item in list:
-        price_summ = price_summ + item.price
+        #price_summ = price_summ + item.price
+        price_summ = price_summ + item.price * ((100-item.sale)*0.01)
         price_opt = price_opt + item.model.price
+        profit_summ = profit_summ + item.get_profit()[1]
         if item.service == False:
             service_summ =  service_summ + 1
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ':price_summ, 'price_opt': price_opt, 'service_summ':service_summ, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ':price_summ, 'header_links':header_bike, 'price_opt': price_opt, 'profit_summ':profit_summ, 'service_summ':service_summ, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def bicycle_sale_service(request, id=None):
@@ -1028,9 +1154,9 @@ def bicycle_sale_report(request):
 
 def bicycle_sale_report_by_brand(request):
     #list = Bicycle_Order.objects.annotate(bcount=Count("model")) 
-    list = Bicycle_Sale.objects.annotate(bcount=Count("model__model__model")).order_by("model__model__brand")
+    list = Bicycle_Sale.objects.values('model__model__brand__name', 'model__model__brand', 'model__model__brand__id').annotate(bcount=Count("model__model__model")).order_by('-bcount') #("model__model__brand")
 #    objects.filter(date__year=now.year, date__month=now.month).extra(select={'year': "EXTRACT(year FROM date)", 'month': "EXTRACT(month from date)", 'day': "EXTRACT(day from date)"}).values('year', 'month', 'day').annotate(suma=Sum("price")).order_by()    
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_report_bybrand.html'})    
+    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_report_bybrand.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]) )    
 
 
 def bicycle_order_add(request):
@@ -1155,6 +1281,142 @@ def bike_lookup(request):
             else:
                 data = []
     return HttpResponse(data)                
+
+
+def bicycle_storage_type_add(request):
+    if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
+        return HttpResponseRedirect('/bicycle/storage/type/view/')
+    a = Storage_Type()    
+    if request.method == 'POST':
+#        form = BicycleForm(request.POST, request.FILES, instance=a)
+        form = StorageType_Form(request.POST, request.FILES)        
+        if form.is_valid():
+            type = form.cleaned_data['type']
+            price = form.cleaned_data['price'] 
+            description = form.cleaned_data['description']
+            
+            Storage_Type(type=type, price = price, description=description).save()
+            return HttpResponseRedirect('/bicycle/storage/type/view/')
+            #return HttpResponseRedirect(bicycle.get_absolute_url())
+    else:
+#        form = BicycleForm(instance=a)
+        form = StorageType_Form()        
+
+    #return render_to_response('bicycle.html', {'form': form})
+    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_storage.html', 'text': 'Вид зберігання'}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def bicycle_storage_type_list(request):
+    #list = Bicycle_Order.objects.all().order_by("-date")
+    list = Storage_Type.objects.all().order_by("id")
+    return render_to_response('index.html', {'list': list, 'weblink': 'storage_type_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+from django.contrib import messages
+from django.shortcuts import  redirect
+from django.utils.encoding import smart_str    
+
+def bicycle_storage_add(request):
+    if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
+        return HttpResponseRedirect('/bicycle/storage/view/')
+    #a = Bicycle_Storage()    
+    if request.method == 'POST':
+        #if request.FILES == None:
+        images = request.FILES.getlist('file-input',[])            
+        if len(images)<1:            
+            return HttpResponse('Must have files attached!')
+#        form = BicycleForm(request.POST, request.FILES, instance=a)
+        form = BicycleStorage_Form(request.POST, request.FILES)        
+        if form.is_valid():
+            cid = form.cleaned_data['client']
+#            client = Client.objects.get(pk = cid)
+            model = form.cleaned_data['model']
+            type = form.cleaned_data['type']
+            color = form.cleaned_data['color']
+            wheel_size = form.cleaned_data['wheel_size']
+            size = form.cleaned_data['size']
+            biketype = form.cleaned_data['biketype']
+            serial_number = form.cleaned_data['serial_number']
+            service = form.cleaned_data['service']
+            washing = form.cleaned_data['washing']
+            description = form.cleaned_data['description']
+            date_in = form.cleaned_data['date_in']
+            date_out = form.cleaned_data['date_out']
+            done = form.cleaned_data['done']
+            currency = form.cleaned_data['currency']
+            price = form.cleaned_data['price']
+#            photo = form.cleaned_data['photo']
+            #===================================================================
+            # folder = 'storage'            
+            # if photo == None:
+            #     upload_path = None
+            # if isinstance(photo, InMemoryUploadedFile):
+            #     upload_path = processUploadedImage(photo, 'bicycle/'+str(folder)+'/') 
+            #===================================================================
+           
+#            bs = Bicycle_Storage(client=client, model = model, type=type, size=size, color = color, biketype=biketype, service = service, washing=washing, serial_number=serial_number, price = price, currency = currency, date_in=date_in, description=description).save()
+            bs = Bicycle_Storage(client=cid, model = model, type=type, size=size, color = color, biketype=biketype, service = service, washing=washing, serial_number=serial_number, price = price, currency = currency, date_in=date_in, description=description, wheel_size=wheel_size)
+            bs.save()
+            #images = request.FILES.getlist('file-input',[])
+            #bs_id = Bicycle_Storage.objects.get(pk = 14)
+            for image in images:
+                bs_id=bs
+                try:
+                    photo = Bicycle_Photo(bicycle = bs_id, image = image, user = request.user, date=bs.date, description=description)
+                    photo.save()
+                except Exception, e:
+                    messages.error(request, smart_str(e)) 
+                            
+            #bp = Bicycle_Photo(bicycle = bs, user = request.user, description=description) 
+            #bp.photo=upload_path
+            #bp.save() 
+            #Bicycle_Photo(title=title, description=description, www=www, image=upload_path, country=country).save()            
+            return HttpResponseRedirect('/bicycle/storage/view/')
+            #return HttpResponseRedirect(bicycle.get_absolute_url())
+    else:
+#        form = BicycleForm(instance=a)
+        form = BicycleStorage_Form()        
+
+    #return render_to_response('bicycle.html', {'form': form})
+    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_storage.html', 'text': 'Додати велосипед на зберігання'}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def bicycle_storage_edit(request, id):
+    a = Bicycle_Storage.objects.get(pk=id)
+    images = request.FILES.getlist('file-input',[])
+    #if request.method == 'GET' or len(images)<=1 or not is_valid:
+    #if len(images)<=1:            
+    #        return HttpResponse('Must have files attached!')
+    if request.method == 'POST':
+        form = BicycleStorage_Form(request.POST, request.FILES, instance=a)
+        if form.is_valid():
+            form.save()
+            bs_id = a #Bicycle_Storage.objects.get(pk = 14)
+            for image in images:
+                bs_id = a
+                try:
+                    photo = Bicycle_Photo(bicycle = bs_id, image = image, user = request.user)
+                    photo.save()
+                except Exception, e:
+                    messages.error(request, smart_str(e)) 
+            
+            return HttpResponseRedirect('/bicycle/storage/view/')
+    else:
+        form = BicycleStorage_Form(instance=a)
+    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_storage.html' , 'text': 'Додати велосипед на зберігання'}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def bicycle_storage_list(request):
+    #list = Bicycle_Order.objects.all().order_by("-date")
+    list = Bicycle_Storage.objects.all().order_by("-date")
+    return render_to_response('index.html', {'list': list, 'weblink': 'bicycle_storage_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def bicycle_storage_delete(request, id):
+    obj = Bicycle_Storage.objects.get(id=id)
+    del_logging(obj)
+    obj.delete()
+    return HttpResponseRedirect('/bicycle/storage/view/')
+
 
 
 # --------------------Dealer company ------------------------
@@ -2102,12 +2364,12 @@ def manufacturer_edit(request, id):
     if request.method == 'POST':
         form = ManufacturerForm(request.POST, request.FILES, instance=a)
         if form.is_valid():
-            name = form.cleaned_data['name']
-            description = form.cleaned_data['description']
-            www = form.cleaned_data.get('www')
-            country = form.cleaned_data.get('country')
-            logo = form.cleaned_data.get('logo')
-            upload_path = processUploadedImage(logo, 'manufecturer/') 
+#            name = form.cleaned_data['name']
+#            description = form.cleaned_data['description']
+#            www = form.cleaned_data.get('www')
+#            country = form.cleaned_data.get('country')
+#            logo = form.cleaned_data.get('logo')
+#            upload_path = processUploadedImage(logo, 'manufecturer/') 
             #a = Manufacturer(name=name, description=description, www=www, logo=upload_path, country=country)
             #a.save()
             form.save()
@@ -2268,7 +2530,7 @@ def catalog_edit(request, id=None):
     a = Catalog.objects.get(pk=id)
     #url1=request.META['HTTP_REFERER']
     if request.method == 'POST':
-        form = CatalogForm(request.POST, instance=a)
+        form = CatalogForm(request.POST, request.FILES, instance=a)
         if form.is_valid():
             manufacturer = form.cleaned_data['manufacturer']
             type = form.cleaned_data['type']

@@ -46,6 +46,7 @@ DATE_FORMAT = 'd/m/Y'
 DATETIME_FORMAT = 'D d M Y'
 SHORT_DATE_FORMAT = 'd/m/Y'
 SHORT_DATETIME_FORMAT = 'd/m/Y'
+DATE_INPUT_FORMATS = ('%d/%m/%Y')
 
 HTTP_MINI_SERVER_IP = '10.1.1.180' # work server
 HTTP_MINI_SERVER_PORT = '8123'
@@ -102,6 +103,15 @@ STATICFILES_FINDERS = (
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
 #ADMIN_MEDIA_PREFIX = '/static/'
+
+
+#THUMBNAIL_DEBUG = False
+#FILES_WIDGET_TEMP_DIR            # 'temp/files_widget/'
+#FILES_WIDGET_FILES_DIR           # 'uploads/files_widget/'
+#FILES_WIDGET_JQUERY_PATH = "/media/jquery-ui.min.js"        # (jQuery 1.9.1 from Google)
+#FILES_WIDGET_JQUERY_UI_PATH =  "/media/jquery-ui.min.js"    # (jQuery UI 1.10.3 from Google)
+#FILES_WIDGET_USE_FILEBROWSER     # False
+#FILES_WIDGET_FILEBROWSER_JS_PATH = "/media/jquery-ui.min.js"# 'filebrowser/js/AddFileBrowser.js'
 
 
 # Make this unique, and don't share it with anybody.
@@ -161,7 +171,6 @@ TEMPLATE_DIRS = (
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.media",
-    
     'django.contrib.messages.context_processors.messages',
     "django.contrib.auth.context_processors.auth",
     "django.core.context_processors.debug",
@@ -181,6 +190,8 @@ INSTALLED_APPS = (
     'django.contrib.flatpages',
     'django.contrib.staticfiles',
     'django.contrib.admindocs',
+#    'sorl.thumbnail',
+#    'topnotchdev.files_widget',
     'catalog.accounting',
     
 )

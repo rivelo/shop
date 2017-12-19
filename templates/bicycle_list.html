@@ -2,6 +2,83 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="stylesheet" type="text/css" href="/media/table.css">
 
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+
+<script src="/media/jquery-ui.min.js"></script>
+
+
+<script>
+
+jQuery(document).ready(function ($) {
+
+	
+	$( ".addphoto" ).click(function() {
+		var t = $(this).attr('ids')
+		$("#photo_url").attr({'ids': t});
+		$("#dialog_photo_add").dialog({title:  t});
+		$("#dialog_photo_add").dialog("open");
+	});	
+
+
+
+$("#dialog_photo_add").dialog({
+	autoOpen: false,
+      resizable: true,
+      modal: true,
+      //position: "center",
+      width: 650,
+      buttons: {
+        "Додати": function() {
+			$.ajax({
+                type: "POST",
+                url: "/photo/url/bicycle/add/",
+                data: {id:  $("#photo_url").attr("ids"), url: $('#photo_url').val()},
+                dataType: "text",
+                success:function(value){
+                //	var obj = jQuery.parseJSON(value);
+                //	document.getElementById("link_1197").setAttribute("url", "TEST");
+                if (value != "ok") {
+                	//alert(value);
+                	$("#dialog_photo").dialog({title: value });
+                	if ($("#img_url").attr('width') > 500) {
+                		$("#img_url").attr({'src' : $('#photo_url').val()}, {'width': "500 px"});
+                	}
+                	else {
+                		$("#img_url").attr({'src' : $('#photo_url').val()});
+                	}
+                	
+                	$("#dialog_photo").dialog({ buttons: [ { text: "Ok", click: function() { $("#dialog_photo").dialog( "close" ); } }, {text: "Cancel", click: function() {$("#dialog_photo").dialog("close"); }} ] });
+//                	$("#dialog_photo").dialog({ position: { my: "center top", at: "center top", of: window } });
+					$("#dialog_photo").dialog("open");
+					//$("#dialog_photo").dialog("moveToTop");
+					$("#ui-id-2").attr({"color": '#fe011b'});
+					
+					}
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });
+        
+          $( this ).dialog( "close" );
+        },
+        "Відмінити": function() {
+          $( this ).dialog( "close" );
+        }
+      }
+});
+
+
+});
+</script>
+
+<!-- Dialog to add photo -->
+	<div id="dialog_photo_add" title="Add Photo">
+	<label for="photo_url">Посилання на фото:</label>
+	<input type="text" name="photoname" id="photo_url" value="http://" ids="" size="75">
+	</div>
+
+
 <h1>Каталог велосипедів ({{bicycles.count}}) <a href="/bicycle/add/">(Створити)</a></h1>
 <h2>
     За рік: 
@@ -52,7 +129,11 @@
 		<td>{{type.color}}</td>
 		<td>{{type.sizes}}</td>
 		<td align="center"><a href="{{type.offsite_url}}">Лінк</a></td>
-		<td>{{type.photo}}</td>
+		<td class="addphoto" ids={{type.id}}>{{type.photo}}<br> 
+		{% for photo in type.photo_url.all %}
+		{{photo.url}}
+		{% endfor %}
+		</td>
 		<td>{{type.weight}}</td>
 		<td>{{type.price}}</td>
 		<td>{{type.currency}}</td>

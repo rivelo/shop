@@ -1,0 +1,36 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Варіанти оплат</title>
+
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+
+<h1>Варіанти зберігання <a href="/bicycle/storage/type/add/">(Додати)</a></h1>
+
+<table>
+	<tr>
+		<th>#</th>
+		<th>id</th>
+		<th>Назва</th>
+		<th>Ціна</th>
+		<th>Опис</th>
+		<th>Дія</th>
+	</tr>
+	{% for element in list %}
+	<tr>
+		<td>{{ forloop.counter }}</td>
+		<td><a href="/bicycle/storage/type/edit/{{ element.id }}">{{ element.id }}</a></td>
+		<td>{{ element.type }}</td>
+		<td>{{ element.price }}</td>
+		<td>{{ element.description }}</td>
+		<td>
+{% if user.is_authenticated %}		
+		<a href="/bicycle/storage/type/delete/{{ element.id }}" onclick="return confirm('Видалити запис - {{element.name}}?')">delete</a>
+		</td>		
+{% endif %}
+	</tr>
+	{% endfor %}
+	<table>
+
+	<br>

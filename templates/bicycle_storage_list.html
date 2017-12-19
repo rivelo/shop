@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Зберігання велосипедів</title>
+
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+
+<h1>Список велосипедів на зберіганні <a href="/bicycle/storage/add/">(Додати)</a></h1>
+
+<table>
+	<tr>
+		<th>#</th>
+		<th>id</th>
+		<th>Власник велосипеду</th>
+		<th>Модель велосипеду</th>
+		<th>Розмір</th>
+		<th>Колір</th>
+		<th>Діаметр коліс</th>
+		<th>Серійний номер</th>
+		<th>Тип</th>				
+		<th>Ціна</th>
+		<th>Сервіс</th>
+		<th>Мийка</th>
+		<th>Зберігання</th>
+		<th>Дата прийняття</th>
+		<th>Дата видачі</th>
+		<th>Опис</th>
+		<th>Фото</th>
+		<th>Дія</th>		
+	</tr>
+	{% for element in list %}
+	<tr>
+		<td>{{ forloop.counter }}</td>
+		<td><a href="/bicycle/storage/{{ element.id }}/edit/">{{ element.id }}</a></td>
+		<td>{{ element.client }}</td>
+		<td>{{ element.model }}</td>
+		<td>{{ element.size }}</td>
+		<td>{{ element.color }}</td>
+		<td>{{ element.wheel_size }}</td>
+		<td>{{ element.serial_number }}</td>
+		<td>{{ element.biketype }}</td>
+		<td>{{ element.price }}</td>
+		<td>{{ element.service }}</td>
+		<td>{{ element.washing }}</td>
+		<td>{{ element.type }}</td>
+		<td>{{ element.date_in }}</td>
+		<td>{{ element.date_out }}</td>
+		<td>{{ element.description }}</td>
+		<td>
+		{% for photo in element.get_photos %}
+			<img width="160px" src="/media/{{ photo.image }}">  
+		{% endfor %}
+		</td>
+		<td>
+{% if user.is_authenticated %}		
+		<a href="/bicycle/storage/{{ element.id }}/delete/" onclick="return confirm('Видалити запис - {{element.name}}?')">delete</a>
+		</td>		
+{% endif %}
+	</tr>
+	{% endfor %}
+	<table>
+
+	<br>

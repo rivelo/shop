@@ -1,13 +1,13 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-<h1>Звіт по проданих велосипедах по моделі</h1>
+<h1>Звіт проданих велосипедів по виробнику</h1>
 
 	<table border=1>
 	<tr>
 	<th>#</th>
 	<th>Модель</th>
 	<th>Кількість</th>
-	<th></th>
+	<th>id</th>
 	
 {% for item in bicycles %}
 {% ifequal item.bcount 0 %}
@@ -17,12 +17,13 @@
 	{{forloop.counter}}
 	</td>
 	<td>
-	{{item.model}} розмір {{item.model.size}}
+	{{item.model}} {{item.model__model__brand__name}} {{item.model.size}}
 	</td>
 	<td>
 	{{item.bcount}}
 	</td>
 	<td>
+	{{item.model__model__brand__id}}
 	</td>
 {% endifequal %}
 	{% endfor %}

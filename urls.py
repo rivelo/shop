@@ -9,6 +9,7 @@ from catalog.views import current_datetime, main_page
 
 from django.conf import settings
 from django.contrib.auth.views import login, logout
+from django.conf.urls.static import static
 #from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 #from django.conf.urls.static import static
 
@@ -64,6 +65,11 @@ urlpatterns = patterns('',
     url(r'^bicycle/edit/(?P<id>\d+)/$', 'catalog.accounting.views.bicycle_edit'),    
     url(r'^bicycle/delete/(?P<id>\d+)/$', 'catalog.accounting.views.bicycle_del'),
     url(r'^bicycle/photo/(?P<id>\d+)/$', 'catalog.accounting.views.bicycle_photo'),
+    
+    url(r'^delete/(\d+)/$', 'catalog.accounting.views.multiuploader_delete'),
+    url(r'^bicycle/view/list/$', 'catalog.accounting.views.image_view', name='main'),
+    url(r'^multi/$', 'catalog.accounting.views.multiuploader', name='multi'),
+    
     # get bicycle price and sale by id 
     url(r'^bicycle/price/$', 'catalog.accounting.views.bicycle_lookup_ajax'),
 
@@ -97,6 +103,7 @@ urlpatterns = patterns('',
     url(r'^bicycle/sale/id/(?P<id>\d+)/view/$', 'catalog.accounting.views.bicycle_sale_list'),
     url(r'^bicycle/sale/view/$', 'catalog.accounting.views.bicycle_sale_list'),
     url(r'^bicycle/sale/year/(?P<year>\d+)/month/(?P<month>\d+)/view/$', 'catalog.accounting.views.bicycle_sale_list'),
+    url(r'^bicycle/sale/year/(?P<year>\d+)/view/$', 'catalog.accounting.views.bicycle_sale_list', name='bike-sale-by-year'),
     url(r'^bicycle/sale/brand/(?P<id>\d+)/year/(?P<year>\d+)/month/(?P<month>\d+)/view/$', 'catalog.accounting.views.bicycle_sale_list_by_brand'),    
     url(r'^bicycle/sale/edit/(?P<id>\d+)/$', 'catalog.accounting.views.bicycle_sale_edit'),    
     url(r'^bicycle/sale/delete/(?P<id>\d+)/$', 'catalog.accounting.views.bicycle_sale_del'),
@@ -119,7 +126,15 @@ urlpatterns = patterns('',
     url(r'^bicycle/order/add/$', 'catalog.accounting.views.bicycle_order_add'),
     url(r'^bicycle/order/edit/(?P<id>\d+)/$', 'catalog.accounting.views.bicycle_order_edit'),
     url(r'^bicycle/order/(?P<id>\d+)/delete/$', 'catalog.accounting.views.bicycle_order_del'),
-    url(r'^bike/lookup/$', 'catalog.accounting.views.bike_lookup'),    
+    url(r'^bike/lookup/$', 'catalog.accounting.views.bike_lookup'),
+    
+    #storage bicycle
+    url(r'^bicycle/storage/type/view/$', 'catalog.accounting.views.bicycle_storage_type_list'),
+    url(r'^bicycle/storage/type/add/$', 'catalog.accounting.views.bicycle_storage_type_add'),
+    url(r'^bicycle/storage/add/$', 'catalog.accounting.views.bicycle_storage_add'),
+    url(r'^bicycle/storage/(?P<id>\d+)/edit/$', 'catalog.accounting.views.bicycle_storage_edit'),
+    url(r'^bicycle/storage/(?P<id>\d+)/delete/$', 'catalog.accounting.views.bicycle_storage_delete'),
+    url(r'^bicycle/storage/view/$', 'catalog.accounting.views.bicycle_storage_list'),
         
     # Dealer/Dealer Managers operation
     url(r'^dealer/payment/add/$', 'catalog.accounting.views.dealer_payment_add'),
@@ -274,6 +289,40 @@ urlpatterns = patterns('',
     url(r'^client/order/delete/(?P<id>\d+)$', 'catalog.accounting.views.client_order_delete'),
     url(r'^client/order/edit/(?P<id>\d+)/$', 'catalog.accounting.views.client_order_edit'),
 
+    url(r'^payform/workshop/$', 'catalog.accounting.views.workshop_payform'),
+    url(r'^payform/$', 'catalog.accounting.views.payform'),
+    url(r'^catalog/saleform/$', 'catalog.accounting.views.catalog_saleform'),    
+    url(r'^client/payform/$', 'catalog.accounting.views.client_payform'),
+    url(r'^client/workshop/payform/$', 'catalog.accounting.views.client_ws_payform'),
+    # Example:
+    # url(r'^catalog/', include('catalog.foo.urls')),
+    url(r'^sendmail/$', 'catalog.accounting.views.sendemail'),
+    url(r'^asearch/$', 'catalog.accounting.views.ajax_search'),
+
+    url(r'^media/(?P<path>.*)', 'django.views.static.serve',
+     # static files
+    #{'document_root': 'D:/develop/catalog/media'}),
+    {'document_root': os.path.join(dirname, 'media')}),
+    
+    url(r'^images/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
+    
+    url(r'^accounts/login/$',  'catalog.accounting.views.login'),
+    url(r'^accounts/logout/$', 'catalog.accounting.views.logout'),
+    
+    # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
+    # to INSTALLED_APPS to enable admin documentation:
+    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    url(r'^admin/', include(admin.site.urls)),
+    #url(r'^admin/', include('admin.site.urls')),
+
+    url(r'^$', main_page),
+
+    # Uncomment the next line to enable the admin:
+    #url(r'^admin/(.*)', admin.site.root),
+   
+)
+
+urlpatterns += patterns('',
     # WorkShop 
     #operation by GROUP
     url(r'^workgroup/add/$', 'catalog.accounting.views.workgroup_add'),
@@ -315,39 +364,9 @@ urlpatterns = patterns('',
     url(r'^workshop/year/(?P<year>\d+)/view/$', 'catalog.accounting.views.workshop_list'),
     url(r'^workshop/delete/(?P<id>\d+)/$', 'catalog.accounting.views.workshop_delete'),    
     url(r'^workshop/delete/$', 'catalog.accounting.views.workshop_delete'),
-
-    url(r'^payform/workshop/$', 'catalog.accounting.views.workshop_payform'),
-    url(r'^payform/$', 'catalog.accounting.views.payform'),
-    url(r'^catalog/saleform/$', 'catalog.accounting.views.catalog_saleform'),    
-    url(r'^client/payform/$', 'catalog.accounting.views.client_payform'),
-    url(r'^client/workshop/payform/$', 'catalog.accounting.views.client_ws_payform'),
-    # Example:
-    # url(r'^catalog/', include('catalog.foo.urls')),
-    url(r'^sendmail/$', 'catalog.accounting.views.sendemail'),
-    url(r'^asearch/$', 'catalog.accounting.views.ajax_search'),
-
-    url(r'^media/(?P<path>.*)', 'django.views.static.serve',
-     # static files
-    #{'document_root': 'D:/develop/catalog/media'}),
-    {'document_root': os.path.join(dirname, 'media')}),
-    
-    url(r'^images/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
-    
-    url(r'^accounts/login/$',  'catalog.accounting.views.login'),
-    url(r'^accounts/logout/$', 'catalog.accounting.views.logout'),
-    
-    # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
-    # to INSTALLED_APPS to enable admin documentation:
-    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-    url(r'^admin/', include(admin.site.urls)),
-    #url(r'^admin/', include('admin.site.urls')),
-
-    url(r'^$', main_page),
-
-    # Uncomment the next line to enable the admin:
-    #url(r'^admin/(.*)', admin.site.root),
-   
+                       
 )
+
 
 #from django.contrib.staticfiles.urls import staticfiles_urlpatterns 
 #urlpatterns += staticfiles_urlpatterns()
@@ -406,6 +425,9 @@ urlpatterns += patterns('',
     url(r'^catalog/price/import/file/$', 'catalog.accounting.views.price_import'),
     url(r'^catalog/price/import/$', 'catalog.accounting.views.price_import_form'),
 
+    url(r'^files-widget/', include('topnotchdev.files_widget.urls')),
+
+    url(r'^photo/url/bicycle/add/$', 'catalog.accounting.views.bike_photo_url_add'),
     url(r'^photo/url/add/$', 'catalog.accounting.views.photo_url_add'),
     url(r'^photo/url/get/$', 'catalog.accounting.views.photo_url_get'),
     url(r'^catalog/photo/delete/$', 'catalog.accounting.views.photo_url_delete'),
@@ -497,11 +519,11 @@ urlpatterns += patterns('',
 #===============================================================================
 
 #===============================================================================
-# if settings.DEBUG:
+if settings.DEBUG:
 #    urlpatterns += patterns('django.contrib.staticfiles.views',
 #        urlurl(r'^static/(?P<path>.*)$', 'serve'),
 #    )
 #    
-# urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # urlpatterns += staticfiles_urlpatterns()
 #===============================================================================

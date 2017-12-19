@@ -1,0 +1,180 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script src="/media/jquery-ui.min.js"></script>
+
+
+<style>
+  .custom-combobox {
+    position: relative;
+    display: inline-block;
+  }
+  .custom-combobox-toggle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin-left: -1px;
+    padding: 0;
+  }
+  .custom-combobox-input {
+    margin: 0;
+    padding: 5px 10px;
+  }
+</style>  
+	
+<script type="text/javascript">
+
+function id2name(){
+
+    $.ajax({
+        type: "GET",
+        url: "/client/lookup/byid/",
+        data: { client_id: $("#id_client").val() },
+        dataType: "json",
+        success:function(msg){
+        	$.each(msg,function(index,item){
+        	$("#id_client").val(item)    
+            });
+        },
+        error:function(){
+            alert("При отправке возникли проблемы");
+        }
+    });      
+
+};
+
+
+$(document).ready(function() {
+
+	$('#id_client').focus();
+	
+    $( "#id_client" ).autocomplete({
+    	source: function( request, response ) {
+        	$.ajax({
+                type: "GET",
+                url: "/client/lookup",
+				data: { query: $("#id_client").val() },
+                dataType: "json",
+                success: function( data ) {
+                        	response( $.map( data, function( item ) {
+                            return {
+                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
+                                value: item.fields.name,
+                                sale: item.fields.sale,
+                                pk_id: item.pk,
+    							}
+                        	}));                                
+                            }
+            })
+        },
+        minLength: 3,
+        select: function( event, ui ) {
+           	$('#id_client').val(ui.item.pk_id);
+	    	$(this).attr('c_id', ui.item.pk_id)
+	    	$('#id_sale').val(ui.item.sale);
+        },
+        open: function() {
+        	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+        },
+        close: function() {
+        	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+        }
+    });
+
+	if ($("#id_client").val() != '') {
+		$("#id_client").attr('c_id', $("#id_client").val())
+		id2name();
+	}
+    
+    $("#UserEnter").submit(function() {
+        if ($("#id_price").val()) {
+        	$("#id_client").val($("#id_client").attr('c_id'));
+        	$("#id_model_id").val($("#id_model_id").attr('c_id'));
+        	//$("#id_count").val(Math.round($("#id_count").val()));
+          return true;
+        }
+        $("#id_price").after("<b>Введіть суму!</b>");
+        return false;
+  });
+
+
+    function previewImages() {
+
+    	  var $preview = $('#preview').empty();
+    	  if (this.files) $.each(this.files, readAndPreview);
+
+    	  function readAndPreview(i, file) {
+    	    
+    	    if (!/\.(jpe?g|png|gif)$/i.test(file.name)){
+    	      return alert(file.name +" is not an image");
+    	    } // else...
+    	    
+    	    var reader = new FileReader();
+
+    	    $(reader).on("load", function() {
+    	      $preview.append($("<img/>", {src:this.result, height:100}));
+    	    });
+
+    	    reader.readAsDataURL(file);
+    	    
+    	  }
+
+    	}
+
+    	$('#file-input').on("change", previewImages);    
+    
+    
+});
+  
+$(function() {
+    // Multiple images preview in browser
+    var imagesPreview = function(input, placeToInsertImagePreview) {
+
+        if (input.files) {
+            var filesAmount = input.files.length;
+
+            for (i = 0; i < filesAmount; i++) {
+                var reader = new FileReader();
+
+                reader.onload = function(event) {
+                    $($.parseHTML('<img width="360px">')).attr('src', event.target.result).appendTo(placeToInsertImagePreview);
+                }
+
+                reader.readAsDataURL(input.files[i]);
+            }
+        }
+
+    };
+
+    $('#gallery-photo-add').on('change', function() {
+        imagesPreview(this, 'div.gallery');
+    });
+});
+
+</script>
+
+
+
+<h1>{{text}}:</h1>
+<form id="UserEnter" action="." method="POST" enctype="multipart/form-data">
+<table>
+	{{ form.as_ul }}
+</table>
+
+{% comment %}
+<h4> Jquery add photo 1</h4>
+<input type="file" multiple id="gallery-photo-add">
+<div class="gallery"></div>
+{% endcomment %}
+
+<h4> Додати фото (можна вибрати декілька фото одразу):</h4>
+<input id="file-input" name="file-input" type="file" multiple>
+<div id="preview"></div>
+
+<p><input type="submit" value="Save"></p>
+</form>
+
+<a href="/bicycle/storage/list/">Зберігання велосипедів</a>
+<br>
+

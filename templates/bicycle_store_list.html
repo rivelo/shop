@@ -264,29 +264,28 @@ $("body").on("click", ".change_sale", function(e){
 <tr>
 	<td>{{forloop.counter}}</td>
 	<td><a href="/">{{type.id}}</a></td>
-	<td><span class="f_type">{{type.model__type__type}}</span></td>
-	<td><span class="f_brand">{{type.model__brand__name}}</span></td>
-	<td><a href="/bicycle/photo/{{type.model__id}}">
-	{{type.model__model}} ({{type.model__color}})
+	<td><span class="f_type">{{type.model.type.type}}</span></td>
+	<td><span class="f_brand">{{type.model.brand.name}}</span></td>
+	<td><a href="/bicycle/photo/{{type.model.id}}">
+	{{type.model.model}} ({{type.model.color}})
 	</a></td>
-	<td><span class="f_year">{{type.model__year|date:"Y"}}</span></td>
+	<td><span class="f_year">{{type.model.year|date:"Y"}}</span></td>
 		<td class="serial_edit" id_serial="{{ type.id }}"> {{type.serial_number}}</td>  
-		<td><span class="f_size">{{type.size__inch}}" / {{type.size__cm}}cm</span></td>
+		<td><span class="f_size">{{type.size.inch}}" / {{type.size.cm}}cm</span></td>
 		
-<!-- 		<td class="change_price" id_price="{{type.model.id}}">{{type.model__price}}</td>
+<!-- 		<td class="change_price" id_price="{{type.model.id}}">{{type.model.price}}</td>
  -->
 
-	<td class="change_price" id_price="{{type.model__id}}">{{type.model__price}}</td>
-		<td>{{type.price}}</td> 
-
+	<td class="change_price" id_price="{{type.model.id}}">{{type.model.price}}</td>
+	<td>{{type.price}} ({{type.get_profit.0}}) {{type.get_profit.1|floatformat:"0"}} грн.</td>
 		
 	<td>{{type.currency}}</td>
 		
-	<td align="center" class="change_sale" id_sale="{{type.model__id}}" >
-	{{type.model__sale|floatformat:"0"}}%       
+	<td align="center" class="change_sale" id_sale="{{type.model.id}}" >
+	{{type.model.sale|floatformat:"0"}}%       
 	</td>
 	<td align="center" class="sale_price">
-	{{type.model__sale|div:-100|sub:-1|mul:type.model__price|floatformat:"0"}} грн.       
+	{{type.model.sale|div:-100|sub:-1|mul:type.model.price|floatformat:"0"}} грн.       
 	</td>
 		
  		<td align="center">{{type.realization}}</td>
@@ -305,7 +304,7 @@ $("body").on("click", ".change_sale", function(e){
 		<td><a href="/bicycle-store/edit/{{ type.id }}">edit</a> <br>
 		<a href="/bicycle-store/delete/{{ type.id }}">delete</a></td>
 		<td align="center">
-		<input type="checkbox" id="bikeid_{{type.model__id}}" value="{{type.model__id}}" name="checkbox_{{ type.id }}"/ onclick="">	
+		<input type="checkbox" id="bikeid_{{type.model.id}}" value="{{type.model.id}}" name="checkbox_{{ type.id }}"/ onclick="">	
 		</td>
 	</tr>
 {% endfor %}
@@ -318,29 +317,29 @@ $("body").on("click", ".change_sale", function(e){
 <tr>
 	<td>{{forloop.counter}}</td>
 	<td><a href="/">{{type.id}}</a></td>
-	<td><span class="f_type">{{type.model__type__type}}</span></td>
-	<td><span class="f_brand">{{type.model__brand__name}}</span></td>
-	<td><a href="/bicycle/photo/{{type.model__id}}">
-	{{type.model__model}} ({{type.model__color}})
+	<td><span class="f_type">{{type.model.type.type}}</span></td>
+	<td><span class="f_brand">{{type.model.brand.name}}</span></td>
+	<td><a href="/bicycle/photo/{{type.model.id}}">
+	{{type.model.model}} ({{type.model.color}})
 	</a></td>
-	<td><span class="f_year">{{type.model__year|date:"Y"}}</span></td>
+	<td><span class="f_year">{{type.model.year|date:"Y"}}</span></td>
 		<td class="serial_edit" id_serial="{{ type.id }}"> {{type.serial_number}}</td>  
-		<td><span class="f_size">{{type.size__inch}}" / {{type.size__cm}}cm</span></td>
+		<td><span class="f_size">{{type.size.inch}}" / {{type.size.cm}}cm</span></td>
 		
-<!-- 		<td class="change_price" id_price="{{type.model.id}}">{{type.model__price}}</td>
+<!-- 		<td class="change_price" id_price="{{type.model.id}}">{{type.model.price}}</td>
  -->
 
- 	<td>{{type.model__price}}</td>
+ 	<td>{{type.model.price}}</td>
  	<td></td>
 
 		
 	<td>{{type.currency}}</td>
 		
-	<td align="center" class="change_sale" id_sale="{{type.model__id}}" >
-	{{type.model__sale|floatformat:"0"}}%       
+	<td align="center" class="change_sale" id_sale="{{type.model.id}}" >
+	{{type.model.sale|floatformat:"0"}}%       
 	</td>
 	<td align="center" class="sale_price">
-	{{type.model__sale|div:-100|sub:-1|mul:type.model__price|floatformat:"0"}} грн.       
+	{{type.model.sale|div:-100|sub:-1|mul:type.model.price|floatformat:"0"}} грн.       
 	</td>
 		
  		<td align="center">{{type.realization}}</td>
@@ -359,7 +358,7 @@ $("body").on("click", ".change_sale", function(e){
 		<td><a href="/bicycle-store/edit/{{ type.id }}">edit</a> <br>
 		<a href="/bicycle-store/delete/{{ type.id }}">delete</a></td>
 		<td align="center">
-		<input type="checkbox" id="bikeid_{{type.model__id}}" value="{{type.model__id}}" name="checkbox_{{ type.id }}"/ onclick="">	
+		<input type="checkbox" id="bikeid_{{type.model.id}}" value="{{type.model.id}}" name="checkbox_{{ type.id }}"/ onclick="">	
 		</td>
 	</tr>
 {% endfor %}
@@ -376,9 +375,15 @@ $("body").on("click", ".change_sale", function(e){
 		<th></th>
 		<th></th>
 		<th></th>
+{% if request.user|has_group:"admin" %}
+		<th>Profit = {{price_profit_summ|floatformat:"0"}} грн</th>		
+		<th>Sum = {{price_summ|floatformat:"0"}} грн</th>
 		<th></th>
-		<th>{{price_summ}}</th>
+{% else %}
 		<th></th>
+		<th></th>
+		<th></th>
+{% endif %}		
 		<th>{{real_summ}}</th>
 		<th>{{bike_summ}}</th>
 		<th></th>

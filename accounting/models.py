@@ -5,6 +5,8 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import Count, Sum
+from django.db.models.aggregates import Avg
+
 
 # Type = Component category 
 class Type(models.Model):
@@ -37,6 +39,7 @@ class Size(models.Model):
 # Country table (Country)
 class Country(models.Model):
     name = models.CharField(max_length=255)
+    #ukr_name = models.CharField(max_length=255)
     
     def __unicode__(self):
         return self.name
@@ -62,6 +65,10 @@ class Currency(models.Model):
     name = models.CharField("currency name", max_length=50)
     country = models.ForeignKey(Country)
 
+#    def avg_currency(self):
+#        self.filter(currency = self.currency).aggregate(average_val = Avg('value')) #annotate(avgval = Avg('value'))
+#        return 
+    
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.ids_char)
 
@@ -123,7 +130,7 @@ class Catalog(models.Model):
     type = models.ForeignKey(Type, related_name='type')
     size = models.ForeignKey(Size, blank=True, null=True)
     weight = models.FloatField(blank=True, null=True)    
-    photo = models.FileField(upload_to = 'media/upload/catalog/%Y/%m/%d', blank=True, null=True)
+    photo = models.FileField(upload_to = 'upload/catalog/%Y/', blank=True, null=True) # 'media/upload/catalog/%Y/%m/%d'
     photo_url = models.ManyToManyField(Photo, blank=True)
     year = models.IntegerField(blank=True, null=True)
     sale_to = models.DateField(auto_now_add=True)
@@ -142,6 +149,11 @@ class Catalog(models.Model):
     locality = models.CharField("locality", blank=True, null=True, max_length=50)
     show = models.BooleanField(default=False, verbose_name="Статус відображення")
 #    full_description = models.TextField(blank=True, null=True)
+
+    def get_saleprice(self):
+        percent_sale = (100-self.sale)*0.01
+        price = self.price * percent_sale
+        return price
 
     def inv_price(self):
         usd = Currency.objects.get(pk=2)
@@ -485,6 +497,13 @@ class Bicycle(models.Model):
     currency = models.ForeignKey(Currency)
     sale = models.FloatField(default = 0, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+#    warranty = models.PositiveIntegerField()
+#    geometry = models.ImageField(upload_to = 'media/upload/bicycle/geometry/', max_length=255, blank=True, null=True)
+#    internet = models.BooleanField(default=False,)
+#    youtube = models.ManyToManyField
+#    bikeparts = ManyToManyField( name, catalog, part_type, order_num,  )
+#    rating
+#    country = 
 
     def __unicode__(self):
         #return u'Велосипед %s. Ціна %s грн.' % (self.model, self.brand)
@@ -505,6 +524,44 @@ class Bicycle_Store(models.Model):
     realization = models.BooleanField(default=False,)
     date = models.DateField(auto_now_add=True)
     description = models.TextField(blank=True, null=True)
+
+    def get_profit(self):
+        profit = 0
+        dn = datetime.datetime.now()
+        month = dn.month
+        year = dn.year
+        cur_exchange = Exchange.objects.filter(currency__ids_char = self.currency.ids_char, date__month = month, date__year = year).aggregate(average_val = Avg('value'))['average_val']
+        #cur_exchange2 = Exchange.objects.aggregate(average_val = Avg('value')) #annotate(avgval = Avg('value'))
+        if cur_exchange:
+            ua = self.price * cur_exchange
+        else:
+            ua = self.price * 1
+        #ua = self.price * cur_exchange2['average_val'] #['value__avg']
+        if (self.model.currency.ids_char == 'UAH'):
+            percent_sale = (100-self.model.sale)*0.01
+            profit = self.model.price * percent_sale - ua
+        #return cur_exchange1
+        return (cur_exchange, profit)
+
+    def get_uaprice(self):
+        dn = datetime.datetime.now()
+        month = dn.month
+        year = dn.year
+        cur_exchange = Exchange.objects.filter(currency__ids_char = self.currency.ids_char, date__month = month, date__year = year).aggregate(average_val = Avg('value'))['average_val']
+        #cur_exchange2 = Exchange.objects.aggregate(average_val = Avg('value')) #annotate(avgval = Avg('value'))
+        if cur_exchange:
+            ua = self.price * cur_exchange
+        else:
+            ua = self.price * 1
+        return ua
+
+#    def get_photos(self):
+#        return self.model.photo_set.all()
+
+    def get_saleprice(self):
+        percent_sale = (100-self.model.sale)*0.01
+        price = self.model.price * percent_sale
+        return price
     
     def __unicode__(self):
         #return self.model
@@ -528,6 +585,37 @@ class Bicycle_Sale(models.Model):
     sum = models.FloatField(blank=True, null=True)
     #debt = models.ForeignKey(ClientDebts, blank=True, null=True, on_delete=models.SET_NULL)
     debt = models.ForeignKey(ClientDebts, blank=True, null=True)
+
+    def get_profit(self):
+        profit = 0
+        dn = self.date
+        month = dn.month
+        year = dn.year
+        cur_exchange = Exchange.objects.filter(currency__ids_char = self.model.currency.ids_char, date__month = month, date__year = year).aggregate(average_val = Avg('value'))['average_val']
+        #cur_exchange2 = Exchange.objects.aggregate(average_val = Avg('value')) #annotate(avgval = Avg('value'))
+        if cur_exchange:
+            ua = self.model.price * cur_exchange
+        else:
+            ua = self.model.price * 1
+        #ua = self.price * cur_exchange2['average_val'] #['value__avg']
+        if (self.currency.ids_char == 'UAH'):
+            percent_sale = (100-self.sale)*0.01
+            profit = self.price * percent_sale - ua
+        #return cur_exchange1
+        return (cur_exchange, profit)
+
+    def get_uaprice(self):
+        dn = self.date
+        month = dn.month
+        year = dn.year
+        cur_exchange = Exchange.objects.filter(currency__ids_char = self.model.currency.ids_char, date__month = month, date__year = year).aggregate(average_val = Avg('value'))['average_val']
+        #cur_exchange2 = Exchange.objects.aggregate(average_val = Avg('value')) #annotate(avgval = Avg('value'))
+        if cur_exchange:
+            ua = self.model.price * cur_exchange
+        else:
+            ua = self.model.price * 1
+        return ua
+
     
     def __unicode__(self):
         #return self.model
@@ -557,6 +645,67 @@ class Bicycle_Order(models.Model):
 
     class Meta:
         ordering = ["-date", "client", "model"]
+
+ 
+#Bicycle storage type table
+class Storage_Type(models.Model):
+    type = models.CharField(max_length=255) #adult, kids, mtb, road, hybrid
+    price = models.FloatField()
+    description = models.TextField(blank=True, null=True)
+ 
+    def __unicode__(self):
+        return self.type
+ 
+    class Meta:
+        ordering = ["type"]    
+ 
+ 
+class Bicycle_Storage(models.Model):
+    client = models.ForeignKey(Client)
+    model = models.CharField(max_length=255, blank=True, null=True)
+    color = models.CharField(max_length=150, blank=True, null=True)
+    size = models.CharField(max_length=50, blank=True, null=True)
+    wheel_size = models.ForeignKey(Wheel_Size, blank=True, null=True) #20, 24, 26, 27.5, 29, 29+
+    biketype = models.ForeignKey(Bicycle_Type) #adult, kids, mtb, road, hybrid
+    service = models.BooleanField(default = False)
+    washing = models.BooleanField(default = False)
+    type = models.ForeignKey(Storage_Type) #full time / 1,2 riding time / 1 month
+    serial_number = models.CharField(max_length=50)
+#    photo = models.ImageField(upload_to = 'media/upload/bicycle/storage/', max_length=255, blank=True, null=True)
+#    album = models.models.ManyToManyField(Photo, blank=True) #ForeignKey(Bicycle_Client_Album, verbose_name=u'альбом', related_name='photos')
+    date_in = models.DateField(auto_now_add=True)
+    date_out = models.DateField(auto_now_add=True)
+    done = models.BooleanField(default = False)
+    date = models.DateTimeField(auto_now_add=True, editable=False)
+    price = models.FloatField(blank=True, null=True)
+    currency = models.ForeignKey(Currency, blank=True, null=True, on_delete=models.SET_NULL)
+    description = models.TextField(blank=True, null=True)
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)    
+
+    def __unicode__(self):
+        return u'%s -> %s [%s]' % (self.client ,self.model, self.serial_number)
+ 
+    def get_photos(self):
+        return self.bicycle_photo_set.all()
+ 
+    class Meta:
+        ordering = ["client"]    
+
+
+class Bicycle_Photo(models.Model):
+    bicycle = models.ForeignKey(Bicycle_Storage, verbose_name=u'альбом')
+    title = models.CharField(u'назва', max_length=200, blank=True, default='')
+    image = models.ImageField(u'зображення', upload_to='upload/bicycle/storage/')    
+    #image = files_widget.ImageField()
+    date = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    description = models.TextField(blank=True, null=True)
+
+    def __unicode__(self):
+        return u'%s [%s]' % (self.bicycle.model, self.bicycle.serial_number)
+ 
+    class Meta:
+        ordering = ["bicycle"]    
 
             
 class WorkGroup(models.Model):

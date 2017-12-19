@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 from django import forms
 from django.forms import ModelForm
-from models import Manufacturer, Country, Type, Bicycle_Type, Bicycle, Currency, FrameSize, Bicycle_Store, Catalog, Size, Bicycle_Sale, Bicycle_Order, InventoryList, Wheel_Size 
-from models import DealerManager, DealerPayment, DealerInvoice, Dealer, Bank, ShopDailySales, PreOrder, InvoiceComponentList, ClientOrder
+from models import Manufacturer, Country, Type, Bicycle_Type, Bicycle, Currency, FrameSize, Bicycle_Store, Catalog, Size, Bicycle_Sale, Bicycle_Order, Wheel_Size, Storage_Type, Bicycle_Storage, Bicycle_Photo 
+from models import DealerManager, DealerPayment, DealerInvoice, Dealer, Bank, ShopDailySales, PreOrder, InvoiceComponentList, ClientOrder, InventoryList
 from models import Client, ClientDebts, CostType, Costs, ClientCredits, WorkGroup, WorkType, WorkShop, WorkTicket, WorkStatus, Rent, ClientInvoice, CashType, Exchange, Type, ClientMessage, WorkDay
 
 from django.contrib.auth.models import User
@@ -40,7 +40,7 @@ class SelectFromModel(forms.Field):
         raise forms.ValidationError(u'Error Country')
 
 
-class ManufacturerForm(ModelForm):
+class ManufacturerForm(forms.ModelForm):
     name = forms.CharField()
     www = forms.URLField(initial='http://', help_text='url', )
     country = forms.ModelChoiceField(queryset = Country.objects.all())
@@ -51,13 +51,14 @@ class ManufacturerForm(ModelForm):
         fields = '__all__'
 
 class CountryForm(forms.ModelForm):
-    name = forms.CharField(label='Country name')
+    #name = forms.CharField(label='Country name')
     class Meta:
         model = Country
         fields = '__all__'
 
 class BankForm(forms.ModelForm):
     name = forms.CharField(label='Bank name')
+    
     class Meta:
         model = Bank
         fields = '__all__'
@@ -74,8 +75,8 @@ class CurencyForm(forms.ModelForm):
 
 
 class ExchangeForm(forms.ModelForm):
-    date = forms.DateField(initial=datetime.datetime.today)
-    #date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))    
+    #date = forms.DateField(initial=datetime.datetime.today)
+    date = forms.DateField(initial=datetime.datetime.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))    
     #currency = SelectFromModel(objects = Currency.objects.all())
     currency = forms.ModelChoiceField(queryset = Currency.objects.all())
     value = forms.DecimalField()
@@ -217,6 +218,79 @@ class BicycleOrderForm(forms.ModelForm):
         fields = '__all__'
         exclude = ['user', 'done', 'client', 'model']         
 
+
+#===============================================================================
+# class BicycleForm(forms.ModelForm):
+#     cur_year = datetime.datetime.today().year
+#     client_id = forms.CharField(widget=forms.TextInput(attrs={'size': '50'}), max_length=50, label = 'Клієнт')
+#     #client = forms.ModelChoiceField(widget=forms.Select(attrs={'class':'autocomplete'}), queryset = Client.objects.all(), empty_label="", label = 'Клієнт')    
+# #    client = forms.IntegerField(widget=forms.HiddenInput(), label = 'Клієнт')
+# #    model = forms.IntegerField(widget=forms.HiddenInput(), label = 'Модель велосипеду')
+#     #model = forms.ModelChoiceField(queryset = Bicycle.objects.filter(year__gte=datetime.datetime(cur_year-1, 1, 1)).order_by('-year'), empty_label="", label = 'Модель велосипеду')
+#     model_id = forms.CharField(widget=forms.TextInput(attrs={'size': '100'}), label = 'Модель велосипеду')    
+#     size = forms.CharField(max_length=50, label = 'Розмір рами')
+#     price = forms.FloatField(initial = 0, label = 'Ціна')
+#     sale = forms.IntegerField(initial = 0, label = 'Знижка (%)')
+#     prepay = forms.FloatField(initial = 0, label = 'Аванс')
+#     currency = forms.ModelChoiceField(queryset = Currency.objects.all(), label='Валюта')
+#     date = forms.DateTimeField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), label='Дата')
+#     #done = forms.BooleanField(required=False) 
+#     description = forms.CharField(label='Опис', widget=forms.Textarea(), required=False)
+#     
+#     class Meta:
+#         model = Bicycle_Order
+#         fields = '__all__'
+#         exclude = ['user', 'done', 'client', 'model']         
+#===============================================================================
+
+
+class StorageType_Form(forms.ModelForm):
+    type = forms.CharField(widget=forms.TextInput(attrs={'size': 150, }), max_length=255, label = 'Назва')
+    price = forms.FloatField(initial = 0, label = 'Ціна')
+    description = forms.CharField(label='Опис', widget=forms.Textarea(), required=False)
+    
+    class Meta:
+        model = Storage_Type
+        fields = '__all__'
+        exclude = []         
+
+from topnotchdev import files_widget
+
+class BicycleStorage_Form(forms.ModelForm):
+    client = forms.CharField(widget=forms.TextInput(attrs={'size': '100'}), max_length=50, label = 'Клієнт')
+    model = forms.CharField(widget=forms.TextInput(attrs={'size': 150, 'title': 'Модель велосипеду',}), label = 'Модель велосипеду')
+    color = forms.CharField(widget=forms.TextInput(attrs={'size': 50,}), required=False)
+    size = forms.FloatField(initial = 0, label = 'Розмір рами', help_text=' см', required=False)
+    wheel_size = forms.ModelChoiceField(queryset = Wheel_Size.objects.all())
+    type = forms.ModelChoiceField(queryset = Storage_Type.objects.all(), label = 'Вид зберігання') #full time / 1,2 riding time / 1 month
+    biketype = forms.ModelChoiceField(queryset = Bicycle_Type.objects.all()) #adult, kids, mtb, road, hybrid
+    serial_number = forms.SlugField(max_length=50, error_messages={'required': 'Введіть серійний номер рами який складається з літер та цифр'}, label = 'Серійний номер')
+    service = forms.BooleanField(initial = False, required=False)
+    washing = forms.BooleanField(initial = False, required=False)
+    #photo = forms.ImageField(required=False)
+    #photo = forms.ImageField(widget=files_widget.forms.ImagesWidget())
+    date_in = forms.DateField(initial = datetime.date.today, label='Дата', input_formats=['%d.%m.%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))
+    date_out = forms.DateField(input_formats=['%d.%m.%Y', '%d/%m/%Y'], initial = datetime.date.today().replace(month=(datetime.date.today().month+4)%12, day=1), widget=forms.DateTimeInput(format='%d.%m.%Y'), label='Дата завершення зберігання')
+    done = forms.BooleanField(initial = False, required=False)        
+    price = forms.FloatField(initial = 0, label = 'Ціна велосипеду (оціночна)', help_text=' гривень')
+    currency = forms.ModelChoiceField(queryset = Currency.objects.all(), label='Валюта', initial = 3)
+    #date = forms.DateTimeField(initial = datetime.datetime.today(), input_formats=['%Y.%m.%d. %H:%M:%S'], label='Дата створення', widget=forms.SplitDateTimeWidget(date_format='%d.%m.%Y', time_format='%H:%M:%S'))
+    date = forms.DateTimeField(initial = datetime.datetime.today, input_formats=['%d.%m.%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d.%m.%Y %H:%M:%S'), )    
+    description = forms.CharField(label='Опис', widget=forms.Textarea(), required=False, help_text='Опис велосипеду, зовнішній стан, наявність аксесуарів')
+
+    def clean_client(self):
+        data = self.cleaned_data['client']
+        client = Client.objects.get(pk = data)
+#        if "fred@example.com" not in data:
+#            raise forms.ValidationError("You have forgotten about Fred!")
+        data = client
+        return data
+    
+    class Meta:
+        model = Storage_Type
+        fields = ('client', 'model', 'serial_number', 'color', 'wheel_size', 'biketype', 'type', 'price', 'currency', 'service', 'washing', )
+        exclude = []         
+    
     
 # --------- Dealers ------------
 class DealerForm(forms.ModelForm):
