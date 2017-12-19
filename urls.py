@@ -426,8 +426,6 @@ urlpatterns += patterns('',
     url(r'^catalog/price/import/file/$', 'catalog.accounting.views.price_import'),
     url(r'^catalog/price/import/$', 'catalog.accounting.views.price_import_form'),
 
-    url(r'^files-widget/', include('topnotchdev.files_widget.urls')),
-
     url(r'^photo/url/bicycle/add/$', 'catalog.accounting.views.bike_photo_url_add'),
     url(r'^photo/url/add/$', 'catalog.accounting.views.photo_url_add'),
     url(r'^photo/url/get/$', 'catalog.accounting.views.photo_url_get'),

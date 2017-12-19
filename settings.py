@@ -48,7 +48,8 @@ SHORT_DATE_FORMAT = 'd/m/Y'
 SHORT_DATETIME_FORMAT = 'd/m/Y'
 DATE_INPUT_FORMATS = ('%d/%m/%Y')
 
-HTTP_MINI_SERVER_IP = '10.1.1.180' # work server
+HTTP_MINI_SERVER_IP = '10.1.1.185' # work server
+#HTTP_MINI_SERVER_IP = '10.1.1.180' # work server
 HTTP_MINI_SERVER_PORT = '8123'
 
 CLIENT_UNKNOWN = 138 # ID of unknown user
