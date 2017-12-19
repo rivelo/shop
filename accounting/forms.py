@@ -254,7 +254,6 @@ class StorageType_Form(forms.ModelForm):
         fields = '__all__'
         exclude = []         
 
-from topnotchdev import files_widget
 
 class BicycleStorage_Form(forms.ModelForm):
     client = forms.CharField(widget=forms.TextInput(attrs={'size': '100'}), max_length=50, label = 'Клієнт')

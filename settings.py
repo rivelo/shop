@@ -191,8 +191,6 @@ INSTALLED_APPS = (
     'django.contrib.flatpages',
     'django.contrib.staticfiles',
     'django.contrib.admindocs',
-#    'sorl.thumbnail',
-#    'topnotchdev.files_widget',
     'catalog.accounting',
     
 )
