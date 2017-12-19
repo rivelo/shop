@@ -1924,6 +1924,7 @@ def invoicecomponent_manufacturer_html(request, mid):
     send_shop_mail(request, email, w, 'Наявний товар')
     return HttpResponse('Ваш лист відправлено')
 
+
 # send Email all in shop by category
 def invoicecomponent_category_html(request, mid): 
 #    if auth_group(request.user, 'admin') == False:
@@ -1955,15 +1956,19 @@ def invoicecomponent_sum(request):
     if auth_group(request.user, 'admin') == False:
         return HttpResponseRedirect("/.")
 #    list = InvoiceComponentList.objects.all().aggregate(price_sum=Sum('catalog__price'))
-    list = Catalog.objects.filter(count__gt=0).values('id', 'name', 'count', 'price')
+    #list = Catalog.objects.filter(count__gt=0).values('id', 'name', 'count', 'price')
+    list = Catalog.objects.filter(count__gt=0)
     #.annotate(sum_catalog=Sum('count'))
     #aggregate(price_sum=Sum('count'))
     psum = 0
     scount = 0
     counter = 0
     for item in list:
-        scount = scount + item['count']
-        psum = psum + (item['price'] * item['count'])
+#        scount = scount + item['count']
+#        psum = psum + (item['price'] * item['count'])
+        scount = scount + item.count
+        psum = psum + (item.price * item.count)
+
         counter = counter + 1
     paginator = Paginator(list, 50)
     page = request.GET.get('page')
@@ -3750,6 +3755,83 @@ def client_lookup_by_id(request):
             model_results = Client.objects.values('id', 'name', 'forumname').get(pk = value)
             data = simplejson.dumps(model_results)
     return HttpResponse(data)    
+
+
+def client_card_sendemail(request, id, param=None):
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'seller')==False:
+                return HttpResponse('Error: У вас не має прав для редагування')
+        param = request.POST.get('status')
+            
+        tdelta = 30
+        now = datetime.datetime.now()
+        user = id 
+        sql1 = "SELECT sum(price) FROM accounting_clientcredits WHERE client_id = %s;"
+        sql2 = "SELECT sum(price) FROM accounting_clientdebts WHERE client_id = %s;"
+        try:
+            cursor = connection.cursor()
+            cursor.execute(sql1, [user])   
+            credit= cursor.fetchone()
+            cursor.execute(sql2, [user])
+            debts = cursor.fetchone()
+            if (credit[0] is None):
+                credit = (0,)
+            elif (debts[0] is None):
+                debts = (0,)
+            res = credit[0] - debts[0]
+        except TypeError:
+            res = "Такого клієнта не існує, або в нього не має заборгованостей"
+        try:
+            client_name = Client.objects.values('name', 'forumname', 'id', 'phone', 'birthday', 'email').get(id=user)
+        except ObjectDoesNotExist:
+            client_name = ""
+
+        credit_list = ClientCredits.objects.filter(client=user, date__gt=now-datetime.timedelta(days=tdelta))
+        debt_list = ClientDebts.objects.filter(client=user, date__gt=now-datetime.timedelta(days=tdelta))
+        client_invoice = ClientInvoice.objects.filter(Q(client=user) & (Q(pay__lt = F('sum')) | Q(date__gt=now-datetime.timedelta(days=tdelta))) ).order_by("-date", "-id")
+     
+        if client_invoice.count()>45 :
+            tdelta = 6
+            client_invoice = ClientInvoice.objects.filter(Q(client=user) & (Q(pay__lt = F('sum')) | Q(date__gt=now-datetime.timedelta(days=tdelta))) ).order_by("-date", "-id")
+        client_invoice_sum = 0
+        for a in client_invoice:
+            client_invoice_sum = client_invoice_sum + a.sum
+
+        client_workshop_sum = 0
+        client_workshop = WorkShop.objects.filter(client=user).order_by("-date")
+        for a in client_workshop:
+            client_workshop_sum = client_workshop_sum + a.price
+            
+        b_bike = Bicycle_Sale.objects.filter(client=user).values('model__model__model', 'model__model__brand__name', 'model__serial_number', 'model__size__name', 'date', 'service', 'id')
+        workshop_ticket = WorkTicket.objects.filter(client=user).values('id', 'date', 'description', 'status__name').order_by('-date')
+        messages = ClientMessage.objects.filter(client=user).values('msg', 'status', 'date', 'user__username', 'id')
+        status_msg = messages.values('status').filter(status=False).exists()
+        rent = Rent.objects.filter(client=user)
+        status_rent = rent.filter(status=False).exists()
+        order = ClientOrder.objects.filter(client=user)
+        status_order = order.filter(status=False).exists()
+        
+        isum = ClientInvoice.objects.filter(client=user).aggregate(Sum('sum'))
+        client = Client.objects.get(id = user)
+        client.summ = float(isum['sum__sum'] or 0) + client_workshop_sum
+    
+        w = render_to_response('client_result.html', {'clients': res, 'invoice': client_invoice, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+        if param == 'print':
+            return w
+        if param == 'email': 
+            if client.email == '':
+                return HttpResponse("Заповніть поле Email для відправки чеку")
+            subject, from_email, to = 'Картка клієнта від веломагазину Rivelo', 'rivelo@ymail.com', client.email
+            text_content = 'www.rivelo.com.ua'
+            html_content = w.content
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [to, 'rivelo@ukr.net'])
+            msg.attach_alternative(html_content, "text/html")
+            msg.send()
+            return HttpResponse("Лист з чеком успішно відправлено")        
+    
+    return w    
 
 
 # --------------- WorkShop -----------------

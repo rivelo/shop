@@ -21,7 +21,7 @@
     </tr>
     
 {% load template_math %}    
-{% for item in catalog.object_list %}
+{% for item in catalog %}
 <tr>
 	<td>
 	{{forloop.counter}}
@@ -33,7 +33,7 @@
 	{{item.name}}
 	</td>
 	<td align="center">
-	{{item.count}}
+	{{item.count}} - [{{item.client_count}}] {{item.client_price}}
 	</td>
 	<td>
 	{{item.price}}
@@ -69,7 +69,7 @@
         </li>
     {% else %}
     <li class="prev disabled">
-            <a href="?page={{ catalog.previous_page_number }}">&larr; Previous</a>
+            <a href="?page={{ catalog.number }}">&larr; Previous</a>
     </li>
     {% endif %}
     
@@ -87,7 +87,7 @@
         </li>
     {% else %}
     <li class="next disabled">
-            <a href="?page={{ catalog.previous_page_number }}">Next &rarr;</a>
+            <a href="?page={{ catalog.number }}">Next &rarr;</a>
      </li>    
     {% endif %}
   </ul>

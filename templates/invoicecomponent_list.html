@@ -1268,7 +1268,7 @@ showbox(function(){
 	$.ajax("/invoice/category/{{category_id}}/availability/view/html/", {
     	type: 'POST',
     	data: {
-      		email: 'rivelo@ymail.com',
+      		email: $('#email_name').val(), //email: 'rivelo@ymail.com'
     	},
 		success: function(msg){
 					alert(msg);
