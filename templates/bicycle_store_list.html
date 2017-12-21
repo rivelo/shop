@@ -277,7 +277,7 @@ $("body").on("click", ".change_sale", function(e){
  -->
 
 	<td class="change_price" id_price="{{type.model.id}}">{{type.model.price}}</td>
-	<td>{{type.price}} ({{type.get_profit.0}}) {{type.get_profit.1|floatformat:"0"}} грн.</td>
+	<td>{{type.price}}{{type.currency.ids_char}} ({{type.get_profit.0}}) {{type.get_profit.1|floatformat:"0"}} грн.</td>
 		
 	<td>{{type.currency}}</td>
 		
@@ -329,7 +329,7 @@ $("body").on("click", ".change_sale", function(e){
 <!-- 		<td class="change_price" id_price="{{type.model.id}}">{{type.model.price}}</td>
  -->
 
- 	<td>{{type.model.price}}</td>
+ 	<td>{{type.model.price}} {{type.model.currency}}</td>
  	<td></td>
 
 		
@@ -376,8 +376,8 @@ $("body").on("click", ".change_sale", function(e){
 		<th></th>
 		<th></th>
 {% if request.user|has_group:"admin" %}
-		<th>Profit = {{price_profit_summ|floatformat:"0"}} грн</th>		
 		<th>Sum = {{price_summ|floatformat:"0"}} грн</th>
+		<th>Profit = {{price_profit_summ|floatformat:"0"}} грн</th>
 		<th></th>
 {% else %}
 		<th></th>

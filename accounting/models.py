@@ -93,7 +93,7 @@ class Exchange(models.Model):
 class Manufacturer(models.Model):
     name = models.CharField(max_length=100)
     www = models.URLField(blank=True, null=True)
-    logo = models.ImageField(upload_to = 'media/upload/', blank=True, null=True)
+    logo = models.ImageField(upload_to = 'upload/brandlogo/', blank=True, null=True)
     country = models.ForeignKey(Country, null=True)
     description = models.TextField(blank=True, null=True)    
     
@@ -113,6 +113,19 @@ class Photo(models.Model):
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     description = models.TextField(blank=True, null=True)
     #goo_url = models.CharField(max_length=255)
+    
+    def __unicode__(self):
+        return u'%s' % self.url
+
+    class Meta:
+        ordering = ["date", "description"]    
+
+
+class YouTube(models.Model):
+    url = models.CharField(max_length=255)
+    date = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    description = models.TextField(blank=True, null=True)
     
     def __unicode__(self):
         return u'%s' % self.url
@@ -149,6 +162,7 @@ class Catalog(models.Model):
     locality = models.CharField("locality", blank=True, null=True, max_length=50)
     show = models.BooleanField(default=False, verbose_name="Статус відображення")
 #    full_description = models.TextField(blank=True, null=True)
+#    youtube_link
 
     def get_saleprice(self):
         percent_sale = (100-self.sale)*0.01
@@ -176,6 +190,20 @@ class Catalog(models.Model):
         r = self.clientinvoice_set.filter(currency = uah).values('currency').annotate(sum_p=Sum('sum'), count_p=Count('currency'), count_s=Sum('count'))
         #values('price', 'currency')
         return r
+
+    def get_clientinvoice_count(self):
+        cc = self.clientinvoice_set.filter().aggregate(cicount = Sum('count'))
+        return cc['cicount']
+
+    def get_invoice_count(self):
+        cc = self.invoicecomponentlist_set.filter().aggregate(icount = Sum('count'))
+        return cc['icount']
+    
+    def get_realshop_count(self):
+        ci = self.clientinvoice_set.filter().aggregate(cicount = Sum('count'))
+        ic = self.invoicecomponentlist_set.filter().aggregate(icount = Sum('count'))
+        res = int(ic['icount'] or 0) - int(ci['cicount'] or 0)
+        return res
 
     def _get_full_name(self):
         p = self.inv_price()
@@ -300,8 +328,19 @@ class InvoiceComponentList(models.Model):
     description = models.TextField(blank = True, null = True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
             
+    def get_uaprice(self):
+        dn = self.date # datetime.datetime.now()
+        month = dn.month
+        year = dn.year
+        cur_exchange = Exchange.objects.filter(currency__ids_char = self.currency.ids_char, date__month = month, date__year = year).aggregate(average_val = Avg('value'))['average_val']
+        if cur_exchange:
+            ua = self.price * cur_exchange
+        else:
+            ua = self.price * 1
+        return ua
+            
     def __unicode__(self):
-        return "%s - %s" % (self.invoice, self.catalog) 
+        return u"%s - %s" % (self.invoice, self.catalog) 
 
     class Meta:
         ordering = ["invoice", "catalog", "price", "date"]    
@@ -391,9 +430,38 @@ class ClientInvoice(models.Model):
     description = models.TextField(blank = True, null = True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     chk_del = models.BooleanField(default=False, verbose_name="Мітка на видалення")    
+
+    def get_profit(self):
+        profit = 0
+        dn = self.date
+        month = dn.month
+        year = dn.year
+        ua = 0
+        cc = self.catalog.invoicecomponentlist_set.filter(price__gt = 0) #.aggregate(isum = Sum('price'), )
+        if not cc:
+            return (0, 0)
+        ic_count = cc.count() #aggregate(icount = Count('price'))['icount']
+        sum = 0
+        for item in cc:
+            sum = sum + item.get_uaprice()
+        if ic_count != 0:
+            ua = sum / ic_count
+#        cur_exchange = Exchange.objects.filter(currency__ids_char = self.currency.ids_char, date__month = month, date__year = year).aggregate(average_val = Avg('value'))['average_val']
+        #cur_exchange2 = Exchange.objects.aggregate(average_val = Avg('value')) #annotate(avgval = Avg('value'))
+#        if cur_exchange:
+#            ua = self.catalog.price * cur_exchange
+#        else:
+#            ua = self.model.price * 1
+        #ua = self.price * cur_exchange2['average_val'] #['value__avg']
+        if (self.currency.ids_char == 'UAH'):
+            percent_sale = (100-self.sale)*0.01
+            profit = self.price * percent_sale * self.count - ua * self.count 
+        #return cur_exchange1
+        return (ua, profit)
+
             
     def __unicode__(self):
-        return "%s - %s шт." % (self.catalog.name, self.count) 
+        return u"%s - %s шт." % (self.catalog.name, self.count) 
         #return self.origin_id 
 
     class Meta:
@@ -489,7 +557,7 @@ class Bicycle(models.Model):
     color = models.CharField(max_length=255)
     wheel_size = models.ForeignKey(Wheel_Size, blank=True, null=True) #20, 24, 26, 27.5, 29, 29+
     sizes = models.CommaSeparatedIntegerField(max_length=10)
-    photo = models.ImageField(upload_to = 'media/upload/bicycle/', max_length=255, blank=True, null=True)
+    photo = models.ImageField(upload_to = 'upload/bicycle/', max_length=255, blank=True, null=True)
     photo_url = models.ManyToManyField(Photo, blank=True)
     offsite_url = models.URLField(blank=True, null=True)
     weight = models.FloatField()
@@ -497,13 +565,14 @@ class Bicycle(models.Model):
     currency = models.ForeignKey(Currency)
     sale = models.FloatField(default = 0, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-#    warranty = models.PositiveIntegerField()
-#    geometry = models.ImageField(upload_to = 'media/upload/bicycle/geometry/', max_length=255, blank=True, null=True)
-#    internet = models.BooleanField(default=False,)
-#    youtube = models.ManyToManyField
+    warranty = models.PositiveIntegerField(default = 12, blank=True)
+    warranty_frame = models.PositiveIntegerField(default = 12)
+    geometry = models.ImageField(upload_to = 'upload/bicycle/geometry/', max_length=255, blank=True, null=True)
+    internet = models.BooleanField(default=False,)
+    youtube_url = models.ManyToManyField(YouTube, blank=True)
 #    bikeparts = ManyToManyField( name, catalog, part_type, order_num,  )
-#    rating
-#    country = 
+    rating = models.IntegerField(default = 0)
+    country_made = models.ForeignKey(Country, null=True) 
 
     def __unicode__(self):
         #return u'Велосипед %s. Ціна %s грн.' % (self.model, self.brand)

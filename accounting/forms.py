@@ -102,6 +102,7 @@ class BicycleTypeForm(forms.ModelForm):
         model = Bicycle_Type
         fields = '__all__'
 
+
 class BicycleFrameSizeForm(forms.ModelForm):
     name = forms.CharField(label='Назва')
     cm = forms.FloatField(min_value=0, label='Розмір, см (cm)')
@@ -109,6 +110,7 @@ class BicycleFrameSizeForm(forms.ModelForm):
     class Meta:
         model = FrameSize
         fields = '__all__'    
+
 
 class BicycleForm(forms.ModelForm):
     model = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'size': '80'}), )
@@ -127,11 +129,17 @@ class BicycleForm(forms.ModelForm):
     #currency = SelectFromModel(objects=Currency.objects.all())
     currency = forms.ModelChoiceField(queryset = Currency.objects.all(), initial=Currency.objects.get(ids_char = 'UAH'))
     sale = forms.FloatField(min_value=0, initial=0, required=False)
-    description = forms.CharField(label='Description', widget=forms.Textarea(attrs={'size': '180'}), required=False)    
+    warranty = forms.IntegerField(min_value=0, initial=1)
+    geometry = forms.ImageField(required=False)
+    internet = forms.BooleanField(required=False)
+    #youtube_url = 
+    rating = forms.IntegerField(min_value=0, initial=0)
+    description = forms.CharField(label='Description', widget=forms.Textarea(attrs={'size': '180'}), required=False)
 
     class Meta:
         model = Bicycle
         fields = '__all__'
+
 
 class BicycleStoreForm(forms.ModelForm):
     model = forms.ModelChoiceField(queryset = Bicycle.objects.all(), required=False)

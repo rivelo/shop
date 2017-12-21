@@ -4,6 +4,7 @@
 <head>
     <title>Список проданого товару</title>
     <link rel="stylesheet" type="text/css" href="/media/table.css">
+    <link rel="stylesheet" type="text/css" href="/media/css/tooltip.css">
 </head>
 
 <style>
@@ -41,6 +42,7 @@ width: 150px;
 <link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
 
 <script src="/media/jquery-ui.min.js"></script>
+<script src="/media/js/touchHover.js"></script>
 
 <body onLoad="res()">
 
@@ -74,7 +76,7 @@ for(var i = 0; i < All.elements.length; ++i) {
 
 
 $(document).ready( function() {
-
+	
 $("#dialog_client").dialog({
 	autoOpen: false,
     resizable: true,
@@ -507,13 +509,13 @@ function calc_sum() {
     
 {% for type in buycomponents.object_list %}
 {% ifequal type.sum type.pay %}
-<tr ci_id={{type.id}} count="{{type.count}}" cat_id={{type.catalog__pk}}>
+<tr ci_id={{type.id}} count="{{type.count}}" cat_id={{type.catalog.pk}}>
 {% else %}
-<tr BGCOLOR="#F2AE6B" ci_id={{type.id}} cat_id={{type.catalog__pk}} count="{{type.count}}">
+<tr BGCOLOR="#F2AE6B" ci_id={{type.id}} cat_id={{type.catalog.pk}} count="{{type.count}}">
 {% endifequal %}
 
 	<td>
-	<abbr title="Створено користувачем {{type.user__username}}">
+	<abbr title="Створено користувачем {{type.user.username}}">
 	{{forloop.counter}}
 	</abbr>
 	</td>
@@ -521,12 +523,12 @@ function calc_sum() {
     <a href="/client/invoice/{{type.id}}/edit">{{type.id}}</a>
 	</td>
 	<td class="client">
-	<a href="/client/result/search/?id={{type.client__id}}">
-	{{type.client__name}} ({{type.client__forumname}})       
+	<a href="/client/result/search/?id={{type.client.id}}">
+	{{type.client.name}} ({{type.client.forumname}})       
 	</a>
 	</td>
 	<td class="cat_name">       
-	[{{type.catalog__ids}}] {{type.catalog__name}}
+	[{{type.catalog.ids}}] {{type.catalog.name}}
 	</td>
 	<td align="center" class="tcount">       
 	{{type.count|floatformat}}
@@ -535,10 +537,10 @@ function calc_sum() {
 	{{type.price}}
 	</td>	
 	<td class="tsum">       
-	{{type.sum}}
+	{{type.sum}} ({{type.get_profit.0}} / {{type.get_profit.1}})
 	</td>
 	<td>       
-	{{type.currency__name}}
+	{{type.currency.name}}
 	</td>
 	<td align="center">       
 	{{type.sale}}
@@ -572,7 +574,7 @@ function calc_sum() {
 {% ifequal type.sum type.pay %}
 <input type="checkbox" id="model{{forloop.counter}}" class="mc" value="{{type.sum}}" onclick="res()" name="checkbox_{{ type.id }}"/>
 {% else %}
-{% ifequal request.user.username type.user__username %} 
+{% ifequal request.user.username type.user.username %} 
 <input type="checkbox" id="model{{forloop.counter}}" class="mc" value="{{type.sum}}" onclick="res()" checked name="checkbox_{{ type.id }}"/>
 {% else %}
 <input type="checkbox" id="model{{forloop.counter}}" class="mc" value="{{type.sum}}" onclick="res()" name="checkbox_{{ type.id }}"/>
@@ -580,8 +582,8 @@ function calc_sum() {
 {% endifequal %}
 	</td>
 	<td align="center">
-	<abbr title="Ящик номер: {{type.catalog__locality}}">
-	{{type.catalog__count}}
+	<abbr title="Ящик номер: {{type.catalog.locality}}" style="display: inline;">
+	{{type.catalog.count}} [{{type.catalog.get_invoice_count}}  - {{type.catalog.get_clientinvoice_count}}] ({{type.catalog.count}})
 	</abbr>
 	</td>
 </tr>
@@ -594,7 +596,7 @@ function calc_sum() {
     	<th>Загальна кількість проданих товарів:</th>
     	<th>{{countall}}</th>
     	<th></th>
-    	<th>{{sumall}}</th>
+    	<th>{{sumall}} ({{sum_profit}})</th>
     	<th>грн.</th>
     	<th></th>    	
     	<th></th>    	    	

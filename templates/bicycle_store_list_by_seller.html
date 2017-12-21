@@ -148,7 +148,7 @@ $(document).ready(function() {
 
 {% if user.is_authenticated %}	
 	<td class="change_price" id_price="{{type.model.id}}">
-	{{type.model.price}}   
+	{{type.model.price}} 
 	</td>
 	<td align="center" class="change_sale" id_sale="{{type.model.id}}">
 	{{type.model.sale|floatformat:"0"}}%       

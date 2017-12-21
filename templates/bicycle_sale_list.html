@@ -72,7 +72,16 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
     {% endif %}
 {% endfor %}		
 
-<h1>Список проданих велосипедів</h1>
+{#bicycles.0.model.model.brand}} - {{bicycles.0.model.model.year.year#}
+{% if month and year %}
+<h1>Список проданих велосипедів за {{month}} місяць {{year}} року</h1>
+{% else %}
+	{% if brand %}
+	<h1>Список проданих велосипедів {{brand}} за {{year}} рік</h1>
+	{% else %}
+	<h1>Список проданих велосипедів за {{year}} рік</h1>
+	{% endif %}
+{% endif %}
 
 {% load template_math %}   
 
