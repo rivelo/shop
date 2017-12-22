@@ -1538,7 +1538,7 @@ console.log("ids[]= ", ids );
 {% endif %}	
 	</td>
 	<td>
-	[{{type.catalog__ids}}] - ({{type.catalog__manufacturer__name}}) {{type.catalog__name}}
+	[{{type.catalog__ids}}] {% if type.catalog__dealer_code %} [{{type.catalog__dealer_code}}] {% endif %}- ({{type.catalog__manufacturer__name}}) {{type.catalog__name}}
 	</td>
 	<td align="center">
 	<a href="/invoice/catalog/{{type.catalog}}/view/">

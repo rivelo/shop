@@ -328,8 +328,12 @@ class InvoiceComponentList(models.Model):
     description = models.TextField(blank = True, null = True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
             
-    def get_uaprice(self):
-        dn = self.date # datetime.datetime.now()
+    def get_uaprice(self, sdate=None):
+        if sdate == None:
+        #dn = self.date #
+            dn = datetime.datetime.now()
+        else:
+            dn = sdate
         month = dn.month
         year = dn.year
         cur_exchange = Exchange.objects.filter(currency__ids_char = self.currency.ids_char, date__month = month, date__year = year).aggregate(average_val = Avg('value'))['average_val']
@@ -338,6 +342,10 @@ class InvoiceComponentList(models.Model):
         else:
             ua = self.price * 1
         return ua
+    
+    def ci_sum(self):
+        ci = ClientInvoice.objects.filter(catalog = self.catalog).aggregate(Count('pk'), csum = Sum('sum'))
+        return (ci['csum'], ci['pk__count'])
             
     def __unicode__(self):
         return u"%s - %s" % (self.invoice, self.catalog) 
@@ -443,7 +451,7 @@ class ClientInvoice(models.Model):
         ic_count = cc.count() #aggregate(icount = Count('price'))['icount']
         sum = 0
         for item in cc:
-            sum = sum + item.get_uaprice()
+            sum = sum + item.get_uaprice(self.date)
         if ic_count != 0:
             ua = sum / ic_count
 #        cur_exchange = Exchange.objects.filter(currency__ids_char = self.currency.ids_char, date__month = month, date__year = year).aggregate(average_val = Avg('value'))['average_val']

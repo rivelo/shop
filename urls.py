@@ -66,9 +66,9 @@ urlpatterns = patterns('',
     url(r'^bicycle/delete/(?P<id>\d+)/$', 'catalog.accounting.views.bicycle_del'),
     url(r'^bicycle/photo/(?P<id>\d+)/$', 'catalog.accounting.views.bicycle_photo'),
     
-    url(r'^delete/(\d+)/$', 'catalog.accounting.views.multiuploader_delete'),
-    url(r'^bicycle/view/list/$', 'catalog.accounting.views.image_view', name='main'),
-    url(r'^multi/$', 'catalog.accounting.views.multiuploader', name='multi'),
+#    url(r'^delete/(\d+)/$', 'catalog.accounting.views.multiuploader_delete'),
+#    url(r'^bicycle/view/list/$', 'catalog.accounting.views.image_view', name='main'),
+#    url(r'^multi/$', 'catalog.accounting.views.multiuploader', name='multi'),
     
     # get bicycle price and sale by id 
     url(r'^bicycle/price/$', 'catalog.accounting.views.bicycle_lookup_ajax'),

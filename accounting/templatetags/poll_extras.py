@@ -113,8 +113,8 @@ def truncate_chars(value, max_length):
 def has_group(user, group_name): 
     group = Group.objects.get(name=group_name) 
     return True if group in user.groups.all() else False
+    #return user.groups.filter(name=group_name).exists()
  
-
     
 @register.filter(name='date_left') 
 def date_left(date):

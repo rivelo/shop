@@ -7,8 +7,16 @@
 <body>
 <br>
 
+{% load poll_extras %}
+{% load template_math %}    
 
+{% if dinvoice.origin_id %}
     <h1>Список наявного товару по накладній № {{dinvoice.origin_id}} ({{dinvoice.company}})</h1>
+{% else %}
+	<h1>Надходження товару: <br> [{{list.0.catalog.ids}} / {{list.0.catalog.dealer_code}}] {{list.0.catalog.name}} </h1>
+{% endif %}
+
+
     
 {% if perms.accounting.add_preorder %}  
 
@@ -23,7 +31,7 @@
     	<th>Ціна</th>
     	<th>Валюта</th>
     	<th>Сума</th>
-{% if perms.accounting.add_preorder %}    	
+{% if request.user|has_group:"admin" %}
     	<th>Прайс</th>    	    	
 {% endif %}
     	<th>Дата</th>
@@ -31,7 +39,6 @@
     	<th>Дія</th>
     </tr>
     
-{% load template_math %}    
     
 {% for type in list %}
 <tr>
@@ -42,34 +49,35 @@
     <a href="/invoice/edit/{{type.id}}">{{type.id}}</a>
 	</td>
  	<td>
-	{{type.invoice__origin_id}} - {{type.invoice__company__name}} - {{type.invoice__manager__name}} [{{type.invoice__price}} {{type.invoice__currency__ids_char}}]        
+	{{type.invoice.origin_id}} - {{type.invoice.company.name}} - {{type.invoice.manager.name}} [{{type.invoice.price}} {{type.invoice.currency.ids_char}}]        
 	</td>	
 	<td>       
-	[{{type.catalog__ids}}] {{type.catalog__manufacturer}} - {{type.catalog__name}}
+	[{{type.catalog.ids}} {% if type.catalog.dealer_code %} / {{type.catalog.dealer_code}} {% endif %}] {{type.catalog.manufacturer}} - {{type.catalog.name}}
 	</td>
 	<td align="center">       
-	<a href="/client/invoice/catalog/{{type.catalog__id}}/add">{{type.count}} </a>
+	<a href="/client/invoice/catalog/{{type.catalog.id}}/add">{{type.count}} </a>
 	</td>
-	<td align="center"><abbr title="{{type.user__username}}"> {{type.rcount}}  </abbr></td>
+	<td align="center"><abbr title="{{type.user.username}}"> {{type.rcount}}  </abbr></td>
 	<td>       
-	{{type.catalog__price}}
+	{{type.catalog.price}}
 	</td>
 	<td>       
-	{{type.catalog__currency__name}}
+	{{type.catalog.currency.name}}
 	</td>
 	<td align="center">       
-	{{type.catalog__price|mul:type.count}}
+	{{type.catalog.price|mul:type.count}}
 	</td>
 {% if perms.accounting.add_preorder %}
 	<td align="center">       
-	{{type.price}} ({{type.currency__ids_char}})
+	{{type.price}} ({{type.currency.ids_char}}) [{{type.get_uaprice}}]
+	<br>{{type.ci_sum}}
 	</td>
 {% endif %}
 	<td> 
 	{{type.date}}
 	</td>
 	<td>
-	{{type.description}}
+	{{type.description}} 
 	</td>
 	<td>
     <a href="/invoice/delete/{{type.id}}">delete</a>
@@ -123,29 +131,29 @@
     {{type.id}}
 	</td>
  	<td>
-	{{type.invoice__origin_id}} - {{type.invoice__company__name}} - {{type.invoice__manager__name}}        
+	{{type.invoice.origin_id}} - {{type.invoice.company.name}} - {{type.invoice.manager.name}}        
 	</td>	
 	<td>       
-	[{{type.catalog__ids}}] {{type.catalog__manufacturer}} - {{type.catalog__name}}
+	[{{type.catalog.ids}} {% if type.catalog.dealer_code %} / {{type.catalog.dealer_code}} {% endif %}] {{type.catalog.manufacturer}} - {{type.catalog.name}}
 	</td>
 	<td align="center">       
 	<a href="/client/invoice/catalog/{{type.catalog.id}}/add">{{type.count}} </a>
 	</td>
-	<td align="center"><abbr title="{{type.user__username}}"> {{type.rcount}}  </abbr></td>
+	<td align="center"><abbr title="{{type.user.username}}"> {{type.rcount}}  </abbr></td>
 	<td>       
-	{{type.catalog__price}}
+	{{type.catalog.price}}
 	</td>
 	<td>       
-	{{type.catalog__currency__name}}
+	{{type.catalog.currency.name}}
 	</td>
 	<td align="center">       
-	{{type.catalog__price|mul:type.count}}
+	{{type.catalog.price|mul:type.count}}
 	</td>
 	<td> 
 	{{type.date}}
 	</td>
 	<td>
-	{{type.description}}
+	{{type.description}}{{type.ci_sum_list}}
 	</td>
 </tr>
 {% endfor %}         
@@ -159,7 +167,9 @@
     	<th></th>
     	<th></th>
     	<th>{{allpricesum}} грн.</th>
-
+{% if perms.accounting.add_preorder %}
+    	<th>{{alloptsum}}</th>
+{% endif %}
     	<th></th>    	
     	<th></th>
     </tr>
@@ -167,7 +177,7 @@
 
 {% endif %}
 
-{% load poll_extras %}    
+
 {% orm_debug %}
 
 </body>

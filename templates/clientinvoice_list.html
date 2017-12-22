@@ -334,6 +334,7 @@ $( "#client_name" ).autocomplete({
 	})
 */	
 	$(".menu").hide();
+	$(".profit").hide();
 
 $("#itable").click(function(){
 	$('.context-menu').remove();
@@ -346,7 +347,6 @@ $("#sp_cash").click(function(){
 $("#sp_count").on( "spinchange", function( event, ui ) {
 	calc_sum();
 });
-
 
 $(".operation").click(function(event) {
 // Убираем css класс selected-html-element у абсолютно всех элементов на странице с помощью селектора "*":         
@@ -403,6 +403,11 @@ $('<ul/>').append('<li><a href="/client/invoice/'+ iid +'/delete/" onclick="retu
 // Показываем меню с небольшим стандартным эффектом jQuery. Как раз очень хорошо подходит для меню   
 //}
      });
+
+$("#show_profit").click(function(){
+	$(".profit").toggle();
+});
+
 
 });
 
@@ -490,7 +495,8 @@ function calc_sum() {
     	<th>Клієнт</th>
     	<th>Назва компонента</th>
     	<th>Кількість</th>
-    	<th>Ціна</th>
+    	<th id="show_profit">Ціна</th>
+    	<th class="profit">Profit</th>
     	<th>Сума</th>
     	<th>Валюта</th>
     	<th>Знижка, %</th>    	
@@ -535,9 +541,14 @@ function calc_sum() {
 	</td>
 	<td class="tprice">       
 	{{type.price}}
-	</td>	
+	</td>
+	<td class="profit">
+	{% if perms.accounting.add_preorder %} 
+	({{type.get_profit.0}} / {{type.get_profit.1}})
+    {% endif %}
+	</td>
 	<td class="tsum">       
-	{{type.sum}} ({{type.get_profit.0}} / {{type.get_profit.1}})
+	{{type.sum}}     
 	</td>
 	<td>       
 	{{type.currency.name}}
@@ -596,7 +607,8 @@ function calc_sum() {
     	<th>Загальна кількість проданих товарів:</th>
     	<th>{{countall}}</th>
     	<th></th>
-    	<th>{{sumall}} ({{sum_profit}})</th>
+    	<th class="profit">{% if perms.accounting.add_preorder %} ({{sum_profit}}) {% endif %}</th>
+    	<th>{{sumall}} 	</th>
     	<th>грн.</th>
     	<th></th>    	
     	<th></th>    	    	
