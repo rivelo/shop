@@ -91,6 +91,34 @@ $(".w_desc").each(function() {
      });
 });
  
+$('.phone').editable('/workticket/edit/', { 
+    loadurl : '/phonestatus/view/',
+    type   : 'select',
+    submit : 'OK',
+    submitdata : function() {
+     	 	return {id_wp : $(this).attr('id_workticket')};
+    },
+    callback : function(value, settings) {
+{% comment %}
+    	switch(value) {
+		case 'Прийнято':
+        $(this).closest("tr").attr('class', 'w_true');
+        break;
+		case 'Ремонтується':
+        $(this).closest("tr").attr('class', 'w_working');
+		 break;
+		case 'Виконано':
+        $(this).closest("tr").attr('class', 'w_done_done');
+		 break;
+		case 'Виконано невидано':
+        $(this).closest("tr").attr('class', 'w_done');
+		 break;
+		default :
+        $(this).closest("tr").attr('class', 'w_true');
+      }
+{% endcomment %}    	
+    }
+}); 
  
 });
 
@@ -132,6 +160,7 @@ $(".w_desc").each(function() {
     	<th>Дата створення</th>
     	<th>Дата завершення</th>
     	<th>Статус</th>
+    	<th>Повідомлення</th>
     	<th>Опис</th>
     	<th>Дія</th>
     </tr>
@@ -169,11 +198,12 @@ $(".w_desc").each(function() {
 	{{type.end_date|date}}
 	</td>	
 	<td>
-
 	<span class="editable" id="{{type.status.id}}" style="display: inline" id_workticket="{{type.id}}" >       
 	{{type.status}}
 	</span>
-	
+	</td>
+	<td class="phone" id_workticket="{{type.id}}">       
+	{{type.phone_status}}
 	</td>
 	<td class="w_desc" id_workticket="{{type.id}}">       
 	{{type.description}}

@@ -338,6 +338,7 @@ urlpatterns += patterns('',
     url(r'^worktype/delete/(?P<id>\d+)$', 'catalog.accounting.views.worktype_delete'),
     url(r'^worktype/price/$', 'catalog.accounting.views.worktype_ajax'),    
 
+    url(r'^phonestatus/view/$', 'catalog.accounting.views.phonestatus_list'),
     url(r'^workstatus/add/$', 'catalog.accounting.views.workstatus_add'),
     url(r'^workstatus/view/$', 'catalog.accounting.views.workstatus_list'),
     url(r'^workstatus/edit/(?P<id>\d+)$', 'catalog.accounting.views.workstatus_edit'),

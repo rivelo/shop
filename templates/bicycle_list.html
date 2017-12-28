@@ -127,7 +127,7 @@ $("#dialog_photo_add").dialog({
 		<td>{{type.brand}}</td>
 		<td>{{type.year.year}}</td>
 		<td>{{type.color}}</td>
-		<td>{{type.sizes}}</td>
+		<td>{% for size in type.sizes.all %} {{size}},  {% endfor %}</td>
 		<td align="center"><a href="{{type.offsite_url}}">Лінк</a></td>
 		<td class="addphoto" ids={{type.id}}>{{type.photo}}<br> 
 		{% for photo in type.photo_url.all %}

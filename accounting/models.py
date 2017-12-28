@@ -8,12 +8,31 @@ from django.db.models import Count, Sum
 from django.db.models.aggregates import Avg
 
 
+# Group Type = Group for Component category 
+class GroupType(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=255)
+    name_ukr = models.CharField(max_length=100, blank=True, null=True)
+    description_ukr = models.CharField(max_length=255, blank=True, null=True)
+#   icon = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
+    
+    def __unicode__(self):
+        return u'%s / %s' % (self.name, self.name_ukr)
+        #return u'%s - %s' % (self.name, self.name_ukr) 
+
+    class Meta:
+        ordering = ["name"]    
+
+
 # Type = Component category 
 class Type(models.Model):
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=255)
     name_ukr = models.CharField(max_length=100, blank=True, null=True)
     description_ukr = models.CharField(max_length=255, blank=True, null=True)
+    bike_order = models.PositiveSmallIntegerField(blank=True, default = 0)
+    group = models.ForeignKey(GroupType, blank=True, null=True)
+#   icon = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
     
     def __unicode__(self):
         return u'%s / %s' % (self.name, self.name_ukr)
@@ -161,8 +180,12 @@ class Catalog(models.Model):
     description = models.CharField(max_length=255)
     locality = models.CharField("locality", blank=True, null=True, max_length=50)
     show = models.BooleanField(default=False, verbose_name="Статус відображення")
+#    models.ManyToManyField() # field like sizechart, field to shoes
+#    bike_style = models.ManyToManyField()  cyclocross, crosscountry, road, gravel ...
+#    season = winter, summer, ...
 #    full_description = models.TextField(blank=True, null=True)
 #    youtube_link
+#    наявність у постачальника
 
     def get_saleprice(self):
         percent_sale = (100-self.sale)*0.01
@@ -334,6 +357,7 @@ class InvoiceComponentList(models.Model):
             dn = datetime.datetime.now()
         else:
             dn = sdate
+            #dn = datetime.datetime.now()
         month = dn.month
         year = dn.year
         cur_exchange = Exchange.objects.filter(currency__ids_char = self.currency.ids_char, date__month = month, date__year = year).aggregate(average_val = Avg('value'))['average_val']
@@ -448,10 +472,12 @@ class ClientInvoice(models.Model):
         cc = self.catalog.invoicecomponentlist_set.filter(price__gt = 0) #.aggregate(isum = Sum('price'), )
         if not cc:
             return (0, 0)
-        ic_count = cc.count() #aggregate(icount = Count('price'))['icount']
+        #ic_count = cc.count() #aggregate(icount = Count('price'))['icount']
+        ic_count = 0
         sum = 0
         for item in cc:
-            sum = sum + item.get_uaprice(self.date)
+            sum = sum + item.get_uaprice(self.date) * item.count
+            ic_count = ic_count + item.count
         if ic_count != 0:
             ua = sum / ic_count
 #        cur_exchange = Exchange.objects.filter(currency__ids_char = self.currency.ids_char, date__month = month, date__year = year).aggregate(average_val = Avg('value'))['average_val']
@@ -556,6 +582,20 @@ class Wheel_Size(models.Model):
         ordering = ["type"]    
 
 
+#Bicycle parts table
+class Bicycle_Parts(models.Model):
+    name = models.CharField(max_length=255)
+    catalog = models.ForeignKey(Catalog, blank=True)
+    type = models.ForeignKey(Type) #kids, 26, 29 ...
+    description = models.TextField(blank=True, null=True)
+
+    def __unicode__(self):
+        return u'%s [%s]' % (self.name, self.catalog)
+
+    class Meta:
+        ordering = ["type"]    
+
+
 # Bicycle table (Bicycle)
 class Bicycle(models.Model):
     model = models.CharField(max_length=255)
@@ -564,7 +604,8 @@ class Bicycle(models.Model):
     year = models.DateField(blank = True, null=True)
     color = models.CharField(max_length=255)
     wheel_size = models.ForeignKey(Wheel_Size, blank=True, null=True) #20, 24, 26, 27.5, 29, 29+
-    sizes = models.CommaSeparatedIntegerField(max_length=10)
+#    sizes = models.CommaSeparatedIntegerField(max_length=10)
+    sizes = models.ManyToManyField(FrameSize, blank=True)
     photo = models.ImageField(upload_to = 'upload/bicycle/', max_length=255, blank=True, null=True)
     photo_url = models.ManyToManyField(Photo, blank=True)
     offsite_url = models.URLField(blank=True, null=True)
@@ -578,7 +619,7 @@ class Bicycle(models.Model):
     geometry = models.ImageField(upload_to = 'upload/bicycle/geometry/', max_length=255, blank=True, null=True)
     internet = models.BooleanField(default=False,)
     youtube_url = models.ManyToManyField(YouTube, blank=True)
-#    bikeparts = ManyToManyField( name, catalog, part_type, order_num,  )
+    bikeparts = models.ManyToManyField(Bicycle_Parts, blank=True)# name, catalog, part_type, order_num,  )
     rating = models.IntegerField(default = 0)
     country_made = models.ForeignKey(Country, null=True) 
 

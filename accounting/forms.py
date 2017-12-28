@@ -121,7 +121,7 @@ class BicycleForm(forms.ModelForm):
     year = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))    
     color = forms.CharField(max_length=255)
     wheel_size = forms.ModelChoiceField(queryset = Wheel_Size.objects.all())
-    sizes = forms.CharField(required=False)
+#    sizes = forms.CharField(required=False)
     photo = forms.ImageField(required=False)
     weight = forms.FloatField(min_value=0, initial=0)
     price = forms.FloatField(initial=0)
@@ -132,7 +132,6 @@ class BicycleForm(forms.ModelForm):
     warranty = forms.IntegerField(min_value=0, initial=1)
     geometry = forms.ImageField(required=False)
     internet = forms.BooleanField(required=False)
-    #youtube_url = 
     rating = forms.IntegerField(min_value=0, initial=0)
     description = forms.CharField(label='Description', widget=forms.Textarea(attrs={'size': '180'}), required=False)
 
