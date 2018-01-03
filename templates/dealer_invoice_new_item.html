@@ -199,7 +199,7 @@ $(document).on("click", ".addprice", function(event) {
 {% endif %}
 
 <td class="addprice" ids="{{x.catalog.id}}">{{forloop.counter}}</td>
-<td>{{x.catalog}}</td>
+<td>{{x.catalog}} {% if x.catalog.dealer_code %} [{{x.catalog.dealer_code}}] {% endif %}</td>
 <td id="count{{x.id}}" align="center">{{x.count}} шт.</td>
 <td>{{x.invoice.origin_id}}</td>
 <td class="recived" align="center">

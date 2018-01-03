@@ -49,7 +49,11 @@
     <a href="/invoice/edit/{{type.id}}">{{type.id}}</a>
 	</td>
  	<td>
-	{{type.invoice.origin_id}} - {{type.invoice.company.name}} - {{type.invoice.manager.name}} [{{type.invoice.price}} {{type.invoice.currency.ids_char}}]        
+{% if request.user|has_group:"admin" %} 	
+	<a href="{% url 'dealer_invoice_edit' type.invoice.id %}" > {{type.invoice.origin_id}} - {{type.invoice.company.name}} - {{type.invoice.manager.name}} [{{type.invoice.price}} {{type.invoice.currency.ids_char}}] </a>
+{% else %}
+	{{type.invoice.origin_id}} - {{type.invoice.company.name}} - {{type.invoice.manager.name}} [{{type.invoice.price}} {{type.invoice.currency.ids_char}}]
+{% endif %}	        
 	</td>	
 	<td>       
 	[{{type.catalog.ids}} {% if type.catalog.dealer_code %} / {{type.catalog.dealer_code}} {% endif %}] {{type.catalog.manufacturer}} - {{type.catalog.name}}

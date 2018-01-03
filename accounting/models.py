@@ -623,6 +623,20 @@ class Bicycle(models.Model):
     rating = models.IntegerField(default = 0)
     country_made = models.ForeignKey(Country, null=True) 
 
+    def youtube_val(self):
+        res = []
+        #qs = self.youtube_url.all()
+        qs = self.youtube_url.all()
+        try:
+            qs = self.youtube_url.all()
+#            q = qs.all()
+            for i in qs:
+               res.append(i.url.split('/')[3])
+            return res 
+            return qs #self.youtube_url.split('/') #[3]
+        except:
+            return 'test None'
+
     def __unicode__(self):
         #return u'Велосипед %s. Ціна %s грн.' % (self.model, self.brand)
         return u'Велосипед %s. Модель %s. %s (%s)' % (self.brand, self.model, self.year.year, self.color)

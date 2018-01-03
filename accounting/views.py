@@ -4288,7 +4288,7 @@ def shopdailysales_list(request, month=None, year=None):
         return HttpResponse('Error: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
     now = datetime.datetime.now()
     if month == None:
-        month = now.month
+        month = 12#now.month
     if year == None:
         year = now.year
     list = ShopDailySales.objects.filter(date__year=year, date__month=month)
@@ -6110,7 +6110,8 @@ def inventory_mistake(request, year=None, month=None, day=None):
 #list where count != real_count and check_all=True group by catalog_id;
 
     #im = InventoryList.objects.filter(check_all = True).annotate(dcount=Max('date')).order_by('date')
-    im = InventoryList.objects.filter(check_all = True).annotate(mdate=Max('date', distinct=True)).order_by('catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')
+    year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+    im = InventoryList.objects.filter(check_all = True, date__gt = year_ago).annotate(mdate=Max('date', distinct=True)).order_by('catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')
     #list = im.filter(Q(real_count__lt = F('count')) | Q(real_count__gt = F('count')))#.values('id', 'catalog', )
     list = im.exclude(real_count = F('count'))
      
