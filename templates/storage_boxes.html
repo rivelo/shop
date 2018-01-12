@@ -64,7 +64,7 @@ $(".ren_boxname").click(function() {
 <h1>Список ящиків</h1>
 {% for box in boxes %}
 <li>
-<a href=/storage/box/{{box.locality}}/view/> {{box.locality}}</a>  - кількість найменувань ({{box.icount}}) 
+<a href="/storage/box/{{box.locality}}/view/"> {{box.locality}}</a>  - кількість найменувань ({{box.icount}}) 
 <span class="ren_boxname" name="{{box.locality}}">Перейменувати</span>
 </li>
 {% endfor %}

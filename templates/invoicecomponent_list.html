@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="/media/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="/media/css/dataTables.jqueryui.css">
 <link rel="stylesheet" href="/media/css/select.dataTables.min.css">
+<link rel="stylesheet" href="/media/css/tooltip.css">
  
 <script type="text/javascript" src="/media/jquery-ui.min.js"></script>
 <script type="text/javascript" language="javascript" src="/media/jquery.dataTables.min.js"></script>
@@ -1511,6 +1512,7 @@ console.log("ids[]= ", ids );
 {% endifequal %}
 {% endifequal %}
 
+
 	<td>
 	<p href="/shop/price/print/{{type.catalog}}/add" class="addprice" ids="{{type.catalog}}"> {{forloop.counter}}</p>
 	</td>
@@ -1530,7 +1532,13 @@ console.log("ids[]= ", ids );
 	<td>
 	<a href="/invoice/manufacture/{{type.manufacturer__id}}/view/">{{type.manufacturer__name}}</a>
 	</td>
+{% if type.catalog__last_update|date_left < 30  %}
+	<td align="center" id="td_{{type.catalog}}" bgcolor="#efc9e7">
+{% else %}
 	<td align="center" id="td_{{type.catalog}}">
+{% endif %}	
+	
+
 {% if type.photo_url != None %}
 	<img class="c_photo" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/photo_ico_true.png" width="24" height="24">
 {% else %}
@@ -1550,7 +1558,11 @@ console.log("ids[]= ", ids );
 	{{type.c_sale|floatformat }}
 	</a>
 	</td>
+{% if type.new_arrival %}	
+	<td align="center" bgcolor="#c8c2f9">
+{% else %}
 	<td align="center">
+{% endif %}	
 {% ifequal type.sum_catalog type.c_sale %}
 	{{type.sum_catalog|sub:type.c_sale|floatformat}} 
 {% else %}
@@ -1560,8 +1572,14 @@ console.log("ids[]= ", ids );
 {% comment %}
 		 {{type.catalog__count}} 
 {% endcomment %} 
-
-		{{type.balance|floatformat }}
+		
+{% if type.new_arrival %}
+	<div class="tooltip">{{type.balance|floatformat}}
+  	<span class="tooltiptext">{{type.new_arrival}}</span>
+	</div>
+{% else %}
+	{{type.balance|floatformat }}	
+{% endif %}		
 		</a>
 		</abbr>
 {% comment %}		
@@ -1573,6 +1591,7 @@ console.log("ids[]= ", ids );
 {% ifequal type.catalog__sale 0 %}
 <td align="center" class="price_edit" id_price={{type.catalog}}>
 {{type.catalog__price}} грн.
+
 </td>
 {% else %}
 <td align="center" BGCOLOR="#FF6600" class="price_edit" id_price={{type.catalog}}>
@@ -1583,18 +1602,23 @@ console.log("ids[]= ", ids );
 </td>
 {% endifequal %}
 	
-	
-
-	
 	<td align="center" class="sale_edit">
 	{{type.catalog__sale}}
 	</td>
-	
-	
-	<td align="center">    
+
+{% if type.invoice_price.2 <= 10 %}	
+	<td align="center" bgcolor="#f70421" style="color:white;">
+{% else %}
+	<td align="center">
+{% endif %}	    
+
 {% comment %}
 	{{type.catalog__price|mul:type.balance}}
-{% endcomment %}	
+{% endcomment %}
+
+{% if request.user|has_group:"admin" %}	
+	{{type.invoice_price.0}} <br> {{type.invoice_price.1}} грн. ({{type.invoice_price.2}}%)
+{% endif %}	
 	</td>
 
 	

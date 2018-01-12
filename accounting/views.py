@@ -1850,6 +1850,8 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
             if element['catalog']==sale['catalog']:
                 element['c_sale']=sale['sum_catalog']
                 element['balance']=element['sum_catalog'] - element['c_sale']
+                element['new_arrival'] = Catalog.objects.get(pk = element['catalog']).new_arrival()
+                element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
         for cat in cat_list:
             if element['catalog']==cat['id']:
                 element['manufacturer__id']=cat['manufacturer__id']
@@ -1861,7 +1863,8 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
                 element['photo_url']=cat['photo_url']
                 element['last_update']=cat['last_update']
                 element['user_update']=cat['user_update__username']
-
+                element['new_arrival'] = Catalog.objects.get(pk = element['catalog']).new_arrival()
+                element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
         if element['balance']!=0:
             new_list.append(element)
             zsum = zsum + (element['balance'] * element['catalog__price'])
@@ -4283,19 +4286,21 @@ def shopdailysales_edit(request, id):
     return render_to_response('index.html', {'form': form, 'weblink': 'shop_daily_sales.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def shopdailysales_list(request, month=None, year=None):
+def shopdailysales_list(request, month=None, year=None):    
     if auth_group(request.user, 'seller')==False:
         return HttpResponse('Error: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
     now = datetime.datetime.now()
     if month == None:
-        month = 12#now.month
+        month = now.month
     if year == None:
         year = now.year
     list = ShopDailySales.objects.filter(date__year=year, date__month=month)
+    total_sum = list.aggregate(total_cash=Sum('cash'), total_tcash=Sum('tcash'), total_price=Sum('price'), total_ocash=Sum('ocash'))
     sum = 0 
-    for item in list:
-        sum = sum + item.price
-    return render_to_response('index.html', {'shopsales': list, 'summ':sum, 'weblink': 'shop_sales_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+#    for item in list:
+#        sum = sum + item.price
+#'summ':sum,
+    return render_to_response('index.html', {'shopsales': list, 'total_sum': total_sum, 'weblink': 'shop_sales_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def shopdailysales_delete(request, id):
@@ -6031,7 +6036,7 @@ def storage_box_list(request, boxname=None, pprint=False):
     else:
         list = Catalog.objects.exclude(locality__isnull=True).exclude(locality__exact='').order_by('locality')
     if pprint:
-        return render_to_response('storage_box.html', {'boxes': list, 'pprint': True})
+        return render_to_response('storage_box.html', {'boxes': list, 'pprint': True}, context_instance=RequestContext(request, processors=[custom_proc]))
 
     return render_to_response("index.html", {"weblink": 'storage_box.html', "boxes": list, 'pprint': False}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -6085,36 +6090,24 @@ def inventory_list(request, year=None, month=None, day=None):
 
 
 def inventory_mistake(request, year=None, month=None, day=None):
-#    if (year != None and month != None and day != None):
-#===============================================================================
-#    if (year == None) and (month == None) and (day == None):
-#        day = datetime.datetime.now().day
-#        month = datetime.datetime.now().month
-#        year = datetime.datetime.now().year
-#    else:
-#        day = day
-#        month = month
-#        year = year
-#===============================================================================
-
-#******** RAW SQL *******
-#mysql> select t.catalog_id, t.count, t.date from ( select catalog, MAX(date) as
-#mdate from accounting_inventorylist group by catalog) r inner join accounting_in
-#ventorylist t on t.catalog = r.catalog and t.date=r.mdate;
-
-#mysql> select count(t.catalog_id) from ( select catalog_id, MAX(date) as mdate f
-#rom accounting_inventorylist group by catalog_id) r inner join accounting_invent
-#orylist t on t.catalog_id = r.catalog_id and t.date=r.mdate where t.check_all =
-
-#mysql> select catalog_id, count, real_count, Max(date) from accounting_inventory
-#list where count != real_count and check_all=True group by catalog_id;
-
     #im = InventoryList.objects.filter(check_all = True).annotate(dcount=Max('date')).order_by('date')
     year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-    im = InventoryList.objects.filter(check_all = True, date__gt = year_ago).annotate(mdate=Max('date', distinct=True)).order_by('catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')
+    #im = InventoryList.objects.filter(check_all = True, date__gt = year_ago).annotate(mdate=Max('date', distinct=True)).order_by('catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')
+    im = InventoryList.objects.filter(Q(date__gt = year_ago), ( (Q(real_count = F('count')) & Q(check_all = False)) | (Q(real_count__gt = F('count')) & Q(check_all = True)) | (Q(real_count__lt = F('count')) & Q(check_all = True)) )).annotate(mdate=Max('date', distinct=True)).order_by('-check_all', 'catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')    
     #list = im.filter(Q(real_count__lt = F('count')) | Q(real_count__gt = F('count')))#.values('id', 'catalog', )
-    list = im.exclude(real_count = F('count'))
-     
+    #list = im.exclude( Q(real_count = F('count')) & Q(check_all = True) ) 
+    #list = im.exclude( check_all = True, real_count__gt = F('count'), real_count__lt = F('count'))
+    list = im 
+    #list = InventoryList.objects.filter(check_all = True, real_count__lt = F('count'))
+    return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def inventory_mistake_not_all(request, year=None, month=None, day=None):
+    year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+    exc_list =  InventoryList.objects.filter( Q(date__gt = year_ago), (Q(real_count = F('count')) & Q(check_all = True)) )
+    im = InventoryList.objects.filter(Q(date__gt = year_ago), ( (Q(real_count__gt = F('count')) & Q(check_all = False)) | (Q(real_count__lt = F('count')) & Q(check_all = False)) )).annotate(mdate=Max('date', distinct=True)).order_by('-check_all', 'catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date', 'catalog__id')    
+    list = im.exclude(catalog__id__in=[term.catalog.id for term in exc_list])
+    #list = im 
     #list = InventoryList.objects.filter(check_all = True, real_count__lt = F('count'))
     return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -6224,8 +6217,9 @@ def inventory_set(request):
                 i_list = InventoryList.objects.get(id = id)
                 i_list.check_all = not(i_list.check_all)
                 i_list.edit_date = datetime.datetime.now()
-                if request.user != i_list.user:
-                    return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain")
+                if request.user != i_list.user :
+                    if auth_group(request.user, 'admin')==False:
+                        return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain")
                 i_list.save()
                 result = ''
                 if i_list.check_all: 

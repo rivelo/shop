@@ -66,6 +66,18 @@ def phone2Str(value):
         return ''  
 
 
+import json
+import requests
+
+def google_url_shorten(url):
+    GOOGLE_URL_SHORTEN_API = "AIzaSyAmFLlPmG7SKuwdCEG2s2TLmwGsgStGbZw"
+    req_url = 'https://www.googleapis.com/urlshortener/v1/url?key=' + GOOGLE_URL_SHORTEN_API
+    payload = {'longUrl': url}
+    headers = {'content-type': 'application/json'}
+    r = requests.post(req_url, data=json.dumps(payload), headers=headers)
+    resp = json.loads(r.text)
+    return resp['id']
+
 @register.filter
 def qr(value,size="120x120"):
     """
@@ -84,8 +96,10 @@ def sale_url(value,host):
         {{object.code|sale_url}}"
     """
 #    host="192.168.0.102:8001"
-    host="rivelo.com.ua/price"
-    return "%s/%s/" % (host, value)
+    host="rivelo.com.ua/component"
+    #return "%s/%s/" % (host, value)
+    str_url = "%s/%s/" % (host, value)
+    return google_url_shorten(str_url)
 
 
 @register.filter

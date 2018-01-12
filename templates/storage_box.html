@@ -8,7 +8,22 @@
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 
 
+<style>
+
+  .tr_true{
+  	clear: both;
+	background: #CCCC99 !important;
+  }
+  .tr_false{
+  	clear: both;
+	background: #FFFFFF !important;
+  }
+  
+</style>
+
 <script type="text/javascript">
+
+{% load poll_extras %}
 
 $(document).ready(function() {
 
@@ -53,7 +68,141 @@ $(document).ready(function() {
      });
      });
  
- 
+
+     $("#dialog_inventory").dialog({
+    		closeOnEscape: true, 
+    		autoOpen: false,
+    	      resizable: false,
+    	      modal: true,
+    	      width: 540,
+    	      maxWidth: 540,
+    	      //position: "center",
+    	      buttons: {
+    	        "Додати": function() {
+//    	        	on_off_button(true);
+    	        	$("#dialog_inventory").dialog('widget').find("button:contains('Додати')").button("option", "disabled", true);
+    				$.ajax({
+    	                type: "POST",
+    	                url: "/inventory/add/",
+    	                data: {id:  $("#dialog_inventory").attr("ids"), count: $('#inv_spinner').val(), desc: $('#inv_desc').val(), status: document.getElementById("chk_all").checked },
+//    	                dataType: "text",
+    	                dataType: "json",
+    	                success:function(value){
+
+    	                var st = JSON.stringify(value);
+    					var p = jQuery.parseJSON(st);
+    	                
+    	                if (p.status == "error") {
+    	                	// alert("Введіть текст опису");
+    	                	alert(p.message);
+//    	                	on_off_button(false);
+    	                	$("#dialog_inventory").dialog('widget').find("button:contains('Додати')").button("option", "disabled", false);
+    						}
+    					else {
+    					
+    						var fcol = '<abbr title="' + p.user__username + '">' + p.date + '</abbr>';
+    						var cdesc = p.description;
+    						var tr_cls = "";
+    						if (p.check_all) {
+    							tr_cls = '<table><tr class="tr_true">';
+    						}
+    						else {
+    							tr_cls = '<table><tr class="tr_false">';
+    						}
+    						var count = '<td style="background-color:#c0c5ce"><abbr title="' + p.edit_date + '">' + p.count + 'шт.</abbr>';
+    	                	$('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ p.check_all +'</td><td>' + p.real_count +' шт.</td></tr></table>');				
+    					
+    						$( ".container" ).append( "<p>Підрахунок додано!</p>" );
+    						console.log("Status: " + p.status);
+//    						on_off_button(true);
+    						$("#dialog_inventory").dialog('widget').find("button:contains('Додати')").button("option", "disabled", false);				
+    						
+    					}
+    	                },
+    	                error:function(){
+    	                    alert("При відправці виникли проблеми");
+//    	                    on_off_button(false);
+    	                    $("#dialog_inventory").dialog('widget').find("button:contains('Додати')").button("option", "disabled", false);
+    	                    
+    	                }
+    	            });        
+    	        },
+    	        "Відмінити": function() {
+    	          $( this ).dialog( "close" );
+    	        }
+    	      }
+    	});     
+     
+
+     $(document).on("click", ".inv_td", function(event) {
+ 	   	var t = $(this).attr('cap')
+     	$("#dialog_inventory").dialog({title:  t});
+     	$("#dialog_inventory").attr({'ids': $(this).parents('tr').attr('id')});
+     	$("#inv_spinner").spinner();
+     	$("#inv_spinner").val(1);
+     	$("#inv_spinner").focus();
+     	$("#inv_desc").val("");
+     	document.getElementById("chk_all").checked = false;
+     	$('.container').empty()
+//     	on_off_button(false);
+ 		$("#dialog_inventory").dialog("open");
+ 		
+ 		var Id = $(this).parents('tr').attr('id');
+             $.ajax({
+                 type: "POST",
+                 url: "/inventory/get/",
+                 data: { catalog_id: Id },
+                 dataType: "json",
+                 success:function(msg){
+                 	$.each(msg,function(index,item){
+ 						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
+ 						var cdesc = item['description'];
+ 						var tr_cls = "";
+ 						if (item['check_all']) {
+ 							tr_cls = '<table><tr class="tr_true">';
+ 						}
+ 						else {
+ 							tr_cls = '<table><tr class="tr_false">';
+ 						}
+ 						var count = '<td style="background-color:#c0c5ce"><abbr title="' + item['edit_date'] + '">' + item['count'] + 'шт.</abbr>';
+ 	{% if request.user|has_group:"admin" %}						
+                 	    $('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ item['check_all'] +'</td><td>'+item['real_count']+' шт.</td><td><span class="inv_del" inv_id="'+item['id']+'" style="cursor: pointer;">Видалити</span></td></tr></table>');
+ 	{% else %}                	    
+                 	    $('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ item['check_all'] +'</td><td>'+item['real_count']+' шт.</td></tr></table>');
+     {% endif %}
+                     });
+
+                 },
+                 error:function(msg){
+                     alert(msg.responseText);
+                 }
+             });      
+ 		
+ 			
+ 	});
+     
+     $(document).on("click", ".inv_del", function(event) {
+    	 if (confirm("Ви дійсно бажаєте видалити запис?")) {
+    	 	console.log($(this).parents("tr"));
+    	 	var tr_del = $(this).parents("tr");
+    		
+    			$.ajax({
+    	                type: "POST",
+    	                url: "/inventory/delete/",
+    	                data: {id:  $(this).attr("inv_id") },
+    	                dataType: "text",
+    	                success:function(data){
+    	                	console.log("ajax work");
+    	                	tr_del.remove();
+    	                	console.log($(this).parents("tr"));
+    	                },
+    	                error:function(data){
+    	                    alert("Виникли проблеми з сервером" + data);
+    	                }
+    	            });	
+    	 }
+    	 });     
+     
 });
 
 </script>
@@ -79,13 +228,35 @@ $(document).ready(function() {
 
 {% else %}
 
+<!-- Dialog to view inventory -->
+	<div id="dialog_inventory" title="Inventory">
+	<label for="inv_spinner">Кількість:</label>
+  	<input id="inv_spinner" name="value" value="1">
+  	<label for="inv_chkbox">Загальна кількість?:</label>
+  	<input type="checkbox" name="chk_all" id="chk_all" value="" ids="" >
+  	<label>User: <b> {{user|upper}} </b></label>
+  	<br>
+  	<label for="photo_url">Опис:</label>
+	<input type="text" name="inv_description" id="inv_desc" value="" ids="" size="55">
+  	<h3>Список перевірок:</h3>
+  	<div class="container">
+	</div>
+	</div>
+
+
   <h1>Список ящиків <a href="/storage/boxes/print/">Версія для друку</a> </h1>
 <table>
 <tr>
-<th>#</th><th>Номер ящика</th><th>Назва товару</th><th>Кількість</th><th>Дія</th>
+<th>#</th>
+<th>Номер ящика</th>
+<th>Назва товару</th>
+<th>Кількість</th>
+<th>Інвентеризація</th>
+<th></th>
+<th>Дія</th>
 </tr>
 {% for element in boxes %}
-<tr>
+<tr id="{{element.id}}">
 <td>
 {{ forloop.counter }}
 </td>
@@ -98,6 +269,36 @@ $(document).ready(function() {
 <td align="center">
 {{element.count}}
 </td>
+
+{% if element.get_cur_invent.0.check_all %}
+<td bgcolor="#b3f442">
+{% else %}
+<td>
+{% endif %}
+{% for invent in element.get_cur_invent %}
+	{# element.get_cur_invent.all.0.check_all #}
+	{% if invent.check_all %}
+<b>	[{{invent.date}}]({{invent.user}}) - {{invent.count}}шт. | ({{invent.real_count}}) </b>
+	{% else %}
+	[{{invent.date}}]({{invent.user}}) - {{invent.count}}шт. | ({{invent.real_count}}) 
+	{% endif %}
+{% endfor %}
+</td>
+ 
+<td>
+{% for inv in element.inventorylist_set.all %}
+{% if inv.check_all %}
+<b> [{{inv.date}}] - {{inv.count}} шт. ({{inv.user}}) Опис: {{inv.description}} //// {{inv.get_last_year_check}} \\\\</b><br> 
+{% else %}
+[{{inv.date}}] - {{inv.count}} шт. ({{inv.user}}) Опис: {{inv.description}} //// {{inv.get_last_year_check}} \\\\<br>
+{% endif %}
+{# element.inventorylist_set.all #}
+{% endfor %}
+</td>
+	<td class="inv_td" align="center" cap="[{{element.ids}}] - ({{element.manufacturer.name}}) {{element.name}}">
+ 	<img  class="inventory" id="link_{{element.pk}}" url="" ids={{element.id}} src="/media/images/Inspection.png" width="50" height="50">
+	</td>
+
 <td>
 <span class="box_del" id_catalog="{{element.id}}" style="cursor: pointer;">Видалити</span>
 </td>
@@ -106,5 +307,6 @@ $(document).ready(function() {
 </table>  
 
 {% endif %}
+<br>
 </body>
 

@@ -4,7 +4,7 @@
 <head>
     <title>Список проданого товару</title>
     <link rel="stylesheet" type="text/css" href="/media/table.css">
-    <link rel="stylesheet" type="text/css" href="/media/css/tooltip.css">
+{#    <link rel="stylesheet" type="text/css" href="/media/css/tooltip.css"> #}
 </head>
 
 {% load poll_extras %}
@@ -38,13 +38,147 @@ width: 150px;
 //float: left;
 }
 
+abbr {
+    position: relative;
+}
+abbr:hover::after {
+    position: relative; // absolute;
+    bottom: 100%;
+    //left: 100%;
+    width: 120px;
+    display: block;
+    padding: 1em;
+    background: yellow;
+    content: attr(title);
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+
+.tooltip .tooltiptext-up,
+.tooltip .tooltiptext-left,
+.tooltip .tooltiptext-right,
+.tooltip .tooltiptext-down,
+.tooltip .tooltiptext 
+{
+    visibility: hidden;
+    width: 100px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 1s;
+    
+}
+
+.tooltip .tooltiptext-left {
+	top: -5px;
+    right: 105%; 
+}
+
+.tooltip .tooltiptext-left::after {
+	content: " ";
+    position: absolute;
+    top: 50%;
+    left: 100%; /* To the right of the tooltip */
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent transparent black;
+
+}
+
+.tooltip .tooltiptext-down {
+	width: 120px;
+    top: 100%;
+    left: 50%; 
+    margin-left: -60px; /* Use half of the width (120/2 = 60), to center the tooltip */
+}
+
+.tooltip .tooltiptext-down::after {
+	content: " ";
+    position: absolute;
+    bottom: 100%;  /* At the top of the tooltip */
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent black transparent;
+}
+
+.tooltip .tooltiptext-right {
+	width: 150px;
+	top: -5px;
+    left: 305%; 
+}
+
+.tooltip .tooltiptext-right::after {
+    content: " ";
+    position: absolute;
+    top: 50%;
+    right: 100%; /* To the left of the tooltip */
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent black transparent transparent;
+}
+
+
+.tooltip .tooltiptext {
+    bottom: 105%;
+    left: 50%;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext{
+    visibility: visible;
+    opacity: 1;
+}
+
+.tooltip:hover .tooltiptext-down {
+    visibility: visible;
+    opacity: 1;
+}
+
+.tooltip:hover .tooltiptext-left {
+    visibility: visible;
+    opacity: 1;
+}
+
+.tooltip:hover .tooltiptext-right{
+    visibility: visible;
+    opacity: 1;
+}
+
 </style>
 
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
 <link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
 
+
+{# <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"> #}
+{# <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> #}
+
 <script src="/media/jquery-ui.min.js"></script>
-<script src="/media/js/touchHover.js"></script>
+{# <script src="/media/js/touchHover.js"></script> #}
 
 <body onLoad="res()">
 
@@ -78,6 +212,8 @@ for(var i = 0; i < All.elements.length; ++i) {
 
 
 $(document).ready( function() {
+
+//    $('.tooltip').tooltip();   	
 	
 $("#dialog_client").dialog({
 	autoOpen: false,
@@ -494,7 +630,8 @@ function calc_sum() {
     <table border="1" id="itable">
 	<tr>
     	<th>#</th>	
-    	<th>ID</th>
+    	<th>ID 
+		</th>
     	<th>Клієнт</th>
     	<th>Назва компонента</th>
     	<th>Кількість</th>
@@ -524,9 +661,14 @@ function calc_sum() {
 {% endifequal %}
 
 	<td>
-	<abbr title="Створено користувачем {{type.user.username}}">
+	<div class="tooltip">{{forloop.counter}}
+  	<span class="tooltiptext-right">Створено користувачем {{type.user.username}}</span>
+	</div>
+<!-- 
+	<abbr title="Створено користувачем {{type.user.username}}" rel="tooltip">
 	{{forloop.counter}}
 	</abbr>
+ -->	
 	</td>
 	<td>       
     <a href="/client/invoice/{{type.id}}/edit">{{type.id}}</a>
@@ -536,7 +678,7 @@ function calc_sum() {
 	{{type.client.name}} ({{type.client.forumname}})       
 	</a>
 	</td>
-	<td class="cat_name">       
+	<td class="cat_name" class="tooltip" title="Ящик номер: {{type.catalog.locality}}">       
 	[{{type.catalog.ids}}] {{type.catalog.name}}
 	</td>
 	<td align="center" class="tcount">       
@@ -557,7 +699,10 @@ function calc_sum() {
 	{{type.currency.name}}
 	</td>
 	<td align="center">       
+	<div class="tooltip"> 
 	{{type.sale}}
+  	<span class="tooltiptext-down">Створено користувачем {{type.user.username}}</span>
+	</div>
 	</td>
 	<td class="tpay">       
 	{{type.pay}}
@@ -595,10 +740,13 @@ function calc_sum() {
 {% endifequal %}
 {% endifequal %}
 	</td>
-	<td align="center">
-	<abbr title="Ящик номер: {{type.catalog.locality}}" style="display: inline;">
-	{{type.catalog.count}} [{{type.catalog.get_invoice_count}}  - {{type.catalog.get_clientinvoice_count}}] ({{type.catalog.count}})
-	</abbr>
+	<td>
+	{# <abbr title="Ящик номер: {{type.catalog.locality}}" style="display: inline;" rel="tooltip"> #}
+	<div class="tooltip">
+	{{type.catalog.count}} [{{type.catalog.get_invoice_count}} - {{type.catalog.get_clientinvoice_count}}] ({{type.catalog.count}})
+  	<span class="tooltiptext-left">Ящик номер: {{type.catalog.locality}}</span>
+	</div>
+	{# </abbr> #}
 	</td>
 </tr>
 {% endfor %}         
@@ -611,10 +759,10 @@ function calc_sum() {
     	<th>{{countall}}</th>
     	<th></th>
     	<th class="profit">{% if perms.accounting.add_preorder %} ({{sum_profit}}) {% endif %}</th>
-    	<th>{{sumall}} 	</th>
+    	<th>{{sumall}}</th>
     	<th>грн.</th>
-    	<th></th>    	
-    	<th></th>    	    	
+    	<th></th>
+    	<th></th>
     	<th></th>
     	<th></th>
     	<th></th>

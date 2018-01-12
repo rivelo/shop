@@ -4,6 +4,7 @@
 
 <link rel="stylesheet" type="text/css" href="/media/table.css">
 
+{% load poll_extras %}
 
     <h1>Денна виручка від продажу товарів <a href="/shop/sale/day/add/">(Додати)</a>
     <br></h1>
@@ -74,15 +75,23 @@
 <tr>
     	<th></th>
     	<th>Сума</th>
-    	<th>{{summ}} грн.</th>
+    	<th>{{total_sum.total_price}} {#summ#} грн.</th>
+    	<th></th>
+    	<th></th>
+    	{% if user|has_group:"admin"%}
+    	<th> {{total_sum.total_cash}} </th>
+    	<th> {{total_sum.total_tcash}} </th>
+    	<th>{{total_sum.total_ocash}} </th>
+    	<th>{{total_sum.total_cash|add:total_sum.total_tcash|add:total_sum.total_ocash|add:total_sum.total_price}}</th>
+    	{% else %}
     	<th></th>
     	<th></th>
     	<th></th>
     	<th></th>
-    	<th></th>
-    	<th></th>
+    	{% endif %}
 </tr> 
 
 </table>
 
+<br>
 

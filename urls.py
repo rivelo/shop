@@ -488,6 +488,7 @@ urlpatterns += patterns('',
 
     url(r'^inventory/list/$', 'catalog.accounting.views.inventory_list'),
     url(r'^inventory/mistake/list/$', 'catalog.accounting.views.inventory_mistake'),
+    url(r'^inventory/mistake/not/all/list/$', 'catalog.accounting.views.inventory_mistake_not_all'),
     url(r'^inventory/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/list/$', 'catalog.accounting.views.inventory_list'),
     url(r'^inventory/add/$', 'catalog.accounting.views.inventory_add'),
     url(r'^inventory/get/$', 'catalog.accounting.views.inventory_get'),

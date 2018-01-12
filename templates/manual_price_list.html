@@ -2,7 +2,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="stylesheet" type="text/css" href="/media/table.css">
 
-<script type="text/javascript" src="/media/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="/media/jquery-1.11.2.min.js"></script>
 <script type="text/javascript" src="/media/jquery.qrcode-0.7.0.min.js"></script>
 
 <script language="JavaScript">
@@ -98,6 +98,7 @@ a {
 	 href="/catalog/edit/{{ type.id }}" style="margin-right:20px">{{price.catalog.name|slice:"100"}}</a>
 </div>
 
+{# <div>{{price.catalog.id|sale_url:"rivelo.com.ua/component"}}</div> #}
 
 
 {% comment %}
@@ -143,11 +144,12 @@ a {
 <b style="font-size: 8pt;">	Ціна </b>
 	</td>
 	<td style="padding-left: 5px; border-bottom: 1px solid black; font-size: 10pt; font-weight: bold;" class="nameTD">       
- {{price.catalog.price}} грн.  
+ {{price.catalog.price}} грн.  test
 	</td>
 </tr>       
 
 <tr>
+<td>{{price.catalog.id|sale_url}}</td>
 </tr>       
 
 <tr>
