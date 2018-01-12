@@ -3,7 +3,7 @@ from django import forms
 from django.forms import ModelForm
 from models import Manufacturer, Country, Type, Bicycle_Type, Bicycle, Currency, FrameSize, Bicycle_Store, Catalog, Size, Bicycle_Sale, Bicycle_Order, Wheel_Size, Storage_Type, Bicycle_Storage, Bicycle_Photo 
 from models import DealerManager, DealerPayment, DealerInvoice, Dealer, Bank, ShopDailySales, PreOrder, InvoiceComponentList, ClientOrder, InventoryList
-from models import Client, ClientDebts, CostType, Costs, ClientCredits, WorkGroup, WorkType, WorkShop, WorkTicket, WorkStatus, Rent, ClientInvoice, CashType, Exchange, Type, ClientMessage, WorkDay
+from models import Client, ClientDebts, CostType, Costs, ClientCredits, WorkGroup, WorkType, WorkShop, WorkTicket, WorkStatus, Rent, ClientInvoice, CashType, Exchange, Type, ClientMessage, WorkDay, PhoneStatus
 
 from django.contrib.auth.models import User
 import datetime
@@ -616,6 +616,7 @@ class WorkTypeForm(forms.ModelForm):
     work_group = forms.ModelChoiceField(queryset = WorkGroup.objects.all())
     price = forms.FloatField()
     description = forms.CharField(label='Description', widget=forms.Textarea())
+   
     class Meta:
         model = WorkType
         fields = '__all__'    
@@ -658,6 +659,15 @@ class WorkTicketForm(forms.ModelForm):
         fields = '__all__'
 
 
+class PhoneStatusForm(forms.ModelForm):
+    name = forms.CharField(max_length=255)
+    description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255)
+
+    class Meta:
+        model = PhoneStatus
+        fields = '__all__'
+    
+
 class ShopDailySalesForm(forms.ModelForm):
     #date = forms.DateTimeField(initial=datetime.date.today)
     date = forms.DateTimeField(initial=datetime.datetime.today, input_formats=['%d.%m.%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d.%m.%Y %H:%M:%S'), label="Дата")
@@ -667,6 +677,7 @@ class ShopDailySalesForm(forms.ModelForm):
     cash = forms.FloatField(label="Готівка в касі")
     tcash = forms.FloatField(label="Термінал")
     ocash = forms.FloatField(label="Видано з каси")
+    
     class Meta:
         model = ShopDailySales
         fields = '__all__'
@@ -715,6 +726,7 @@ class WorkDayForm(forms.ModelForm):
     date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), label='Дата')
     status = forms.IntegerField(min_value=0, initial = 0, label='Статус')
     description = forms.CharField(widget=forms.Textarea(), required=False, label='Опис')
+    
     class Meta:
         model = WorkDay
         fields = '__all__'

@@ -16,7 +16,7 @@ from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerIn
 from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm
 
 from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus
-from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm
+from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm
   
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.core.exceptions import ObjectDoesNotExist
@@ -3862,6 +3862,7 @@ def worktype_delete(request, id):
 
 
 def workstatus_add(request):
+    text = 'Створити новий статус роботи'
     if request.method == 'POST':
         form = WorkStatusForm(request.POST)
         if form.is_valid():
@@ -3871,10 +3872,11 @@ def workstatus_add(request):
             return HttpResponseRedirect('/workstatus/view/')
     else:
         form = WorkStatusForm()
-    return render_to_response('index.html', {'form': form, 'weblink': 'workstatus.html'})
+    return render_to_response('index.html', {'form': form, 'text': text, 'weblink': 'workstatus.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workstatus_edit(request, id):
+    text = 'Редагувати статус виконання роботи'
     a = WorkStatus.objects.get(pk=id)
     if request.method == 'POST':
         form = WorkStatusForm(request.POST, instance=a)
@@ -3883,7 +3885,7 @@ def workstatus_edit(request, id):
             return HttpResponseRedirect('/workstatus/view/')
     else:
         form = WorkStatusForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'workstatus.html'})
+    return render_to_response('index.html', {'form': form, 'text': text, 'weblink': 'workstatus.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workstatus_list(request):
@@ -3899,7 +3901,15 @@ def workstatus_list(request):
         message = "Error"
     
     list = WorkStatus.objects.all()
-    return render_to_response('index.html', {'workstatus': list.values_list(), 'weblink': 'workstatus_list.html'})
+    plist = PhoneStatus.objects.all()
+    return render_to_response('index.html', {'workstatus': list.values_list(), 'phonestatuslist': plist, 'weblink': 'workstatus_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def workstatus_delete(request, id):
+    obj = WorkStatus.objects.get(id=id)
+    del_logging(obj)
+    obj.delete()
+    return HttpResponseRedirect('/workstatus/view/')
 
 
 def phonestatus_list(request):
@@ -3918,8 +3928,35 @@ def phonestatus_list(request):
 #    return render_to_response('index.html', {'phonestatus': list.values_list(), 'weblink': 'workstatus_list.html'})
 
 
-def workstatus_delete(request, id):
-    obj = WorkStatus.objects.get(id=id)
+def phonestatus_add(request):
+    text = 'Додати статус дзвінка'
+    if request.method == 'POST':
+        form = PhoneStatusForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            description = form.cleaned_data['description']
+            PhoneStatus(name=name, description=description).save()
+            return HttpResponseRedirect('/workstatus/view/')
+    else:
+        form = PhoneStatusForm()
+    return render_to_response('index.html', {'form': form, 'text': text, 'weblink': 'workstatus.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def phonestatus_edit(request, id):
+    text = 'Редагувати статус дзвінка'
+    a = PhoneStatus.objects.get(pk=id)
+    if request.method == 'POST':
+        form = PhoneStatusForm(request.POST, instance=a)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect('/workstatus/view/')
+    else:
+        form = PhoneStatusForm(instance=a)
+    return render_to_response('index.html', {'form': form, 'text': text, 'weblink': 'workstatus.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def phonestatus_delete(request, id):
+    obj = PhoneStatus.objects.get(id=id)
     del_logging(obj)
     obj.delete()
     return HttpResponseRedirect('/workstatus/view/')
@@ -4027,7 +4064,8 @@ def workticket_list(request, year=None, month=None, all=False, status=None):
         list = WorkTicket.objects.filter(status__id__in=[status,2])
     if status == '4':
         list = WorkTicket.objects.filter(status__id__in=[status,4])
-        
+    if status == '5':
+        list = WorkTicket.objects.filter(status__id__in=[status,5])
     
     return render_to_response('index.html', {'workticket':list, 'sel_year':year, 'sel_month':int(month), 'weblink': 'workticket_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 

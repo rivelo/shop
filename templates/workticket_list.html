@@ -130,9 +130,12 @@ $('.phone').editable('/workticket/edit/', {
 <h2>
     За рік: 
     <a href="/workticket/year/2012/month/1/view">2012,</a>
-	<a href="/workticket/year/2013/month/12/view">2013,</a>
+	<a href="/workticket/year/2013/month/1/view">2013,</a>
 	<a href="/workticket/year/2014/month/1/view">2014,</a>
 	<a href="/workticket/year/2015/month/1/view">2015,</a>
+	<a href="/workticket/year/2016/month/1/view">2016,</a>
+	<a href="/workticket/year/2017/month/1/view">2017,</a>
+	<a href="/workticket/year/2018/month/1/view">2018,</a>
 <br>
 	За місяць: 
 	{% for i in "123456789012" %}
@@ -145,7 +148,9 @@ $('.phone').editable('/workticket/edit/', {
 	
 	<a href="/workticket/all/view" class="non">Всі</a>,
 	<a href="/workticket/status/1/view/" class="non">Прийняті</a>,
-	<a href="/workticket/status/4/view/" class="non">Невидані</a>
+	<a href="/workticket/status/4/view/" class="non">Невидані</a>,
+	<a href="/workticket/status/4/view/" class="non">Виконано не видано</a>,
+	<a href="/workticket/status/5/view/" class="non">Без ремонта</a>
 </h2>    
 
 
@@ -155,9 +160,11 @@ $('.phone').editable('/workticket/edit/', {
     	
     <table border="1">
     <tr>
+    	<th>№</th>
     	<th>ID</th>
     	<th>Клієнт</th>
     	<th>Дата створення</th>
+    	<th>Користувач</th>
     	<th>Дата завершення</th>
     	<th>Статус</th>
     	<th>Повідомлення</th>
@@ -182,6 +189,9 @@ $('.phone').editable('/workticket/edit/', {
 <tr class="w_false">
 {% endifequal %}
 
+	<td>
+	{{forloop.counter}}
+	</td>
 	<td>       
 	<a href="/workticket/edit/{{ type.id }}" title="Edit"> {{type.id}}</a>
 	</td>
@@ -193,6 +203,9 @@ $('.phone').editable('/workticket/edit/', {
 	</td>
 	<td title={{type.user.username}}>       
 	{{type.date|date}}
+	</td>
+	<td>
+	{{type.user.username}}       
 	</td>
 	<td>       
 	{{type.end_date|date}}

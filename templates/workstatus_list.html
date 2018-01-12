@@ -30,11 +30,47 @@
     {% endfor %}
     </table>
 
+<br>
+
+
+{% if phonestatuslist %}
+	<h1>Статус дзвінка</h1>
+    <table border="1">
+    <tr>
+    	<th>ID</th>
+    	<th>Назва</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    </tr>    
+    {% for status in phonestatuslist %}
+    <tr>
+        <td>
+            {{ status.id }}
+        </td>
+        <td>
+            {{ status.name }}
+        </td>
+        <td>
+            {{ status.description }}
+        </td>
+        
+        <td>
+        <a href="/phonestatus/edit/{{ status.id }}">edit</a>
+        <br>            
+        <a href="/phonestatus/delete/{{ status.id }}">delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+    </table>
+
+
+{% endif %}
 
 <br><br>
-<a href="/">Головне меню (HOME)</a>
+<a href="/workstatus/add/">Створити новий стан роботи</a>
 <br>
-<a href="/workstatus/add/">Створити новий стан роботи</a>       
+<a href="/phonestatus/add/">Новий телефонний статус</a>
+<br>       
 
 
 

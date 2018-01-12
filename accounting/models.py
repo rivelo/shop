@@ -217,6 +217,7 @@ class Catalog(models.Model):
         return r
 
     def invoice_price(self): #UA price
+        percent = 0
         profit = 0
         dn = datetime.datetime.now()
         month = dn.month
