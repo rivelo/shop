@@ -368,6 +368,7 @@ class ImportPriceForm(forms.Form):
     recomended = forms.BooleanField(label='Ціна товару', required=False)
     description = forms.BooleanField(label='Опис', required=False)
     photo = forms.BooleanField(label='Фото', required=False)
+    currency = forms.BooleanField(label='Курс валюти', required=False)
     
 
 class InvoiceComponentListForm(forms.ModelForm):
@@ -630,6 +631,7 @@ class WorkShopForm(forms.ModelForm):
     price = forms.FloatField(initial=0, label="Ціна")
     pay = forms.BooleanField(initial=False, required=False, label="Оплачено?")
     description = forms.CharField(label='Опис', widget=forms.Textarea(), max_length=255, required=False)
+    user = forms.ModelChoiceField(queryset = User.objects.all(), required=True, label='Користувач')    
     
     class Meta:
         model = WorkShop

@@ -1546,7 +1546,7 @@ console.log("ids[]= ", ids );
 {% endif %}	
 	</td>
 	<td>
-	[{{type.catalog__ids}}] {% if type.catalog__dealer_code %} [{{type.catalog__dealer_code}}] {% endif %}- ({{type.catalog__manufacturer__name}}) {{type.catalog__name}}
+	[{{type.catalog__ids}}] {% if type.catalog__dealer_code %} [{{type.catalog__dealer_code}}] {% endif %}- ({{type.catalog__manufacturer__name}}) {{type.catalog__name}} 
 	</td>
 	<td align="center">
 	<a href="/invoice/catalog/{{type.catalog}}/view/">
@@ -1590,7 +1590,21 @@ console.log("ids[]= ", ids );
 	
 {% ifequal type.catalog__sale 0 %}
 <td align="center" class="price_edit" id_price={{type.catalog}}>
+{% if type.catalog__price > type.catalog__last_price %} 
 {{type.catalog__price}} грн.
+{% if type.catalog__last_price %}
+	<img src="/media/images/discount_up.png" width="30" height="30">
+{% endif %}
+{% endif %}
+{% if type.catalog__price < type.catalog__last_price %} 
+{{type.catalog__price}} грн.
+{% if type.catalog__last_price %}
+	<img src="/media/images/discount_down.png" width="30" height="30">
+{% endif %}
+{% endif %}
+{% if type.catalog__price = type.catalog__last_price %}
+{{type.catalog__price}} грн.
+{% endif %}
 
 </td>
 {% else %}

@@ -1813,18 +1813,18 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
     
     if 'name' in request.GET and request.GET['name']:
         name = request.GET['name']
-        list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__dealer_code', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')        
+        list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__dealer_code', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')        
     elif  'id' in request.GET and request.GET['id']:
         id = request.GET['id']
-        list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
     if mid:
-        list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
         company_name = Manufacturer.objects.get(id=mid)
     if cid:
-        list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
         cat_name = type_list.get(id=cid)
     if isale == True:
-        list = InvoiceComponentList.objects.filter(catalog__sale__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        list = InvoiceComponentList.objects.filter(catalog__sale__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
 
     
     if limit == 0:
@@ -1833,7 +1833,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
         except:
             list = InvoiceComponentList.objects.none()        
     else:
-        list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__dealer_code', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
+        list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__dealer_code', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
 #        list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__id').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
         list = list[:limit]
     
@@ -1850,8 +1850,8 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
             if element['catalog']==sale['catalog']:
                 element['c_sale']=sale['sum_catalog']
                 element['balance']=element['sum_catalog'] - element['c_sale']
-                element['new_arrival'] = Catalog.objects.get(pk = element['catalog']).new_arrival()
-                element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
+#                element['new_arrival'] = Catalog.objects.get(pk = element['catalog']).new_arrival()
+#                element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
         for cat in cat_list:
             if element['catalog']==cat['id']:
                 element['manufacturer__id']=cat['manufacturer__id']
@@ -1863,8 +1863,8 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
                 element['photo_url']=cat['photo_url']
                 element['last_update']=cat['last_update']
                 element['user_update']=cat['user_update__username']
-                element['new_arrival'] = Catalog.objects.get(pk = element['catalog']).new_arrival()
-                element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
+#                element['new_arrival'] = Catalog.objects.get(pk = element['catalog']).new_arrival()
+#                element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
         if element['balance']!=0:
             new_list.append(element)
             zsum = zsum + (element['balance'] * element['catalog__price'])
@@ -2514,6 +2514,7 @@ def catalog_edit(request, id=None):
                 id = request.POST.get('id')
                 p = request.POST.get('price')
                 obj = Catalog.objects.get(id = id)
+                obj.last_price = obj.price
                 obj.price = p
                 obj.last_update = datetime.datetime.now()
                 obj.user_update = request.user
@@ -4006,6 +4007,7 @@ def workticket_edit(request, id=None):
                 p = request.POST.get('value')
                 obj = WorkTicket.objects.get(pk = id)
                 obj.status = WorkStatus.objects.get(pk = p)
+                obj.date = datetime.date.today()
                 obj.save() 
                 c = WorkTicket.objects.filter(pk = id).values_list('status__name', flat=True)
                 return HttpResponse(c)
@@ -4529,6 +4531,7 @@ def price_import(request):
     pricereader = None
     ids_list = []
     now = datetime.datetime.now()
+    rec_price = False
 #    if 'name' in request.GET and request.GET['name']:
 #        name = request.GET['name']
     if request.POST and request.FILES:
@@ -4537,6 +4540,7 @@ def price_import(request):
         dialect = csv.Sniffer().sniff(codecs.EncodedFile(csvfile, "utf-8").read(1024))
         csvfile.open()
         pricereader = csv.reader(codecs.EncodedFile(csvfile, "utf-8"), delimiter=';', dialect=dialect)
+        rec_price = request.POST.get('recomended')
 #===============================================================================
 #    name = 'import'
 #    path = settings.MEDIA_ROOT + 'csv/' + name + '.csv'
@@ -4554,25 +4558,45 @@ def price_import(request):
         code = row[1]
                 
         try:
-            if id <> u'0':
-                cat = Catalog.objects.get(ids = id)
-                print('Catalog =  [' +id+ ']['+code+']# '+cat.ids+'|')
-                ids_list.append(row[0])
-                # заміна старого коду на новий
-                cat.dealer_code = id
-                cat.ids = code
-#                cat.description = "Updated!!!"
-                cat.save()
-            else:
-                print(' CODE  ['+code+']# '+row[3]+'')
-                cat = Catalog.objects.get(dealer_code = code)
-                ids_list.append(row[1])
+            price = row[3]    
+
+            if (code <> '0') and (id <> '0'):
+#                print('CODE = ' + code + ' - ID ='+id)
+                cat = Catalog.objects.filter(Q(ids = id) | Q(dealer_code = id) | Q(ids = code) | Q(dealer_code = code)).first()
+                print ('ID + CODE = '+cat.ids)
+                
             
+            if (id <> '0'):
+                try:
+                    cat = Catalog.objects.get(Q(ids = id) | Q(dealer_code = id))
+                    ids_list.append(cat.ids)
+                except:
+                    print ('ID = '+cat.ids)
+                #    cat = Catalog.objects.get(dealer_code = id)
+                #print('Catalog =  [' +id+ ']['+code+']# '+cat.ids+'|'+price)
+
+
+                # заміна старого коду на новий
+                #cat.dealer_code = id
+                #cat.ids = code
+                #cat.save()
+                
+            if (code <> '0'):
+                print(' CODE  ['+code+']# '+row[3]+'')
+                try:
+                    cat = Catalog.objects.get(Q(ids = code) | Q(dealer_code = code))
+                    ids_list.append(cat.ids)
+                except:
+                    #cat = Catalog.objects.get(ids = code)
+                    print('CODE = ' + cat.ids)
+
 #            if code != u'0':
                 #cat.dealer_code = code
-            price = row[3]
+            
                 
-            if price <> u'0': 
+            if (price <> '0') and (rec_price == 'on'): 
+                #print('Catalog =  [' +id+ ']['+code+']# '+cat.ids+'|'+price)
+                cat.last_price = cat.price
                 cat.price = row[3]
             #cat.dealer_code = row[1]
                 cat.currency = Currency.objects.get(id = row[4])
@@ -4580,15 +4604,15 @@ def price_import(request):
             #cat.user_update = request.user
                 cat.user_update = User.objects.get(username='import')
  #           cat.description = row[5]
- #           cat.save()
+                cat.save()
             
             #spamwriter.writerow([row[0], row[1], row[2], row[3], row[4]],)
         except: # Catalog.DoesNotExist:
                       
             spamwriter.writerow([row[0], row[1], row[2], row[3], row[4]])
         #return HttpResponse("Виконано", content_type="text/plain")
-    list = Catalog.objects.filter(ids__in = ids_list)
-    return render_to_response('index.html', {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    list = Catalog.objects.select_related('manufacturer', 'type', 'currency', 'country').filter(Q(ids__in = ids_list))
+    return render_to_response('index.html', {'catalog': list, 'post':rec_price,  'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
     
 
 #--------------------- MY Costs -------------------------

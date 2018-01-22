@@ -80,13 +80,17 @@ $(document).ready(function() {
 <br> 
     <table border="1">
     <tr>
+    	<th>#</th>
     	<th>ID</th>
     	<th>Клієнт</th>
     	<th>Дата завершення</th>
     	<th>Робота</th>
     	<th>Ціна (грн.)</th>
     	<th>Опис</th>
+    	<th>Редагування</th>
+{% if user.is_authenticated %}	    	
     	<th>Дія</th>
+{% endif %}    	
     	<th></th>
     </tr>
  
@@ -96,6 +100,9 @@ $(document).ready(function() {
 {% else %}
 <tr BGCOLOR="#F2AE6B" id="row_{{type.id}}">
 {% endif %}
+	<td>
+	{{forloop.counter}}
+	</td>  
 	<td>       
 	<abbr title="Створено користувачем {{type.user.username}}">
 	{{type.id}}
@@ -106,29 +113,31 @@ $(document).ready(function() {
 	{{type.client}}
 	</a>
 	</td>
-	<td>       
+	<td align='center'>       
 	{{type.date|date}}
 	</td>
 	<td>       
 	{{type.work_type}}
 	</td>	
-	<td>       
+	<td align='center'>       
 	{{type.price}}
 	</td>
 	<td>       
 	{{type.description}}
 	</td>
-	<td>
+	<td align='center'>
 	<a href="/workshop/edit/{{ type.id }}">edit</a>
-
 {% comment %}	{% if perms.accounting.delete_workshop %} 
 {% endcomment %}
-
-{% if user.is_authenticated %}		
+	</td>
+	
+{% if user.is_authenticated %}
+	<td align='center'>
 <!--     <a href="/workshop/delete/{{ type.id }}" onclick="return confirm('Видалити роботу?')">delete</a>  -->
     <span class="w_del" id_work={{type.id}} style="cursor: pointer;">Видалити</span>
-{% endif %}
     </td>
+{% endif %}
+    
     <td>
 {% if type.pay %}    
    	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{type.price}}" onclick="resWorkshop()" name="checkbox_{{ type.id }}"/>
@@ -140,6 +149,7 @@ $(document).ready(function() {
 {% endfor %}   
 
 <tr>
+    	<th></th>
     	<th></th>
     	<th></th>
     	<th></th>
@@ -155,6 +165,7 @@ $(document).ready(function() {
       <p><input type="submit" value="Оплата" name="pay"></p>
 		</th>
     	<th id="workshop_pay"></th>
+    	<th></th>
 </tr> 
 
 </table>

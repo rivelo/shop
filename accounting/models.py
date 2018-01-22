@@ -934,8 +934,8 @@ class WorkShop(models.Model):
     work_type = models.ForeignKey(WorkType)
     price = models.FloatField()
     pay = models.BooleanField(default = False, verbose_name="Оплачено?")
-    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     description = models.TextField(blank=True, null=True)
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     
     def __unicode__(self):
         return self.description
@@ -971,6 +971,7 @@ class WorkTicket(models.Model):
     date = models.DateField()
     end_date = models.DateField()
     status = models.ForeignKey(WorkStatus)
+#    status_date = models.DateTimeFieldField()
     description = models.TextField(blank=True, null=True)
     phone_status = models.ForeignKey(PhoneStatus, blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)    
