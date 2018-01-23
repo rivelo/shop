@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+{# <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
 
 <script type="text/javascript" src="/media/jquery-1.8.3.js"></script>
 <script type="text/javascript" src="/media/jquery.qrcode-0.7.0.min.js"></script>
@@ -20,83 +20,160 @@ $("#qr_tr1").qrcode({
 </script>
 
 <style type="text/css">
-.table {
- 	width: 40mm;
- 	height: 33mm;
-    table-layout: fixed;
-}
 
 .TableD {
 	border: 1px solid white; /* Граница вокруг ячеек */
-	border-bottom: 1px solid red;
+/*	border-bottom: 1px solid red; */
 	height: 9mm;
 	}     
 
 table {
-    border: 1px solid white;
-    border-spacing: 0px;
+    border-spacing: 1mm;
+	border: 1px solid #399;    
     }
 
 TR {
+	height: 120px;
 	/* border-bottom: 1px solid black; */ 
 	}
 TD{
-
+/*	background: yellow; 
+	border: 2px solid black; */
+	width: 14%;
+	height: 8%;
 	}
 
-.nameTD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
-	border: 0px solid white; /* Граница вокруг ячеек */
-	/*border-bottom: 1px solid black;*/ 
-	}     
+td.vertical{
+   writing-mode:tb-rl;
+   filter:flipH flipV;
+   background:#fff; /* для устранения бага с отображением текста в IE6 и ниже */
+   transform: rotate(-90deg);
+   }
+
 
 a { 
     text-decoration: none; /* Отменяем подчеркивание у ссылки */
    } 
 
-#rotateText {
-    -moz-transform: rotate(90deg);
-    -webkit-transform: rotate(90deg);
-    -o-transform: rotate(90deg);
-    writing-mode: tb-rl;
-    width: 300px;
-    height: 200px;
+
+.rotatable{
+-webkit-transform: rotate(-90deg);
+-moz-transform: rotate(-90deg);
+-o-transform: rotate(-90deg);
+-ms-transform: rotate(-90deg);
+transform: rotate(-90deg);
+height: 21px; /* размеры задаем сразу с учетом, что будет повернут на 90 градусов */
+width: 120px; 
+border: 2px solid red;
+/* margin: -50px 0 -50px 50px; /* подтягиваем отступы, образовавшиеся во время вращения */
 }
-     
+
+p.vertical{
+  -webkit-transform: rotate(-90deg); 
+  -moz-transform: rotate(-90deg);
+  -ms-transform: rotate(-90deg);
+  -o-transform: rotate(-90deg);
+  transform: rotate(-90deg);
+} 
+
+div {
+/*	border: 2px solid green; */
+	color: black;
+	font-size:11px;
+}     
+
+div.v-t {
+	width:1em; 
+	line-height:1em;
+	height: 120px; 
+	font-size:10px; 
+	background-color:#ffffc9;
+	vertical-align: middle;
+	}
+
+#container {
+  color: white;
+/*  background: #ffbd17; */
+  width: 35px;
+  height: 125px;
+}
+
+#content {
+/*  background: #06c;
+  width: 100%; */
+  width: 122px;
+  height: 35px;
+  
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  top: 33%;
+  left: -124%;
+/*  transform: translateY(-50%);
+  transform: translateX(50%);*/
+  transform: rotate(-90deg);
+}
+
 </style>
 
 {% load poll_extras %}
 
 <!-- <table border="1" CELLPADDING=0px style="padding: 1px;">  --> 
-<table>
-<tr height= 40mm>
+<table cellspacing="1">
+<tr>
 {% for price in price_list %}
 
-<td class="nameTD">
+<td>
 
-<table class="table">
-<tr>
 {% with price.catalog.id|sale_url:request.get_host as url_buy %}  
-<td class="nameTD" style="border-bottom: 1px solid black; padding-left: 8px; padding-top: 5px;">
+
+{# <div class="v-t" style="float:left;">{{ price.catalog.price }} грн.</div> #} 
+
+<div id="container" style="float:left;">
+  <div id="content">
+{{ price.catalog.price }} грн.<br>
+{{ price.catalog.ids }}
+  </div>
+</div>
+
+
+<div style="width:120px; float:left;">
 <img src="{{url_buy|qr:"120x120"}}" />
-</td>
+</div>
+
+
+{# <p class="vertical">Число дерев.</p> #}
+{# <div class="rotatable"  style="float:left;">{{ price.catalog.ids }}</div> #}
+
+{% comment %}
+<div class="v-t" style="float:left;">
+{{ price.catalog.ids }}
+</div>
+
+<div id="container" style="float:left;">
+  <div id="content">
+{{ price.catalog.ids }}
+  </div>
+</div>
+{% endcomment %}
+
 {% endwith %}
 
-<td style="padding-left: 3px; font-family: Arial; font-size: 5pt;" class="nameTD">
 
-<!-- 
+
+<!--
+<td style="padding-left: 3px; font-family: Arial; font-size: 5pt;" class="nameTD"> 
 <div class="firstBlock"></div>
 <div id="rotateText"> 	{{price.catalog.ids|slice:"20"}}</div>
 <div class="lastBlock"></div>
+</td>
  -->
 
-</td>
-</tr>
-</table>
 </td>
 
 
 {% if forloop.counter|divisibleby:"7"  %}
-</tr><tr height= 40mm>
+</tr><tr height= 21mm>
 {% endif %}
 
 {% if forloop.counter|divisibleby:"91"  %}

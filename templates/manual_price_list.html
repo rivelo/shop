@@ -36,6 +36,7 @@ table {
 table {
     /* border: 1px solid black; */
     border-spacing: 0px;
+    page-break-before: always;
     }
 
 TR {
@@ -44,8 +45,8 @@ TR {
 TD{
 	width: 70mm;
 	height: 25mm;
-	padding-bottom: 3mm;
-	padding-left: 2mm;
+	padding-bottom: 5.5mm;
+	padding-left: 5mm;
 	}
 
 .nameTD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
@@ -200,7 +201,7 @@ a {
 
 {% if forloop.counter|divisibleby:"33"  %}
  </table> 
-  <p style="page-break-after: always">  </p>  
+{#  <p style="page-break-after: always">  </p> #}  
  <table>  
 {% endif %}
 
