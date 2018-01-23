@@ -42,7 +42,10 @@ TR {
 	/* border-bottom: 1px solid black; */ 
 	}
 TD{
-	width: 100mm;
+	width: 70mm;
+	height: 25mm;
+	padding-bottom: 3mm;
+	padding-left: 2mm;
 	}
 
 .nameTD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
@@ -64,25 +67,37 @@ a {
 {% for price in price_list %}
 <td>
 
-<div style="background:#FA911D; width:120px; height:120px; float:left;">
+{# <div style="background:#FA911D; width:120px; height:120px; float:left;"> #}
+<div style="background:#FA911D; width:120px; height:115px; float:left;">
 {% with price.catalog.id|sale_url:request.get_host as url_buy %}  
 <img src="{{url_buy|qr:"120x120"}}" />
 {% endwith %}
 </div>
 
-<div style="width:100px; float:left; ">
+<div style="width:55mm; float:left">
+
+<div style="width:25mm; float:left; ">
 <b>Код</b><br>
 <b>	Виробник </b><br>
 <b style="font-size: 8pt;"> Країна виробник </b><br>
-<b style="font-size: 8pt;">	Ціна </b><br>
+<b style="font-size: 9pt;">	Ціна </b><br>
+{% if price.catalog.price != price.catalog.get_saleprice %}
+<b style="font-size: 10pt;">	Нова ціна </b><br>
+{% endif %}
 </div>
-<div style="width:150px; float:left;">
+<div style="width:20mm; float:left;">
 {{price.catalog.ids|slice:"20"}}<br>
 {{price.catalog.manufacturer}}<br>
 {{price.catalog.country}}<br>
-<b>{{price.catalog.price}} грн. <br></b>
+{% if price.catalog.price == price.catalog.get_saleprice %}
+<b>{{price.catalog.price}} грн.<br></b>
+{% else %}
+<b><s>{{price.catalog.price}} грн. </s><br>{{price.catalog.get_saleprice}} грн.<br></b>
+{% endif %}
 </div>
-<div style="">
+</div>
+{# <div style="width:200px;"> #}
+<div style="width:90mm; clear:float;">
 {% with price.catalog.name|lenght as s_len %}
 <a 
 {% if s_len > 64  %}
@@ -182,11 +197,16 @@ a {
 </tr><tr height= 125mm>
 {% endif %}
 
-{% if forloop.counter|divisibleby:"27"  %}
-</table>
-<!--  <p style="page-break-after: always">  </p> -->
-<table> 
+
+{% if forloop.counter|divisibleby:"33"  %}
+ </table> 
+  <p style="page-break-after: always">  </p>  
+ <table>  
 {% endif %}
+
+{% comment %}
+</table>
+{% endcomment %} 
  
 {% endfor %}   
 
