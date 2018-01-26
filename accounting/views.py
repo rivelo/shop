@@ -1799,7 +1799,7 @@ def invoicecomponent_add(request, mid=None, cid=None):
 #    return render_to_response('index.html', {'form': form, 'weblink': 'invoicecomponent.html', 'company_list': company_list, 'price_ua': price, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focus=0):
+def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focus=0, upday=0):
     #company_list = Manufacturer.objects.none()
     company_list = Manufacturer.objects.all().only('id', 'name')
     #type_list = Type.objects.none() 
@@ -1826,6 +1826,10 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
     if isale == True:
         list = InvoiceComponentList.objects.filter(catalog__sale__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
 
+    if upday != 0:
+        curdate=datetime.datetime.today()
+        update = curdate - datetime.timedelta(days=int(upday))
+        list = InvoiceComponentList.objects.filter(catalog__last_update__gt = update).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
     
     if limit == 0:
         try:
@@ -3656,9 +3660,13 @@ def client_search_result(request):
 
 
 #----- Виписка клієнта -----
-def client_result(request, tdelta = 30):
+def client_result(request, tdelta = 30, id = None, email=False):
     now = datetime.datetime.now()
-    user = request.GET['id'] 
+    user = None
+    if request.GET.has_key('id'):
+        user = request.GET['id']
+    if id != None:
+        user = id 
     sql1 = "SELECT sum(price) FROM accounting_clientcredits WHERE client_id = %s;"
     sql2 = "SELECT sum(price) FROM accounting_clientdebts WHERE client_id = %s;"
     #user = id;
@@ -3746,6 +3754,8 @@ def client_result(request, tdelta = 30):
     #list_debt = ClientDebts.objects.filter(client='2').annotate(Sum("price"))
     #return render_to_response('index.html', {'clients': list_credit.values_list(), 'weblink': 'client_result.html'})
     #return render_to_response('index.html', {'clients': list_debt.values_list(), 'weblink': 'client_result.html'})
+    if email == True :
+        return render_to_response('client_result.html', {'clients': res, 'invoice': client_invoice, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta})        
     return render_to_response('index.html', {'weblink': 'client_result.html', 'clients': res, 'invoice': client_invoice, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -5719,30 +5729,52 @@ def ajax_search(request):
 
        
 
-def sendemail(request):
-    list = Catalog.objects.filter(manufacturer = 28, count__gt=0).order_by("type")    
-    company = Manufacturer.objects.get(id=28)
-    company_list = Manufacturer.objects.all()
+def client_card_sendemail(request, id):
+    client = id
+    user = None
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('status'):
+                user = request.POST.get('status')
     
-    w = render_to_response('price_list.html', {'catalog': list, 'company': company, 'company_list': company_list,})
-    
-    
-    subject, from_email, to = 'hello', 'rivelo@ymail.com', 'rivelo@ukr.net'
-    text_content = 'This is an important message.'
+#    list = Catalog.objects.filter(manufacturer = 28, count__gt=0).order_by("type")    
+#    company = Manufacturer.objects.get(id=28)
+#    company_list = Manufacturer.objects.all()
+#    w = render_to_response('price_list.html', {'catalog': list, 'company': company, 'company_list': company_list,})
+        cl = None   
+        try:
+            cl = Client.objects.get(id = client)#.values_list('email')
+        except:
+            return HttpResponse("Сталася помилка при відправленні. Не заповнено поле E-MAIL")
+        w = client_result(request, 30, client, True)
+
+#        if cl.email == None:
+#            return HttpResponse("Сталася помилка при відправленні. Не заповнено поле E-MAIL")
+        
+        subject, from_email, to = 'Картка клієнта в магазині Rivelo', 'rivelo@ymail.com', cl.email
+        text_content = 'This is an important message.'
 #    html_content = '<p>This is an <strong>important</strong> message.</p>'
-    html_content = w.content
-    msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
-    msg.attach_alternative(html_content, "text/html")
-    msg.send()
+        html_content = w.content
+        msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+        msg.attach_alternative(html_content, "text/html")
+    #msg.send()
 #    send_mail('Rivelo shop', 'Here is the new message with you check.', 'rivelo@ymail.com', ['igor.panchuk@gmail.com'], fail_silently=False)
     #send_mail('subj - Test rivelo check', 'Here is the new message with you check.', 'rivelo@ymail.com', ['igor.panchuk@gmail.com'],)
     # Define these once; use them twice!
-    strFrom = 'rivelo@ymail.com'
-    strTo = 'rivelo@ukr.net'
+#    strFrom = 'rivelo@ymail.com'
+#    strTo = 'rivelo@ukr.net'
 #    send_mail('Товарний Чек - Test rivelo check', 'Here is the new message with you check.', 'rivelo@ymail.com', [strTo,],)
     #send_mail('subj - Test rivelo check', ‘message’, ‘from@mail.ru’, ‘rivelo@ymail.com’)        
     #return render_to_response('index.html', {'weblink': 'index.html'})
-    return render_to_response("index.html", {"weblink": 'top.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    
+        try:
+            msg.send()
+            return HttpResponse("Лист відправлено на пошту " + to)
+        except:
+            return HttpResponse("Сталася помилка при відправленні. Перевірте з'єднання до інтернету або зверніться до адмністратора.")
+    return None
+#    return render_to_response("index.html", {"weblink": 'top.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 from django.views.decorators.csrf import csrf_protect
