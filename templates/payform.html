@@ -107,12 +107,14 @@ $(document).ready(function() {
 	});
 	
 $('#client_debt_but').click(function() {
+	$('#client_debt_but').off("click");
 	$("#pay").val(0);
 	$("#pay_term").val(0);
 	$("#pay_form").submit();
 });
 
 $('#client_cred_term_but').click(function() {
+	$('#client_cred_term_but').off("click");
 	$("#pay_term").val($("#pay").val())
 	$("#pay").val(0);
 	console.log("PAY = "+$("#pay").val());
@@ -120,13 +122,15 @@ $('#client_cred_term_but').click(function() {
 });
 
 $('#client_cred_but').click(function() {
-	$("#pay_form").submit();
 	$('#client_cred_but').off("click");
+	$("#pay_form").submit();
 });
 
 $('#pay').change(function() {
-	var omoney = parseFloat($('#pay').attr("value")) + parseFloat($("#cl_balance").attr('value'))-parseFloat($('#to_pay').attr('value'));
-	$("#oddmoney").html("Решта: "+omoney.toFixed(2)+" грн.");	
+//	var omoney = parseFloat($('#pay').attr("value")) + parseFloat($("#cl_balance").attr('value'))-parseFloat($('#to_pay').attr('value'));
+	var omoney = parseFloat($('#pay').val()) - parseFloat($('#to_pay').attr('value'));
+	var omoney_all = parseFloat($('#pay').val())  + parseFloat($("#cl_balance").attr('value')) - parseFloat($('#to_pay').attr('value'));
+	$("#oddmoney").html("Решта: " + omoney.toFixed(2) + " грн. / " + omoney_all.toFixed(2) + " грн.");
 });
 
 checkedSum();
@@ -191,6 +195,14 @@ $('#pay').change();
 </div>
 
 <div style="clear:left;"></div>
+
+{% if chk_list %}
+<p style="color:red; font-size: 20px; font-style: normal;font-weight: bold;">Помилка!!! {{error_msg}} </p>
+{% for i in chk_list %}
+{{i.check_num}} - {{i.catalog__catalog__name}}  <br>
+{% endfor %}
+<br>
+{% endif %}
 
 <div style="float:left;">
 	<h2><font color="#fe6037" id="cl_balance" value="{{balance}}"> Ваш рахунок: {{balance}} грн. </font></h2>

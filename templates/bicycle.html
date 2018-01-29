@@ -8,16 +8,32 @@
 
 
 <script>
-$(function () {
-    $('#fileupload').fileupload({
-        dataType: 'json',
-        done: function (e, data) {
-            $.each(data.result.files, function (index, file) {
-                $('<p/>').text(file.name).appendTo(document.body);
-            });
-        }
-    });
-});
+
+function myFunction() {
+	alert("URL = " + $('#upload_youtube').val());
+	console.log('Url = ' + $('#upload_youtube').val() ); 	
+}
+
+function youtube_upload() {
+	$.ajax({
+	    type: "POST",
+	    	url: "/bicycle/set/youtube/",
+	    	data: {ids:  inv_ids},
+	    	dataType: "text",
+	    success:function(msg){
+	    	if (msg == "ok"){
+	    		alert("Товари видалено");
+	    	}
+	   	else {
+	   		alert("Помилка: " + msg);
+	   	}
+	    },
+	    error:function(){
+	     alert("При отправке возникли проблемы");
+	    }
+	 });
+};
+ 
 </script>
 
 
@@ -27,14 +43,17 @@ $(function () {
 <table>
 	{{ form.as_ul }}
 </table>
+<label>Add YouTube link:</label>
+
+<input name="upload_youtube" id="upload_youtube" type="text" size="100">
+<button type="button" onclick="myFunction()">Додати посилання</button>
+
 <p><input type="submit" value="Save"></p>
 
-
+</form>
 
 
 <a href="/bicycle/view/">Каталог велосипедів</a>
-<br>
-<a href="/">HOME</a>
 
 
 

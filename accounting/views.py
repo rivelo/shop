@@ -15,7 +15,7 @@ from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, C
 from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType
 from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm
 
-from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus
+from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus, YouTube
 from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm
   
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
@@ -491,13 +491,17 @@ def bicycle_add(request):
 
 def bicycle_edit(request, id):
     if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
-        return HttpResponseRedirect('/bicycle/view/')
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
+        #return HttpResponseRedirect('/bicycle/view/')
     a = Bicycle.objects.get(pk=id)
+    url_youtube = None
     if request.method == 'POST':
         form = BicycleForm(request.POST, request.FILES, instance=a)
         if form.is_valid():
             year = form.cleaned_data['year']
             photo = form.cleaned_data['photo']            
+                   
+            #url_youtube = form.cleaned_data['upload_youtube']
             folder = year.year
             upload_path_p = ''
             if photo == None:
@@ -507,6 +511,21 @@ def bicycle_edit(request, id):
                 a.photo=upload_path_p
                 a.save()
             form.save()
+            if request.POST.has_key('upload_youtube'):
+                url_youtube = request.POST.get('upload_youtube')
+                if url_youtube :
+                    try:
+                        y = YouTube.objects.get(url = url_youtube)
+                        a.youtube_url.add(y)
+                        a.save()
+                        #return HttpResponse("Youtube added ", content_type="text/plain;charset=UTF-8")
+                    #+ a.youtube_url_set.all()
+                    except:
+                        #return HttpResponse("ERROR / " + url_youtube, content_type="text/plain;charset=UTF-8")
+                        add_tube = YouTube.objects.create(url = url_youtube, user = request.user)
+                        a.youtube_url.add(add_tube)
+                        a.save()
+                         
             return HttpResponseRedirect('/bicycle/view/')
     else:
         form = BicycleForm(instance=a)
@@ -3755,8 +3774,8 @@ def client_result(request, tdelta = 30, id = None, email=False):
     #return render_to_response('index.html', {'clients': list_credit.values_list(), 'weblink': 'client_result.html'})
     #return render_to_response('index.html', {'clients': list_debt.values_list(), 'weblink': 'client_result.html'})
     if email == True :
-        return render_to_response('client_result.html', {'clients': res, 'invoice': client_invoice, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta})        
-    return render_to_response('index.html', {'weblink': 'client_result.html', 'clients': res, 'invoice': client_invoice, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta}, context_instance=RequestContext(request, processors=[custom_proc]))
+        return render_to_response('client_result.html', {'clients': res, 'invoice': client_invoice, 'email': email, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta})        
+    return render_to_response('index.html', {'weblink': 'client_result.html', 'clients': res, 'invoice': client_invoice, 'email': email, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def client_lookup(request):
@@ -4960,13 +4979,16 @@ def payform(request):
     desc = ""
     sum = 0
     bal = 0
+    error_msg = None
+    chk_list = None
     if Check.objects.filter(catalog__id__in = list_id):
         error_msg = "Дана позиція вже існує в чеку №:"
         chk_list = Check.objects.filter(catalog__id__in = list_id).values("check_num", "catalog__catalog__name")
 #        for ichek in Check.objects.filter(catalog__id__in = list_id).values("check_num"):
 #            url =  '<a href="/check/'+str(ichek['check_num'])+'/print/">['+str(ichek['check_num'])+'],</a>'
             #error_msg = error_msg + "["+str(ichek['check_num'])+"]"
-        return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'chk_list': chk_list, 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        if auth_group(request.user, 'admin')==False:
+            return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'chk_list': chk_list, 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
         
     for inv in ci:
         if client!=inv.client:
@@ -5017,7 +5039,7 @@ def payform(request):
      
     url = '/client/result/search/?id=' + str(client.id)
     cmsg = ClientMessage.objects.filter(client__id=user)
-    return render_to_response('index.html', {'messages': cmsg,'checkbox': list_id, 'invoice': ci, 'summ': sum, 'balance':bal, 'client': client, 'weblink': 'payform.html', 'next': url}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'messages': cmsg,'checkbox': list_id, 'invoice': ci, 'summ': sum, 'balance':bal, 'client': client, 'chk_list': chk_list, 'error_msg':error_msg, 'weblink': 'payform.html', 'next': url}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workshop_payform(request):
@@ -5250,6 +5272,7 @@ def client_payform(request):
     client = None
     res = Check.objects.aggregate(max_count=Max('check_num'))
     check = None
+    status = True
     
     if len(checkbox_list):
         for id in checkbox_list:
@@ -5269,7 +5292,11 @@ def client_payform(request):
 #            page = urllib.urlopen(url).read()
 #===============================================================================
         except:
-            return HttpResponse("Включіть комп'ютер з касовим апаратом")
+            if auth_group(request.user, 'admin') == False:
+                status = False
+                return HttpResponse("Включіть комп'ютер з касовим апаратом", content_type="text/plain;charset=UTF-8")
+            else:
+                status = False
                 
         for inv in ci:
             inv.pay = inv.sum
@@ -5283,7 +5310,7 @@ def client_payform(request):
     if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
         if client.id == settings.CLIENT_UNKNOWN:
             if (float(request.POST['pay']) + float(request.POST['pay_terminal']) < sum):
-                return HttpResponse("Невідомий клієнт не може мати борг");
+                return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8");
         base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
         data =  {"cmd": "get_status"}
         url = base + urllib.urlencode(data)
@@ -5292,7 +5319,7 @@ def client_payform(request):
             page = urllib.urlopen(url).read()
         except:
             message = "Сервер не відповідає"
-            return HttpResponse(message, content_type="text/plain")
+            return HttpResponse(message, content_type="text/plain;charset=UTF-8")
         
         data =  {"cmd": "open"}
         url = base + urllib.urlencode(data)
@@ -5300,7 +5327,7 @@ def client_payform(request):
     
     if (float(request.POST['pay']) == 0) and (float(request.POST['pay_terminal']) == 0):
         if client.id == settings.CLIENT_UNKNOWN:
-            return HttpResponse("Невідомий клієнт не може мати борг");
+            return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8");
         cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
         cdeb.save()
 #===============================================================================
@@ -5309,10 +5336,11 @@ def client_payform(request):
 #        url = base + urllib.urlencode(data)
 #        page = urllib.urlopen(url).read()
 #===============================================================================
-        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-        data =  {"cmd": "close"}
-        url = base + urllib.urlencode(data)
-        page = urllib.urlopen(url).read()
+        if status == True:
+            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+            data =  {"cmd": "close"}
+            url = base + urllib.urlencode(data)
+            page = urllib.urlopen(url).read()
 
             #return HttpResponseRedirect('/client/invoice/view/')
         url = '/client/result/search/?id=' + str(client.id)

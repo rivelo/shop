@@ -491,6 +491,7 @@ class ClientDebts(models.Model):
         return u"[%s] - %s (%s)" % (self.date, self.client, self.description)
 
     class Meta:
+        unique_together = ["client", "date", "price", "cash", "description"]
         ordering = ["client", "date"]    
 
 #клієнтські проплати
@@ -692,11 +693,16 @@ class Bicycle(models.Model):
             qs = self.youtube_url.all()
 #            q = qs.all()
             for i in qs:
-               res.append(i.url.split('/')[3])
+               #res.append(i.url.split('/')[3])
+               res.append(i.url.split('?v=')[1])
             return res 
             return qs #self.youtube_url.split('/') #[3]
         except:
             return 'test None'
+        
+    @property
+    def photo_count(self):
+        return self.photo_url.count()        
 
     def __unicode__(self):
         #return u'Велосипед %s. Ціна %s грн.' % (self.model, self.brand)

@@ -2,6 +2,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Виписка по клієнту: {{client_name.name}}</title>
 
+{% load poll_extras %}
 
     <link rel="stylesheet" type="text/css" href="/media/table.css">
 {#    <script type="text/javascript" src="/media/jquery-1.7.2.min.js"></script> #}
@@ -456,8 +457,9 @@ $(document).ready(function() {
 $("body").on('click', '#email_send', function() {
 //showbox(function(){
 
+{#	{% if request.user|has_group:"admin" %} - {{client_name.id}} {% endif %} #}
 	
-if (confirm("Ви впевненні що хочете відправити лист на пошту {{client_name.email}} - {{client_name.id}}")) {
+if (confirm('Ви впевненні що хочете відправити лист на пошту {{client_name.email}}')) {
 {% comment %}
 //	parent.location='http://www.jsp.newmail.ru/les12.htm';
 //	console.log("EMAIL_send!!!");
@@ -477,6 +479,37 @@ if (confirm("Ви впевненні що хочете відправити ли
     
 });
          
+
+$('.edit_workstatus').editable('/workticket/edit/0/', { 
+     loadurl : '/workstatus/view/',
+     type   : 'select',
+     submit : 'OK',
+     event: 'click', //'dblclick',
+     submitdata : function() {
+      	 	return {id_w : $(this).attr('id_workticket')};
+     },
+     callback : function(value, settings) {
+         
+       switch(value) {
+		case 'Прийнято':
+         $(this).closest("tr").attr('BGCOLOR', '#CCFF99');
+         $('#img_repair').css("opacity", 1);
+         break;
+		case 'Ремонтується':
+         $(this).closest("tr").attr('BGCOLOR', '#FFFF99');
+		 break;
+		case 'Виконано':
+		 $(this).closest("tr").attr('BGCOLOR', '#FFFFFF');
+         $('#img_repair').css("opacity", 0.2);
+		 break;
+		case 'Виконано невидано':
+         $('#img_repair').css("opacity", 0.2);
+		 break;
+		default :
+         $(this).closest("tr").attr('BGCOLOR', '#FFFFFF');
+       }
+     }
+ });
 </script>
 
 <body onLoad="res(); resWorkshop()">
@@ -491,6 +524,7 @@ if (confirm("Ви впевненні що хочете відправити ли
     </h1>
 </div>
 
+{% if email == False %}
 
 <div id="dialog_ajax_load" title="Завантаження">
 <h2>Зачекайте, триває завантаження ... </h2>
@@ -584,41 +618,12 @@ if (confirm("Ви впевненні що хочете відправити ли
   </tr>
 {% endfor %}
 
-<script>
-$('.edit_workstatus').editable('/workticket/edit/0/', { 
-     loadurl : '/workstatus/view/',
-     type   : 'select',
-     submit : 'OK',
-     event: 'click', //'dblclick',
-     submitdata : function() {
-      	 	return {id_w : $(this).attr('id_workticket')};
-     },
-     callback : function(value, settings) {
-         
-       switch(value) {
-		case 'Прийнято':
-         $(this).closest("tr").attr('BGCOLOR', '#CCFF99');
-         $('#img_repair').css("opacity", 1);
-         break;
-		case 'Ремонтується':
-         $(this).closest("tr").attr('BGCOLOR', '#FFFF99');
-		 break;
-		case 'Виконано':
-		 $(this).closest("tr").attr('BGCOLOR', '#FFFFFF');
-         $('#img_repair').css("opacity", 0.2);
-		 break;
-		case 'Виконано невидано':
-         $('#img_repair').css("opacity", 0.2);
-		 break;
-		default :
-         $(this).closest("tr").attr('BGCOLOR', '#FFFFFF');
-       }
-     }
- });
-</script>
+
+{% endif %}
 
 </table>
 </div>
+
 
 
 <div id="dialog" title="Придбані велосипеди">
@@ -731,8 +736,10 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 <div id="tabs">
   <ul>
     <li><a href="#tabs-1">Товари</a></li>
+{% if email == False %}
     <li><a href="/client/{{client_name.id}}/invoice/lookup/">Проданий товар</a></li>
     <li id="ticket_tab"><a href="#tabs-3">Заявки</a></li>
+{% endif %}    
     <li><a href="#tabs-2">Майстерня</a></li>
   </ul>
   <div id="tabs-1">
@@ -770,7 +777,7 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 	</td>
 	
 {% ifequal inv.sum inv.pay %}
-<td>
+	<td>
 	{{inv.pay}}
 	</td>	
 	<td>
@@ -873,7 +880,7 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 	<p><input type="submit" value="Оплата" name="pay" onClick="return confirm('Провести операцію?')"></p>
 	<input type="submit" value="E-mail" name="send_check">	
 	</th>
-	<th>  <p>До оплати:</p><p id="workshop_pay" BGCOLOR="#D5FFB4">0<p></th>
+	<th><p>До оплати:</p><p id="workshop_pay" BGCOLOR="#D5FFB4">0<p></th>
 	</tr>
 	</table>
 	
@@ -881,6 +888,7 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 </form>
 	</div>
 
+{% if email == False %}
 <div id="tabs-3" onClick="$("#tabs-3").append($("#t_workticket"));">
 </div>
 	
@@ -897,9 +905,11 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 <br>	
 <br>
 <a href=/client/search/> Пошук клієнта </a>
- 
-{% load poll_extras %}
+
 {% orm_debug %}
+{% endif %}
+ 
+
 
 
 
