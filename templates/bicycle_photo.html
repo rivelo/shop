@@ -1,6 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+{# <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
+
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script src="/media/jquery-ui.min.js"></script>
+
 
 <style>
 p {
@@ -13,13 +18,305 @@ p.thick {
     font-weight: bold;
 }
 
+  .custom-combobox {
+    position: relative;
+    display: inline-block;
+  }
+  .custom-combobox-toggle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin-left: -1px;
+    padding: 0;
+  }
+  .custom-combobox-input {
+    margin: 0;
+    padding: 5px 10px;
+  }
+
+  span:visited{ text-decoration:none; color:#293d6b; }
+  span:hover{ text-decoration:underline; color:#FFF; }
+  span {color:#293d6b; 
+  		cursor: pointer; 
+  		border-radius: 5px;
+  		color: #FFF;
+  		background-color: #4A4A4A;
+  		}
+  span.one {background-color: #5cb85c;
+  		}
+  span.two {background-color: #FF6600;
+  		}
+  div.box {//border-radius: 5px;
+  		   background-color: #bfbfbf;
+  		   font-size:200%;
+  		   margin: 80px 0px 0px;
+  }  		
+ 
 </style>
+
+<script>
+(function( $ ) {
+    $.widget( "custom.combobox", {
+      _create: function() {
+        this.wrapper = $( "<span>" )
+          .addClass( "custom-combobox" )
+          .insertAfter( this.element );
+ 
+        this.element.hide();
+        this._createAutocomplete();
+        this._createShowAllButton();
+      },
+ 
+      _createAutocomplete: function() {
+        var selected = this.element.children( ":selected" ),
+          value = selected.val() ? selected.text() : "";
+ 
+        this.input = $( "<input>" )
+          .appendTo( this.wrapper )
+          .val( value )
+          .attr( "title", "" )
+          .addClass( "custom-combobox-input ui-widget ui-widget-content ui-state-default ui-corner-left" )
+          .autocomplete({
+            delay: 0,
+            minLength: 0,
+            select: function( event, ui ){
+            $.getJSON("/worktype/price/", {id: $("select#id_work_type").val()}, function(data) {
+    			$('#id_price').val(data[0].price);
+			});
+            },
+            source: $.proxy( this, "_source" )
+          })
+          .tooltip({
+            tooltipClass: "ui-state-highlight"
+          });
+ 
+        this._on( this.input, {
+          autocompleteselect: function( event, ui ) {
+            ui.item.option.selected = true;
+            this._trigger( "select", event, {
+              item: ui.item.option
+            });
+          },
+ 
+          autocompletechange: "_removeIfInvalid"
+        });
+      },
+ 
+      _createShowAllButton: function() {
+        var input = this.input,
+          wasOpen = false;
+        $( "<a>" )
+          .attr( "tabIndex", -1 )
+          .attr( "title", "Show All Items" )
+          .tooltip()
+          .appendTo( this.wrapper )
+          .button({
+            icons: {
+              primary: "ui-icon-triangle-1-s"
+            },
+            text: false
+          })
+          .removeClass( "ui-corner-all" )
+          .addClass( "custom-combobox-toggle ui-corner-right" )
+          .mousedown(function() {
+            wasOpen = input.autocomplete( "widget" ).is( ":visible" );
+          })
+          .click(function() {
+            input.focus();
+ 
+            // Close if already visible
+            if ( wasOpen ) {
+              return;
+            }
+ 
+            // Pass empty string as value to search for, displaying all results
+            input.autocomplete( "search", "" );
+          });
+      },
+ 
+      _source: function( request, response ) {
+        var matcher = new RegExp( $.ui.autocomplete.escapeRegex(request.term), "i" );
+        response( this.element.children( "option" ).map(function() {
+          var text = $( this ).text();
+          if ( this.value && ( !request.term || matcher.test(text) ) )
+            return {
+              label: text,
+              value: text,
+              option: this
+            };
+        }) );
+      },
+ 
+      _removeIfInvalid: function( event, ui ) {
+ 
+        // Selected an item, nothing to do
+        if ( ui.item ) {
+          return;
+        }
+ 
+        // Search for a match (case-insensitive)
+        var value = this.input.val(),
+          valueLowerCase = value.toLowerCase(),
+          valid = false;
+        this.element.children( "option" ).each(function() {
+          if ( $( this ).text().toLowerCase() === valueLowerCase ) {
+            this.selected = valid = true;
+            return false;
+          }
+        });
+ 
+        // Found a match, nothing to do
+        if ( valid ) {
+          return;
+        }
+ 
+        // Remove invalid value
+        this.input
+          .val( "" )
+          .attr( "title", value + " didn't match any item" )
+          .tooltip( "open" );
+        this.element.val( "" );
+        this._delay(function() {
+          this.input.tooltip( "close" ).attr( "title", "" );
+        }, 2500 );
+        this.input.autocomplete( "instance" ).term = "";
+      },
+ 
+      _destroy: function() {
+        this.wrapper.remove();
+        this.element.show();
+      }
+    });
+  })( jQuery );
+  
+$(document).ready(function() {
+	$("#spec_form").hide();
+	
+	  $( "#s_type" ).autocomplete({
+	    	source: function( request, response ) {
+	        	$.ajax({
+	                type: "POST",
+	                url: "/category/lookup/",
+					data: { query: $("#s_type").val() },
+	                dataType: "json",
+	                success: function( data ) {
+	                        	response( $.map( data, function( item ) {
+	                            return {
+	                                label: item.pk + ": [" + item.fields.name + "] "+ item.fields.name_ukr,
+	                                value: item.fields.name,
+//	                                idid: item.fields.sale,
+	                                pk_id: item.pk                                
+	    							}
+	                        	}));                                
+	                            }
+	            })
+	        },
+	        minLength: 0,
+	        select: function( event, ui ) {
+		    	$('#s_type').val(ui.item.pk_id);
+//		    	$('#s_type').val(ui.item.pk_id);
+		    	$(this).attr('cat_id', ui.item.pk_id);
+	        },
+	        open: function() {
+	        	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+	        },
+	        close: function() {
+	        	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+	        }
+	    });
+
+	  $( "#s_catalog" ).autocomplete({
+	    	source: function( request, response ) {
+	        	$.ajax({
+	                type: "POST",
+	                url: "/catalog/lookup/",
+					data: { query: $("#s_catalog").val() , type: $("#s_type").attr('cat_id')},
+	                dataType: "json",
+	                success: function( data ) {
+	                        	response( $.map( data, function( item ) {
+	                            return {
+	                                label: item.pk + ": [" + item.fields.name + "] "+ item.fields.name_ukr,
+	                                value: item.fields.name,
+//	                                idid: item.fields.sale,
+	                                pk_id: item.pk                                
+	    							}
+	                        	}));                                
+	                            }
+	            })
+	        },
+	        minLength: 0,
+	        select: function( event, ui ) {
+		    	$('#s_catalog').val(ui.item.pk_id);
+//		    	$('#s_type').val(ui.item.pk_id);
+		    	$(this).attr('cat_id', ui.item.pk_id);
+	        },
+	        open: function() {
+	        	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+	        },
+	        close: function() {
+	        	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+	        }
+	    });
+	  
+});
+
+function clear_fields(){
+	$('#s_catalog').val('');
+	$('#s_name').val('');
+	$('#s_type').val('');
+	$('#s_description').val('');
+}
+
+function addpart(){
+	$.ajax({
+	    type: "POST",
+	    url: "{% url 'bikepart_add' %}",
+	    data: {id: {{bicycle.pk}}, s_cat_id:  $('#s_catalog').attr('cat_id'), s_name: $('#s_name').val(), s_type: $('#s_type').attr('cat_id'), s_desc: $('#s_description').val()},
+	    dataType : 'json',
+	    success:function(json){
+	    	if (json['status'] == true) {
+	    		$( "<p>Додано: " + $('#upload_youtube').val() + "</p>" ).insertAfter("#upload_youtube_button");
+	    		alert("Посилання додано. " + json['msg']);
+	    		$("#upload_youtube").val('')
+	   		    if (json['msg']) {
+	   		    	$("<p>[ "+ $('#s_type').val()+ " ]" + $('#s_catalog').val() + " - "+ $('#s_name').val() +"</p>").insertAfter("#spec_form");
+	   		    }
+	   		    else {
+	   		    	$("<p>[ "+ $('#s_type').val()+ " ]" + $('#s_catalog').val() + " - "+ $('#s_name').val() +"</p>").insertAfter("#spec_form");
+	   		    }
+	    		clear_fields();
+	    	}
+	   		else {
+	   			console.log('JSON = ' + json['error'] + ' STATUS = ' + json['status'] );
+	   		    alert("Помилка: " + json['error']);
+	   		    if (json['msg']) {
+//		    		se = $("#id_youtube_url").val()
+//		    		se.push(json['pk'])
+//		    		$("#id_youtube_url").val(se).prop("selected", true)
+	   		    	$("<p>[ "+ $('#s_type').val()+ " ]" + $('#s_catalog').val() + " - "+ $('#s_name').val() +"</p>").insertAfter("#spec_form");
+	   		    }
+	   		}
+	    },
+	    error:function(){
+	     alert("При отправке возникли проблемы");
+	    }
+	 });	
+	
+//	$("<p>[ "+ $('#s_type').val()+ " ]" + $('#s_catalog').val() + " - "+ $('#s_name').val() +"</p>").insertAfter("#spec_form");
+}
+
+function showdiv(){
+	 $("#spec_form").toggle();
+}
+</script>
 
 <h1><a href="{% url 'bicycle-edit' bicycle.id %}"> Велосипед {{bicycle.brand}} {{bicycle.model}} - {{bicycle.year.year}} року</a></h1>
 
 <br>
 
+{% if bicycle.photo %}
 <img src="/media/{{bicycle.photo}}"	alt="{{bicycle.brand}} {{bicycle.model}} {{bicycle.year}}" title=""	style="max-width: 1000px;"  />
+{% endif %}
 
 <br><br>
 	{% for item in bicycle.youtube_val %}
@@ -27,14 +324,50 @@ p.thick {
 	{% endfor %}
 <br>
 <p>
-<b>Специфікація:</b>
+<b>Специфікація: </b> <a onClick="showdiv()" >Додати запчастину</a>
 {{bicycle.description}}
 <br>
+
+{% for part in bicycle.bikeparts.all %}
+[{{part.type}}] {{part.name}} / {% if part.catalog %} <a href="http://rivelo.com.ua/component/{{part.catalog.pk}}/" >{{part.catalog}}</a> {% endif %}<br>
+{% endfor %}
+
+
+<div id="spec_form" style="color: red;">
+Форма для додавання запчастин до велосипеду:
+<br>
+<form id="f_bikepart" action="" method="POST" enctype="multipart/form-data"> 
+<label>Категорія:</label>
+<br>
+<input id="s_type" style="width: 400px;" />
+<br>
+<label>Назва запчастини:</label>
+<br>
+<input id="s_name" style="width: 400px;" />
+<br>
+<label>Каталог запчастин:</label>
+<br>
+<input id="s_catalog" style="width: 400px;" />
+<br>
+<label>Опис/примітки:</label>
+<br>
+<textarea cols="54" id="s_description" name="description" rows="10" size="400px"></textarea>
+<br>
+<button type="button" id='clear_part' onClick="clear_fields()">Очистити</button>
+<button type="button" id='add_part' onClick="addpart()">Додати</button>
+
+</form> 
+</div>
+<br>
+
+
+
 <b>Розмір колес:</b> {{bicycle.wheel_size}}"</p>
 
 <b>Ціна: {{bicycle.price|floatformat:"0"}} {{bicycle.currency}}</b>
 
 <br>
+
 {% comment %}
 YOUTUBE = 	{{bicycle.youtube_url.all}} <br>
 hash = {{bicycle.youtube_val}} <br> 

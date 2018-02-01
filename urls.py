@@ -66,6 +66,7 @@ urlpatterns = patterns('',
     url(r'^bicycle/delete/(?P<id>\d+)/$', 'catalog.accounting.views.bicycle_del'),
     url(r'^bicycle/photo/(?P<id>\d+)/$', 'catalog.accounting.views.bicycle_photo'),
     
+    url(r'^bicycle/part/add/$', 'catalog.accounting.views.bicycle_part_add' , name='bikepart_add'),
 #    url(r'^delete/(\d+)/$', 'catalog.accounting.views.multiuploader_delete'),
 #    url(r'^bicycle/view/list/$', 'catalog.accounting.views.image_view', name='main'),
 #    url(r'^multi/$', 'catalog.accounting.views.multiuploader', name='multi'),
@@ -206,6 +207,7 @@ urlpatterns = patterns('',
     url(r'^category/edit/(?P<id>\d+)$', 'catalog.accounting.views.category_edit'),
     url(r'^category/delete/(?P<id>\d+)$', 'catalog.accounting.views.category_del'),    
     url(r'^category/get/list/$', 'catalog.accounting.views.category_get_list'),
+    url(r'^category/lookup/$', 'catalog.accounting.views.category_lookup'),
 
     # Catalog operation
     url(r'^catalog/set/type/$', 'catalog.accounting.views.catalog_set_type'),
@@ -436,6 +438,10 @@ urlpatterns += patterns('',
     url(r'^photo/url/get/$', 'catalog.accounting.views.photo_url_get'),
     url(r'^catalog/photo/delete/$', 'catalog.accounting.views.photo_url_delete'),
     url(r'^catalog/photo/list/$', 'catalog.accounting.views.photo_list'),
+    
+    url(r'^youtube/list/$', 'catalog.accounting.views.youtube_list', name='youtube_list'),    
+    url(r'^youtube/(?P<id>\d+)/delete/$', 'catalog.accounting.views.youtube_delete'),
+    url(r'^youtube/add/$', 'catalog.accounting.views.youtube_url_add', name='youtube_add'),
     
     url(r'^workday/user/all/report/$', 'catalog.accounting.views.workday_list'),
     url(r'^workday/alluser/report/$', 'catalog.accounting.views.workday_ajax'),

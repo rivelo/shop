@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+    <h1>Youtube контент<a href="/youtube/add/">(Додати)</a></h1>
+    
+   <table border="1">
+	<tr>
+    	<th>#</th>
+    	<th>id</th>
+    	<th>Відео</th>
+		<th>Посилання</th>
+		<th>Опис</th>
+		<th>Дата</th>
+		<th>Користувач</th>    	
+		<th>Дія</th>
+    </tr>    
+    
+    
+    {% for v in tube_list %}
+    <tr>
+    	<td>
+            {{ forloop.counter }}
+        </td>
+
+    	<td>
+            {{ v.id }}
+        </td>
+    	<td>
+    		<iframe width="360" height="215" src="https://www.youtube.com/embed/{{v.youtube_hash}}?rel=0&amp;start=21" frameborder="0" gesture="media" allow="encrypted-media" allowfullscreen></iframe>
+        </td>
+    	<td align="center">
+    		<a href="{{ v.url }}"> {{ v.url }}	</a>
+    		<br>
+    		{% for bike in v.bicycle_set.all %}             
+    			{{ bike }} <br>
+    		{% endfor %}
+        </td>
+    	<td>
+            {{ v.description }}
+        </td>
+    	<td>
+            {{ v.date|date:"D d M Y / H:m" }}
+        </td>
+        <td align="center">
+            {{ v.user }}
+        </td>
+        <td>
+{% if user.is_authenticated %}        
+{#            <a href="/youtube/{{ v.id }}/edit/" onClick='return confirm("Ви дійсно бажаєте видалити запис?")' >edit</a> #}
+            <a href="/youtube/{{ v.id }}/delete/" onClick="return confirm('Ви дійсно бажаєте видалити запис?')">delete</a>
+{% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    <table>
+
+<br>

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.contrib import admin
-from catalog.accounting.models import Type, Size, Exchange, Manufacturer, Catalog, Country, Dealer, Currency, Rent, Wheel_Size, Bicycle_Storage, Bicycle_Photo, GroupType, YouTube, PhoneStatus
+from catalog.accounting.models import Type, Size, Exchange, Manufacturer, Catalog, Country, Dealer, Currency, Rent, Wheel_Size, Bicycle_Storage, Bicycle_Photo, GroupType, YouTube, PhoneStatus, Bicycle_Parts
 
 
 
@@ -113,6 +113,12 @@ class PhoneStatusAdmin(admin.ModelAdmin):
     pass 
 
 admin.site.register(PhoneStatus, PhoneStatusAdmin)
+
+
+class Bicycle_PartsAdmin(admin.ModelAdmin):
+    pass
+admin.site.register(Bicycle_Parts, Bicycle_PartsAdmin)
+
 
 
 

@@ -154,12 +154,15 @@
 	<li><a href="#">Довідники</a>
 		<ul>
 			<li><a href="/country/view/">Країни</a></li>
-			<li><a href="/bank/view/">Банки</a></li>
-			<li><a href="/curency/view/">Валюти</a></li>
-			<li><a href="/exchange/view/">Курс Валют</a></li>			
+			<li><a href="/exchange/view/">Курс Валют</a></li>
 			<li><a href="/manufacturer/view/">Виробники</a></li>
 			<li><a href="/catalog/photo/list/">Фотографії товарів</a></li>
+			<li><a href="/youtube/list/">Youtube контент</a></li>
+{% if perms.accounting.add_preorder %}				
+			<li><a href="/bank/view/">Банки</a></li>
+			<li><a href="/curency/view/">Валюти</a></li>
 			<li><a href="/cashtype/view/">Варіанти оплат</a></li>
+{% endif %}			
 		</ul>
 	</li>
 

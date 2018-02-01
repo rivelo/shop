@@ -17,16 +17,34 @@ function myFunction() {
 function youtube_upload() {
 	$.ajax({
 	    type: "POST",
-	    	url: "/bicycle/set/youtube/",
-	    	data: {ids:  inv_ids},
-	    	dataType: "text",
-	    success:function(msg){
-	    	if (msg == "ok"){
-	    		alert("Товари видалено");
+	    url: "{% url 'youtube_add' %}",
+	    data: {id:  {{ form.instance.pk }}, upload_youtube: $("#upload_youtube").val()},
+	    dataType : 'json',
+	    success:function(json){
+	    	if (json['status'] == true) {
+	    		$( "<p>Додано: " + $('#upload_youtube').val() + "</p>" ).insertAfter("#upload_youtube_button");
+	    		alert("Посилання додано. " + json['msg']);
+	    		$("#upload_youtube").val('')
+	   		    if (json['msg']) {
+		    		se = $("#id_youtube_url").val()
+		    		se.push(json['pk'])
+		    		$("#id_youtube_url").val(se).prop("selected", true)
+	   		    }
+	   		    else {
+		    		$('#id_youtube_url').append('<option value="'+ json['pk'] +'" selected="selected">' + json['url'] + '</option>');
+	   		    }
+	    		
 	    	}
-	   	else {
-	   		alert("Помилка: " + msg);
-	   	}
+	   		else {
+	   			console.log('JSON = ' + json['error'] + ' STATUS = ' + json['status'] );
+	   		    alert("Помилка: " + json['error']);
+	   		    if (json['msg']) {
+		    		se = $("#id_youtube_url").val()
+		    		se.push(json['pk'])
+		    		$("#id_youtube_url").val(se).prop("selected", true)
+//	   		    	$('#id_youtube_url').append('<option value="'+ json['pk'] +'" selected="selected">' + json['url'] + '</option>');
+	   		    }
+	   		}
 	    },
 	    error:function(){
 	     alert("При отправке возникли проблемы");
@@ -46,7 +64,7 @@ function youtube_upload() {
 <label>Add YouTube link:</label>
 
 <input name="upload_youtube" id="upload_youtube" type="text" size="100">
-<button type="button" onclick="myFunction()">Додати посилання</button>
+<button type="button" onclick="youtube_upload()" id="upload_youtube_button">Додати посилання</button>
 
 <p><input type="submit" value="Save"></p>
 

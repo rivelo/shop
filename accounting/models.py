@@ -9,6 +9,8 @@ from django.db.models.aggregates import Avg
 from datetime import datetime
 from django.db.models import F
 
+from urlparse import urlparse,parse_qs,urlunparse
+from urllib import urlencode
 
 # Group Type = Group for Component category 
 class GroupType(models.Model):
@@ -147,6 +149,18 @@ class YouTube(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     description = models.TextField(blank=True, null=True)
+
+    def youtube_hash(self):
+        #qs = self.youtube_url
+        try:
+            qs = self.url
+            pars = parse_qs(urlparse(qs).query)
+            if pars:
+                return pars['v'][0]
+            else:
+                return qs.split('/')[3]
+        except:
+            return 'youtube url not found'
     
     def __unicode__(self):
         return u'%s' % self.url
@@ -185,9 +199,10 @@ class Catalog(models.Model):
 #    models.ManyToManyField() # field like sizechart, field to shoes
 #    bike_style = models.ManyToManyField()  cyclocross, crosscountry, road, gravel ...
 #    season = winter, summer, ...
-#    full_description = models.TextField(blank=True, null=True)
-#    youtube_link
+    full_description = models.TextField(blank=True, null=True)
+    youtube_url = models.ManyToManyField(YouTube, blank=True, null=True)
 #    наявність у постачальника
+    date = models.DateField(null=True, blank=True) #Строк придатності
 
     def get_saleprice(self):
         percent_sale = (100-self.sale)*0.01
@@ -646,16 +661,16 @@ class Wheel_Size(models.Model):
 
 #Bicycle parts table
 class Bicycle_Parts(models.Model):
-    name = models.CharField(max_length=255)
-    catalog = models.ForeignKey(Catalog, blank=True)
-    type = models.ForeignKey(Type) #kids, 26, 29 ...
+    name = models.CharField(max_length=255, blank=True)
+    catalog = models.ForeignKey(Catalog, null=True, blank=True)
+    type = models.ForeignKey(Type) #frame, bar, wheel ...
     description = models.TextField(blank=True, null=True)
 
     def __unicode__(self):
-        return u'%s [%s]' % (self.name, self.catalog)
+        return u'[%s] %s / %s' % (self.type, self.name, self.catalog)
 
     class Meta:
-        ordering = ["type"]    
+        ordering = ["type__bike_order"]    
 
 
 # Bicycle table (Bicycle)
@@ -693,10 +708,14 @@ class Bicycle(models.Model):
             qs = self.youtube_url.all()
 #            q = qs.all()
             for i in qs:
-               #res.append(i.url.split('/')[3])
-               res.append(i.url.split('?v=')[1])
+                pars = parse_qs(urlparse(i.url).query)
+                if pars:
+                    res.append(pars['v'][0])
+                else:
+                    res.append(i.url.split('/')[3])
+               #res.append(i.url.split('?v=')[1])
             return res 
-            return qs #self.youtube_url.split('/') #[3]
+            #return qs #self.youtube_url.split('/') #[3]
         except:
             return 'test None'
         

@@ -2,11 +2,11 @@
 from django.db.models import Q
 from django.db.models import F
 from django.db import connection
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.core.urlresolvers import resolve
 
-from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,  FrameSize, Bicycle_Store, Bicycle_Sale, Bicycle_Order, Bicycle_Storage, Bicycle_Photo, Storage_Type
+from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,  FrameSize, Bicycle_Store, Bicycle_Sale, Bicycle_Order, Bicycle_Storage, Bicycle_Photo, Storage_Type, Bicycle_Parts
 from forms import ContactForm, ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm, BicycleStorage_Form, StorageType_Form 
 
 from models import Catalog, Client, ClientDebts, ClientCredits, ClientInvoice, ClientOrder, ClientMessage, ClientReturn, InventoryList
@@ -48,6 +48,9 @@ from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from urlparse import urlsplit
 from django.db.models import F
+from django.http import JsonResponse
+from django.core.context_processors import request
+from _mysql import NULL
 
 
 def custom_proc(request):
@@ -450,6 +453,85 @@ def processUploadedImage(file, dir=''):
 #     
 #===============================================================================
 
+def bicycle_part_add(request):
+    if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
+        response = JsonResponse({'error': "У вас не вистачає повноважень або ви не авторизувались в системі"})
+        return response
+    a = None
+    bp = None
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if (POST.has_key('s_cat_id') or POST.has_key('s_name')) and POST.has_key('s_type') and POST.has_key('id'):                
+                bid = request.POST['id']
+                cat_id = None
+                if POST.has_key('s_cat_id'):
+                    cat_id = request.POST['s_cat_id']
+                s_name = request.POST['s_name']
+                s_type = request.POST['s_type']
+                s_desc = request.POST['s_desc']
+                d = {}
+                if s_name or cat_id:
+                    try:
+                        bp_name = None
+                        a = Bicycle.objects.get(pk = bid)
+                        if s_name:
+                            bp_name = s_name
+                            bp = Bicycle_Parts.objects.filter(type = s_type).get(name = bp_name)
+                        print "OBJECT = " + str(bp_name) + "CAT id = " + str(cat_id)
+                        if cat_id:
+                            bp_name = cat_id
+                            bp = Bicycle_Parts.objects.filter(type = s_type).get(catalog = bp_name)
+                        print "OBJECT = " + str(bp_name)
+                        #    bp = Bicycle_Parts.objects.filter(type = s_type).get(catalog = bp_name)
+                        a.bikeparts.add(bp)
+                        a.save()
+                        d['pk'] = bp.pk
+                        d['cat'] = str(bp.catalog)
+                        d['type'] = str(bp.type)
+                        d['status'] = True
+                        d['msg'] = 'Такий компонент вже існує.'
+                        d['error'] = 'Такий компонент вже існує. Вибрати його?'
+                    except Bicycle_Parts.DoesNotExist:
+                        print "CAT = " + str(cat_id)
+                        catalog = None
+                        type = None
+                        if s_type:
+                            type = Type.objects.get(pk = s_type)
+                        else:
+                            d['status'] = False
+                        if cat_id:
+                            catalog = Catalog.objects.get(pk = cat_id)
+                            bp = Bicycle_Parts.objects.create(name = s_name, catalog = catalog, type = type, description = s_desc)
+                            d['status'] = True
+                        else:
+                            catalog = Catalog
+                            bp = Bicycle_Parts.objects.create(name = s_name, type = type, description = s_desc)
+                            d['status'] = True
+                            
+                        #bp = Bicycle_Parts.objects.create(name = s_name, catalog = catalog, type = type, description = s_desc)
+                        a.bikeparts.add(bp)
+                        a.save()
+                        #d['status'] = True
+                        d['pk'] = bp.pk
+                        d['cat'] = str(bp.catalog)
+                        d['type'] = str(bp.type)
+                        d['desc'] = bp.description
+                    except Bicycle.DoesNotExist:
+                        d['status'] = False
+                        d['error'] = "такого велосипеду не існує"
+                    except Bicycle_Parts.MultipleObjectsReturned:
+                        d['status'] = False
+                        d['error'] = "Таких компонентів є більше ніж один. Видаліть дублікати."
+            else:
+                response = JsonResponse({'error': "Невірні параметри запиту"})
+                return response
+    
+            response = JsonResponse(d)
+            return response            
+    
+
+
 def bicycle_add(request):
     if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
         return HttpResponseRedirect('/bicycle/view/')
@@ -469,7 +551,11 @@ def bicycle_add(request):
             description = form.cleaned_data['description']
             sale = form.cleaned_data['sale']
             offsite_url = form.cleaned_data['offsite_url']
-            photo = form.cleaned_data['photo']            
+            photo = form.cleaned_data['photo']  
+            wheel_size = form.cleaned_data['wheel_size']
+            country_made = form.cleaned_data['country_made']
+            rating = form.cleaned_data['rating']
+                      
             folder = year.year
             upload_path_p = ''
             if photo == None:
@@ -518,10 +604,7 @@ def bicycle_edit(request, id):
                         y = YouTube.objects.get(url = url_youtube)
                         a.youtube_url.add(y)
                         a.save()
-                        #return HttpResponse("Youtube added ", content_type="text/plain;charset=UTF-8")
-                    #+ a.youtube_url_set.all()
-                    except:
-                        #return HttpResponse("ERROR / " + url_youtube, content_type="text/plain;charset=UTF-8")
+                    except YouTube.DoesNotExist:
                         add_tube = YouTube.objects.create(url = url_youtube, user = request.user)
                         a.youtube_url.add(add_tube)
                         a.save()
@@ -2006,7 +2089,6 @@ def invoicecomponent_sum(request):
         # If page is out of range (e.g. 9999), deliver last page of results.
         catalog = paginator.page(paginator.num_pages)
         
-        
     return render_to_response('index.html', {'allpricesum':psum, 'countsum': scount, 'counter': counter, 'catalog': catalog, 'weblink': 'invoicecomponent_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -2245,8 +2327,22 @@ def category_get_list(request):
 #    list = {'E':'Letter E','F':'Letter F','G':'Letter G', 'selected':'F'}
     json = simplejson.dumps(dictionary)
     return HttpResponse(json, content_type='application/json')
+
    
-#    return render_to_response('index.html', {'categories': list, 'weblink': 'category_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+def category_lookup(request):
+    data = None
+    if request.is_ajax():
+        if request.method == "POST":
+            if request.POST.has_key(u'query'):
+                value = request.POST[u'query']
+                if len(value) > 2:
+                    model_results = Type.objects.filter(Q(name__icontains = value) | Q(name_ukr__icontains = value)).order_by('name')
+                    data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name'), use_natural_keys=False)
+                else:
+                    model_results = Type.objects.all().order_by('name')
+                    data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name'), use_natural_keys=False)                    
+#                    data = []
+    return HttpResponse(data)                
 
 
 def category_add(request):
@@ -2663,6 +2759,7 @@ def catalog_search_result(request):
 
 def catalog_lookup(request):
     # Default return list
+    data = None
     results = []
     if request.method == "GET":
         if request.GET.has_key(u'query'):
@@ -2674,6 +2771,17 @@ def catalog_lookup(request):
 #                results = [ x.name for x in model_results ]
 #    json = simplejson.dumps(results)
                 data = serializers.serialize("json", model_results, fields=('name','id', 'ids', 'price'))
+
+    if request.is_ajax():
+        if request.method == "POST":
+            if request.POST.has_key(u'query') and request.POST.has_key(u'type'):
+                value = request.POST[u'query']
+                type_id = request.POST[u'type']
+
+                if len(value) > 2:
+                    model_results = Catalog.objects.filter(name__icontains=value, type = type_id)
+                    data = serializers.serialize("json", model_results, fields=('name','id', 'ids', 'price'))
+                
     return HttpResponse(data)    
     #return HttpResponse(json)
 
@@ -6816,6 +6924,97 @@ def check_delete(request, id):
     del_logging(obj)
     obj.delete()
     return HttpResponseRedirect('/check/list/now/')
+
+
+def youtube_list(request):
+    tube = None
+    list = YouTube.objects.all() #filter(count__gt=0).values('id', 'name', 'count', 'price')
+    paginator = Paginator(list, 25)
+    page = request.GET.get('page')
+    if page == None:
+        page = 1
+    try:
+        tube = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        tube = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        tube = paginator.page(paginator.num_pages)
+        
+    return render_to_response('index.html', {'tube_list': tube, 'weblink': 'youtube_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def youtube_delete(request, id):
+    obj = YouTube.objects.get(id=id)
+    del_logging(obj)
+    obj.delete()
+    return redirect('youtube_list')
+    #return redirect('post_details', id=post_id)
+    # equivalent to: return HttpResponseRedirect(reverse('post_details', args=(post_id, )))
+
+
+def youtube_url_add(request, id=None):
+    a = None
+    add_tube = None
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'seller')==False:
+                return HttpResponse('Error: У вас не має прав для редагування')
+            POST = request.POST  
+            #if POST.has_key('ids'):
+            if POST.has_key('id') and POST.has_key('upload_youtube'):                
+                id = request.POST['id']
+                url_youtube = request.POST.get('upload_youtube')
+                d = {}
+                if url_youtube :
+                    try:
+                        a = Bicycle.objects.get(pk = id)
+                        y = YouTube.objects.get(url = url_youtube)
+                        a.youtube_url.add(y)
+                        a.save()
+                        d['pk'] = y.pk
+                        d['url'] = y.url
+                        d['status'] = True
+                        d['msg'] = 'Такий ролик вже існує.'
+                        d['error'] = 'Такий ролик вже існує.'
+#                        response = JsonResponse({'error': "Дане відео вже існує", 'pk': y.pk, 'url': u.url})
+#                        return response
+                    except YouTube.DoesNotExist:
+                        add_tube = YouTube.objects.create(url = url_youtube, user = request.user)
+                        a.youtube_url.add(add_tube)
+                        a.save()
+                        d['status'] = True
+                        d['pk'] = add_tube.pk
+                        d['url'] = add_tube.url
+                        
+                    except Bicycle.DoesNotExist:
+                        d['status'] = False
+                        d['error'] = "такого велосипеду не існує"
+                        
+                    except YouTube.MultipleObjectsReturned:
+                        d['status'] = False
+                        d['error'] = "Таких роликів є більше ніж один. Видаліть дублікати."
+                        
+            else:
+                response = JsonResponse({'error': "Невірні параметри запиту"})
+                return response
+                #result = "Невірні параметри запиту"
+                #return HttpResponse(result, content_type="text/plain")
+            
+            #d = {}
+            #d['status'] = 'ok'
+#            d['pk'] = add_tube.pk
+#            d['url'] = add_tube.url
+            response = JsonResponse(d)
+            return response
+#            json = simplejson.dumps(dictionary)
+#            return HttpResponse(json, content_type='application/json')            
+                
+            #result = "ok"
+            #return HttpResponse(result, content_type="text/plain")
+
+
 
 def send_workshop_sound(request):
     base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"

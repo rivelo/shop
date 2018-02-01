@@ -136,9 +136,7 @@ cursor: pointer;
             .jssorb01 div:hover, .jssorb01 .av:hover { background-color: #d3d3d3; }
             .jssorb01 .av { background-color: #fff; }
             .jssorb01 .dn, .jssorb01 .dn:hover { background-color: #555555; }
-</style>
 
-  <style>
             /* jssor slider arrow navigator skin 03 css */
             /*
             .jssora03l                  (normal)
@@ -216,8 +214,8 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {
             minLength: 0,
             select: function( event, ui ) {
             	$("#c_c").html("(Завантажується..." + ui.item.value + ")");
-            	console.log("SELECT = " + ui.item.option.value);
-            	console.log("SELECT VALUE = " + ui.item.value);
+//            	console.log("SELECT = " + ui.item.option.value);
+//            	console.log("SELECT VALUE = " + ui.item.value);
             	window.location.href = ui.item.option.value;
             },
             source: $.proxy( this, "_source" )
