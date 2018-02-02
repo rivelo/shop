@@ -15,24 +15,35 @@ c9 = 0;
 $('.client_4').each(function() { 
 	c4 += parseFloat($(this).attr('val')); 
 })
-$('.client_5').each(function() { 
+$('.client_11').each(function() { 
 	c5 += parseFloat($(this).attr('val')); 
 })
-$('.client_7').each(function() { 
+$('.client_12').each(function() { 
 	c7 += parseFloat($(this).attr('val')); 
 })
 $('.client_8').each(function() { 
 	c8 += parseFloat($(this).attr('val')); 
 })
-$('.client_9').each(function() { 
+$('.client_13').each(function() { 
 	c9 += parseFloat($(this).attr('val')); 
 })
 
+$('.user').each(function() { 
+	console.log("USER id = "  + parseFloat($(this).attr('uid')) )
+	var id = parseFloat($(this).attr('uid'));
+	var cl = 0;
+	$('.cl_'+id).each(function() { 
+		cl += parseFloat($(this).html()); 
+	})	
+	console.log("SUM = "  + cl )
+	$('#zsum_'+id).html(cl.toFixed(2).toString() + ' грн.');
+})
+
 $('#client_4').html(c4.toFixed(2).toString() + ' грн.');
-$('#client_5').html(c5.toFixed(2).toString() + ' грн.');
-$('#client_7').html(c7.toFixed(2) + ' грн.');
+$('#client_11').html(c5.toFixed(2).toString() + ' грн.');
+$('#client_12').html(c7.toFixed(2) + ' грн.');
 $('#client_8').html(c8.toFixed(2) + ' грн.');
-$('#client_9').html(c9.toFixed(2) + ' грн.');
+$('#client_13').html(c9.toFixed(2) + ' грн.');
 
 });    
 </script>
@@ -70,7 +81,7 @@ $('#client_9').html(c9.toFixed(2) + ' грн.');
     </tr>
  
 {% for element in workshop %}
-<tr class='client_{{element.user}}' val='{{element.total_price|mul:0.4}}'>	
+<tr class='client_{{element.user}}' val='{{element.total_price|mul:0.5}}'>	
 	<td>
 	{{element.user}}       
 	</td>
@@ -81,8 +92,9 @@ $('#client_9').html(c9.toFixed(2) + ' грн.');
 	{{element.total_price}}
 	</td>
 	<td>
-	{{element.total_price|mul:0.4}}
+	{{element.total_price|mul:0.5}}
 	</td>
+</tr>	
 {% endfor %}
 
 <tr>
@@ -118,6 +130,7 @@ $('#client_9').html(c9.toFixed(2) + ' грн.');
 	<td>
 	{{element.total_price|mul:0.05}}
 	</td>
+</tr>
 {% endfor %}
 
 <tr>
@@ -153,6 +166,7 @@ $('#client_9').html(c9.toFixed(2) + ' грн.');
 	<td>
 	{{element.total_price|mul:0.05}}
 	</td>
+</tr>	
 {% endfor %}
 
 <tr>
@@ -177,14 +191,14 @@ $('#client_9').html(c9.toFixed(2) + ' грн.');
     	<td id='client_4'> </td>
     </tr>
     <tr>
-    	<td>5</td>
-    	<td>uch</td>
-    	<td id='client_5'> </td>
+    	<td>11</td>
+    	<td>andrey78</td>
+    	<td id='client_11'> </td>
     </tr>
     <tr>
-    	<td>7</td>
-    	<td>vadymyr</td>
-    	<td id='client_7'> </td>
+    	<td>13</td>
+    	<td>Anya</td>
+    	<td id='client_13'> </td>
     </tr>
     <tr>
     	<td>8</td>
@@ -192,10 +206,69 @@ $('#client_9').html(c9.toFixed(2) + ' грн.');
     	<td id='client_8'> </td>
     </tr>
     <tr>
-    	<td>9</td>
-    	<td>liza</td>
-    	<td id='client_9'> </td>
+    	<td>12</td>
+    	<td>Yana</td>
+    	<td id='client_12'> </td>
     </tr>
     
 </table>
+
+<br>    
+USER COUNT = {{ll}} <br>
+BIKES = {{qwsum}} <br> 
+
+{# RES = {{res}} <br> #}
+<table>
+<tr>
+<th ROWSPAN="2">id</th>
+<th ROWSPAN="2">user</th>
+<th COLSPAN="2">Майстерня</th>
+<th COLSPAN="4">Магазин</th>
+<th COLSPAN="3">Велосипеди</th>
+<th ROWSPAN="2">Загальна сума</th>
+</tr>
+<tr>
+		<th align="center" >Заг.сума</th>
+    	<th align="center" >50%</th>
+    	<th align="center" >Заг.сума</th>
+    	<th align="center" >5%</th>
+    	<th align="center" >3%</th>
+    	<th align="center" >2%</th>
+    	<th align="center" >Заг.сума</th>
+    	<th align="center" >user 5%</th>
+    	<th align="center" >порівно</th>
+</tr>
+{% for item in res.items %}
+<tr class='user' uid="{{item.1.client_inv.0.user}}">
+{# *** {{item.1.client_inv.0.user}} - {{item.1.client_inv.0.user__username}}<br> #}
+<td>{{item.1.client_inv.0.user}}</td>
+<td>{{item.1.client_inv.0.user__username}}</td>
+{% if  item.1.workshop.0.total_price %}
+<td align="center">{{item.1.workshop.0.total_price|floatformat:0}} </td>
+<td align="center" class='cl_{{item.1.client_inv.0.user}}'> {{item.1.workshop.0.total_price|mul:0.5|floatformat:0}}</td>
+{% else %}
+<td></td><td></td>
+{% endif %}
+{% if item.1.client_inv.0.total_price %}
+<td align="center">{{item.1.client_inv.0.total_price|floatformat:0}}</td> <td align="center" class='cl_{{item.1.client_inv.0.user}}'> {{item.1.client_inv.0.total_price|mul:0.05|floatformat:0}}</td> <td align="center"> {{item.1.client_inv.0.total_price|mul:0.03|floatformat:0}} </td> <td align="center"> {{item.1.client_inv.0.total_price|mul:0.02|floatformat:0}}</td>
+{% else %}
+<td></td><td></td><td></td><td></td>
+{% endif %}
+{% if  item.1.bicycle.0.total_price %}
+<td align="center">{{item.1.bicycle.0.total_price|floatformat:0}}</td><td align="center">{{item.1.bicycle.0.total_price|mul:0.05|floatformat:0}}</td><td align="center" class='cl_{{item.1.client_inv.0.user}}'>{{qwsum|floatformat:0}}</td>
+{% else %}
+<td></td><td></td><td align="center" class='cl_{{item.1.client_inv.0.user}}'>{{qwsum|floatformat:0}}</td>
+{% endif %}
+<td id='zsum_{{item.1.client_inv.0.user}}' align="center"></td>
+{% comment %}
+*** WorkShop [{{item.1.workshop.0.user}}] {{item.1.workshop.0.user__username}} - {{item.1.workshop.0.total_price}}грн. / {{item.1.workshop.0.total_price|mul:0.5}}грн.<br>
+*** CL_INV [{{item.1.client_inv.0.user}}] {{item.1.client_inv.0.user__username}} - {{item.1.client_inv.0.total_price}}грн. / {{item.1.client_inv.0.total_price|mul:0.05}}грн. / {{item.1.client_inv.0.total_price|mul:0.03}}грн. / {{item.1.client_inv.0.total_price|mul:0.02}}грн.<br>
+*** Bicycle [{{item.1.bicycle.0.user}}] {{item.1.bicycle.0.user__username}} - {{item.1.bicycle.0.total_price}}грн.<br>
+{% endcomment %}
+</tr>
+{% endfor %}
+
+</table>    
+
+<br>    
     

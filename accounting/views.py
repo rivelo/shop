@@ -4588,13 +4588,13 @@ def shop_price_print_add(request, id=None):
     if request.is_ajax():
         if auth_group(request.user, 'seller')==False:
             return HttpResponse('Error: У вас не має прав для редагування')
-        if request.method == 'GET':  
-            GET = request.GET  
-            if GET.has_key('id'):
-                q = request.GET.get( 'id' )
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('id'):
+                q = request.POST.get( 'id' )
                 s = 1 
-                if GET.has_key('scount'):
-                    s = request.GET.get( 'scount' )
+                if POST.has_key('scount'):
+                    s = request.POST.get( 'scount' )
                 ids = q.split(',')
                 if len(ids) > 1:
                     for i in ids:
@@ -4629,9 +4629,9 @@ def shop_price_print_add(request, id=None):
 #    return render_to_response('manual_price_list.html', {'price_list': list})    
 
 
-def shop_price_print_view(request):
-    list = ShopPrice.objects.all().order_by("user")
-    return render_to_response('manual_price_list.html', {'price_list': list, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))    
+#def shop_price_print_view(request):
+#    list = ShopPrice.objects.all().order_by("user")
+#    return render_to_response('manual_price_list.html', {'price_list': list, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
 def shop_price_qrcode_print_view(request):
@@ -4639,10 +4639,26 @@ def shop_price_qrcode_print_view(request):
     return render_to_response('manual_qrcode_price_list.html', {'price_list': list, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
-def shop_price_print_list(request):
-    list = ShopPrice.objects.all().order_by("user", "date", "catalog__manufacturer")
+def shop_price_print_list(request, pprint=False):
+    list = ShopPrice.objects.all().order_by("-catalog__sale", "user", "date", "catalog__manufacturer")
+    plist = None
+    paginator = Paginator(list, 330)
+    page = request.GET.get('page')
+    if page == None:
+        page = 1
+    try:
+        plist = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        plist = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        plist = paginator.page(paginator.num_pages)
+            
 #    return render_to_response('mtable_pricelist.html', {'price_list': list}, context_instance=RequestContext(request, processors=[custom_proc]))
-    return render_to_response('index.html', {'weblink': 'mtable_pricelist.html', 'price_list': list}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    if pprint:
+        return render_to_response('manual_price_list.html', {'price_list': plist, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'weblink': 'mtable_pricelist.html', 'price_list': plist}, context_instance=RequestContext(request, processors=[custom_proc]))    
     
 
 def shop_price_print_delete_all(request):
@@ -4651,10 +4667,23 @@ def shop_price_print_delete_all(request):
 #    return render_to_response('manual_price_list.html', {'price_list': list, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
-def shop_price_print_delete(request, id):
-    obj = ShopPrice.objects.get(id=id)
-    del_logging(obj)
-    obj.delete()
+def shop_price_print_delete(request, id=None):
+    if auth_group(request.user, 'seller')==False:
+        return HttpResponse('Error: У вас не має прав для редагування')
+    
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('id'):
+                q = request.POST.get( 'id' )
+                obj = ShopPrice.objects.get(id=q)
+                del_logging(obj)
+                obj.delete()
+                return HttpResponse("Виконано", content_type="text/plain")
+    else:
+        obj = ShopPrice.objects.get(id=id)
+        del_logging(obj)
+        obj.delete()
     return HttpResponseRedirect('/shop/price/print/list/')
 
 
@@ -5607,15 +5636,14 @@ def catalog_saleform(request):
 from django.contrib.auth.models import User
 
 def user_invoice_report(request, month=None, year=None, day=None, user_id=None):
-    #user_id = 5; #choper
-    #user_id = 6; #andre
-    #user_id = 4; #ygrik
-    #user_id = 7; #Vadymyr
+    userid = None
+    if user_id:
+        user_id = user_id
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated() and user_id == None:
         user_id = request.user.id
-    else:
-        user_id = None
+#    else:
+#        user_id = None
     
     if year == None:
         year = datetime.datetime.now().year
@@ -5657,16 +5685,9 @@ def user_invoice_report(request, month=None, year=None, day=None, user_id=None):
 
 
 def user_workshop_report(request, month=None, year=None, day=None, user_id=None):
-    #user_id = 5; #choper
-    #user_id = 6; #andre
-    #user_id = 4; #ygrik
-    #user_id = 7; #Vadymyr
-
-    if request.user.is_authenticated():
+    if request.user.is_authenticated() and user_id == None:
+#    if request.user.is_authenticated():
         user_id = request.user.id
-        #user_id = 4;
-    else:
-        user_id = None
     
     if year == None:
         year = datetime.datetime.now().year
@@ -5707,7 +5728,11 @@ def user_workshop_report(request, month=None, year=None, day=None, user_id=None)
     return render_to_response('index.html', {'sel_user':user, 'sel_year':year, 'sel_month':month, 'sel_day':day, 'month_days':days, 'workshop': cinvoices, 'sumall':psum, 'sum_salary':psum*0.4, 'countall':scount, 'weblink': 'report_workshop_byuser.html', 'view': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def all_user_salary_report(request, month=None, year=None, day=None):
+def all_user_salary_report(request, month=None, year=None, day=None, user_id=None):
+    qwsum = None
+    res = None
+    l = 0
+    users = User.objects.filter(is_active = True).order_by('id')
    
     if year == None:
         year = datetime.datetime.now().year
@@ -5718,17 +5743,43 @@ def all_user_salary_report(request, month=None, year=None, day=None):
         day = datetime.datetime.now().day
         w_list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username', 'user').annotate(total_price=Sum('price'))
         c_list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum'))
-        b_list = Bicycle_Sale.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum'))        
+        b_list = Bicycle_Sale.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum'))
     else:
         if day == 'all':
             w_list = WorkShop.objects.filter(date__year=year, date__month=month).values('user', 'user__username', 'user').annotate(total_price=Sum('price'))
             c_list = ClientInvoice.objects.filter(date__year=year, date__month=month).values('user', 'user__username').annotate(total_price=Sum('sum'))
             b_list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).values('user', 'user__username').annotate(total_price=Sum('sum'))
+            qwsum = WorkShop.objects.filter(date__year=year, date__month=month, user__in = users).values('user', 'user__username', 'user').annotate(total_price=Sum('price')).order_by('user')
+            qcsum = ClientInvoice.objects.filter(date__year=year, date__month=month, user__in = users).values('user', 'user__username').annotate(total_price=Sum('sum'))
+            qbsum = Bicycle_Sale.objects.filter(date__year=year, date__month=month, user__in = users).values('user', 'user__username').annotate(total_price=Sum('sum'))
+            qbsum1 = Bicycle_Sale.objects.filter(date__year=year, date__month=month, user__in = users).exclude(user=4).aggregate(total_price=Sum('sum'))
+            
+            d = {}
+            for u in users:
+                t = []
+                dic = {}
+                t.append(qwsum.filter(user = u.id))
+                dic['workshop'] = qwsum.filter(user = u.id)
+                t.append(qcsum.filter(user = u.id))
+                dic['client_inv'] = qcsum.filter(user = u.id)
+                t.append(qbsum.filter(user = u.id))
+                dic['bicycle'] =  qbsum.filter(user = u.id)
+                if dic['workshop'].count() == 0 and dic['client_inv'].count() == 0 and dic['bicycle'].count() == 0:
+                    print 'EMPTY ' +  str(type(dic['workshop'])) + str(dic['client_inv']) + str(dic['bicycle'])
+                else:
+                    #print 'DICT = ' + str(dic['workshop'].count()) + str(dic['client_inv'].count()) + str(dic['bicycle'].count())
+                    d[u.id] = dic
+            res = d
+            l = len(res)
+            qbsum1 = qbsum1['total_price'] * 0.05 / l
         else:
             w_list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username', 'user').annotate(total_price=Sum('price'))
             c_list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum'))
             b_list = Bicycle_Sale.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum'))
-    
+
+#    user_list = User.objects.filter(is_active = True)
+#    request.user.points_set.all()
+
     bsum = 0
     csum = 0
     wsum = 0
@@ -5738,9 +5789,8 @@ def all_user_salary_report(request, month=None, year=None, day=None):
         csum = csum + c['total_price']
     for w in w_list:
         wsum = wsum + w['total_price']
-
     
-    return render_to_response('index.html', {'sel_year':year, 'sel_month':month, 'workshop':w_list, 'cinvoice': c_list, 'bicycle_list':b_list, 'bike_sum': bsum, 'c_sum': csum, 'w_sum': wsum, 'weblink': 'report_salary_all_user.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'sel_year':year, 'sel_month':month, 'workshop':w_list, 'cinvoice': c_list, 'bicycle_list':b_list, 'qwsum': qbsum1,  'll':l, 'res': res, 'bike_sum': bsum, 'c_sum': csum, 'w_sum': wsum, 'weblink': 'report_salary_all_user.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def rent_add(request):
@@ -6965,7 +7015,7 @@ def youtube_url_add(request, id=None):
             #if POST.has_key('ids'):
             if POST.has_key('id') and POST.has_key('upload_youtube'):                
                 id = request.POST['id']
-                url_youtube = request.POST.get('upload_youtube')
+                url_youtube = request.POST['upload_youtube']
                 d = {}
                 if url_youtube :
                     try:
@@ -6995,25 +7045,44 @@ def youtube_url_add(request, id=None):
                     except YouTube.MultipleObjectsReturned:
                         d['status'] = False
                         d['error'] = "Таких роликів є більше ніж один. Видаліть дублікати."
+
+            if POST.has_key('c_id') and POST.has_key('upload_youtube'):
+                id = request.POST['c_id']
+                url_youtube = request.POST['upload_youtube']
+                d = {}
+                if url_youtube :
+                    try:
+                        a = Catalog.objects.get(pk = id)
+                        y = YouTube.objects.get(url = url_youtube)
+                        a.youtube_url.add(y)
+                        a.save()
+                        d['pk'] = y.pk
+                        d['url'] = y.url
+                        d['status'] = True
+                        d['msg'] = 'Такий ролик вже існує.'
+                        d['error'] = 'Такий ролик вже існує.'
+
+                    except YouTube.DoesNotExist:
+                        add_tube = YouTube.objects.create(url = url_youtube, user = request.user)
+                        a.youtube_url.add(add_tube)
+                        a.save()
+                        d['status'] = True
+                        d['pk'] = add_tube.pk
+                        d['url'] = add_tube.url
                         
+                    except Catalog.DoesNotExist:
+                        d['status'] = False
+                        d['error'] = "такого товару не існує"
+                        
+                    except YouTube.MultipleObjectsReturned:
+                        d['status'] = False
+                        d['error'] = "Таких роликів є більше ніж один. Видаліть дублікати."
             else:
                 response = JsonResponse({'error': "Невірні параметри запиту"})
                 return response
-                #result = "Невірні параметри запиту"
-                #return HttpResponse(result, content_type="text/plain")
             
-            #d = {}
-            #d['status'] = 'ok'
-#            d['pk'] = add_tube.pk
-#            d['url'] = add_tube.url
             response = JsonResponse(d)
             return response
-#            json = simplejson.dumps(dictionary)
-#            return HttpResponse(json, content_type='application/json')            
-                
-            #result = "ok"
-            #return HttpResponse(result, content_type="text/plain")
-
 
 
 def send_workshop_sound(request):

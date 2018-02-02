@@ -355,17 +355,17 @@ $(document).ready(function() {
             },
             
             {
-                "targets": [ 9 ],
+                "targets": [ 10 ],
                 "visible": true,
                 "sType": "currency-html",
             },
             {
-                "targets": [ 10 ],
+                "targets": [ 11 ],
                 "visible": false,
                 "searchable": false
             },
             {
-                "targets": [ 13 ], // box
+                "targets": [ 15 ], // box
                 "visible": true,
                 "sType": "html",
                 "sWidth": "25px",
@@ -374,8 +374,9 @@ $(document).ready(function() {
             
         ],
     });
+    table.column(4).visible(false);
 	table.column(11).visible(false);
-	table.column(10).visible(false); //sale
+	//table.column(10).visible(false); //price
 	table.column(12).visible(false); //decription
 	table.column(14).visible(false);
 	
@@ -385,6 +386,7 @@ $(document).ready(function() {
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="1">Id</a></div>');
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="2">Тип</a></div>');
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="3">Виробник</a></div>');
+	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="4">Youtube</a></div>');	
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-5">Знижка</a></div>');
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-4">Сума</a></div>');	
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-3">Опис</a></div>');
@@ -404,7 +406,7 @@ $(document).ready(function() {
     	table.column( 2 ).search( this.value ).draw();
     } );
     $('#s_name').on( 'keyup change', function () {
-    	table.column( 5 ).search( this.value ).draw();
+    	table.column( 6 ).search( this.value ).draw();
     } );
     
     $('a.toggle-vis').on( 'click', function (e) {
@@ -602,7 +604,7 @@ $("#dialog").dialog({
       buttons: {
         "Додати": function() {
 			$.ajax({
-                type: "GET",
+                type: "POST",
                 url: "/shop/price/print/add/",
                 data: {id:  $("#dtext").attr("ids"), url: $('#spinner').val()},
                 dataType: "text",
@@ -928,6 +930,52 @@ $("#dialog_photo_add").dialog({
       }
 });
 
+$("#dialog_youtube_add").dialog({
+	autoOpen: false,
+      resizable: true,
+      modal: true,
+      //position: "center",
+      width: 650,
+      buttons: {
+        "Додати": function() {
+			$.ajax({
+                type: "POST",
+                url: "/youtube/add/",
+                data: { upload_youtube: $('#youtube_url').val(), c_id: $("#dialog_youtube_add").attr("ids")},
+                dataType: "text",
+                success:function(value){
+                if (value != "ok") {
+                	//alert(value);
+                	$("#dialog_photo").dialog({title: value });
+                	if ($("#img_url").attr('width') > 500) {
+                		$("#img_url").attr({'src' : $('#youtube_url').val()}, {'width': "500 px"});
+                	}
+                	else {
+                		$("#img_url").attr({'src' : $('#youtube_url').val()});
+                	}
+                	
+//                	$("#dialog_photo").dialog({ buttons: [ { text: "Ok", click: function() { $("#dialog_photo").dialog( "close" ); } }, {text: "Cancel", click: function() {$("#dialog_photo").dialog("close"); }} ] });
+//                	$("#dialog_photo").dialog({ position: { my: "center top", at: "center top", of: window } });
+//					$("#dialog_youtube_add").dialog("open");
+					$("#ui-id-2").attr({"color": '#fe011b'});
+				}
+					//var youtube_id = $("#youtube_url").attr("ids"); 
+					var youtube_id = $("#dialog_youtube_add").attr("ids")
+					$("#link_"+youtube_id).attr("src", "/media/images/photo_ico_true.png");
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });
+		  $('#youtube_url').val()
+          $( this ).dialog( "close" );
+        },
+        "Відмінити": function() {
+          $( this ).dialog( "close" );
+          
+        }
+      }
+});
 
 $("#dialog_print").dialog({
 	autoOpen: false,
@@ -970,8 +1018,17 @@ $("#dialog_edit_email").dialog({
 
 });
 
+$(document).on("click", ".c_youtube", function(event) {
+	$("#dialog_youtube_add").attr('ids', $(this).attr('ids'));
+	var t = $("#td_"+$(this).attr('ids')).nextAll(".c_name:first").html();
+	$("#cat_name_youtube").html(t);
+	$("#dialog_youtube_add").dialog('open');
+});
+
 $(document).on("click", ".c_photo", function(event) {
-	   		var t = $("#td_"+$(this).attr('ids')).nextAll(".c_name:first").html();
+	   		//var t = $("#td_"+$(this).attr('ids')).nextAll(".c_name:first").html();
+	   		console.log('T = '+ t);
+	   		var t = '';
     		$("#dialog_photo_add").dialog({title:  t});
 			$.ajax({
                 type: "POST",
@@ -1143,11 +1200,11 @@ $("body").on('click', '.addprice', function() {
 	var table = $('#iTable').DataTable();
     var ids = []
 	table.rows({ selected: true }).eq( 0 ).each( function (idx) {
-		console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
+//		console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
 		ids.push( $(table.row( idx ).node()).attr('id') );
-		$("#dtext").append("<br>" + table.cell( idx,5 ).data());
+		$("#dtext").append("<br>" + table.cell( idx,6 ).data());
 	});
-	$("#dtext").append("<br>ROW = " + ids)
+//	$("#dtext").append("<br>ROW = " + ids)
 	$("#dtext").attr({"ids": ids});
 
 });
@@ -1426,6 +1483,12 @@ console.log("ids[]= ", ids );
   	<input type="text" id="count_s" name="value" value="1">
 	</div>
 
+<!-- Dialog to add youtube video -->
+	<div id="dialog_youtube_add" title="Add YouTube video">
+	<h4 id='cat_name_youtube'></h3>
+	<label for="youtube_url">Посилання на youtube:</label>
+	<input type="text" name="youtube" id="youtube_url" value="" ids="" size="50">
+	</div>
 
 <!-- Dialog to add photo -->
 	<div id="dialog_photo_add" title="Add Photo">
@@ -1435,12 +1498,6 @@ console.log("ids[]= ", ids );
 
 <!-- Dialog to view photo -->
 	<div id="dialog_photo" title="Photo">
-<!--	<div id="photo_gallery">
-	<ul class="slideme">
- 	<img id="img_url" src="" width="500">  
-	</ul>
-	</div> -->
-
 	</div>
 
 <!-- Dialog to view inventory -->
@@ -1467,8 +1524,9 @@ console.log("ids[]= ", ids );
     	<th ROWSPAN="2">ID</th>
     	<th ROWSPAN="2">Тип</th>
     	<th ROWSPAN="2">Виробник</th>
+    	<th ROWSPAN="2">Y</th>
     	<th ROWSPAN="2">Ф</th>
-    	<th ROWSPAN="2">Найменування товару</th>
+    	<th ROWSPAN="2" width="100%">Найменування товару</th>
     	
     	<th align="center" COLSPAN="3" >Кількість</th>
     	
@@ -1484,7 +1542,7 @@ console.log("ids[]= ", ids );
     <tr>
     	<th align="center" >Поч.</th>
     	<th align="center" >Прод</th>
-    	<th align="center">Наявність</th>
+    	<th align="center" >Наявність</th>
     	
     </tr>
     </thead>
@@ -1530,12 +1588,20 @@ console.log("ids[]= ", ids );
 	<td>
 	<a href="/invoice/manufacture/{{type.manufacturer__id}}/view/">{{type.manufacturer__name}}</a>
 	</td>
+
+<td align="center" id="youtube_{{type.catalog}}">
+{% if type.youtube_url != None %}
+	<img class="c_youtube" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/photo_ico_true.png" width="24" height="24">
+{% else %}
+	<img class="c_youtube" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/photo_ico.png" width="24" height="24">
+{% endif %}	
+</td>	
+	
 {% if type.catalog__last_update|date_left < 30  %}
 	<td align="center" id="td_{{type.catalog}}" bgcolor="#efc9e7">
 {% else %}
 	<td align="center" id="td_{{type.catalog}}">
 {% endif %}	
-	
 
 {% if type.photo_url != None %}
 	<img class="c_photo" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/photo_ico_true.png" width="24" height="24">
@@ -1543,7 +1609,7 @@ console.log("ids[]= ", ids );
 	<img class="c_photo" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/photo_ico.png" width="24" height="24">
 {% endif %}	
 	</td>
-	<td>
+	<td class="c_name">
 	[{{type.catalog__ids}}] {% if type.catalog__dealer_code %} [{{type.catalog__dealer_code}}] {% endif %}- ({{type.catalog__manufacturer__name}}) {{type.catalog__name}} 
 	</td>
 	<td align="center">
@@ -1660,6 +1726,7 @@ console.log("ids[]= ", ids );
 	<tr>
     	<th></th>
     	<th></th>	
+    	<th></th>
     	<th></th>
     	<th></th>    	    	
     	<th></th>

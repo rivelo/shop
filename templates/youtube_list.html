@@ -36,6 +36,10 @@
     		{% for bike in v.bicycle_set.all %}             
     			{{ bike }} <br>
     		{% endfor %}
+    		{% for catalog in v.catalog_set.all %}             
+    			{{ catalog }} <br>
+    		{% endfor %}
+    		
         </td>
     	<td>
             {{ v.description }}

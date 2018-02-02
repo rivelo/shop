@@ -1,10 +1,8 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-
-
+<link type="text/css" rel="stylesheet" href="/media/paginator.css">
 <link rel="stylesheet" type="text/css" href="/media/table.css">
-
 
 
 <style type="text/css">
@@ -40,9 +38,42 @@ a {
      
 </style>
 
+<script>
+$(document).ready(function() {
+	
+	 $(".price_del").click(function(){
+		 $(this).parents("tr").children("td.cat_name").css( "background", "yellow" );
+		 console.log($(this).parents("tr").children("td.cat_name").children("a").html());
+		 if (confirm("Ви дійсно бажаєте видалити запис? \n" + $(this).parents("tr").children("td.cat_name").children("a").html())) {
+			$(this).parents("tr").children("td.cat_name").css( "background", "yellow" );
+		 	var tr_del = $(this).parents("tr");
+				$.ajax({
+		                type: "POST",
+		                url: "/shop/price/print/delete/",
+		                data: {id:  $(this).attr("p_id") },
+		                dataType: "text",
+		                success:function(data){
+//		                	console.log("ajax work");
+		                	tr_del.remove();
+//		                	console.log($(this).parents("tr"));
+		                },
+		                error:function(data){
+		                    alert("Виникли проблеми з сервером" + data);
+		                }
+		            });	
+		 }
+		 else {
+			 $(this).parents("tr").children("td.cat_name").css( "background", "white" );			 
+		 }
+		 });
+	 
+});	 
+</script>
+
+
 {% load poll_extras %}
 
-<h1>Черга цінників для друку <a href="/shop/price/print/view/">(Попередній перегляд)</a> <a href="/shop/price/print/empty/" style="font-size: 14pt; text-decoration: underline;">(Очистити список)</a></h1>  
+<h1>Черга цінників для друку <a href="/shop/price/print/view/?page={{ price_list.number }}">(Попередній перегляд)</a> <a href="/shop/price/print/empty/" style="font-size: 14pt; text-decoration: underline;">(Очистити список)</a></h1>  
 <a href="/shop/price/qr/print/view/">(Попередній перегляд QR-Code)</a> 
 
 <br>
@@ -62,7 +93,7 @@ a {
 <th><b>Дія</b> </th>
 </tr>
 
-{% for price in price_list %}
+{% for price in price_list.object_list %}
 <tr>
 <td align="center" style="font-size: 10pt;" class="nameTD">
 {{forloop.counter}}
@@ -75,11 +106,15 @@ a {
 </td>
 <td style="padding-left: 5px; padding-right: 5px;" class="nameTD">
 {{price.catalog.country}}
-</td>	
-<td class="nameTD">       
-<b>	{{price.catalog.price}} грн. </b>
 </td>
-<td>       
+{% if price.catalog.sale > 0 %}	
+<td class="nameTD" bgcolor="#FF0000">       
+{% else %}
+<td class="nameTD">
+{% endif %}
+<b>	{{price.catalog.price}} грн.</b>
+</td>
+<td class="cat_name">       
 <a href="/catalog/id/{{price.catalog.id}}/view/" style="margin-right:20px">{{price.catalog.name}}</a>
 </td>
 <td class="nameTD" align="center">       
@@ -95,9 +130,45 @@ a {
 <b>	{{price.date}}</b>
 </td>
 <td   class="nameTD">       
-<a href="/shop/price/print/{{price.id}}/delete/"> Видалити </a>
+<span class="price_del" p_id="{{price.id}}" style="cursor: pointer;">Видалити</span>
+{# <a href="/shop/price/print/{{price.id}}/delete/"> Видалити </a> #}
 </td>
 
 {% endfor %}   
 </table>
+
+<div class="pagination">
+  <ul>
+  	{% if price_list.has_previous %}
+        <li class="prev">
+            <a href="?page={{ price_list.previous_page_number }}">&larr; Previous</a>
+        </li>
+    {% else %}
+    <li class="prev disabled">
+            <a href="?page={{ price_list.number }}">&larr; Previous</a>
+    </li>
+    {% endif %}
+    
+<!--     <li class="disabled"><a href="">Page {{ price_list.number }} of {{ price_list.paginator.num_pages }}.</a></li>
+ -->
+    {% for i in price_list.paginator.page_range %}
+    {% ifequal i  price_list.number%}
+    <li class="disabled"><a href="">{{ i }}.</a></li>
+    {% else %}
+    <li class="active"><a href="?page={{ i }}">{{ i }}.</a></li>
+    {% endifequal %}
+    {% endfor %}   
+    
+    {% if price_list.has_next %}
+        <li class="next">
+            <a href="?page={{ price_list.next_page_number }}">Next &rarr;</a>
+        </li>
+    {% else %}
+    <li class="next disabled">
+            <a href="?page={{ price_list.number }}">Next &rarr;</a>
+     </li>    
+    {% endif %}
+  </ul>
+</div>
+
 <br>
