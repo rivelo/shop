@@ -740,10 +740,15 @@ function calc_sum() {
 {% endifequal %}
 {% endifequal %}
 	</td>
-	<td>
+	{% if type.catalog.get_realshop_count == type.catalog.count %}
+	<td align="center">
+	{% else %}
+	<td align="center" bgcolor="yellow">
+	({{type.catalog.get_realshop_count}})
+	{% endif %}
 	{# <abbr title="Ящик номер: {{type.catalog.locality}}" style="display: inline;" rel="tooltip"> #}
 	<div class="tooltip">
-	{{type.catalog.count}} [{{type.catalog.get_invoice_count}} - {{type.catalog.get_clientinvoice_count}}] ({{type.catalog.count}})
+	{{type.catalog.count}} {# [{{type.catalog.get_invoice_count}} - {{type.catalog.get_clientinvoice_count}}] #}  
   	<span class="tooltiptext-left">Ящик номер: {{type.catalog.locality}}</span>
 	</div>
 	{# </abbr> #}

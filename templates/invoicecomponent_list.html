@@ -360,7 +360,7 @@ $(document).ready(function() {
                 "sType": "currency-html",
             },
             {
-                "targets": [ 11 ],
+                "targets": [ 12 ],
                 "visible": false,
                 "searchable": false
             },
@@ -378,7 +378,8 @@ $(document).ready(function() {
 	table.column(11).visible(false);
 	//table.column(10).visible(false); //price
 	table.column(12).visible(false); //decription
-	table.column(14).visible(false);
+	//table.column(14).visible(false);
+	table.column(15).visible(false); //Інвентеризація
 	
 	$('#iTable_length').append('<div class="cdiv"><label> Тип:</label><input type="text" id="s_type" placeholder="Search type" /> </div>');    
 	$('#iTable_length').append('<div class="cdiv"><label> Назва:</label><input type="text" id="s_name" placeholder="Search name" /></div>' );
@@ -446,7 +447,7 @@ $(document).ready(function() {
 		$.fn.dataTableExt.afnFiltering.push(
         function(oSettings, aData, iDataIndex) {
            //Only shows columns with a COUNT > 0
-           var engineColumn = parseInt(aData[8]);
+           var engineColumn = parseInt(aData[9]);
            if (engineColumn != 0)
                return true;
            return false;
@@ -1591,10 +1592,10 @@ console.log("ids[]= ", ids );
 
 <td align="center" id="youtube_{{type.catalog}}">
 {% if type.youtube_url != None %}
-	<img class="c_youtube" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/photo_ico_true.png" width="24" height="24">
+	<img class="c_youtube" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/youtube-48.png" width="24" height="24">
 {% else %}
-	<img class="c_youtube" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/photo_ico.png" width="24" height="24">
-{% endif %}	
+	<img class="c_youtube" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/youtube-48_greyscale.png" width="24" height="24">
+{% endif %}
 </td>	
 	
 {% if type.catalog__last_update|date_left < 30  %}

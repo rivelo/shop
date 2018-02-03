@@ -168,6 +168,7 @@ $('.phone').editable('/workticket/edit/', {
     	<th>Дата завершення</th>
     	<th>Статус</th>
     	<th>Повідомлення</th>
+    	<th>Дата повідомлення</th>
     	<th>Опис</th>
     	<th>Дія</th>
     </tr>
@@ -218,6 +219,10 @@ $('.phone').editable('/workticket/edit/', {
 	<td class="phone" id_workticket="{{type.id}}">       
 	{{type.phone_status}}
 	</td>
+	<td title={{type.phone_user.username}} align="center">       
+	{{type.phone_date|date:'d-m-Y H:i'}}
+	</td>
+	
 	<td class="w_desc" id_workticket="{{type.id}}">       
 	{{type.description}}
 	</td>

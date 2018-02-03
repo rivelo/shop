@@ -546,6 +546,7 @@ def bicycle_add(request):
             color = form.cleaned_data['color']
             year = form.cleaned_data['year']
             weight = form.cleaned_data['weight']
+#            sizes = form.cleaned_data['sizes']
             price = form.cleaned_data['price']
             currency = form.cleaned_data['currency']
             description = form.cleaned_data['description']
@@ -555,6 +556,10 @@ def bicycle_add(request):
             wheel_size = form.cleaned_data['wheel_size']
             country_made = form.cleaned_data['country_made']
             rating = form.cleaned_data['rating']
+            warranty = form.cleaned_data['warranty']
+            geometry = form.cleaned_data['geometry']
+            country_made = form.cleaned_data['country_made']
+            internet = form.cleaned_data['internet']
                       
             folder = year.year
             upload_path_p = ''
@@ -563,8 +568,15 @@ def bicycle_add(request):
             if isinstance(photo, InMemoryUploadedFile):
                 upload_path_p = processUploadedImage(photo, 'bicycle/'+str(folder)+'/') 
                 #a.photo=upload_path_p
+            gfolder = year.year
+            upload_path_g = ''
+            if geometry == None:
+                upload_path_g = None
+            if isinstance(geometry, InMemoryUploadedFile):
+                upload_path_g = processUploadedImage(geometry, 'geometry/'+str(gfolder)+'/')
                 
-            Bicycle(model = model, type=type, brand = brand, color = color, photo=upload_path_p, weight = weight, price = price, currency = currency, offsite_url=offsite_url, description=description, year=year, sale=sale).save()
+            Bicycle(model = model, type=type, brand = brand, color = color, photo=upload_path_p, weight = weight, wheel_size = wheel_size, price = price, currency = currency, internet = internet, country_made = country_made, warranty = warranty, geometry = upload_path_g, offsite_url=offsite_url, description=description, year=year, sale=sale).save()
+            form.save() #_m2m()
             return HttpResponseRedirect('/bicycle/view/')
             #return HttpResponseRedirect(bicycle.get_absolute_url())
     else:
@@ -586,7 +598,6 @@ def bicycle_edit(request, id):
         if form.is_valid():
             year = form.cleaned_data['year']
             photo = form.cleaned_data['photo']            
-                   
             #url_youtube = form.cleaned_data['upload_youtube']
             folder = year.year
             upload_path_p = ''
@@ -1948,7 +1959,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
 
     new_list = []
     sale_list = ClientInvoice.objects.filter(catalog__in=id_list).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
-    cat_list = Catalog.objects.filter(pk__in=id_list).values('type__name_ukr', 'description', 'locality', 'id', 'manufacturer__id', 'manufacturer__name', 'photo_url', 'last_update', 'user_update__username')        
+    cat_list = Catalog.objects.filter(pk__in=id_list).values('type__name_ukr', 'description', 'locality', 'id', 'manufacturer__id', 'manufacturer__name', 'photo_url', 'youtube_url', 'last_update', 'user_update__username')        
     for element in list:
         element['balance']=element['sum_catalog']
         element['c_sale']=0
@@ -1967,6 +1978,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
                 element['type__name_ukr']=cat['type__name_ukr']
                 element['description']=cat['description']
                 element['photo_url']=cat['photo_url']
+                element['youtube_url']=cat['youtube_url']
                 element['last_update']=cat['last_update']
                 element['user_update']=cat['user_update__username']
 #                element['new_arrival'] = Catalog.objects.get(pk = element['catalog']).new_arrival()
@@ -4144,7 +4156,7 @@ def workticket_edit(request, id=None):
                 p = request.POST.get('value')
                 obj = WorkTicket.objects.get(pk = id)
                 obj.status = WorkStatus.objects.get(pk = p)
-                obj.date = datetime.date.today()
+                obj.end_date = datetime.date.today()
                 obj.save() 
                 c = WorkTicket.objects.filter(pk = id).values_list('status__name', flat=True)
                 return HttpResponse(c)
@@ -4153,6 +4165,8 @@ def workticket_edit(request, id=None):
                 p = request.POST.get('value')
                 obj = WorkTicket.objects.get(pk = id)
                 obj.phone_status = PhoneStatus.objects.get(pk = p)
+                obj.phone_date = datetime.datetime.today()
+                obj.phone_user = request.user
                 obj.save() 
                 c = WorkTicket.objects.filter(pk = id).values_list('phone_status__name', flat=True)
                 return HttpResponse(c)

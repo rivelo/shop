@@ -126,7 +126,6 @@ class BicycleForm(forms.ModelForm):
     weight = forms.FloatField(min_value=0, initial=0)
     price = forms.FloatField(initial=0)
     offsite_url = forms.URLField(required=False)
-    #currency = SelectFromModel(objects=Currency.objects.all())
     currency = forms.ModelChoiceField(queryset = Currency.objects.all(), initial=Currency.objects.get(ids_char = 'UAH'))
     sale = forms.FloatField(min_value=0, initial=0, required=False)
     warranty = forms.IntegerField(min_value=0, initial=1)
@@ -134,6 +133,7 @@ class BicycleForm(forms.ModelForm):
     internet = forms.BooleanField(required=False)
     rating = forms.IntegerField(min_value=0, initial=0)
     description = forms.CharField(label='Description', widget=forms.Textarea(attrs={'size': '180'}), required=False)
+    country_made = forms.ModelChoiceField(queryset = Country.objects.all())
 
     class Meta:
         model = Bicycle
@@ -448,7 +448,8 @@ class CatalogForm(forms.ModelForm):
     count = forms.IntegerField(initial=0, required=False)
     length = forms.FloatField(initial=0, required=False)
     country = forms.ModelChoiceField(queryset = Country.objects.all())    
-    description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255, required=False)    
+    description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255, required=False)
+    date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))    
 
     class Meta:
         model = Catalog
