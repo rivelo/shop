@@ -199,6 +199,7 @@ urlpatterns = patterns('',
     #url(r'^invoice/search/result/$', 'catalog.accounting.views.invoice_search_result'),
     url(r'^invoice/search/result/$', 'catalog.accounting.views.invoicecomponent_list'),
     url(r'^invoice/sale/list/$', 'catalog.accounting.views.invoicecomponent_list', {'isale': True}),
+    url(r'^invoice/enddate/list/$', 'catalog.accounting.views.invoicecomponent_list', {'enddate': True}),
     url(r'^invoice/print/forum/$', 'catalog.accounting.views.invoicecomponent_print'),
 
     # Component Type operation
@@ -220,8 +221,8 @@ urlpatterns = patterns('',
     url(r'^catalog/manufacture/(?P<id>\d+)/view/$', 'catalog.accounting.views.catalog_manufacture_list'),
     url(r'^catalog/manufacture/view/$', 'catalog.accounting.views.catalog_manufacture_list'),
     url(r'^catalog/type/(?P<id>\d+)/view/$', 'catalog.accounting.views.catalog_type_list'),    
+    url(r'^catalog/edit/$', 'catalog.accounting.views.catalog_set', name="cat_set_attr"),    
     url(r'^catalog/edit/(?P<id>\d+)$', 'catalog.accounting.views.catalog_edit'),
-    url(r'^catalog/edit/$', 'catalog.accounting.views.catalog_edit'),
     url(r'^catalog/sale/edit/$', 'catalog.accounting.views.catalog_sale_edit'),
     url(r'^catalog/delete/(?P<id>\d+)$', 'catalog.accounting.views.catalog_delete'),
     url(r'^catalog/search/id/$', 'catalog.accounting.views.catalog_search_id'),
@@ -372,7 +373,6 @@ urlpatterns += patterns('',
     url(r'^workshop/year/(?P<year>\d+)/view/$', 'catalog.accounting.views.workshop_list'),
     url(r'^workshop/delete/(?P<id>\d+)/$', 'catalog.accounting.views.workshop_delete'),    
     url(r'^workshop/delete/$', 'catalog.accounting.views.workshop_delete'),
-                       
 )
 
 

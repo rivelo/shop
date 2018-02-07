@@ -1,61 +1,9 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-<style type="text/css">
-   #mainmenutable {
-    width:100%; 
-    border-collapse: collapse;
-    border-color:white;
-   }
-   #tdlogo {
-   text-align:right;
-   border-color:white;
-   }
 
-   p {
-    font-family: 'Times New Roman', Times, serif; /* Шрифт с засечками */
-    font-style: italic; /* Курсивное начертание */
-    font-size: 16px;
-   }
-   
-input:focus{
-  outline:none;
-  border-color:rgba(255,25,33,.75);
-  border-radius:3px;
-  -moz-border-radius:3px;
-  -webkit-border-radius:3px;
-}
 
-input{
-  border:1px solid #aaa;
-  border-radius:3px;
-  -moz-border-radius:3px;
-  -webkit-border-radius:3px;
-  transition:border linear .2s,box-shadow linear .2s;
-  -moz-transition:border linear .2s,-moz-box-shadow linear .2s;
-  -webkit-transition:border linear .2s,-webkit-box-shadow linear .2s;
-}
-
-	submit {
-    width: 100px;
-    color: #fff;
-    text-transform: uppercase;
-    text-shadow: #000 1px 1px;
-    border-top: 1px solid #ad64e0;
-    margin-top: 10px;
-    font-style: bold;
-	}	   
-
-   label {
-    font-family: 'Times New Roman', Times, serif; /* Шрифт с засечками */
-    font-style: bold;
-    font-size: 14px;
-    color: black;
-   }
-	   
-</style>
-
-<script type="text/javascript" src="/media/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="/media/jquery-1.11.2.min.js"></script> 
 <script type="text/javascript" src="/media/jquery.hotkeys-0.7.9.min.js"></script>
 
 <script type="text/javascript">
@@ -106,9 +54,6 @@ $(document).ready(function() {
 
 })
 
-</script>
-
-<script>
 
 $(document).bind('keydown', 'alt+z', function(){
   $('#tsearch_field').focus();
@@ -120,31 +65,110 @@ $(document).bind('keydown', 'alt+x', function(){
 
 </script>
 
+{% load i18n %}
 
+<div class="row">
+  <div class="col-xs-3 col-sm-3 col-lg-3">
+  <a href="/"><img src="/media/images/site_logo_small.gif" alt="" title=""/></a>
+  </div>
+
+<div class="col-xs-6 col-sm-6 col-lg-6">
+
+{% comment %}
+<div class="row"> 
+    <form action="/invoice/search/result" method="GET" class="form-horizontal">
+   <div class="form-group form-group-sm">
+  <div class="col-xs-5 col-lg-9">   
+	<div class="input-group input-group-sm"> 
+    <label class="control-label">Введіть назву товару: </label>
+    <input type="text" name="name" id="tsearch_field" class="form-control">
+	</div>
+	<div class="input-group input-group-sm">
+    <label class="control-label">Введіть артикул товару: </label>
+    <input type="text" name="id" id="asearch_field" class="form-control">
+	</div>
+   </div>
+<div class="col-xs-4 col-lg-4">	
+	<div class="input-group input-group-sm">
+    <input type="submit" value="Пошук" class="btn btn-primary">
+	</div>    
+</div>    
+   </div>
+</div> 
+  </form>
+{% endcomment %}
+
+<form action="/invoice/search/result" method="GET" class="form-horizontal">
+<div class="input-group">
+   <input type="text" class="form-control" placeholder="Назва товару (Alt + z)" name="name" id="tsearch_field">
+</div>
+<div class="input-group">
+   <input type="text" class="form-control" placeholder="Артикул товару (Alt + x)" name="id" id="asearch_field">
+   <span class="input-group-btn">
+{#        <button class="btn btn-primary" type="submit">Пошук</button> #}
+        <input type="submit" value="Пошук" class="btn btn-primary">
+   </span>
+</div>
+</form>
+
+</div>
+
+
+  <div class="col-xs-3 col-sm-3 col-lg-2">
+{% if user.is_authenticated %}
+  <form method="post" action="/accounts/logout/">
+        {% csrf_token %}
+        <label>User name: {{user.username|upper}}</label>
+        <input type="submit" name="logout" value="{% trans "Logout" %}" class="ptserif"/>
+        <input type="hidden" name="next_page" value="{{ next|escape }}" />
+    </form>
+{% else %}
+  <form action="/accounts/login/" method="post" id="login_form">
+    <label for="username">User name:</label>
+    <input type="text" name="username" value="" id="username">
+    <label for="password">Password:</label>
+    <input type="password" name="password" value="" id="password">
+
+    <input type="submit" value="login" />
+    <input type="hidden" name="next" value="{{ next|escape }}" />
+  </form>
+  
+  <form method="post" action="/accounts/logout/" style="display:none;" id="logout_form">
+        {% csrf_token %}
+        <label id="user_label">User name: {{user.username|upper}}</label>
+        <input type="submit" name="logout" value="{% trans "Logout" %}" class="ptserif"/>
+        <input type="hidden" name="next_page" value="{{ next|escape }}" />
+    </form>
+  
+{% endif %}
+  </div>
+</div>
+
+
+{% comment %}
 <table id="mainmenutable"><tr>
 <td style="border-color:white;">
 <a href="/"><img src="/media/images/site_logo_small.gif" alt="" title=""/></a>
 </td>
 
-
-
 <td style="border: 0;">  
-  <form action="/invoice/search/result" method="GET">
+  <form action="/invoice/search/result" method="GET" class="form-horizontal">
+  <div class="form-group form-group-sm">
     <label>Введіть назву товару: </label>
     <input type="text" name="name" id="tsearch_field">
     <br>
     <label>Введіть артикул товару: </label>
     <input type="text" name="id" id="asearch_field">
     <input type="submit" value="Пошук">
+   </div>
   </form>
 </td>
 
  
 <td id="tdlogo">
-{% comment %}
+
  <a href="/"><img src="/media/images/riban.gif" alt="" title=""/></a>
-{% endcomment %} 
-{% load i18n %}
+ 
 
 
 {% if user.is_authenticated %}
@@ -177,3 +201,5 @@ $(document).bind('keydown', 'alt+x', function(){
 </td>
 </tr>
 </table>
+{% endcomment %} 
+

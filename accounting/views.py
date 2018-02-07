@@ -1912,7 +1912,7 @@ def invoicecomponent_add(request, mid=None, cid=None):
 #    return render_to_response('index.html', {'form': form, 'weblink': 'invoicecomponent.html', 'company_list': company_list, 'price_ua': price, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focus=0, upday=0):
+def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focus=0, upday=0, enddate=None):
     #company_list = Manufacturer.objects.none()
     company_list = Manufacturer.objects.all().only('id', 'name')
     #type_list = Type.objects.none() 
@@ -1938,6 +1938,8 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
         cat_name = type_list.get(id=cid)
     if isale == True:
         list = InvoiceComponentList.objects.filter(catalog__sale__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+    if enddate == True:
+        list = InvoiceComponentList.objects.filter(catalog__date__isnull = False, catalog__count__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update', 'catalog__date').order_by('-catalog__date')
 
     if upday != 0:
         curdate=datetime.datetime.today()
@@ -1946,7 +1948,10 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
     
     if limit == 0:
         try:
-            list = list.annotate(sum_catalog=Sum('count')).order_by("catalog__type")
+            if enddate == True:
+                list = list.annotate(sum_catalog=Sum('count')).order_by("catalog__date")
+            else:
+                list = list.annotate(sum_catalog=Sum('count')).order_by("catalog__type")
         except:
             list = InvoiceComponentList.objects.none()        
     else:
@@ -1983,11 +1988,12 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
                 element['user_update']=cat['user_update__username']
 #                element['new_arrival'] = Catalog.objects.get(pk = element['catalog']).new_arrival()
 #                element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
+        
         if element['balance']!=0:
             new_list.append(element)
             zsum = zsum + (element['balance'] * element['catalog__price'])
             zcount = zcount + element['balance']
-
+    
 # update count field in catalog table            
         #upd = Catalog.objects.get(pk = element['catalog'])
         #upd.count = element['balance'] 
@@ -2609,14 +2615,13 @@ def catalog_add(request):
     return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def catalog_edit(request, id=None):
+def catalog_set(request):
     if auth_group(request.user, 'seller')==False:
         return HttpResponse('Error: У вас не має прав для редагування')
-
+    
     if request.is_ajax():
         if request.method == 'POST':
             POST = request.POST
-            
             if POST.has_key('id') and POST.has_key('value') and auth_group(request.user, 'seller'):
                 id = request.POST.get('id')
                 d = request.POST.get('value')
@@ -2663,10 +2668,33 @@ def catalog_edit(request, id=None):
                 obj.user_update = request.user
                 obj.save() 
 
-                c = Catalog.objects.filter(id = id).values_list('sale', flat=True)
-                return HttpResponse(c)
+            if POST.has_key('id') and POST.has_key('update_enddate'):
+                pk = request.POST['id']                
+                s = request.POST['update_enddate']
+                print "ID cat = " + pk
+                print "date cat = " + s
+                obj = Catalog.objects.get(pk = pk)
+                conv = datetime.datetime.strptime(s, '%d-%m-%Y').date()                                
+                obj.date = conv
+#                obj.last_update = datetime.datetime.now()
+#                obj.user_update = request.user
+                obj.save() 
+                d = {}
+                #c = Catalog.objects.filter(pk = pk).values_list('date', flat=True)
+                print "CATALOG = " + str(obj.date)
+                # d['upd'] = c['date']
+                d['status'] = True
+                d['msg'] = 'Done'
+                response = JsonResponse(d)
+                return response                
+                #return HttpResponse(c)
               #  return HttpResponse(simplejson.dumps(list(c)))
-       
+    else :
+           return HttpResponse('Error: У вас не має прав для редагування')
+    
+
+
+def catalog_edit(request, id=None):
     a = Catalog.objects.get(pk=id)
     #url1=request.META['HTTP_REFERER']
     if request.method == 'POST':
@@ -2681,6 +2709,7 @@ def catalog_edit(request, id=None):
             #return HttpResponseRedirect('/catalog/manufacture/' + str(manufacturer.id) + '/view/5')
 #            return HttpResponseRedirect('/catalog/manufacture/' + str(manufacturer.id) + '/type/'+str(type.id)+'/view')
             return catalog_list(request, id = id)
+            #return HttpResponseRedirect('/catalog/view/')
             #return HttpResponseRedirect(str(url1))
     else:
         form = CatalogForm(instance=a)

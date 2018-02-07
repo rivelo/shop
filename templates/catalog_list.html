@@ -1,9 +1,22 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+<title>Каталог товарів</title>
+<meta name="description" content="Каталог товарів">
 
-<script type="text/javascript" src="/media/jquery-1.7.2.min.js"></script>
-<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+
+{#	<link rel="stylesheet" type="text/css" href="/media/table.css"> #} 
+{#  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css"> #}
+  	<link rel="stylesheet" href="/media/css/datepicker.min.css">
+
+{# <script type="text/javascript" src="/media/jquery-1.7.2.min.js"></script> #}
+{#	<script type="text/javascript" src="/media/js/jquery.js"></script> #}
+
+	<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+{#  	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script> #} 
+{#  	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"></script> #}
+  	<script src="/media/js/popper.min.js"></script>
+  	<script src="/media/js/bootstrap.min.js"></script>   	
+  	<script src="/media/js/datepicker.min.js"></script> 
 
 <script>
 
@@ -39,7 +52,7 @@ $(document).ready(function() {
      });
      
      
-     $('.edit_area').editable('/catalog/edit/149', {
+     $('.edit_area').editable('/catalog/edit/', {
          submitdata : function() {
       	 	return {id : $(this).attr('id_desc')};
     	 },         
@@ -80,21 +93,82 @@ $(document).ready(function() {
      }
      });
     });
-     
-}); 
+   
+   
+    $('[data-toggle="datepicker"]').datepicker({
+       autoHide: true,
+       zIndex: 2048,
+       format: 'dd-mm-yyyy',
+       daysMin: ['Нд', 'По', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+       monthsShort: ['Січ', 'Лют', 'Бер', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+       weekStart: 1,
+//       date: new Date(2018, 1, 1),
+     });   
 
+	$('[data-toggle="tooltip"]').tooltip()
+
+	$('[data-toggle="datepicker"]').on('hide.datepicker', function (e) {
+		//var sdate = $(this).datepicker('getDate');
+		console.log("Click datepicker + " + $(this).datepicker('getDate', true));
+		console.log("TR = " + $(this).parents('td').parents('tr').attr('pk') );
+		update_enddate( $(this).parents('td').parents('tr').attr('pk'), $(this).datepicker('getDate', true) )
+	});
+
+{% comment %}	
+	$('[data-toggle="datepicker"]').on('pick.datepicker.event.date', function (e) {
+		console.log("WORK " + e.date);
+		  if (e.date < new Date()) {
+			  console.log("***date changed" + e.date);			  
+		    e.preventDefault(); // Prevent to pick the date
+		  }
+	});	
+	
+	$('.modal-body').on("DOMNodeInserted", function(){
+		console.log("++++ " + $(this).datepicker('getDate', true));
+		console.log("date changed ");
+	});
+{% endcomment %}
+	
+	function update_enddate(pk, date) {
+		$.ajax({
+		    type: "POST",
+		    url: "{% url 'cat_set_attr' %}",
+			{# url: '/catalog/edit/', #}
+		    data: {id:  pk, update_enddate: date},
+		    dataType : 'json',
+		    success:function(json){
+		    	if (json['status'] == true) {
+	//	    		$( "<p>Додано: " + $('#upload_youtube').val() + "</p>" ).insertAfter("#upload_youtube_button");
+//		    		alert("Посилання додано. " + json['msg']);
+					console.log("Дату змінено");
+//		    		$("#upload_youtube").val('')
+		    	}
+		   		else {
+		   			console.log('JSON = ' + json['error'] + ' STATUS = ' + json['status'] );
+		   		    alert("Помилка: " + json['error']);
+		   		}
+		    },
+		    error:function(){
+		     alert("При отправке возникли проблемы");
+		    }
+		 });
+	};
+	
+	
+});
 </script>
 
 {% load poll_extras %}  
 
 {% if view %}
-
-<br>
+<div class="row">
+<div class="col-xs-12 col-lg-12">
 {% for company in company_list %}
-<a href="/catalog/manufacture/{{company.id}}/view/">{{company.name}}</a>
+<a href="/catalog/manufacture/{{company.id}}/view/" class="badge badge-dark">{{company.name}}</a>
 {% endfor %}
+</div>
+</div>
 <br>
-
 {% endif %}
 
    
@@ -104,12 +178,17 @@ $(document).ready(function() {
     <a href="{{url}}">Друкувати цінники</a>
     {% endif %}
 
-{{post}}
-    <table width="100%">
-	<col width="1%" valign="top">
+{# {{post}}  width="100%" #}
+
+
+<div class = "table-responsive">
+ 
+    <table  class = "table table-bordered table-hover table-condensed">
+{% comment %}	
+	<col width="1%" valign="top" align="center">
 	<col width="2%" valign="top">
    	<col width="2%" valign="top">    
-   	<col width="25%" valign="top">{# назва товару #}
+   	<col width="25%" valign="top" >{# назва товару #}
    	<col width="5%" valign="top"> 
    	<col width="10%" valign="top"> 
    	<col width="1%" valign="top">
@@ -124,7 +203,7 @@ $(document).ready(function() {
    	<col width="2%" valign="top">
    	<col width="2%" valign="top">
    	<col width="2%" valign="top">
-   	
+{% endcomment %}   	
 	<tr>
 	<th>#</th>
     	<th id="id_col">ID</th>
@@ -133,33 +212,37 @@ $(document).ready(function() {
     	<th>Виробник</th>
     	<th>Тип</th>
     	<th>Вага</th>
-    	<th width="2%">Рік виготовлення</th>
-    	<th>Дата закінчення розпродажу</th>
+    	<th data-toggle="tooltip" data-placement="top" title="Рік виготовлення">Рік</th>
+    	<th class="d-none d-lg-block">Дата закінчення розпродажу</th>
     	<th>Колір</th>
     	<th>Ціна</th>
-    	<th>Валюта</th>
-    	<th>Знижка (%)</th>
+    	<th class="d-none d-xl-block">Валюта</th>
+    	<th data-toggle="tooltip" data-placement="top" title="Знижка в %">(%)</th>
+    	<th data-toggle="tooltip" data-placement="right" title="Наявна кількість (шт.)">К-ть</th>
     	<th>Країна</th>
     	<th>Опис</th>
     	<th>Місце</th>
-    	<th>Кількість</th>
     	<th>Термін придатності</th>
     	<th>Last update</th>
+{% if request.user|has_group:"admin" %}    	
     	<th>Last price</th>
+{% endif %}    	
     	<th>Дія</th>
     </tr>
 
 {% for type in catalog %}
 {% ifequal type.sale 0 %}
-<tr>
+<tr pk="{{type.pk}}">
 {% else %}
-<tr BGCOLOR="#FF6600">
+<tr BGCOLOR="#FF6600" pk="{{type.pk}}">
 {% endifequal %}
 	<td>
 	{{forloop.counter}}
 	</td>	
-	<td>       
-	<abbr title="Додати товар до накладної"><a href="/invoice/catalog/{{ type.id }}/add">{{type.id}}</a></abbr>
+	<td data-toggle="tooltip" data-placement="top" title="Додати товар до накладної">       
+	<span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Додати товар до накладної">
+	<a href="/invoice/catalog/{{ type.id }}/add">{{type.id}}</a> 
+	</span>
 	</td>
 	<td>       
 	{{type.ids}}
@@ -180,14 +263,13 @@ $(document).ready(function() {
 	{% endif %}		       
 	<a href="/catalog/type/{{type.type.id}}/view">{{type.type}}</a>
 	</td>
-	
 	<td align="center">       
 	{{type.weight}}
 	</td>	
-	<td width="1%" align="center">       
+	<td width="1%" align="center" contenteditable="true">       
 	{{type.year}}
 	</td>
-	<td align="center">       
+	<td align="center" class="d-none d-lg-block">       
 	{{type.sale_to}}
 	</td>
 	<td>       
@@ -198,36 +280,40 @@ $(document).ready(function() {
 {% else %}
 	<td id_price="{{type.id}}" align="center">
 {% endif %}       
-	{{type.price}} 
+	{{type.price}} {{type.currency.ids_char}}
 	</td>
-	<td align="center">       
+	<td align="center" class="d-none d-xl-block">       
 	{{type.currency}}
 	</td>	
 	<td class="edit_sale" id_sale="{{type.id}}" align="center">
 	{{type.sale}}
+    <td align="center" data-toggle="tooltip" data-placement="top" title="Переглянути надходження">
+    <a href="/invoice/catalog/{{type.id}}/view/">{{type.count}}</a>
+    </td>
 	</td>
 	<td align="center">       
 	{{type.country}}
 	</td>	
-      
 	<td class="edit_area" id_desc="{{type.id}}" align="center">	
 	{{type.description}} 
 	</td>
     <td align="center">
     {{type.locality}}
     </td>
-    <td align="center">
-    <a href="/invoice/catalog/{{type.id}}/view/">{{type.count}}</a>
-    </td>
-	<td align="center">       
-	{{type.date}}
-{#	<a href="/invoice/catalog/{{type.id}}/view/">Переглянути наявність</a> #}
+	<td align="center" class="dpicker">       
+	
+          <div class="modal-body" data-toggle="datepicker" >
+          {{type.date}}
+{#            <input type="text" class="form-control" data-toggle="datepicker"> #}
+          </div>
+	
 	</td>
     <td align="center">
     {{type.last_update}}
     <br>
     {{type.user_update}}
     </td>
+{% if request.user|has_group:"admin" %}    
 <td align="center">
 {{type.last_price}}
 {% comment %}
@@ -237,6 +323,7 @@ $(document).ready(function() {
 	{% endif %}
 {% endcomment %}
 </td>
+{% endif %}
 	<td>
 {% if user.is_authenticated %}	
     <a href="/catalog/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')">delete</a>
@@ -247,9 +334,14 @@ $(document).ready(function() {
 
 {% endfor %}   
     
-    <table>
-
+</table>
+</div>
 <br>
 
 
+<div>
 {% orm_debug %}
+</div>
+
+
+

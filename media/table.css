@@ -22,24 +22,25 @@ TD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
 }
 
 a:hover {text-decoration: none}
+
 .jQtooltip {color: #963}
 
 .jQtooltip {
 	position: relative;
 	cursor: help;
-  border-bottom: 1px dotted;
+  	border-bottom: 1px dotted;
 }
 .jQtooltip.mini {
 	display: inline-block;
 	vertical-align: bottom;
-  font-size: 11px;
+	font-size: 11px;
 	width: 14px;
-  line-height: 13px;
-  text-align: center;
-  margin-left: 2px;
+  	line-height: 13px;
+  	text-align: center;
+  	margin-left: 2px;
 	top: -2px;
 	color: #9A4D18;
-  border: 1px solid #FAD28F;
+  	border: 1px solid #FAD28F;
 	background: #FFF6BD;
 	-moz-border-radius: 2px;
 	border-radius: 2px;
@@ -52,14 +53,14 @@ a:hover {text-decoration: none}
 	z-index: 1000;
 	width: 190px;
 	padding: 8px 12px;
-  text-align: left;
-  font-size: 12px;
-  line-height: 16px;
+  	text-align: left;
+  	font-size: 12px;
+  	line-height: 16px;
 	color: #000;
 	-webkit-box-shadow: 0 1px 3px #C4C4C4;
 	-moz-box-shadow: 0 1px 3px #C4C4C4;
 	box-shadow: 0 1px 3px #C4C4C4;
-  border: 1px solid #DBB779;
+  	border: 1px solid #DBB779;
 	background: #FFF6BD;
 	-moz-border-radius: 2px;
 	border-radius: 2px;

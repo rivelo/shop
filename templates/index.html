@@ -1,11 +1,23 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
+ 
  <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9, minimum-scale=0.9";>
+  	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+{#  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9, minimum-scale=0.9";> #}
 
 
+  	<link rel="stylesheet" href="/media/css/bootstrap.min.css"> 
+
+	<script type="text/javascript" src="/media/js/jquery.js"></script>
+	<script type="text/javascript" src="/media/js/jquery-ui.min.js"></script>  
+  	<script src="/media/js/popper.min.js"></script>
+  	<script src="/media/js/bootstrap.min.js"></script>   	
+{#  	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"></script> #}
+ 	
+
+{% comment %}
   <style type="text/css">
    body {
     font: 11pt Arial, Helvetica, sans-serif; /* Рубленый шрифт текста */
@@ -50,16 +62,123 @@
     clear: left; /* Отменяем действие float */
    }
   </style>
+  
+<style type="text/css">
+   #mainmenutable {
+    width:100%; 
+    border-collapse: collapse;
+    border-color:white;
+   }
+   #tdlogo {
+   text-align:right;
+   border-color:white;
+   }
+
+   p {
+    font-family: 'Times New Roman', Times, serif; /* Шрифт с засечками */
+    font-style: italic; /* Курсивное начертание */
+    font-size: 16px;
+   }
+   
+input:focus{
+  outline:none;
+  border-color:rgba(255,25,33,.75);
+  border-radius:3px;
+  -moz-border-radius:3px;
+  -webkit-border-radius:3px;
+}
+
+input{
+  border:1px solid #aaa;
+  border-radius:3px;
+  -moz-border-radius:3px;
+  -webkit-border-radius:3px;
+  transition:border linear .2s,box-shadow linear .2s;
+  -moz-transition:border linear .2s,-moz-box-shadow linear .2s;
+  -webkit-transition:border linear .2s,-webkit-box-shadow linear .2s;
+}
+
+submit {
+    width: 100px;
+    color: #fff;
+    text-transform: uppercase;
+    text-shadow: #000 1px 1px;
+    border-top: 1px solid #ad64e0;
+    margin-top: 10px;
+    font-style: bold;
+}	   
+
+label {
+    font-family: 'Times New Roman', Times, serif; /* Шрифт с засечками */
+    font-style: bold;
+    font-size: 14px;
+    color: black;
+}
+	   
+</style>  
+  
+{% endcomment %}  
+
+<style type="text/css">
+#footer { /* Нижний блок */
+    background: #333; /* Цвет фона */
+    padding: 5px; /* Поля вокруг текста */
+    color: #fff; /* Цвет текста */
+/*    clear: left;  Отменяем действие float */
+}
+
+.no-gutters {
+  margin-right: 0;
+  margin-left: 0;
+
+  > .col,
+  > [class*="col-"] {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
+.content {
+  padding: 0px;
+  padding-top: 5px;
+}
+
+.sticky.is-sticky {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+}
+
+</style>
+  
  </head>
+ 
  <body>
+ <div class="content container-fluid">
+ 
 <!--  <div id="header"> {% include "top.html" %} </div> --> 
-  <div id="header1"> <h1>{% include "top.html" %} {% include "menu.html" %} </h1> </div>
-    
+{# <div id="header1"> {% include "top.html" %} {% include "menu.html" %} </div> #}
   
-  <div id="main_content">
+<div class="row no-gutters">
+  <div class="col-xs-12 col-lg-12">{% include "top.html" %}</div>
+{#  <div class="col-xs-12">{% include "menu.html" %}</div> #} 
+</div>
+
+{% include "menu.html" %}
+
+  
+  <div id="main_content"> 
       {% include weblink %}
-  </div>
-  
-  <div id="footer">&copy; Rivelo shop </div>
- </body>
+  </div> 
+
+<div class="row">  
+  <div class="col-xs-12 col-md-12" id="footer">&copy; Rivelo shop </div>
+</div>
+
+
+</div>
+</body>
 </html>

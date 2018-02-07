@@ -10,7 +10,8 @@
 <link rel="stylesheet" href="/media/css/dataTables.jqueryui.css">
 <link rel="stylesheet" href="/media/css/select.dataTables.min.css">
 <link rel="stylesheet" href="/media/css/tooltip.css">
- 
+  	<link rel="stylesheet" href="/media/css/datepicker.min.css">
+  	 
 <script type="text/javascript" src="/media/jquery-ui.min.js"></script>
 <script type="text/javascript" language="javascript" src="/media/jquery.dataTables.min.js"></script>
 <script type="text/javascript" language="javascript" src="/media/dataTables.jqueryui.js"></script>
@@ -18,6 +19,11 @@
 {# <script type="text/javascript" language="javascript" src="/media/dataTables.buttons.min.js"></script> #}
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 <script src="/media/jssor.slider.mini.js"></script>
+
+
+  	<script src="/media/js/popper.min.js"></script>
+  	<script src="/media/js/bootstrap.min.js"></script>   	
+  	<script src="/media/js/datepicker.min.js"></script> 
 
 </head>
 
@@ -42,8 +48,8 @@
   		cursor: pointer; 
   		border-radius: 3px;
   		color: #FFF;
-  		background-color: #4A4A4A;
-  		border-right:10px solid #4A4A4A;
+  		background-color: #cecccc;
+/*  		border-right:10px solid #cecccc; */
   		}
 
 #container {
@@ -59,6 +65,8 @@
     display: inline-block
     vertical-align: middle;
     margin: 2px;
+	height: 2em;
+	font-size: 12pt;    
 }
   
   .zero{
@@ -186,7 +194,37 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {
     }
 } );
 
+
+$('[data-toggle="datepicker"]').on('hide.datepicker', function (e) {
+	console.log("Click datepicker + " + $(this).datepicker('getDate', true));
+	console.log("TR = " + $(this).parents('td').parents('tr').attr('id') );
+	update_enddate( $(this).parents('td').parents('tr').attr('id'), $(this).datepicker('getDate', true) )
 });
+
+function update_enddate(pk, date) {
+	$.ajax({
+	    type: "POST",
+	    url: "{% url 'cat_set_attr' %}",
+		{# url: '/catalog/edit/', #}
+	    data: {id:  pk, update_enddate: date},
+	    dataType : 'json',
+	    success:function(json){
+	    	if (json['status'] == true) {
+				console.log("Дату змінено");
+	    	}
+	   		else {
+	   			console.log('JSON = ' + json['error'] + ' STATUS = ' + json['status'] );
+	   		    alert("Помилка: " + json['error']);
+	   		}
+	    },
+	    error:function(){
+	     alert("При отправке возникли проблемы");
+	    }
+	 });
+};
+
+});
+
 
 (function( $ ) {
     $.widget( "custom.combobox", {
@@ -379,27 +417,28 @@ $(document).ready(function() {
 	//table.column(10).visible(false); //price
 	table.column(12).visible(false); //decription
 	//table.column(14).visible(false);
+	table.column(13).visible(false); //Опис
 	table.column(15).visible(false); //Інвентеризація
 	
 	$('#iTable_length').append('<div class="cdiv"><label> Тип:</label><input type="text" id="s_type" placeholder="Search type" /> </div>');    
 	$('#iTable_length').append('<div class="cdiv"><label> Назва:</label><input type="text" id="s_name" placeholder="Search name" /></div>' );
 {#	$("div.toolbar").html('<a class="toggle-vis" data-column="1">Id</a>, <a class="toggle-vis" data-column="2">Type</a>'); #}
-	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="1">Id</a></div>');
-	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="2">Тип</a></div>');
-	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="3">Виробник</a></div>');
-	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="4">Youtube</a></div>');	
-	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-5">Знижка</a></div>');
-	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-4">Сума</a></div>');	
-	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-3">Опис</a></div>');
-	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-2">Місце</a></div>');
-	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis" data-column="-1" id="show_inv" val="0">Інв.</a></div>');
+	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis badge badge-dark" data-column="1">Id</a></div>');
+	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis badge badge-dark " data-column="2">Тип</a></div>');
+	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis badge badge-dark" data-column="3">Виробник</a></div>');
+	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis badge badge-dark" data-column="4">Youtube</a></div>');	
+	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis badge badge-dark" data-column="-5">Знижка</a></div>');
+	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis badge badge-dark" data-column="-4">Сума</a></div>');	
+	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis badge badge-dark" data-column="-3">Опис</a></div>');
+	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis badge badge-dark" data-column="-2">Місце</a></div>');
+	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis badge badge-dark" data-column="-1" id="show_inv" val="0">Інв.</a></div>');
 	$('#iTable_length').append('<div class="cdiv"><a href="javascript:void(0);" id="show_hide" val="0">Наявні</a></div>');
-	$("#iTable_length").append('  <a href="javascript:void(0);" id="sel_all" val="0">Виділити всі</a> ');
+	$("#iTable_length").append('  <a href="javascript:void(0);" id="sel_all" class="badge badge-dark text-white" val="0">Виділити всі</a> ');
 {% if request.user|has_group:"admin" %}
-	$("#iTable_length").append(' <a href="javascript:void(0);" id="c_join" val="0">Обєднати товари</a>');
-	$("#iTable_length").append(' <a href="javascript:void(0);" id="sale_change" val="0">Змінити знижку</a>');
+	$("#iTable_length").append(' <a href="javascript:void(0);" id="c_join" class="badge badge-dark text-white" val="0">Обєднати товари</a>');
+	$("#iTable_length").append(' <a href="javascript:void(0);" id="sale_change" val="0" class="badge badge-dark text-white">Змінити знижку</a>');
 {% endif %}	
-	$("#iTable_length").append('  <a href="javascript:void(0);" id="print_phpbb" val="0">Створити таблицю</a> ');
+	$("#iTable_length").append('  <a href="javascript:void(0);" id="print_phpbb" val="0" class="badge badge-dark text-white">Створити таблицю</a>');
 
  
     // Apply the search in add field
@@ -417,7 +456,19 @@ $(document).ready(function() {
          // Toggle the visibility
         column.visible( ! column.visible() );
     } );
- 
+
+    $('[data-toggle="datepicker"]').datepicker({
+        autoHide: true,
+        zIndex: 2048,
+        format: 'dd-mm-yyyy',
+        daysMin: ['Нд', 'По', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+        monthsShort: ['Січ', 'Лют', 'Бер', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        weekStart: 1,
+//        date: new Date(2018, 1, 1),
+      });   
+
+    
+    
  $("body").on('click', '#sel_all', function() {
 	var status = $('#sel_all').attr('val')
 	if ( status == 1) {
@@ -1527,14 +1578,14 @@ console.log("ids[]= ", ids );
     	<th ROWSPAN="2">Виробник</th>
     	<th ROWSPAN="2">Y</th>
     	<th ROWSPAN="2">Ф</th>
-    	<th ROWSPAN="2" width="100%">Найменування товару</th>
+    	<th ROWSPAN="2" width="90%">Найменування товару</th>
     	
     	<th align="center" COLSPAN="3" >Кількість</th>
     	
-    	<th ROWSPAN="2">Ціна</th>
+    	<th ROWSPAN="2" width="6%">Ціна</th>
     	<th ROWSPAN="2">Знижка</th>
     	<th ROWSPAN="2">Сума</th>
-    	<th ROWSPAN="2">Опис</th>
+    	<th ROWSPAN="2" width="5%">Опис</th>
     	<th ROWSPAN="2">Місце</th>
     	<th ROWSPAN="2">Інв.</th>
     	
@@ -1612,6 +1663,11 @@ console.log("ids[]= ", ids );
 	</td>
 	<td class="c_name">
 	[{{type.catalog__ids}}] {% if type.catalog__dealer_code %} [{{type.catalog__dealer_code}}] {% endif %}- ({{type.catalog__manufacturer__name}}) {{type.catalog__name}} 
+	{% if type.catalog__date %} 
+          <span class="modal-body" data-toggle="datepicker">
+	    [{{type.catalog__date}}]
+	      </span> 
+	{% endif %}
 	</td>
 	<td align="center">
 	<a href="/invoice/catalog/{{type.catalog}}/view/">
