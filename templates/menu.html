@@ -3,6 +3,30 @@
 <link rel="stylesheet" type="text/css" href="/media/menu.css">
 <script language="javascript" src="/media/menu.js" type="text/javascript"></script>
 
+<style type="text/css">
+/*
+    .navbar .dropdown-menu > .active > a,
+    .dropdown-menu > .active > a:hover,
+    .dropdown-menu:hover,
+    .navbar .dropdown-menu > .active > a:focus {
+        color: #fff;
+        background-color: #357EBD; 
+        background-image: linear-gradient(to bottom, #428BCA 0, #357EBD 100%); 
+    }
+*/    
+.navbar-dark .navbar-nav .nav-link:hover, .navbar-dark .navbar-nav .nav-link:focus {
+/*  color: red; */
+}
+    
+.dropdown-item:hover, .dropdown-item:focus {
+  color: black;
+  font-weight: bold;
+  text-decoration: none;
+  background-color: #b0b5ba; /* #f8f9fa; */
+}
+
+</style>
+
 <script>
 $(document).ready(function() {
 	  // Custom 
@@ -42,7 +66,7 @@ $(document).ready(function() {
 
 {# if user.is_authenticated #}
 {# <nav class="navbar navbar-expand-lg navbar-dark bg-primary"> #}
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary" data-toggle="sticky-onscroll">
+<nav class="navbar-dark navbar-expand-lg navbar-dark bg-primary" data-toggle="sticky-onscroll">
   <a class="navbar-brand d-md-none" href="#">Меню</a> 
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -136,6 +160,7 @@ $(document).ready(function() {
         <div class="dropdown-divider"></div>
 			<a class="dropdown-item" href="/client/invoice/return/list/">Повернений товар</a>
        		<a class="dropdown-item" href="/invoice/price/update/1/view/">Оновлені товари</a>
+       		<a class="dropdown-item" href="/invoice/enddate/list/">Товари з терміном</a>
        		<a class="dropdown-item" href="/invoice/search/">Пошук наявного товару</a>
        		<a class="dropdown-item" href="/invoice/list/10/view/">Наявний товар 10 останніх</a>
        		<a class="dropdown-item" href="/invoice/sale/list/">Товари зі ЗНИЖКАми</a>

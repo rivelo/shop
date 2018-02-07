@@ -5,18 +5,20 @@
 
 
 {#	<link rel="stylesheet" type="text/css" href="/media/table.css"> #} 
-{#  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css"> #}
+
   	<link rel="stylesheet" href="/media/css/datepicker.min.css">
 
 {# <script type="text/javascript" src="/media/jquery-1.7.2.min.js"></script> #}
-{#	<script type="text/javascript" src="/media/js/jquery.js"></script> #}
-
+{#	<script type="text/javascript" src="/media/js/jquery.js"></script> #} 
+ 
+ 
 	<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
-{#  	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js"></script> #} 
-{#  	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"></script> #}
+  	<script src="/media/js/datepicker.min.js"></script>
+  		
+{% comment %}	
   	<script src="/media/js/popper.min.js"></script>
   	<script src="/media/js/bootstrap.min.js"></script>   	
-  	<script src="/media/js/datepicker.min.js"></script> 
+{% endcomment %}
 
 <script>
 
@@ -105,7 +107,7 @@ $(document).ready(function() {
 //       date: new Date(2018, 1, 1),
      });   
 
-	$('[data-toggle="tooltip"]').tooltip()
+//	$('[data-toggle="tooltip"]').tooltip()
 
 	$('[data-toggle="datepicker"]').on('hide.datepicker', function (e) {
 		//var sdate = $(this).datepicker('getDate');
