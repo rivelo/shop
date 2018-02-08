@@ -2,40 +2,17 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Велосипеди в магазині</title>
 
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+<link rel="stylesheet" type="text/css" href="/media/css/table.css">
 
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
-<link rel="stylesheet" href="/media/css/jquery.dataTables.min.css">
-<link rel="stylesheet" href="/media/css/dataTables.jqueryui.css">
+{# <link rel="stylesheet" href="/media/css/jquery.dataTables.min.css"> #}
+ <link rel="stylesheet" href="/media/css/dataTables.jqueryui.css"> 
 
 <script type="text/javascript" src="/media/jquery-ui.min.js"></script>
 <script type="text/javascript" language="javascript" src="/media/jquery.dataTables.min.js"></script>
 <script type="text/javascript" language="javascript" src="/media/dataTables.jqueryui.js"></script> 
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 
-<style type="text/css">
-  span:visited{ text-decoration:none; color:#293d6b; }
-  span:hover{ text-decoration:underline; color:#293d6b; }
-  span {color:#293d6b; cursor: pointer; }
-
-.cdiv {
- /*   float: left; */
- 	float:left;
-    display: inline-block
-    vertical-align: middle;
-    margin: 2px;
-}
-
-  
-  a.toggle-vis {color:#293d6b; 
-  		cursor: pointer; 
-  		border-radius: 3px;
-  		color: #FFF;
-  		background-color: #4A4A4A;
-  		border-right:10px solid #4A4A4A;
-  		}
-
-</style>
 
 {% load poll_extras %}
 
@@ -102,11 +79,11 @@ $("div.toolbar").append('<div class="cdiv"><label> Виробник:</label><inp
 $("div.toolbar").append('<div class="cdiv"><label> Модель:</label><input type="text" id="s_model" placeholder="Search name" /></div>' );
 $("div.toolbar").append('<div class="cdiv"><label> Рік:</label><input type="text" id="s_year" placeholder="Search name" /></div>' );
 $("div.toolbar").append('<div class="cdiv"><label> Розмір:</label><input type="text" id="s_size" placeholder="Search name" /></div>' );
-$("div.toolbar").append('<div class="cdiv"><a class="toggle-vis" data-column="-2">Дія</a></div>' );
-$("div.toolbar").append('<div class="cdiv"><a class="toggle-vis" data-column="-1">Цінники</a></div>' );
+$("div.toolbar").append('<div class="badge badge-pill badge-dark"><a class="toggle-vis" data-column="-2">Дія</a></div>' );
+$("div.toolbar").append('<div class="badge badge-pill badge-dark"><a class="toggle-vis" data-column="-1">Цінники</a></div>' );
 
 {% if request.user|has_group:"admin" %}
-$("div.toolbar").append('<div class="cdiv"><a class="toggle-vis" data-column="9">Ціна $</a></div>' );
+$("div.toolbar").append('<div class="badge badge-pill badge-dark"><a class="toggle-vis" data-column="9">Ціна $</a></div>' );
 {% endif %}
 
     $('a.toggle-vis').on( 'click', function (e) {
@@ -234,7 +211,7 @@ $("body").on("click", ".change_sale", function(e){
 
 <br>
 <form action="/bicycle/store/price/print/" method="post" name="formBPrice">
-<table id="iTable" class="display compact" cellspacing="0" width="100%">
+<table id="iTable" class="table table-bordered table-hover table-condensed" cellspacing="0" width="100%">
 <thead>
 	<tr>
 		<th>#</th>

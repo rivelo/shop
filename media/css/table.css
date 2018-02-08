@@ -1,0 +1,154 @@
+#iTable a{
+	color: #0c5e0c;
+}
+
+#iTable .sale{
+	background: #FF6600;
+}
+
+
+#iTable .reserv{
+	background: #FF934D;
+}
+
+#iTable th{
+	background: #b5b3b4;
+	text-align: center; /* Выравнивание по левому краю */
+	valign: center;
+	vertical-align: center;
+	/*color: white;*/	
+}
+
+table#price {
+	border: 0; /* Рамка вокруг таблицы */
+}
+
+
+#itable TH {
+	text-align: center; /* Выравнивание по левому краю */
+	background: #ccc; /* Цвет фона ячеек */
+	padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+
+	valign: center;
+}
+
+a.select {
+/*		color: red; */
+		background-color:#006600;
+	}
+
+
+a.toggle-vis {
+		color:#293d6b; 
+  		cursor: pointer; 
+/*  		border-radius: 3px;
+  		color: #FFF;
+  		background-color: red;
+  		border-right:10px solid #4A4A4A;*/
+}
+
+.cdiv {
+ /*   float: left; */
+ 	float:left;
+    display: inline-block
+    vertical-align: middle;
+    margin: 2px;
+}
+
+/*
+  span:visited{ text-decoration:none; color:#293d6b; }
+  span:hover{ text-decoration:underline; color:#293d6b; }
+  span {color:#293d6b; cursor: pointer; }
+*/
+
+/* виконано */
+	tr.w_done_done {
+		background-color: #ffffff;
+	}
+/* виконано не видано */
+	tr.w_done {
+		background-color: #bbbbbb;
+	}
+	
+/* не виконано */
+	tr.w_false {
+		background-color: red;
+	}
+/*   	// в роботі {% endcomment %} */
+	tr.w_working {
+		background-color: #FFFF99;
+	}
+/*   	// прийнято */
+	tr.w_true {
+		background-color: #CCFF99;
+	}
+
+.tr_true {
+background-color: #fff;
+}
+
+.tr_false {
+background-color: #fbf4aa;
+/* font-weight: bold; */
+}
+
+
+table#balance {
+	border: 2px solid black; /* Рамка вокруг таблицы */
+	border-collapse: collapse; /* Отображать только одинарные линии */
+}
+
+table#balance TH {
+	text-align: center; /* Выравнивание по левому краю */
+	background: #ccc; /* Цвет фона ячеек */
+	padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+}
+
+table#balance TD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+	font-size: 14pt;
+}
+
+
+table#product {
+	border: 2px solid black; /* Рамка вокруг таблицы */
+	border-collapse: collapse; /* Отображать только одинарные линии */
+	width: 100%;
+	font-size : 12px;
+	font-family : Arial;
+}
+
+table#product TH {
+	text-align: center; /* Выравнивание по левому краю */
+	background: #ccc; /* Цвет фона ячеек */
+	padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+}
+
+table#product TD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+	font-size: 10pt;
+/*	width: 30pt; */
+}
+
+.invoiceTABLE { /*width: 100%; */ /* Ширина таблицы */
+	/*border: 4px double black; /* Рамка вокруг таблицы */
+	border: 2px solid black; /* Рамка вокруг таблицы */
+	border-collapse: collapse; /* Отображать только одинарные линии */
+}
+
+.invoieceTABLE TH {
+	text-align: center; /* Выравнивание по левому краю */
+	background: #ccc; /* Цвет фона ячеек */
+	padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+}
+
+.invoiceTD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
+	border: 1px solid black; /* Граница вокруг ячеек */
+	font-size: 10pt;
+}
+
+

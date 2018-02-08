@@ -4,13 +4,17 @@
 <head>
 <title>{{company_name|capfirst}}{{category_name|capfirst}} - Наявний товар</title>
 
-{# <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
 <link rel="stylesheet" href="/media/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="/media/css/dataTables.jqueryui.css">
 <link rel="stylesheet" href="/media/css/select.dataTables.min.css">
 <link rel="stylesheet" href="/media/css/tooltip.css">
-  	<link rel="stylesheet" href="/media/css/datepicker.min.css">
+<link rel="stylesheet" href="/media/css/datepicker.min.css">
+<link rel="stylesheet" type="text/css" href="/media/css/table.css">
+  	
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">  	
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/typicons/2.0.7/typicons.min.css" />
+
   	 
 <script type="text/javascript" src="/media/jquery-ui.min.js"></script>
 <script type="text/javascript" language="javascript" src="/media/jquery.dataTables.min.js"></script>
@@ -172,7 +176,18 @@ cursor: pointer;
             .jssora03r:hover { background-position: -183px -33px; }
             .jssora03l.jssora03ldn { background-position: -243px -33px; }
             .jssora03r.jssora03rdn { background-position: -303px -33px; }
-  </style>
+
+.green-icon {
+  color: green;
+  font-style: normal;
+  size: 300px;
+}
+/*
+#iTable a{
+	color: #272728;	
+}*/
+
+</style>
         
 
 {% load poll_extras %}
@@ -464,9 +479,8 @@ $(document).ready(function() {
         zIndex: 2048,
         format: 'dd-mm-yyyy',
         daysMin: ['Нд', 'По', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
-        monthsShort: ['Січ', 'Лют', 'Бер', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        monthsShort: ['Січ', 'Лют', 'Бер', 'Кві', 'Тра', 'Чер', 'Лип', 'Сер', 'Вер', 'Жов', 'Лис', 'Гру'],
         weekStart: 1,
-//        date: new Date(2018, 1, 1),
       });   
 
     
@@ -1584,7 +1598,7 @@ console.log("ids[]= ", ids );
     	
     	<th align="center" COLSPAN="3" >Кількість</th>
     	
-    	<th ROWSPAN="2" width="6%">Ціна</th>
+    	<th ROWSPAN="2" width="10%">Ціна</th>
     	<th ROWSPAN="2">Знижка</th>
     	<th ROWSPAN="2">Сума</th>
     	<th ROWSPAN="2" width="5%">Опис</th>
@@ -1670,6 +1684,12 @@ console.log("ids[]= ", ids );
 	    [{{type.catalog__date}}]
 	      </span> 
 	{% endif %}
+	
+	<span class="fa fa-calendar-o red-icon"></span>
+	<span class="typcn typcn-social-youtube green-icon”> text</span>
+	
+<a class="btn btn-small bg-primary" href="#"><i class="icon-star"> </i> Test</a>
+	
 	</td>
 	<td align="center">
 	<a href="/invoice/catalog/{{type.catalog}}/view/">

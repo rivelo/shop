@@ -2642,9 +2642,6 @@ def catalog_set(request):
                 obj.save() 
                 c = Catalog.objects.filter(id = id).values_list('locality', flat=True)
                 return HttpResponse(c)
-                
-            if auth_group(request.user, 'admin')==False:
-                return HttpResponse('Error: У вас не має прав для редагування')
             
             if POST.has_key('id') and POST.has_key('price'):
                 id = request.POST.get('id')
@@ -2690,7 +2687,7 @@ def catalog_set(request):
                 #return HttpResponse(c)
               #  return HttpResponse(simplejson.dumps(list(c)))
     else :
-           return HttpResponse('Error: У вас не має прав для редагування')
+           return HttpResponse('Error: Щось пішло не так')
     
 
 
@@ -7120,7 +7117,7 @@ def youtube_url_add(request, id=None):
                     except YouTube.MultipleObjectsReturned:
                         d['status'] = False
                         d['error'] = "Таких роликів є більше ніж один. Видаліть дублікати."
-            else:
+            if not POST.has_key('c_id') and not POST.has_key('id'):
                 response = JsonResponse({'error': "Невірні параметри запиту"})
                 return response
             

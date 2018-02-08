@@ -3,14 +3,39 @@
 <link type="text/css" rel="stylesheet" href="/media/paginator.css">
 <head>
     <title>Список проданого товару</title>
-    <link rel="stylesheet" type="text/css" href="/media/table.css">
+
+    <link rel="stylesheet" type="text/css" href="/media/css/table.css"> 
 {#    <link rel="stylesheet" type="text/css" href="/media/css/tooltip.css"> #}
+
+
+<link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" />
+<script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script>
+
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
+
+
+{# <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"> #}
+{# <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> #}
+
+<script src="/media/jquery-ui.min.js"></script>
+{# <script src="/media/js/touchHover.js"></script> #}
+
+
+ 
 </head>
 
 {% load poll_extras %}
 
 <style>
-	a.select {
+
+	table a {
+/*		color: #272728;
+	color: #006600; */
+/*		background-color:#006600; */
+	}
+
+/*	a.select {
 		color: #FFFFFF;
 		background-color:#006600;
 	}
@@ -18,6 +43,8 @@
 		color: #0000FF;
 		background-color:#FFFFFF;
 	}
+*/
+
 	
 /* Класс контекстного меню: */ .context-menu {     position: absolute; /* Задаем абсолютное позиционирование для нашего меню */     display: none; /* Изначально не показываем его */    
  background-color: #fff; /* Цвет фона меню */     
@@ -37,6 +64,8 @@ font-weight: bold;
 width: 150px;
 //float: left;
 }
+
+{% comment %}
 
 abbr {
     position: relative;
@@ -168,17 +197,9 @@ abbr:hover::after {
     opacity: 1;
 }
 
+{% endcomment %}
 </style>
 
-<link rel="stylesheet" href="/media/jquery-ui.min.css">
-<link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
-
-
-{# <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"> #}
-{# <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> #}
-
-<script src="/media/jquery-ui.min.js"></script>
-{# <script src="/media/js/touchHover.js"></script> #}
 
 <body onLoad="res()">
 
@@ -214,6 +235,17 @@ for(var i = 0; i < All.elements.length; ++i) {
 $(document).ready( function() {
 
 //    $('.tooltip').tooltip();   	
+
+$('[title!=""]').qtip({
+    position: {
+        at: 'top left'
+    }
+});
+
+/*$(function () {
+  $('[data-toggle="tooltip"]').tooltip()
+})*/
+
 	
 $("#dialog_client").dialog({
 	autoOpen: false,
@@ -570,16 +602,15 @@ function calc_sum() {
 
 
 
-
 <br>
 {% if view %}
 <h2>
     За місяць: 
 	{% for i in "123456789012" %}
 	{% ifequal forloop.counter sel_month %}
-	<a href="/client/invoice/year/{{sel_year}}/month/{{forloop.counter}}/view" class="select">{{forloop.counter}}</a>,
+	<a href="/client/invoice/year/{{sel_year}}/month/{{forloop.counter}}/view" class="badge badge-success select">{{forloop.counter}}</a>
     {% else %}
-	<a href="/client/invoice/year/{{sel_year}}/month/{{forloop.counter}}/view" class="non">{{forloop.counter}}</a>,
+	<a href="/client/invoice/year/{{sel_year}}/month/{{forloop.counter}}/view" class="badge badge-success">{{forloop.counter}}</a>
     {% endifequal %}
 	{% endfor %}    
 </h2>    
@@ -588,9 +619,9 @@ function calc_sum() {
 	За день:
 	{% for day in month_days %}		 
 	{% ifequal day sel_day %}
-    <a href="/client/invoice/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view" class="select">{{day}}</a>,
+    <a class="badge badge-success select" href="/client/invoice/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view">{{day}}</a>
     {% else %}
-	<a href="/client/invoice/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view" class="non">{{day}}</a>,
+	<a class="badge badge-success" href="/client/invoice/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view" >{{day}}</a>
     {% endifequal %}
     {% endfor %}
 </h2>    
@@ -627,14 +658,14 @@ function calc_sum() {
 <label id="print_sum" class="ressum">Сума:</label>
 </div>
 
-    <table border="1" id="itable">
+    <table border="1" id="iTable" class = "table table-bordered table-hover table-condensed">
 	<tr>
     	<th>#</th>	
     	<th>ID 
 		</th>
     	<th>Клієнт</th>
     	<th>Назва компонента</th>
-    	<th>Кількість</th>
+    	<th>К-ть</th>
     	<th id="show_profit">Ціна</th>
     	<th class="profit">Profit</th>
     	<th>Сума</th>
@@ -655,15 +686,13 @@ function calc_sum() {
     
 {% for type in buycomponents.object_list %}
 {% ifequal type.sum type.pay %}
-<tr ci_id={{type.id}} count="{{type.count}}" cat_id={{type.catalog.pk}}>
+<tr ci_id="{{type.id}}" count="{{type.count}}" cat_id={{type.catalog.pk}}>
 {% else %}
-<tr BGCOLOR="#F2AE6B" ci_id={{type.id}} cat_id={{type.catalog.pk}} count="{{type.count}}">
+<tr class="reserv" ci_id="{{type.id}}" cat_id="{{type.catalog.pk}}" count="{{type.count}}">
 {% endifequal %}
 
-	<td>
-	<div class="tooltip">{{forloop.counter}}
-  	<span class="tooltiptext-right">Створено користувачем {{type.user.username}}</span>
-	</div>
+	<td data-toggle="tooltip" data-placement="right" title="Створено користувачем {{type.user.username}}">
+	{{forloop.counter}}
 <!-- 
 	<abbr title="Створено користувачем {{type.user.username}}" rel="tooltip">
 	{{forloop.counter}}
@@ -678,7 +707,7 @@ function calc_sum() {
 	{{type.client.name}} ({{type.client.forumname}})       
 	</a>
 	</td>
-	<td class="cat_name" class="tooltip" title="Ящик номер: {{type.catalog.locality}}">       
+	<td class="cat_name" >       
 	[{{type.catalog.ids}}] {{type.catalog.name}}
 	</td>
 	<td align="center" class="tcount">       
@@ -698,11 +727,8 @@ function calc_sum() {
 	<td>       
 	{{type.currency.name}}
 	</td>
-	<td align="center">       
-	<div class="tooltip"> 
+	<td align="center" title="Створено користувачем {{type.user.username}}">       
 	{{type.sale}}
-  	<span class="tooltiptext-down">Створено користувачем {{type.user.username}}</span>
-	</div>
 	</td>
 	<td class="tpay">       
 	{{type.pay}}
@@ -740,18 +766,15 @@ function calc_sum() {
 {% endifequal %}
 {% endifequal %}
 	</td>
+	
 	{% if type.catalog.get_realshop_count == type.catalog.count %}
-	<td align="center">
+	<td align="center" title="Ящик номер: {{type.catalog.locality}}">
 	{% else %}
-	<td align="center" bgcolor="yellow">
-	({{type.catalog.get_realshop_count}})
+	<td align="center" bgcolor="yellow" title="Ящик номер: {{type.catalog.locality}}">
+	({{type.catalog.get_realshop_count}})тест
 	{% endif %}
-	{# <abbr title="Ящик номер: {{type.catalog.locality}}" style="display: inline;" rel="tooltip"> #}
-	<div class="tooltip">
+{#	<abbr title="Ящик номер: {{type.catalog.locality}}" style="display: inline;" rel="tooltip"> 	</abbr> #} 
 	{{type.catalog.count}} {# [{{type.catalog.get_invoice_count}} - {{type.catalog.get_clientinvoice_count}}] #}  
-  	<span class="tooltiptext-left">Ящик номер: {{type.catalog.locality}}</span>
-	</div>
-	{# </abbr> #}
 	</td>
 </tr>
 {% endfor %}         

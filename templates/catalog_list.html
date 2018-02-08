@@ -4,7 +4,7 @@
 <meta name="description" content="Каталог товарів">
 
 
-{#	<link rel="stylesheet" type="text/css" href="/media/table.css"> #} 
+	<link rel="stylesheet" type="text/css" href="/media/css/table.css">  
 
   	<link rel="stylesheet" href="/media/css/datepicker.min.css">
 
@@ -102,7 +102,7 @@ $(document).ready(function() {
        zIndex: 2048,
        format: 'dd-mm-yyyy',
        daysMin: ['Нд', 'По', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
-       monthsShort: ['Січ', 'Лют', 'Бер', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+       monthsShort: ['Січ', 'Лют', 'Бер', 'Кві', 'Тра', 'Чер', 'Лип', 'Сер', 'Вер', 'Жов', 'Лис', 'Гру'],
        weekStart: 1,
 //       date: new Date(2018, 1, 1),
      });   
@@ -185,7 +185,7 @@ $(document).ready(function() {
 
 <div class = "table-responsive">
  
-    <table  class = "table table-bordered table-hover table-condensed">
+    <table  class = "table table-bordered table-hover table-condensed" id="iTable">
 {% comment %}	
 	<col width="1%" valign="top" align="center">
 	<col width="2%" valign="top">
@@ -234,9 +234,9 @@ $(document).ready(function() {
 
 {% for type in catalog %}
 {% ifequal type.sale 0 %}
-<tr pk="{{type.pk}}">
+<tr pk="{{type.pk}}" >
 {% else %}
-<tr BGCOLOR="#FF6600" pk="{{type.pk}}">
+<tr class="sale" pk="{{type.pk}}">
 {% endifequal %}
 	<td>
 	{{forloop.counter}}

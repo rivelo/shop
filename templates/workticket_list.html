@@ -2,39 +2,9 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Майстерня/Заявки</title>
 
-<style>
-	a.select {
-		color: #FFFFFF;
-		background-color:#006600;
-	}
-	a.non {
-		color: #0000FF;
-		background-color:#FFFFFF;
-	}
-{% comment %}   	// виконано {% endcomment %}
-	tr.w_done_done {
-		background-color: #ffffff;
-	}
-{% comment %}   	// виконано не видано {% endcomment %}
-	tr.w_done {
-		background-color: #bbbbbb;
-	}
-	
-{% comment %}   	// не виконано {% endcomment %}
-	tr.w_false {
-		background-color: red;
-	}
-{% comment %}   	// в роботі {% endcomment %}
-	tr.w_working {
-		background-color: #FFFF99;
-	}
-{% comment %}   	// прийнято {% endcomment %}
-	tr.w_true {
-		background-color: #CCFF99;
-	}
-</style>
-
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
+<link rel="stylesheet" href="/media/css/table.css">
+
 <script src="/media/jquery-ui.min.js"></script>
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 
@@ -129,20 +99,20 @@ $('.phone').editable('/workticket/edit/', {
 <br>
 <h2>
     За рік: 
-    <a href="/workticket/year/2012/month/1/view">2012,</a>
-	<a href="/workticket/year/2013/month/1/view">2013,</a>
-	<a href="/workticket/year/2014/month/1/view">2014,</a>
-	<a href="/workticket/year/2015/month/1/view">2015,</a>
-	<a href="/workticket/year/2016/month/1/view">2016,</a>
-	<a href="/workticket/year/2017/month/1/view">2017,</a>
-	<a href="/workticket/year/2018/month/1/view">2018,</a>
+    <a class="badge badge-success" href="/workticket/year/2012/month/1/view">2012</a>
+	<a class="badge badge-success" href="/workticket/year/2013/month/1/view">2013</a>
+	<a class="badge badge-success" href="/workticket/year/2014/month/1/view">2014</a>
+	<a class="badge badge-success" href="/workticket/year/2015/month/1/view">2015</a>
+	<a class="badge badge-success" href="/workticket/year/2016/month/1/view">2016</a>
+	<a class="badge badge-success" href="/workticket/year/2017/month/1/view">2017</a>
+	<a class="badge badge-success" href="/workticket/year/2018/month/1/view">2018</a>
 <br>
 	За місяць: 
 	{% for i in "123456789012" %}
 	{% ifequal forloop.counter sel_month %}
-    <a href="/workticket/year/{{sel_year}}/month/{{forloop.counter}}/view" class="select">{{forloop.counter}}</a>,
+    <a href="/workticket/year/{{sel_year}}/month/{{forloop.counter}}/view" class="badge badge-success select">{{forloop.counter}}</a>
     {% else %}
-    <a href="/workticket/year/{{sel_year}}/month/{{forloop.counter}}/view" class="non">{{forloop.counter}}</a>,
+    <a href="/workticket/year/{{sel_year}}/month/{{forloop.counter}}/view" class="badge badge-success">{{forloop.counter}}</a>
     {% endifequal %}
 	{% endfor %}
 	
@@ -158,7 +128,7 @@ $('.phone').editable('/workticket/edit/', {
 
 	<h1>Замовлення на ремонт</h1>
     	
-    <table border="1">
+    <table border="1" id="iTable">
     <tr>
     	<th>№</th>
     	<th>ID</th>
