@@ -1838,7 +1838,7 @@ def dealer_invoice_list_month(request, year=False, month=False, pay='all'):
 
 def dealer_invoice_search(request):
     #query = request.GET.get('q', '')
-    return render_to_response('index.html', {'weblink': 'dealer_invoice_search.html'})
+    return render_to_response('index.html', {'weblink': 'dealer_invoice_search.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def dealer_invoice_search_result(request):
