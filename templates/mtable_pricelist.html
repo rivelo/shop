@@ -2,9 +2,10 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
 <link type="text/css" rel="stylesheet" href="/media/paginator.css">
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+<link rel="stylesheet" type="text/css" href="/media/css/table.css">
 
 
+{% comment %}
 <style type="text/css">
 .table {
     width: 310px;
@@ -37,6 +38,7 @@ a {
    } 
      
 </style>
+{% endcomment %}
 
 <script>
 $(document).ready(function() {
@@ -78,7 +80,7 @@ $(document).ready(function() {
 
 <br>
 
-<table>
+<table class = "table table-bordered table-hover table-condensed" id="iTable">
 <tr>
 <th><b>#</b></th>
 <th><b>Код</b></th>
