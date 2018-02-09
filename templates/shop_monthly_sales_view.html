@@ -1,9 +1,14 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+<link rel="stylesheet" type="text/css" href="/media/css/table.css">
+
 <h1>Оборот коштів за місяць {{date_month}} року</h1>
 
 {# range(12)#}
 
+{% load poll_extras %}
+
+{% comment %}
 <b>Рік:</b>
 <a href="/shop/sale/year/2011/month/1/view">2011</a>, 
 <a href="/shop/sale/year/2012/month/1/view">2012</a>,
@@ -13,14 +18,37 @@
 <a href="/shop/sale/year/2016/month/1/view">2016</a>
 <a href="/shop/sale/year/2017/month/1/view">2017</a>
 <br>
+{% endcomment %}
 
+<h3><b>Рік:</b>
+    {% for year in year_list %}
+    {% if sel_year == year.0 and status == None %} 
+    	<a class="badge badge-success select" href="/shop/sale/year/{{year.0}}/month/1/view">{{year.0}}
+    	{% if request.user|has_group:"admin" %} 
+    	<sup><span class="badge badge-light">{{year.1}}</span></sup>
+    	{% endif %}
+    	</a>
+    {% else %}
+    	<a class="badge badge-success" href="/shop/sale/year/{{year.0}}/month/1/view" data-count="{{year.1}}">{{year.0}}
+    	{% if request.user|has_group:"admin" %} 
+    	<sup><span class="badge badge-light">{{year.1}}</span></sup>
+    	{% endif %}
+    	</a>
+    {% endif %} 
+    {% endfor %}
+</h3>
+<h3>
 <b>Місяць:</b>
 {% for month in l_month %}
-<a href="/shop/sale/year/{{sel_year}}/month/{{month}}/view">{{month}}</a>, 
+{% ifequal month sel_month %}
+<a href="/shop/sale/year/{{sel_year}}/month/{{month}}/view" class="badge badge-success select">{{month}}</a>
+{% else %} 
+<a href="/shop/sale/year/{{sel_year}}/month/{{month}}/view" class="badge badge-success">{{month}}</a>
+{% endifequal %} 
 {% endfor %}
+</h3>
 
-
-	<table border=1>
+	<table class = "table table-bordered table-hover table-condensed" id="iTable" style="width:600px">
 	<tr>
 	<th>Дата</th>
 	<th>Оплати</th>
