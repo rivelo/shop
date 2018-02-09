@@ -70,11 +70,14 @@ $(document).ready(function() {
 	if ($("#s_client").val() != '') {
 		id2name();
 	}
+	
+	$("#id_client").parents('tr').hide();
+	
 });
 </script>
 
 
-<body onload="document.getElementById('id_description').focus()">
+<body onload="document.getElementById('s_client').focus()">
 
     <h1>Заявка на ремонт</h1>
     <form action="./" method="POST" enctype="multipart/form-data">

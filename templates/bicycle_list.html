@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link rel="stylesheet" type="text/css" href="/media/table.css">
 
+<link rel="stylesheet" type="text/css" href="/media/css/table.css">
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
 
 <script src="/media/jquery-ui.min.js"></script>
@@ -79,24 +79,33 @@ $("#dialog_photo_add").dialog({
 	</div>
 
 
-<h1>Каталог велосипедів ({{bicycles.count}}) <a href="/bicycle/add/">(Створити)</a></h1>
+<h1><span class="badge badge-info">Каталог велосипедів <span class="badge badge-dark">{{bicycles.count}}</span> </span> <a href="/bicycle/add/" class="badge badge-pill badge-light">Створити</a></h1>
 <h2>
     За рік: 
     {% for year in byear %}
-    	<a href="/bicycle/year/{{year|first}}/view">{{year|first}} [{{year|last}}],</a>
+        <a class="badge badge-success" href="/bicycle/year/{{year|first}}/view">{{year|first}}
+    	<span class="badge badge-light">{{year|last}}</span>
+    	</a>
+    
+
     {% endfor %}
+
 {% comment %}
 	<a href="/bicycle/all/view">Всі</a>
-{% endcomment %}	
-</h2>    
+{% endcomment %}
+
+</h2>
+<h5>    
 <b>Виробники:</b>
 {% for comp in b_company %}
-<a href="/bicycle/year/{{year}}/bycompany/{{comp.brand}}/view/">{{comp.brand__name}}[{{comp.num_company}}]</a>
+<a class="badge badge-secondary" href="/bicycle/year/{{year}}/bycompany/{{comp.brand}}/view/">{{comp.brand__name}}
+<span class="badge badge-light">{{comp.num_company}}</span>
+</a>
 {% endfor %}
-
+</h5>
 {% load template_math %}   
 
-<table border="1">
+<table id="iTable" class = "table table-bordered table-hover table-condensed">
 	<tr>
 		<th>#</th>
 		<th>ID</th>

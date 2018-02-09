@@ -570,6 +570,9 @@ class ClientInvoice(models.Model):
         #return cur_exchange1
         return (ua, profit)
 
+    def get_client_profit(self):
+        res = (self.price * self.count) * (self.sale/100.0)
+        return res 
             
     def __unicode__(self):
         return u"%s - %s шт." % (self.catalog.name, self.count) 

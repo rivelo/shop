@@ -3,9 +3,10 @@
 <title>Цінники</title>
 
 
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+<link rel="stylesheet" type="text/css" href="/media/css/table.css">
 
-<script type="text/javascript" src="/media/jquery-1.8.3.js"></script>
+{# <script type="text/javascript" src="/media/jquery-1.8.3.js"></script> #}
+<script type="text/javascript" src="/media/js/jquery.js"></script>
 <script type="text/javascript" src="/media/jquery.qrcode-0.7.0.min.js"></script>
 
 <script language="JavaScript">
@@ -73,7 +74,7 @@ a {
 {% endif %}
 
 <!-- <table border="1" CELLPADDING=0px style="padding: 1px;">  --> 
-<table>
+<table id="iTable">
 <tr>
 {% for type in catalog %}
 

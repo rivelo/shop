@@ -4228,7 +4228,8 @@ def workticket_edit(request, id=None):
 
 
 def workticket_list(request, year=None, month=None, all=False, status=None):
-#    cur_year = datetime.datetime.now().year
+    cur_year = datetime.datetime.now().year
+    wy = WorkTicket.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('pk'))#annotate(year_count=Count('date__year'))
     list = None
     if month != None:
         list = WorkTicket.objects.filter(date__year=year, date__month=month)
@@ -4237,16 +4238,22 @@ def workticket_list(request, year=None, month=None, all=False, status=None):
         year = datetime.datetime.now().year
         list = WorkTicket.objects.filter(date__year=year, date__month=month)
     if all == True:
-        list = WorkTicket.objects.all()
+        list = WorkTicket.objects.filter(date__year=cur_year)
     if status == '1':
         #ws = WorkStatus.objects.get(id=status)
-        list = WorkTicket.objects.filter(status__id__in=[status,2])
+        list = WorkTicket.objects.filter(status__id__in=[status,1]) # Прийнято
+    if status == '2':
+        list = WorkTicket.objects.filter(status__id__in=[status,2]) # Ремонтується       
+    if status == '3':
+        list = WorkTicket.objects.filter(status__id__in=[status,3]) # Виконано       
     if status == '4':
-        list = WorkTicket.objects.filter(status__id__in=[status,4])
+        list = WorkTicket.objects.filter(status__id__in=[status,4]) # Виконано невидано 
     if status == '5':
-        list = WorkTicket.objects.filter(status__id__in=[status,5])
-    
-    return render_to_response('index.html', {'workticket':list, 'sel_year':year, 'sel_month':int(month), 'weblink': 'workticket_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+        list = WorkTicket.objects.filter(status__id__in=[status,5]) # Віддано без ремонта 
+    if status == '6':
+        list = WorkTicket.objects.filter(status__id__in=[status,6]) # Відкладено
+
+    return render_to_response('index.html', {'workticket':list, 'sel_year': int(year), 'sel_month':int(month), 'status': status, 'year_ticket': wy, 'weblink': 'workticket_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workticket_delete(request, id):
@@ -4330,13 +4337,14 @@ def workshop_list(request, year=None, month=None, day=None):
     else:
         if day == 'all':
             list = WorkShop.objects.filter(date__year=year, date__month=month).order_by("-date")
+            day = 0
         else:
             list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date")
     sum = 0 
     for item in list:
         sum = sum + item.price
     days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
-    return render_to_response('index.html', {'workshop': list, 'summ':sum, 'sel_year':year, 'sel_month':month, 'sel_day':day, 'month_days': days, 'weblink': 'workshop_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'workshop': list, 'summ':sum, 'sel_year':int(year), 'sel_month':int(month), 'sel_day':int(day), 'month_days': days, 'weblink': 'workshop_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workshop_delete(request, id=None):

@@ -2,9 +2,12 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="stylesheet" type="text/css" href="/media/table.css">
 
-<script type="text/javascript" src="/media/jquery-1.11.2.min.js"></script>
-<script type="text/javascript" src="/media/jquery.qrcode-0.7.0.min.js"></script>
+<script type="text/javascript" src="/media/js/jquery.js"></script>
+{#<script type="text/javascript" src="/media/jquery-1.11.2.min.js"></script>#}
 
+{# <script type="text/javascript" src="/media/jquery.qrcode-0.7.0.min.js"></script> #}
+
+{% comment %}
 <script language="JavaScript">
 function qrcode(){
 $("#qr_tr1").qrcode({
@@ -18,13 +21,18 @@ $("#qr_tr1").qrcode({
 	});
 };
 </script>
+{% endcomment %}
+
 
 <style type="text/css">
 table {
 	border: 1px solid black; /* Граница вокруг ячеек */
-// 	width: 300mm;
+/* 	width: 300mm; */
  	height: 33mm;
-//    table-layout: fixed;
+/*    table-layout: fixed; */
+    border-spacing: 0px;
+    page-break-before: always;
+    padding-top: 14mm;
 }
 
 .TableD {
@@ -33,14 +41,9 @@ table {
 	height: 9mm;
 	}     
 
-table {
-    /* border: 1px solid black; */
-    border-spacing: 0px;
-    page-break-before: always;
-    }
-
 TR {
-	/* border-bottom: 1px solid black; */ 
+	/* border-bottom: 1px solid black; */
+ 
 	}
 TD{
 	width: 70mm;
@@ -57,8 +60,18 @@ TD{
 a { 
     text-decoration: none; /* Отменяем подчеркивание у ссылки */
    } 
+   
+@media print {
+        /* avoid cutting tr in half */
+ div .row {
+            margin-top:-8px;
+            padding-top:8px;
+            page-break-inside:avoid;
+        }
+}   
      
 </style>
+
 
 {% load poll_extras %}
 

@@ -64,7 +64,7 @@ urlpatterns = patterns('',
     url(r'^bicycle/view/$', 'catalog.accounting.views.bicycle_list'),
     url(r'^bicycle/edit/(?P<id>\d+)/$', 'catalog.accounting.views.bicycle_edit', name='bicycle-edit'),    
     url(r'^bicycle/delete/(?P<id>\d+)/$', 'catalog.accounting.views.bicycle_del'),
-    url(r'^bicycle/photo/(?P<id>\d+)/$', 'catalog.accounting.views.bicycle_photo'),
+    url(r'^bicycle/photo/(?P<id>\d+)/$', 'catalog.accounting.views.bicycle_photo', name='bicycle-photo'),
     
     url(r'^bicycle/part/add/$', 'catalog.accounting.views.bicycle_part_add' , name='bikepart_add'),
 #    url(r'^delete/(\d+)/$', 'catalog.accounting.views.multiuploader_delete'),

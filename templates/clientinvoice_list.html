@@ -670,7 +670,7 @@ function calc_sum() {
     	<th class="profit">Profit</th>
     	<th>Сума</th>
     	<th>Валюта</th>
-    	<th>Знижка, %</th>    	
+    	<th data-toggle="tooltip" data-placement="right" title="Знижка %">%</th>    	
     	<th>Оплата</th>    	    	
     	<th>Дата</th>
     	<th>Опис</th>
@@ -704,7 +704,7 @@ function calc_sum() {
 	</td>
 	<td class="client">
 	<a href="/client/result/search/?id={{type.client.id}}">
-	{{type.client.name}} ({{type.client.forumname}})       
+	{{type.client.name}} {% if type.client.forumname %} ({{type.client.forumname}}) {% endif %}       
 	</a>
 	</td>
 	<td class="cat_name" >       
@@ -727,7 +727,7 @@ function calc_sum() {
 	<td>       
 	{{type.currency.name}}
 	</td>
-	<td align="center" title="Створено користувачем {{type.user.username}}">       
+	<td align="center" title="Економія склала {{type.get_client_profit}} грн.">       
 	{{type.sale}}
 	</td>
 	<td class="tpay">       
@@ -771,7 +771,7 @@ function calc_sum() {
 	<td align="center" title="Ящик номер: {{type.catalog.locality}}">
 	{% else %}
 	<td align="center" bgcolor="yellow" title="Ящик номер: {{type.catalog.locality}}">
-	({{type.catalog.get_realshop_count}})тест
+	({{type.catalog.get_realshop_count}})
 	{% endif %}
 {#	<abbr title="Ящик номер: {{type.catalog.locality}}" style="display: inline;" rel="tooltip"> 	</abbr> #} 
 	{{type.catalog.count}} {# [{{type.catalog.get_invoice_count}} - {{type.catalog.get_clientinvoice_count}}] #}  

@@ -8,15 +8,38 @@
 <script src="/media/jquery-ui.min.js"></script>
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 
+<link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" />
+<script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script>
+
+<style>
+
+.badge-warning{
+	background-color: #eded21;
+}
+
+.badge-warning[href]:hover{
+	background-color: #FFFF99;
+}
+
+</style> 
+
 <script>
 $(document).ready(function() {
 
+	$('[title!=""]').qtip({
+	    position: {
+	        at: 'top left'
+	    }
+	});
+	
+/*	
 	$(document).tooltip({
 		content: function () {
         return $(this).prop('title');
         }
     });
-
+ */
+ 
 $('.editable').editable('/workticket/edit/', { 
      loadurl : '/workstatus/view/',
      type   : 'select',
@@ -97,15 +120,23 @@ $('.phone').editable('/workticket/edit/', {
 {% load poll_extras %}
 
 <br>
-<h2>
+<h2 id="b_year">
     За рік: 
-    <a class="badge badge-success" href="/workticket/year/2012/month/1/view">2012</a>
-	<a class="badge badge-success" href="/workticket/year/2013/month/1/view">2013</a>
-	<a class="badge badge-success" href="/workticket/year/2014/month/1/view">2014</a>
-	<a class="badge badge-success" href="/workticket/year/2015/month/1/view">2015</a>
-	<a class="badge badge-success" href="/workticket/year/2016/month/1/view">2016</a>
-	<a class="badge badge-success" href="/workticket/year/2017/month/1/view">2017</a>
-	<a class="badge badge-success" href="/workticket/year/2018/month/1/view">2018</a>
+    {% for year in year_ticket %}
+    {% if sel_year == year.0 and status == None %} 
+    	<a class="badge badge-success select" href="/workticket/year/{{year.0}}/month/1/view">{{year.0}}
+    	{% if request.user|has_group:"admin" %} 
+    	<sup><span class="badge badge-light">{{year.1}}</span></sup>
+    	{% endif %}
+    	</a>
+    {% else %}
+    	<a class="badge badge-success" href="/workticket/year/{{year.0}}/month/1/view" data-count="{{year.1}}">{{year.0}}
+    	{% if request.user|has_group:"admin" %} 
+    	<sup><span class="badge badge-light">{{year.1}}</span></sup>
+    	{% endif %}
+    	</a>
+    {% endif %} 
+    {% endfor %}
 <br>
 	За місяць: 
 	{% for i in "123456789012" %}
@@ -116,25 +147,29 @@ $('.phone').editable('/workticket/edit/', {
     {% endifequal %}
 	{% endfor %}
 	
-	<a href="/workticket/all/view" class="non">Всі</a>,
-	<a href="/workticket/status/1/view/" class="non">Прийняті</a>,
-	<a href="/workticket/status/4/view/" class="non">Невидані</a>,
-	<a href="/workticket/status/4/view/" class="non">Виконано не видано</a>,
-	<a href="/workticket/status/5/view/" class="non">Без ремонта</a>
+	<a href="/workticket/all/view" class="badge badge-pill badge-light" title="Заявки за поточний рік">Всі</a>
+	<a href="/workticket/status/1/view/" class="w_true badge badge-pill badge-success">Прийняті</a>
+	<a href="/workticket/status/4/view/" class="badge badge-pill badge-secondary">Невидані</a>
+	<a href="/workticket/status/2/view/" class="badge badge-pill badge-warning">Ремонтуються</a>
+	<a href="/workticket/status/5/view/" class="badge badge-pill badge-danger">Без ремонта</a>
 </h2>    
 
 
         <link rel="stylesheet" type="text/css" href="/media/table.css">
 
-	<h1>Замовлення на ремонт</h1>
+	<h1>Замовлення на ремонт
+
+<a href="/workticket/add/" class="badge badge-pill badge-light">Створити заявку на ремонт</a>
+
+	</h1>
     	
-    <table border="1" id="iTable">
+    <table id="iTable" class = "table table-bordered table-hover table-condensed">
     <tr>
     	<th>№</th>
     	<th>ID</th>
     	<th>Клієнт</th>
     	<th>Дата створення</th>
-    	<th>Користувач</th>
+{#    	<th data-toggle="tooltip" data-placement="right" title="Користувач">User</th> #}
     	<th>Дата завершення</th>
     	<th>Статус</th>
     	<th>Повідомлення</th>
@@ -169,16 +204,14 @@ $('.phone').editable('/workticket/edit/', {
 	<td>       
 <!--	<a href="/workshop/done/client/{{ type.client.id }}/"> -->  
 	<a href="/client/result/search/?id={{ type.client.id }}" title="{{type.client}} {{type.client.phone|phone2Str}}">
-	{{type.client}} 
+	{{type.client.name}} {% if type.client.forumname %} ({{type.client.forumname}}) {% endif %}   
 	</a>
 	</td>
-	<td title={{type.user.username}}>       
+	<td data-toggle="tooltip" data-placement="right" title="Створено користувачем <b>{{type.user.username}}</b>">       
 	{{type.date|date}}
 	</td>
-	<td>
-	{{type.user.username}}       
-	</td>
-	<td>       
+{#	<td>	{{type.user.username}}	</td> #}
+	<td >       
 	{{type.end_date|date}}
 	</td>	
 	<td>
@@ -189,7 +222,11 @@ $('.phone').editable('/workticket/edit/', {
 	<td class="phone" id_workticket="{{type.id}}">       
 	{{type.phone_status}}
 	</td>
-	<td title={{type.phone_user.username}} align="center">       
+	{% if type.phone_user.username %}
+		<td title={{type.phone_user.username}} align="center">
+	{% else %}
+		<td align="center">
+	{% endif %}       
 	{{type.phone_date|date:'d-m-Y H:i'}}
 	</td>
 	
@@ -201,13 +238,9 @@ $('.phone').editable('/workticket/edit/', {
     </td>
 </tr>
 {% endfor %}       
-      
    
 	</table>
 
-
-<br><br>
-<a href="/workticket/add/">Створити нову заявку на ремонт</a>
 <br>
 
 

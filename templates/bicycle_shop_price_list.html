@@ -1,6 +1,46 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<link rel="stylesheet" type="text/css" href="/media/css/table.css">
+
+{% if view == False %}
+  	<link rel="stylesheet" href="/media/css/bootstrap.min.css"> 
+
+	<script type="text/javascript" src="/media/js/jquery.js"></script>
+  	<script src="/media/js/popper.min.js"></script>
+  	<script src="/media/js/bootstrap.min.js"></script>   	
+
+{% endif %}
+
+
+<style>
+.no-gutters {
+  margin-right: 0;
+  margin-left: 0;
+
+  > .col,
+  > [class*="col-"] {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
+.list-group-item {
+font-size: 20px;
+}
+
+@media print {
+        /* avoid cutting tr in half */
+ div .row {
+            margin-top:-8px;
+            padding-top:8px;
+            page-break-inside:avoid;
+        }
+}
+
+</style>
+
+{% load poll_extras %}
 
 {% if view %}
 <h1>Цінники на Велосипеди <a href="/bicycle/store/price/print">(Версія для друку)</a> </h1>
@@ -10,7 +50,74 @@
 {% load template_math %}   
 
 
-<table BORDER=0 CELLPADDING=4> 
+<div class="container-fluid">
+
+<div class="row no-gutters">
+{% for bike in bicycles %}
+<div class="col-xs-6 col-lg-6">
+<div class="card">
+  <div class="card-body"><!-- Начало текстового контента -->
+  	<img class="card-img-top" src="/media/{{bike.model.brand.logo}}">
+
+    <ul class="list-group list-group-flush">
+    <li class="list-group-item"><h3 class="card-title"><b>Модель: <a style="color:black; font-size: 45px; margin-left:5px;" href="{% url 'bicycle-photo' bike.model.pk %}">{{bike.model.model}}</a> ({{bike.model.year.year}})</b> </h3></li>
+    </ul>     	
+{% comment %}
+<div class="card-block">
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item"> <b style="margin-right:5px;">Виробник: </b> {{bike.model.brand.name}} </li> 
+        <li class="list-group-item"> <b style="margin-right:5px;">Країна виробника: </b> {{bike.model.brand.country}}</li>
+        <li class="list-group-item"> <b style="margin-right:5px;">Тип велосипеду: </b>	{{bike.model.type}}</li>
+    </ul>
+</div>
+{% endcomment %}
+<div style="background:#0080C0; float:left; ">
+    <ul class="list-group list-group-flush" >
+    <li class="list-group-item" style="padding:0;"></li>
+        <li class="list-group-item"> <b style="margin-right:5px;">Виробник: </b> {{bike.model.brand.name}} </li> 
+        <li class="list-group-item"> <b style="margin-right:5px;">Країна виробника: </b> {{bike.model.brand.country}}</li>
+        <li class="list-group-item"> <b style="margin-right:5px;">Тип велосипеду: </b>	{{bike.model.type}}</li>
+    </ul>
+</div>
+<div style="background:#80FF00; float:right;">
+{% with bike.pk|bike_url:'request.get_host' as url_buy %}
+<img src="{{url_buy|qr:"250x250"}} width="160px" />
+{% endwith %}</div>
+<div style="clear:left;">
+</div>
+<ul class="list-group list-group-flush">
+  <li class="list-group-item"><h2 class="card-subtitle mb-2"> <b style="margin-right:5px;">Ціна: </b>	<s class="text-muted" style="margin-right:5px;">{{bike.model.price}} грн.</s> <b>{{bike.model.sale|div:-100|sub:-1|mul:bike.model.price|floatformat:"0"}} грн. </b></h2> </li>
+</ul>  
+
+
+
+            
+        
+
+
+
+
+
+  </div><!-- Конец текстового контента -->
+</div><!-- Конец карточки -->
+</div>
+{% if forloop.counter|divisibleby:"2"  %}
+</div><div class="row no-gutters">
+{% endif %}
+{% endfor %}
+
+
+</div>
+
+
+
+
+
+
+
+{% comment %}
+
+<table BORDER=1 CELLPADDING=4>  
 <tr>
 {% for bike in bicycles %}
 
@@ -37,7 +144,7 @@
 
 <tr>
 	<td>       
-<b>	Модель </FONT></b>
+<b>	Модель </b>
 	</td>
 	<td width = 190>       
 	<a href="">{{bike.model.model}}</a> ({{bike.model.year.year}})
@@ -121,3 +228,4 @@
  
 {% endfor %}   
 
+{% endcomment %}   

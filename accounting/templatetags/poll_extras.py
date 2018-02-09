@@ -103,6 +103,19 @@ def sale_url(value,host):
 
 
 @register.filter
+def bike_url(value,host):
+    """
+        Usage:
+        {{object.code|bike_url}}"
+    """
+#    host="192.168.0.102:8001"
+    host="rivelo.com.ua/bicycles"
+    #return "%s/%s/" % (host, value)
+    str_url = "%s/%s/model/" % (host, value)
+    return google_url_shorten(str_url)
+
+
+@register.filter
 def lenght(value):
     """
         Usage:

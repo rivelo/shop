@@ -2,8 +2,24 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Майстерня</title>
 
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+<link rel="stylesheet" type="text/css" href="/media/css/table.css">
+<link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" />
 
+<script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script>
+
+{% load poll_extras %}
+
+<style>
+
+.badge-warning{
+	background-color: #eded21;
+}
+
+.badge-warning[href]:hover{
+	background-color: #FFFF99;
+}
+
+</style> 
 
 <script language="JavaScript">
 
@@ -20,6 +36,14 @@ for(var i = 0; i < All.elements.length; ++i) {
 }
 
 $(document).ready(function() {
+	
+	$('[title!=""]').qtip({
+	    position: {
+	        at: 'top left'
+	    }
+	});
+	
+	
  $(".w_del").click(function(){
 
  if (confirm("Ви дійсно бажаєте видалити запис?")) {
@@ -49,39 +73,35 @@ $(document).ready(function() {
 
 <br>
 <h2>
-    За місяць: 
-    <a href="/workshop/year/{{sel_year}}/month/1/view">01,</a>
-	<a href="/workshop/year/{{sel_year}}/month/2/view">02,</a>
-	<a href="/workshop/year/{{sel_year}}/month/3/view">03,</a>
-	<a href="/workshop/year/{{sel_year}}/month/4/view">04,</a>
-	<a href="/workshop/year/{{sel_year}}/month/5/view">05,</a>
-	<a href="/workshop/year/{{sel_year}}/month/6/view">06,</a>
-	<a href="/workshop/year/{{sel_year}}/month/7/view">07,</a>
-	<a href="/workshop/year/{{sel_year}}/month/8/view">08,</a>
-	<a href="/workshop/year/{{sel_year}}/month/9/view">09,</a>
-	<a href="/workshop/year/{{sel_year}}/month/10/view">10,</a>
-	<a href="/workshop/year/{{sel_year}}/month/11/view">11,</a>
-	<a href="/workshop/year/{{sel_year}}/month/12/view">12</a>
+	За місяць: 
+	{% for i in "123456789012" %}
+	{% ifequal forloop.counter sel_month %}
+    <a href="/workshop/year/{{sel_year}}/month/{{forloop.counter}}/view" class="badge badge-success select">{{forloop.counter}}</a>
+    {% else %}
+    <a href="/workshop/year/{{sel_year}}/month/{{forloop.counter}}/view" class="badge badge-success">{{forloop.counter}}</a>
+    {% endifequal %}
+	{% endfor %}
 </h2>    
 
 <h2>
 	За день:
 	{% for day in month_days %}		 
-    <a href="/workshop/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view">{{day}},</a>
+	{% ifequal day sel_day %}
+    <a href="/workshop/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view" class="badge badge-success select">{{day}}</a>
+    {% else %}
+    <a href="/workshop/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view" class="badge badge-success">{{day}}</a>
+    {% endifequal %}
     {% endfor %}
 </h2>    
 
-
-
-    <h1>Рахунки на виконані роботи ({{sel_day}}/{{sel_month}}/{{sel_year}}) <a href="/workshop/add/">(Додати)</a></h1>
-
+    <h1>Виконані роботи за {{sel_day}}/{{sel_month}}/{{sel_year}} року <a href="/workshop/add/" class="badge badge-pill badge-light">(Додати роботу)</a></h1>
 	
 <form action="/payform/workshop/" method="post" name="formWorkshopSum">
 <br> 
-    <table border="1">
+    <table id="iTable" class = "table table-bordered table-hover table-condensed">
     <tr>
     	<th>#</th>
-    	<th>ID</th>
+{#    	<th>ID</th> #}
     	<th>Клієнт</th>
     	<th>Дата завершення</th>
     	<th>Робота</th>
@@ -100,17 +120,13 @@ $(document).ready(function() {
 {% else %}
 <tr BGCOLOR="#F2AE6B" id="row_{{type.id}}">
 {% endif %}
-	<td>
+	<td title="Створено користувачем {{type.user.username}}">
 	{{forloop.counter}}
 	</td>  
-	<td>       
-	<abbr title="Створено користувачем {{type.user.username}}">
-	{{type.id}}
-	</abbr>
-	</td>
+{#	<td title="Створено користувачем {{type.user.username}}">	{{type.id}}	</td> #}
 	<td>       
 	<a href="/client/result/search/?id={{type.client.id}}">
-	{{type.client}}
+	{{type.client.name}} {% if type.client.forumname %} ({{type.client.forumname}}) {% endif %}   
 	</a>
 	</td>
 	<td align='center'>       
@@ -149,12 +165,16 @@ $(document).ready(function() {
 {% endfor %}   
 
 <tr>
+{#    	<th></th> #}
     	<th></th>
     	<th></th>
     	<th></th>
     	<th></th>
-    	<th>Сума</th>
-    	<th>{{summ}} грн.</th>
+    	<th>
+{% if request.user|has_group:"admin" %}    	
+    	{{summ}} грн.
+{% endif %}    	
+		</th>
     	<th>
     	<input type="submit" value="E-mail" name="send_check" id="send_check"> 
 <!--     	 onClick="return confirm('Створити і надіслати листа?')">   -->
