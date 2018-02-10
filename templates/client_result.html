@@ -437,14 +437,11 @@ if (confirm('Ви впевненні що хочете відправити ли
 }
 }); 
     
-});
-         
-
-$('.edit_workstatus').editable('/workticket/edit/0/', { 
+$('.edit_workstatus').editable('/workticket/edit/', { 
      loadurl : '/workstatus/view/',
      type   : 'select',
      submit : 'OK',
-     event: 'click', //'dblclick',
+     event: 'dblclick', //'dblclick',
      submitdata : function() {
       	 	return {id_w : $(this).attr('id_workticket')};
      },
@@ -470,6 +467,9 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
        }
      }
  });
+
+
+});
 </script>
 
 <body onLoad="res(); resWorkshop()">
@@ -536,7 +536,7 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 <span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="56px" height="56px" title="Відправити картку клієнта на Email"></span>
      
 <div id="dialog_r" title="Заявки на ремонт:">
-<table width='100%' id="t_workticket" >
+<table id="t_workticket" class = "table table-bordered table-hover table-condensed iTable" width="100%">
   <script>
 	$( "#img_repair" ).click(function() {
 		window.location.href = "/workticket/add/client/"+ {{client_name.id}} +"/";	
@@ -709,7 +709,7 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 {# Проданий Товар #}	
 <form action="/payform/" method="post" name="formSum">
 	<br>
-	<table id="product" class="table table-bordered table-hover table-condensed iTable">
+	<table id="product" class="table table-bordered table-hover table-condensed">
 	<tr id="th_inv">
 	<th>Дата</th>
 	<th>Товар <a href="javascript:" id="last_invoice" day="{{ tdelta|add:tdelta }}">  >>> [+ {{tdelta}} днів] </a></th>
@@ -852,7 +852,7 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 	</div>
 
 {% if email == False %}
-<div id="tabs-3" onClick="$("#tabs-3").append($("#t_workticket"));">
+<div id="tabs-3" onClick='$("#tabs-3").append($("#t_workticket"))'>
 </div>
 	
 </div>
