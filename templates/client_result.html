@@ -4,60 +4,20 @@
 
 {% load poll_extras %}
 
-    <link rel="stylesheet" type="text/css" href="/media/table.css">
-{#    <script type="text/javascript" src="/media/jquery-1.7.2.min.js"></script> #}
-
+	<link rel="stylesheet" href="/media/css/table.css">
 	<link rel="stylesheet" href="/media/jquery-ui.min.css">
 	<script src="/media/jquery-ui.min.js"></script>	
-
-
 	<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+	
 
+{% comment %}
 <style type="text/css">
-#button > span.ui-icon-custom { 
-    background-image: url(/media/images/Bicycle_ico.png)    
+table#balance a{
+	color: black;
 }
-
-div.read { color:red; 
-		background-color: #CCCCCC;
-		//display: inline-block; /* Строчно-блочный элемент */
-    position: relative; /* Относительное позиционирование */
-		}
-div.standart { color:black; 
-		background-color: #999999;
-		//display: inline-block; /* Строчно-блочный элемент */
-    position: relative; /* Относительное позиционирование */
-		}
-
-div.read:hover::after {
-    content: attr(data-title); /* Выводим текст */
-    position: absolute; /* Абсолютное позиционирование */
-    left: 0; right: 0; bottom: 5px; /* Положение подсказки */
-    z-index: 1; /* Отображаем подсказку поверх других элементов */
-    background: rgba(0,42,167,0.6); /* Полупрозрачный цвет фона */
-    color: #fff; /* Цвет текста */
-    text-align: center; /* Выравнивание текста по центру */
-    font-family: Arial, sans-serif; /* Гарнитура шрифта */
-    font-size: 11px; /* Размер текста подсказки */
-    padding: 5px 10px; /* Поля */
-    border: 1px solid #333; /* Параметры рамки */
-   }
-
-div.standart:hover::after {
-    content: attr(data-title); /* Выводим текст */
-    position: absolute; /* Абсолютное позиционирование */
-    left: 0; right: 0; bottom: 5px; /* Положение подсказки */
-    z-index: 1; /* Отображаем подсказку поверх других элементов */
-    background: rgba(0,42,167,0.6); /* Полупрозрачный цвет фона */
-    color: #fff; /* Цвет текста */
-    text-align: center; /* Выравнивание текста по центру */
-    font-family: Arial, sans-serif; /* Гарнитура шрифта */
-    font-size: 11px; /* Размер текста подсказки */
-    padding: 5px 10px; /* Поля */
-    border: 1px solid #333; /* Параметры рамки */
-   }
-
 </style>
+{% endcomment %}
+
 
 {% load poll_extras %}     
     
@@ -576,7 +536,7 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 <span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="56px" height="56px" title="Відправити картку клієнта на Email"></span>
      
 <div id="dialog_r" title="Заявки на ремонт:">
-<table width='100%' id="t_workticket">
+<table width='100%' id="t_workticket" >
   <script>
 	$( "#img_repair" ).click(function() {
 		window.location.href = "/workticket/add/client/"+ {{client_name.id}} +"/";	
@@ -654,15 +614,16 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 	<td>
 	Оплати
 	</td>
-	<td><a href="/clientcredits/add/{{client_name.id}}">Створити нову проплату</a>  
+	<td><h3>
+	<a href="/clientcredits/add/{{client_name.id}}" class="badge badge-info">Створити нову проплату</a>  
 	{% if perms.accounting.delete_clientcredits %}
-	 /-----/ <a href="/clientcredits/{{client_name.id}}/delete/all" onclick="return confirm('Видалити проплати?')">(Видалити всі проплати)</a> 
+	 <a href="/clientcredits/{{client_name.id}}/delete/all" onclick="return confirm('Видалити проплати?')" class="badge badge-warning">Видалити всі проплати</a> 
 	{% endif %}
 	{% if user.is_authenticated %}		
-	 /-----/ <a id="all_cred" href="javascript:" >(Показати всі проплати)</a>
-	 /-----/ <a id="1month_cred" href="javascript:" cred_month="12" cred_year="2014" cred_day="60">(+ 30 днів)</a>	 
+	 <a id="all_cred" href="javascript:" class="badge badge-secondary">Показати всі проплати</a>
+	 <a id="1month_cred" class="badge badge-pill badge-dark text-white" href="javascript:" cred_month="12" cred_year="2014" cred_day="60">+ 30 днів</a>	 
 	{% endif %}		
-	 
+	 </h3>
 	</td>
 	<td>
 	</td>
@@ -696,14 +657,16 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 	<td>
 	Борги
 	</td>
-	<td><a href=/clientdebts/add/{{client_name.id}}> Додати борг </a>
+	<td><h3>
+	<a href=/clientdebts/add/{{client_name.id}} class="badge badge-primary text-white"> Додати борг </a>
 	{% if perms.accounting.delete_clientcredits %}
-	 /-----/ <a href="/clientdebts/{{client_name.id}}/delete/all" onclick="return confirm('Видалити борг?')">(Видалити всі борги)</a>
+	 <a href="/clientdebts/{{client_name.id}}/delete/all" onclick="return confirm('Видалити борг?')" class="badge badge-warning">Видалити всі борги</a>
 	{% endif %}
 	{% if user.is_authenticated %}	
-	 /-----/ <a id="all_debt" href="javascript:">(Показати всю історію боргів)</a>  
-	 /-----/ <a id="1month_debt" href="javascript:" debt_day=60>(+ 30 днів)</a>
-	{% endif %}	
+	 <a id="all_debt" href="javascript:" class="badge badge-secondary">Показати всю історію боргів</a>  
+	<a id="1month_debt" class="badge badge-pill badge-dark text-white" href="javascript:" debt_day=60>+ 30 днів</a>
+	{% endif %}
+	</h3>	
 	</td>
 	<td id="debet">
 	</td>
@@ -746,8 +709,8 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 {# Проданий Товар #}	
 <form action="/payform/" method="post" name="formSum">
 	<br>
-	<table id="product">
-	<tr bgcolor="grey" id="th_inv">
+	<table id="product" class="table table-bordered table-hover table-condensed iTable">
+	<tr id="th_inv">
 	<th>Дата</th>
 	<th>Товар <a href="javascript:" id="last_invoice" day="{{ tdelta|add:tdelta }}">  >>> [+ {{tdelta}} днів] </a></th>
 	<th>Кількість</th>
@@ -828,7 +791,8 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 {# Роботи майстерні #}
 <form action="/payform/workshop/" method="post" name="formWorkshopSum" >
 <br>
-	<table border=1 width="100%" style="font-size : 12px; font-family : Arial;">
+{# border=1 width="100%" style="font-size : 12px; font-family : Arial;" #}
+	<table class = "table table-bordered table-hover table-condensed" id="iTable">
 	<tr bgcolor="grey">
 	<th>Дата</th>
 	<th>Робота</th>
@@ -884,7 +848,6 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 	</tr>
 	</table>
 	
-	
 </form>
 	</div>
 
@@ -894,17 +857,16 @@ $('.edit_workstatus').editable('/workticket/edit/0/', {
 	
 </div>
 
-
-<a href=/workticket/add/client/{{client_name.id}}/> 
+<h3>
+<a class="badge badge-pill badge-secondary" href=/workticket/add/client/{{client_name.id}}/> 
 Створити заявку на ремонт
 </a>
-<br>
-<a href=/workshop/add/client/{{client_name.id}}/> 
+<a class="badge badge-pill badge-secondary" href=/workshop/add/client/{{client_name.id}}/> 
 Додати роботу
 </a>
-<br>	
-<br>
-<a href=/client/search/> Пошук клієнта </a>
+<a class="badge badge-pill badge-secondary" href=/client/search/> Пошук клієнта </a>
+</h3>
+
 
 {% orm_debug %}
 {% endif %}

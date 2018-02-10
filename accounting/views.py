@@ -4157,12 +4157,13 @@ def workticket_add(request, id=None):
             date = form.cleaned_data['date']
             end_date = form.cleaned_data['end_date']
             status = form.cleaned_data['status']
-            phone_status = form.cleaned_data['phone_status']
+#            phone_status = form.cleaned_data['phone_status']
             description = form.cleaned_data['description']
-            user = form.cleaned_data['user']
-            if user == '' or user == None:
-                user = request.user 
-            WorkTicket(client=client, date=date, end_date=end_date, status=status, phone_status=phone_status, description=description, user=user).save()
+ #           user = form.cleaned_data['user']
+  #          if user == '' or user == None:
+            user = request.user 
+            WorkTicket(client=client, date=date, end_date=end_date, status=status, description=description, user=user).save()
+#phone_status=phone_status,            
             return HttpResponseRedirect('/workticket/view/')
     else:
         #form = WorkTicketForm()
@@ -4293,12 +4294,11 @@ def workshop_add(request, id=None, id_client=None):
             return HttpResponseRedirect('/workshop/view/')
     else:
         if work != None:
-            form = WorkShopForm(initial={'work_type': work.id, 'price': work.price})
+            form = WorkShopForm(initial={'work_type': work.id, 'price': work.price, 'user': request.user})
         elif wclient != None:
-            form = WorkShopForm(initial={'client': wclient.id})
+            form = WorkShopForm(initial={'client': wclient.id, 'user': request.user})
         else:        
-            form = WorkShopForm()
-    
+            form = WorkShopForm(initial={'user': request.user})
     nday = 7
     clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))        
     return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -4404,7 +4404,10 @@ def shopdailysales_add(request):
             cash = form.cleaned_data['cash']
             tcash = form.cleaned_data['tcash']
             ocash = form.cleaned_data['ocash']
-            user = form.cleaned_data['user']
+            if form.cleaned_data['user']:
+                user = form.cleaned_data['user']
+            else:
+                user = request.user
             date = now
             if request.user.is_authenticated():
                 user = request.user
@@ -4432,7 +4435,7 @@ def shopdailysales_add(request):
         lastCasa = ShopDailySales.objects.latest('date')
                 
         casa = cashCred - cashDeb
-        form = ShopDailySalesForm(initial={'cash': casa, 'ocash': cashDeb, 'tcash':TcashCred})
+        form = ShopDailySalesForm(initial={'cash': casa, 'ocash': cashDeb, 'tcash':TcashCred, 'user': request.user})
     return render_to_response('index.html', {'form': form, 'weblink': 'shop_daily_sales.html', 'lastcasa': lastCasa}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 

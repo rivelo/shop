@@ -67,6 +67,8 @@ function id2name(){
 
 
 $(document).ready(function() {
+	$("#s_client").val($("#id_client").val());
+	
 	if ($("#s_client").val() != '') {
 		id2name();
 	}
@@ -83,7 +85,7 @@ $(document).ready(function() {
     <form action="./" method="POST" enctype="multipart/form-data">
         <table>
         <label>Клієнт: </label>
-        <input id="s_client" style="width: 550px;" /> <span> <a href="/client/add/"> Створити клієнта </a> </span>
+        <input id="s_client" style="width: 550px;" /> <span class="badge badge-pill badge-light" style="font-size: 16px"> <a href="/client/add/"> Створити клієнта </a> </span>
             {{ form.as_table }}
         </table>
         <p><input type="submit" value="Save"></p>

@@ -651,15 +651,17 @@ class WorkStatusForm(forms.ModelForm):
 class WorkTicketForm(forms.ModelForm):
     client = forms.ModelChoiceField(queryset = Client.objects.all())
     #date = forms.DateTimeField(initial=datetime.date.today)
-    date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))    
+    date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), label="Дата")    
     #end_date = forms.DateTimeField(initial=datetime.date.today)
     end_date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))
-    status = forms.ModelChoiceField(queryset = WorkStatus.objects.all())
-    description = forms.CharField(label='Ticket', widget=forms.Textarea())
+    status = forms.ModelChoiceField(queryset = WorkStatus.objects.all(), label='Статус')
+    description = forms.CharField(label='Опис', widget=forms.Textarea())
     
     class Meta:
         model = WorkTicket
         fields = '__all__'
+        exclude = ['phone_date', 'phone_user', 'phone_status', 'user']
+        
 
 
 class PhoneStatusForm(forms.ModelForm):
@@ -676,7 +678,7 @@ class ShopDailySalesForm(forms.ModelForm):
     date = forms.DateTimeField(initial=datetime.datetime.today, input_formats=['%d.%m.%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d.%m.%Y %H:%M:%S'), label="Дата")
     price = forms.FloatField(initial=0, label="Сума в касі")    
     description = forms.CharField(label='Опис', widget=forms.Textarea(), required=False)
-    user = forms.ModelChoiceField(queryset = User.objects.all(), required=True, label='Користувач')
+    user = forms.ModelChoiceField(queryset = User.objects.all(), required=False, label='Користувач')
     cash = forms.FloatField(label="Готівка в касі")
     tcash = forms.FloatField(label="Термінал")
     ocash = forms.FloatField(label="Видано з каси")
