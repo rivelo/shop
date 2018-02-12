@@ -1,17 +1,14 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-    <link rel="stylesheet" type="text/css" href="/media/table.css">
-<!--
- 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
- 	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
--->
- <script type="text/javascript" src="/media/jquery-1.7.2.min.js"></script>
-	    
+<link rel="stylesheet" type="text/css" href="/media/css/table.css">
+<link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" />
+<script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script>    
 
 <script type="text/javascript">
 $(document).ready(function() {
-$('span.jQtooltip').each(function() {
+
+/* $('span.jQtooltip').each(function() {
   var el = $(this);
   var title = el.attr('title');
   if (title && title != '') {
@@ -35,7 +32,7 @@ $('span.jQtooltip').each(function() {
       if (el.children().is(':hidden')) el.find('div').clearQueue();
     });
   }
-})
+}) */
 
 })
 
@@ -75,7 +72,7 @@ function true_false(obj){
     
     <h1>Прокат за останні 360 днів <a href="/rent/add/">(Додати)</a></h1>
 
-    <table>
+    <table id="iTable" class = "table table-bordered table-hover table-condensed">
 	<tr>
 		<th>№</th>
     	<th>ID</th>

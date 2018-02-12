@@ -709,7 +709,7 @@ function calc_sum() {
 	</td>
 	<td class="cat_name" >       
 	{% if request.user|has_group:"admin" %} 
-		<a href="/catalog/id/{{type.catalog.ids}}/view/"> [{{type.catalog.ids}}] </a>
+		<a href="/catalog/id/{{type.catalog.id}}/view/"> [{{type.catalog.ids}}] </a>
 	{% else %} 
 		[{{type.catalog.ids}}]
 	{% endif %}
