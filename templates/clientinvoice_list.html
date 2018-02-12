@@ -708,7 +708,12 @@ function calc_sum() {
 	</a>
 	</td>
 	<td class="cat_name" >       
-	[{{type.catalog.ids}}] {{type.catalog.name}}
+	{% if request.user|has_group:"admin" %} 
+		<a href="/catalog/id/{{type.catalog.ids}}/view/"> [{{type.catalog.ids}}] </a>
+	{% else %} 
+		[{{type.catalog.ids}}]
+	{% endif %}
+		{{type.catalog.name}}
 	</td>
 	<td align="center" class="tcount">       
 	{{type.count|floatformat}}
@@ -718,7 +723,7 @@ function calc_sum() {
 	</td>
 	<td class="profit">
 	{% if perms.accounting.add_preorder %} 
-	({{type.get_profit.0}} / {{type.get_profit.1}})
+	({{type.get_profit.0|floatformat:"2"}} / {{type.get_profit.1|floatformat:"0"}})
     {% endif %}
 	</td>
 	<td class="tsum">       
@@ -786,7 +791,7 @@ function calc_sum() {
     	<th>Загальна кількість проданих товарів:</th>
     	<th>{{countall}}</th>
     	<th></th>
-    	<th class="profit">{% if perms.accounting.add_preorder %} ({{sum_profit}}) {% endif %}</th>
+    	<th class="profit">{% if perms.accounting.add_preorder %} {{sum_profit|floatformat:"2"}} {% endif %}</th>
     	<th>{{sumall}}</th>
     	<th>грн.</th>
     	<th></th>

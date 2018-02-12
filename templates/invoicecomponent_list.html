@@ -918,16 +918,16 @@ $("#dialog_inventory").dialog({
 					var cdesc = p.description;
 					var tr_cls = "";
 					if (p.check_all) {
-						tr_cls = '<table><tr class="tr_true">';
+						tr_cls = '<table><tr class="tr_true" cid="">';
 					}
 					else {
-						tr_cls = '<table><tr class="tr_false">';
+						tr_cls = '<table><tr class="tr_false" cid="">';
 					}
 					var count = '<td style="background-color:#c0c5ce"><abbr title="' + p.edit_date + '">' + p.count + 'шт.</abbr>';
                 	$('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ p.check_all +'</td><td>' + p.real_count +' шт.</td></tr></table>');				
 				
-					$( ".container" ).append( "<p>Підрахунок додано!</p>" );
-					console.log("Status: " + p.status);
+   					$( ".container" ).append( "<p>Підрахунок додано!</p>" );
+//					console.log("Status: " + p.status);
 //					on_off_button(true);
 					$("#dialog_inventory").dialog('widget').find("button:contains('Додати')").button("option", "disabled", false);				
 					
@@ -1209,14 +1209,14 @@ $(document).on("click", ".inv_td", function(event) {
 						var cdesc = item['description'];
 						var tr_cls = "";
 						if (item['check_all']) {
-							tr_cls = '<table><tr class="tr_true">';
+							tr_cls = '<table><tr class="tr_true" cid="' + item['id'] + '">';
 						}
 						else {
-							tr_cls = '<table><tr class="tr_false">';
+							tr_cls = '<table><tr class="tr_false" cid="' + item['id'] + '">';
 						}
 						var count = '<td style="background-color:#c0c5ce"><abbr title="' + item['edit_date'] + '">' + item['count'] + 'шт.</abbr>';
 	{% if request.user|has_group:"admin" %}						
-                	    $('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ item['check_all'] +'</td><td>'+item['real_count']+' шт.</td><td><span class="inv_del" inv_id="'+item['id']+'" style="cursor: pointer;">Видалити</span></td></tr></table>');
+                	    $('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ item['check_all'] +'</td><td>'+item['real_count']+' шт.</td><td><span class="inv_del" inv_id="'+item['id']+'" style="cursor: pointer;">Видалити</span></td><td class="inv_set" style="cursor: pointer;">Статус</td></tr></table>');
 	{% else %}                	    
                 	    $('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ item['check_all'] +'</td><td>'+item['real_count']+' шт.</td></tr></table>');
     {% endif %}
@@ -1253,12 +1253,42 @@ $(document).on("click", ".inv_del", function(event) {
             });	
  }
  });
+ 
+//$(".inv_set").click(function(){
+$("body").on('click', '.inv_set', function() {
+	if (confirm("Ви дійсно бажаєте змінити статус?")) {
+//	 	console.log("Attr = "  + $(this).parents("tr").attr("cid"));
+	 	var tr_set = $(this).parents("tr");
+	 	var td_set = $(this);
+		
+			$.ajax({
+	                type: "POST",
+	                url: "/inventory/set/",
+	                data: {id:  $(this).parents("tr").attr("cid") },
+	                dataType: "text",
+	                success:function(data){
+	     //           	console.log("ajax work = " + tr_set.html());
+	                	tr_set.css('background-color','#7be58a'); /*.attr("background", "#7be58a");*/
+	                	 
+/*	                	var now = new Date(); 
+	  					var datetime = now.getDate()+'/'+(now.getMonth()+1)+'/'+now.getFullYear(); 
+	  					datetime += ' '+addZero(now.getHours())+':'+addZero(now.getMinutes())+':'+addZero(now.getSeconds());
+	*/  					
+	  					td_set.html('Змінено = ' + data); 
+	  					td_set.css('background-color','#7be58a'); /*closest("td").prev().html(datetime);*/
+	                },
+	                error:function(data){
+	                    alert("Виникли проблеми з сервером" + data);
+	                }
+	            });	
+	 }
+}); 
 
 
 $("body").on('click', '.addprice', function() {
 //$(document).on("click", ".addprice", function(event) {
 //    $("#dtext").html($(this).attr('href'));
-	console.log("JUST WORK")
+//	console.log("JUST WORK")
 	$("#dtext").html('<b>Додати цінник до списку друку:</b>');
 //    $("#dtext").attr({"ids": $(this).attr('ids')});
 	var spinner = $("#spinner").spinner();
@@ -1432,24 +1462,11 @@ var table = $('#iTable').DataTable();
 	if ( status == 0) {
 		$('#show_hide').attr('val', 1);
 		var ids = []
-//$('tr .price_edit').each(function(){
-// $(this).html($(this).attr("id_price")); 
-//console.log( $(this).attr("id_price") );
-//ids.push( $(this).attr("id_price") );
 
-//table.cell( 0, 13 ).data( 'Change' ).draw();
-//table.rows().indexes();
-//$(table.rows().nodes()[1]).attr('id');
-//table.rows({ selected: true }).indexes();
-//});
+	table.rows().eq( 0 ).each( function (idx) {
+		ids.push( $(table.row( idx ).node()).attr('id') );
+	});
 
-table.rows().eq( 0 ).each( function (idx) {
-//	console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
-	ids.push( $(table.row( idx ).node()).attr('id') );
-});
-
-
-console.log("ids[]= ", ids );
             $.ajax({
                 type: "POST",
                 url: "/inventory/get/listid/",
@@ -1459,7 +1476,7 @@ console.log("ids[]= ", ids );
                 	$.each(msg,function(index,item){
 //						$(".price_edit[id_price="+item['catalog__id']+"]").html(item['count']);
 						var inx =  table.row("[id="+ item['catalog__id'] +"]").index();
-						table.cell(inx, 14).data('<b>'+item['count']+'</b>');
+						table.cell(inx, 15).data('<b>'+item['count']+'</b>');
 						//$("tr[id="+item['catalog__id']+"] td.inv_td").html('<b>'+item['count']+'</b>');
                     });
                 },
@@ -1469,6 +1486,8 @@ console.log("ids[]= ", ids );
             });      
 	}
 });
+
+
 
 
 </script>
@@ -1584,7 +1603,6 @@ console.log("ids[]= ", ids );
 	</div>
 
     <table id="iTable" class="display compact" cellspacing="0" width="100%"> 
-    {# <table id="iTable" class="display compact" cellspacing="0" width="100%"> #}
     {# <table id="iTable" class="display" cellspacing="0" width="100%" border="1"> #}
     <thead>
 	<tr>

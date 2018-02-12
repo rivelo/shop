@@ -42,34 +42,8 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 
 {% endfor %}
 
-{% comment %}
-<a href="/bicycle/sale/brand/11/year/2012/month/11/view">Orbea 2012</a> /    
-<a href="/bicycle/sale/brand/11/year/2013/month/11/view">Orbea 2013</a> /
-<a href="/bicycle/sale/brand/11/year/2014/month/11/view">Orbea 2014</a> /
-<a href="/bicycle/sale/brand/11/year/2015/month/11/view">Orbea 2015</a> /
-<a href="/bicycle/sale/brand/11/year/2016/month/11/view">Orbea 2016</a> /
-<a href="/bicycle/sale/brand/1/year/2011/month/1/view">Kellys 2011</a> /
-<a href="/bicycle/sale/brand/1/year/2012/month/1/view">Kellys 2012</a> /   
-<a href="/bicycle/sale/brand/1/year/2013/month/1/view">Kellys 2013</a> /
-<a href="/bicycle/sale/brand/1/year/2014/month/1/view">Kellys 2014</a> /
-<a href="/bicycle/sale/brand/1/year/2015/month/1/view">Kellys 2015</a> /
-<a href="/bicycle/sale/brand/1/year/2016/month/1/view">Kellys 2016</a> /
-<a href="/bicycle/sale/brand/3/year/2012/month/1/view">Trek 2012</a> / 
-<a href="/bicycle/sale/brand/3/year/2013/month/1/view">Trek 2013</a> /
-<a href="/bicycle/sale/brand/3/year/2014/month/1/view">Trek 2014</a> /
-<a href="/bicycle/sale/brand/3/year/2015/month/1/view">Trek 2015</a> /
-<a href="/bicycle/sale/brand/3/year/2016/month/1/view">Trek 2016</a> /
-<a href="/bicycle/sale/brand/138/year/2013/month/1/view">Schwinn 2013</a> /
-<a href="/bicycle/sale/brand/138/year/2014/month/1/view">Schwinn 2014</a> /
-<a href="/bicycle/sale/brand/138/year/2015/month/1/view">Schwinn 2015</a> /
-<a href="/bicycle/sale/brand/138/year/2016/month/1/view">Schwinn 2016</a> /
-<a href="/bicycle/sale/brand/19/year/2013/month/1/view">Cannondale 2013</a> /
-<a href="/bicycle/sale/brand/19/year/2014/month/1/view">Cannondale 2014</a> /
-<a href="/bicycle/sale/brand/19/year/2015/month/1/view">Cannondale 2015</a> /
-<a href="/bicycle/sale/brand/19/year/2016/month/1/view">Cannondale 2016</a> /
-{% endcomment %}
 
-    {% endif %}
+{% endif %}
 {% endfor %}		
 
 {#bicycles.0.model.model.brand}} - {{bicycles.0.model.model.year.year#}
@@ -123,7 +97,7 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 		<td align="center">{{type.date|date:"D d M Y"}}</td>
 {% for group in user.groups.all %}
     {% if group.name == 'admin' %}
-		<td align="center">{{type.model.price}} / {{type.get_uaprice}} ({{type.get_profit}})</td>
+		<td align="center">{{type.model.price|floatformat:"0"}} / {{type.get_uaprice|floatformat:"0"}} ({{type.get_profit|floatformat:"0"}})</td>
     {% endif %}
 {% endfor %}			
 		
