@@ -6712,12 +6712,17 @@ def check_list(request, year=None, month=None, day=None, all=False):
         day = datetime.datetime.now().day
         month = datetime.datetime.now().month
         year = datetime.datetime.now().year
-    else:
-        day = day
-        month = month
-        year = year
+        
     if all == True:
-        list = Check.objects.all()
+        if (month == None):
+            list = Check.objects.filter(date__year = year)
+            listPay = CheckPay.objects.filter(date__year = year)
+        if (day == None and month):
+            list = Check.objects.filter(date__year = year, date__month = month)
+            listPay = CheckPay.objects.filter(date__year = year, date__month = month)
+        if (year == None):
+            list = Check.objects.all()
+            listPay = CheckPay.objects.all()
     else:
         list = Check.objects.filter(date__year = year, date__month = month, date__day = day)#.values()
         listPay = CheckPay.objects.filter(date__year = year, date__month = month, date__day = day)
@@ -6746,8 +6751,10 @@ def check_list(request, year=None, month=None, day=None, all=False):
                 chk_sum = chk_sum + ((100-i.discount)*0.01*i.workshop.price*i.count)
             else:
                 chk_sum_term = chk_sum_term + ((100-i.discount)*0.01*i.workshop.price*i.count)                
-                
-    days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
+    if month == None:
+        days = xrange(1, 1)
+    else:            
+        days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
     return render_to_response("index.html", {"weblink": 'check_list.html', "check_list": list, "sum_term":sum_term, "sum_cash":sum_cash, "pay_list": listPay, 'sel_day':day, 'sel_month':month, 'sel_year':year, 'month_days':days, 'chk_sum': chk_sum, 'chk_sum_term': chk_sum_term}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -7026,6 +7033,8 @@ def check_add(request):
     return HttpResponseRedirect('/check/list/now/')
 
 def check_delete(request, id):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse('Error: У вас не має прав для редагування')
     obj = Check.objects.get(id=id)
     del_logging(obj)
     obj.delete()

@@ -1,12 +1,12 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+<link rel="stylesheet" type="text/css" href="/media/css/table.css">
 
 
-    <h1>Типи велосипедів <a href="/bicycle-type/add/">(Додати)</a></h1>
+    <h1>Типи велосипедів <a href="/bicycle-type/add/" class="badge badge-success">Створити</a></h1>
 
-    <table>
+    <table id="iTable" class = "table table-bordered table-hover table-condensed table-sm" >
     <tr>
     	<th>ID</th>
     	<th>Назва типу</th>
@@ -33,8 +33,5 @@
     {% endfor %}
     <table>
 
-<br>
-<a href="/bicycle-type/add/">Створити новий тип (Додати/Add)</a>        
-<br>
-<a href="/bicycle/add/">Додати велосипед до каталогу</a>
+       
 

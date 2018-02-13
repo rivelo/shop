@@ -518,6 +518,8 @@ urlpatterns += patterns('',
     
     url(r'^check/list/$', 'catalog.accounting.views.check_list',{'all':True}),
     url(r'^check/list/now/$', 'catalog.accounting.views.check_list',{'all':False}),
+    url(r'^check/year/(?P<year>\d+)/view/$', 'catalog.accounting.views.check_list',{'all':True}),
+    url(r'^check/year/(?P<year>\d+)/month/(?P<month>\d+)/view/$', 'catalog.accounting.views.check_list',{'all':True}),
     url(r'^check/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/view/$', 'catalog.accounting.views.check_list',{'all':False}),
     url(r'^check/(?P<num>\d+)/print/$', 'catalog.accounting.views.check_print'),
     url(r'^check/add/$', 'catalog.accounting.views.check_add'),

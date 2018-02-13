@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+<link rel="stylesheet" type="text/css" href="/media/css/table.css">
 <title>Продані велосипеди</title>
 
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
@@ -59,7 +59,8 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 
 {% load template_math %}   
 
-<table border="1">
+<table border="1" id="iTable" class = "table table-bordered table-hover table-condensed table-sm">
+	<thead class="thead-light">
 	<tr>
 		<th>№</th>
 		<th>ID</th>
@@ -80,7 +81,7 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 		<th>Опис</th>
 		<th>Дія</th>
 	</tr>
-
+	</thead>
 	{% for type in bicycles %}
 	<tr>
 		<td title="{{type.user}}">{{forloop.counter}}</td>
@@ -97,7 +98,7 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 		<td align="center">{{type.date|date:"D d M Y"}}</td>
 {% for group in user.groups.all %}
     {% if group.name == 'admin' %}
-		<td align="center">{{type.model.price|floatformat:"0"}} / {{type.get_uaprice|floatformat:"0"}} ({{type.get_profit|floatformat:"0"}})</td>
+		<td align="center">{{type.model.price|floatformat:"0"}} * {{type.get_profit.0}} / {{type.get_uaprice|floatformat:"0"}} ({{type.get_profit.1|floatformat:"0"}}) </td>
     {% endif %}
 {% endfor %}			
 		
@@ -133,13 +134,13 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 		<th></th>
 		<th></th>
 {% endif %}
-		<th>Не пройдено ТО:</th>
 {% for group in user.groups.all %}
     {% if group.name == 'admin' %}
-		<th>{{price_opt|floatformat:"0"}} <br> profit = {{profit_summ|floatformat:"0"}}грн </th>
+		<th>Закупка: {{price_opt|floatformat:"0"}} <br> profit = {{profit_summ|floatformat:"0"}}грн </th>
     {% endif %}
-{% endfor %}			
-		<th>{{service_summ}}</th>
+{% endfor %}
+		<th>Не пройдено ТО:</th>			
+		<th align="center" >{{service_summ}}</th>
 		<th></th>
 		<th></th>
 	</tr>

@@ -1751,7 +1751,7 @@ var table = $('#iTable').DataTable();
 	</td>
 	
 {% ifequal type.catalog__sale 0 %}
-<td align="center" class="price_edit" id_price={{type.catalog}}>
+<td align="center" {% if request.user|has_group:"admin" %} class="price_edit" {% endif %} id_price={{type.catalog}}>
 {% if type.catalog__price > type.catalog__last_price %} 
 {{type.catalog__price}} грн.
 {% if type.catalog__last_price %}

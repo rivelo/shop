@@ -3,24 +3,24 @@
 <link type="text/css" rel="stylesheet" href="/media/paginator.css">
 <head>
     <title>Список чеків</title>
-    <link rel="stylesheet" type="text/css" href="/media/table.css">
+    <link rel="stylesheet" type="text/css" href="/media/css/table.css">
+
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script src="/media/jquery-ui.min.js"></script>
 </head>
 
-
-<link rel="stylesheet" href="/media/jquery-ui.min.css">
-<script src="/media/jquery-ui.min.js"></script>
+{% load poll_extras %}
 
 <body>
-
 
 <br>
 <h2>
     За місяць: 
 	{% for i in "123456789012" %}
 	{% ifequal forloop.counter sel_month %}
-	<a href="/check/year/{{sel_year}}/month/{{forloop.counter}}/day/1/view/" class="select">{{forloop.counter}}</a>,
+	<a href="/check/year/{{sel_year}}/month/{{forloop.counter}}/day/1/view/" class="badge badge-success select">{{forloop.counter}}</a>
     {% else %}
-	<a href="/check/year/{{sel_year}}/month/{{forloop.counter}}/day/1/view/" class="non">{{forloop.counter}}</a>,
+	<a href="/check/year/{{sel_year}}/month/{{forloop.counter}}/day/1/view/" class="badge badge-success">{{forloop.counter}}</a>
     {% endifequal %}
 	{% endfor %}    
 </h2>    
@@ -29,9 +29,9 @@
 	За день:
 	{% for day in month_days %}		 
 	{% ifequal day sel_day %}
-    <a href="/check/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view/" class="select">{{day}}</a>,
+    <a href="/check/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view/" class="badge badge-pill badge-info select">{{day}}</a>
     {% else %}
-	<a href="/check/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view/" class="non">{{day}}</a>,
+	<a href="/check/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view/" class="badge badge-pill badge-info">{{day}}</a>
     {% endifequal %}
     {% endfor %}
 </h2>    
@@ -39,13 +39,13 @@
 
     <h1>Список чеків на товар [{{sel_day}}/{{sel_month}}/{{sel_year}}]</h1>
 
-    <table border="1" id="itable">
+    <table id="iTable" class = "table table-bordered table-hover table-condensed table-responsive-lg table-sm" style="width: 500px;">
 	<tr>
     	<th>#</th>	
     	<th>№ чека</th>
-    	<th>Готівка</th>
-    	<th>Термінал</th>
-    	<th>Дата</th>
+    	<th >Готівка</th>
+    	<th >Термінал</th>
+    	<th >Дата</th>
     	<th>Опис</th>
 	</tr>    
 {% for item in pay_list %}
@@ -67,7 +67,7 @@
 	<td>       
 	{{item.term}}
 	</td>	
-	<td>       
+	<td class="text-center">       
 	{{item.date|date:'d-m-Y H:i'}}
 	</td>	
 	<td>       
@@ -91,7 +91,7 @@
 <br>
 
     
-    <table border="1" id="itable">
+    <table id="iTable" class = "table table-bordered table-hover table-condensed table-sm">
 	<tr>
     	<th>#</th>	
     	<th>№ чека</th>
@@ -106,6 +106,9 @@
     	<th>Дата</th>
     	<th>Опис</th>
     	<th>Друк</th>
+{% if request.user|has_group:"admin" %}    	
+    	<th>Дія</th>
+{% endif %}    	
     </tr>
     
    
@@ -156,9 +159,11 @@
 	<td>
 	{{item.print_status}}
 	</td>
+{% if request.user|has_group:"admin" %}    	
 	<td>
 	<a href="/check/delete/{{item.pk}}/" onclick="return confirm('Видалити позицію [{{item.catalog.catalog.ids}}{{item.workshop.work_type.id}}] {{item.catalog.catalog.name}}{{item.workshop.work_type}}?')">Видалити</a>
 	</td>
+{% endif %}	
 
 </tr>
 {% endfor %}         
@@ -177,6 +182,9 @@
     	<th></th>
     	<th></th>
     	<th></th>
+{% if request.user|has_group:"admin" %}    	
+    	<th></th>
+{% endif %}    	
     </tr>
     
     <table>
