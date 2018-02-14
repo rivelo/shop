@@ -3296,7 +3296,8 @@ def client_invoice_edit(request, id):
         return render_to_response('index.html', {'weblink': 'guestinvoice.html', 'cat': cat}, context_instance=RequestContext(request, processors=[custom_proc]))
     now = datetime.datetime.now()
     old_count = a.count
-    old_length = 0
+#    print "OLD count = " + str(old_count)
+#    old_length = 0
     cat_id = a.catalog.id
     cat = Catalog.objects.get(id = cat_id)
     if request.method == 'POST':
@@ -3321,10 +3322,13 @@ def client_invoice_edit(request, id):
                 else:
                     cat.length = 0 - float(old_length) + float(clen)
                 description = description + '\nlength:' + str(clen)
-            if old_count > count:
-                cat.count = cat.count - (old_count - count)*-1
-            else: 
-                cat.count = cat.count - (old_count - count)
+#            print "NEW count = " + str(count)
+#            print "CAT count = " + str(cat.count)
+#            if old_count > count:
+                #cat.count = cat.count - (old_count - count)*-1
+            cat.count = cat.count + (old_count - count)
+#            else: 
+#                cat.count = cat.count - (old_count - count)
             cat.save()
             user = a.user
             if request.user.is_authenticated():
