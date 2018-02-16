@@ -609,6 +609,13 @@ class CostType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
 
+    def cost_list(self):
+        res = self.costs.all().order_by('-date')[:10]
+        return res
+
+    def cost_list_sum(self):
+        res = self.costs.all().aggregate(cost_sum = Sum('price'))
+        return res['cost_sum']
     
     def __unicode__(self):
         return self.name
@@ -619,13 +626,13 @@ class CostType(models.Model):
 
 class Costs(models.Model):
     date = models.DateTimeField(auto_now_add=True)
-    cost_type = models.ForeignKey(CostType)
+    cost_type = models.ForeignKey(CostType, related_name='costs', default=3)
     price = models.FloatField()
     description = models.TextField()
 
-    
     def __unicode__(self):
-        return self.name
+        #return self.name
+        return u"[%s] (%s) - %s грн." % (self.date, self.description, self.price) 
 
     class Meta:
         ordering = ["date"]
@@ -634,13 +641,37 @@ class Costs(models.Model):
 #Bicycle type table
 class Bicycle_Type(models.Model):
     type = models.CharField(max_length=255) #adult, kids, mtb, road, hybrid
+    ukr_name = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    level = models.IntegerField(default = 0, blank = True, null = True)
+    parent_id = models.ForeignKey("self", blank=True, null = True, default=None)
+    status = models.BooleanField(default = True, blank=True)
 
-#    def natural_key(self):
-#        return (self.id, self.type)
+    def bike_count(self):
+        res = self.bicycle_set.all().order_by('pk').aggregate(bike_sum = Count('pk'))
+        return res['bike_sum']
+    
+    def subtype_count(self):
+        res = self.bicycle_type_set.all().order_by('pk').aggregate(bike_sum = Count('pk'))
+        return res['bike_sum']
+
+    def subtype_list(self):
+        res = self.bicycle_type_set.all()
+        return res
+
+    def subtype_storebike(self):
+        res = self.bicycle_type_set.all().values_list('pk')
+        bs = Bicycle_Store.objects.filter(count__gt = 0, model__type__pk__in = res).order_by('model__brand')
+        return bs
+
+    def storebike(self):
+        inlist = []
+        inlist.append(self.pk)
+        bs = Bicycle_Store.objects.filter(count__gt = 0, model__type__pk__in = inlist).order_by('model__brand')
+        return bs
 
     def __unicode__(self):
-        return self.type
+        return u'%s' % self.type
 
     class Meta:
         ordering = ["type"]    

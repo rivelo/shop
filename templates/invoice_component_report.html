@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <title>Список товару</title>
-    <link rel="stylesheet" type="text/css" href="/media/table.css">
+    <link rel="stylesheet" type="text/css" href="/media/css/table.css">
 </head>
 <body>
 <br>
@@ -20,7 +20,7 @@
     
 {% if perms.accounting.add_preorder %}  
 
-    <table border="1">
+    <table id="iTable" class = "table table-bordered table-hover table-condensed table-sm">
 	<tr>
     	<th>#</th>	
     	<th>ID</th>
@@ -71,7 +71,7 @@
 	<td align="center">       
 	{{type.catalog.price|mul:type.count}}
 	</td>
-{% if perms.accounting.add_preorder %}
+{% if request.user|has_group:"admin" %}
 	<td align="center">       
 	{{type.price}} ({{type.currency.ids_char}}) [{{type.get_uaprice}}]
 	<br>{{type.ci_sum}}
@@ -84,7 +84,9 @@
 	{{type.description}} 
 	</td>
 	<td>
+{% if request.user|has_group:"admin" %}
     <a href="/invoice/delete/{{type.id}}">delete</a>
+{% endif %}
     </td>
 </tr>
 {% endfor %}         
@@ -98,10 +100,10 @@
     	<th></th>
     	<th></th>
     	<th>{{allpricesum}} грн.</th>
-{% if perms.accounting.add_preorder %}
+{% if request.user|has_group:"admin" %}
     	<th>{{alloptsum}}</th>
+    	<th>{{ua_optsum}}</th>
 {% endif %}
-    	<th></th>    	
     	<th></th>
     	<th></th>
     </tr>

@@ -96,8 +96,8 @@ class CategoryForm(forms.ModelForm):
 
 # --------- Bicycle -------------
 class BicycleTypeForm(forms.ModelForm):
-    type = forms.CharField(label='Bicycle type')
-    description = forms.CharField(label='Description of type', widget=forms.Textarea(), max_length=255)
+#    type = forms.CharField(label='Bicycle type')
+#    description = forms.CharField(label='Description of type', widget=forms.Textarea(), max_length=255)
     class Meta:
         model = Bicycle_Type
         fields = '__all__'

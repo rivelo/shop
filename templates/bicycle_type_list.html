@@ -18,10 +18,26 @@
     <tr>
     	<td><a href="/bicycle-type/edit/{{ type.id }}">{{ type.id }}</a></td>
         <td>
-        {{ type.type }}
+        {{ type.type }} 
+        [
+		{{ type.bike_count }}
+		]
+		{{ type.subtype_count }} 
+		{% for item in type.subtype_storebike %}
+		<br>
+		{{item}} / {{item.model.type}} 
+		{% endfor %}
+		
+		
+		{% for item in type.storebike %}
+		<br>
+		{{item}} / {{item.model.type}} 
+		{% endfor %}
+		
         </td>
         <td>
         {{ type.description }}
+        {{ type.ukr_name }}
         </td>
         	<td><a href="/bicycle/store/report/bytype/{{ type.id }}/">Наявні велосипеди</a></td>
         <td>

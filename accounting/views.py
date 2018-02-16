@@ -317,7 +317,7 @@ def bicycle_type_del(request, id):
 
 def bicycle_type_list(request):
     list = Bicycle_Type.objects.all()
-    return render_to_response('index.html', {'types': list.values(), 'weblink': 'bicycle_type_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'types': list, 'weblink': 'bicycle_type_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def bicycle_framesize_add(request):
@@ -535,7 +535,7 @@ def bicycle_part_add(request):
 def bicycle_add(request):
     if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
         return HttpResponseRedirect('/bicycle/view/')
-    a = Bicycle()    
+#    a = Bicycle()    
     if request.method == 'POST':
 #        form = BicycleForm(request.POST, request.FILES, instance=a)
         form = BicycleForm(request.POST, request.FILES)        
@@ -576,7 +576,7 @@ def bicycle_add(request):
                 upload_path_g = processUploadedImage(geometry, 'geometry/'+str(gfolder)+'/')
                 
             Bicycle(model = model, type=type, brand = brand, color = color, photo=upload_path_p, weight = weight, wheel_size = wheel_size, price = price, currency = currency, internet = internet, country_made = country_made, warranty = warranty, geometry = upload_path_g, offsite_url=offsite_url, description=description, year=year, sale=sale).save()
-            form.save() #_m2m()
+#            form.save() #_m2m()
             return HttpResponseRedirect('/bicycle/view/')
             #return HttpResponseRedirect(bicycle.get_absolute_url())
     else:
@@ -735,20 +735,8 @@ def bicycle_store_edit(request, id=None):
     if request.method == 'POST':
         form = BicycleStoreForm(request.POST, instance=a)
         if form.is_valid():
-#===============================================================================
-#            model = form.cleaned_data['model']
-#            serial_number = form.cleaned_data['serial_number']
-#            size = form.cleaned_data['size']
-#            price = form.cleaned_data['price']
-#            currency = form.cleaned_data['currency']
-#            description = form.cleaned_data['description']
-#            realization = form.cleaned_data['realization']
-#            count = form.cleaned_data['count']
-#            date = form.cleaned_data['date']            
-#            Bicycle_Store(id = id, model = model, serial_number=serial_number, size = size, price = price, currency = currency, description=description, realization=realization, count=count, date=date).save()
-#===============================================================================
             form.save()
-            return HttpResponseRedirect('/bicycle-store/view/seller/')
+            return HttpResponseRedirect('/bicycle-store/view/')
     else:
         form = BicycleStoreForm(instance=a)
     return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_store.html', 'text': 'Редагувати тип'}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -1965,6 +1953,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
     new_list = []
     sale_list = ClientInvoice.objects.filter(catalog__in=id_list).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
     cat_list = Catalog.objects.filter(pk__in=id_list).values('type__name_ukr', 'description', 'locality', 'id', 'manufacturer__id', 'manufacturer__name', 'photo_url', 'youtube_url', 'last_update', 'user_update__username')        
+#    arrive_list = Catalog.objects.filter(pk__in = id_list).new_arrival()
     for element in list:
         element['balance']=element['sum_catalog']
         element['c_sale']=0
@@ -1986,13 +1975,13 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
                 element['youtube_url']=cat['youtube_url']
                 element['last_update']=cat['last_update']
                 element['user_update']=cat['user_update__username']
-#                element['new_arrival'] = Catalog.objects.get(pk = element['catalog']).new_arrival()
-#                element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
         
         if element['balance']!=0:
             new_list.append(element)
             zsum = zsum + (element['balance'] * element['catalog__price'])
             zcount = zcount + element['balance']
+            element['new_arrival'] = Catalog.objects.get(pk = element['catalog']).new_arrival()
+#            element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
     
 # update count field in catalog table            
         #upd = Catalog.objects.get(pk = element['catalog'])
@@ -2247,13 +2236,14 @@ def invoice_id_list(request, id=None, limit=0):
         #psum = psum + (item['catalog__price'] * item['count'])
         psum = psum + (item.catalog.price * item.count)
         #optsum = optsum + (item['count'] * item['price'])
-        optsum = optsum + (item.get_uaprice() * item.count)
+        optsum = optsum + (item.price * item.count)
+        uaoptsum = optsum + (item.get_uaprice() * item.count)
         #scount = scount + item['count']
         scount = scount + item.count
     dinvoice = DealerInvoice.objects.get(id=id)    
     
     #return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'company_list':company_list, 'allpricesum':psum, 'alloptsum':optsum, 'countsum': scount, 'weblink': 'invoice_component_report.html'})
-    return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'allpricesum':psum, 'alloptsum':optsum, 'countsum': scount, 'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'allpricesum':psum, 'alloptsum':optsum, 'ua_optsum':uaoptsum, 'countsum': scount, 'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def invoice_cat_id_list(request, cid=None, limit=0):

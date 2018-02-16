@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/media/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="/media/css/dataTables.jqueryui.css">
 <link rel="stylesheet" href="/media/css/select.dataTables.min.css">
-<link rel="stylesheet" href="/media/css/tooltip.css">
+{#<link rel="stylesheet" href="/media/css/tooltip.css">#}
 <link rel="stylesheet" href="/media/css/datepicker.min.css">
 <link rel="stylesheet" type="text/css" href="/media/css/table.css">
   	
@@ -1711,12 +1711,12 @@ var table = $('#iTable').DataTable();
 	
 	</td>
 	<td align="center">
-	<a href="/invoice/catalog/{{type.catalog}}/view/">
+	<a href="/invoice/catalog/{{type.catalog}}/view/" title="Надходження">
 	{{type.sum_catalog}}
 	</a>
 	</td>
 	<td align="center">
-	<a href="/client/invoice/catalog/{{type.catalog}}/view/">
+	<a href="/client/invoice/catalog/{{type.catalog}}/view/" title="Проданий товар">
 	{{type.c_sale|floatformat }}
 	</a>
 	</td>
@@ -1728,24 +1728,15 @@ var table = $('#iTable').DataTable();
 {% ifequal type.sum_catalog type.c_sale %}
 	{{type.sum_catalog|sub:type.c_sale|floatformat}} 
 {% else %}
-
-		<abbr title="Продати товар"> 
-		<a href="/client/invoice/catalog/{{type.catalog}}/add">
-{% comment %}
-		 {{type.catalog__count}} 
-{% endcomment %} 
 		
 {% if type.new_arrival %}
-	<div class="tooltip">{{type.balance|floatformat}}
-  	<span class="tooltiptext">{{type.new_arrival}}</span>
-	</div>
+	<a href="/client/invoice/catalog/{{type.catalog}}/add" title="{{type.new_arrival}}">
+	{{type.balance|floatformat }}
 {% else %}
+	<a href="/client/invoice/catalog/{{type.catalog}}/add" title="Продати товар">
 	{{type.balance|floatformat }}	
 {% endif %}		
-		</a>
-		</abbr>
-{% comment %}		
-{% endcomment %}
+	</a>
 		
 {% endifequal %}
 	</td>
