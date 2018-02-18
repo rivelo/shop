@@ -1312,8 +1312,8 @@ def bicycle_order_edit(request, id):
             form.save()
             return HttpResponseRedirect('/bicycle/order/view/')
     else:
-        form = BicycleOrderForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_order.html'})
+        form = BicycleOrderForm(instance=a, initial={'client_id': a.client.pk, 'model_id': a.model.pk})
+    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_order.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def bicycle_order_del(request, id):
@@ -1359,7 +1359,6 @@ def bicycle_lookup_ajax(request):
             
     else:
         message = "Error"
-
     #search = Bicycle.objects.filter(id=q).values('price', 'sale')
     return HttpResponse(simplejson.dumps(list(search)), content_type="application/json")
 
@@ -1369,20 +1368,26 @@ def ValuesQuerySetToDict(vqs):
 def bike_lookup(request):
     data = None
     cur_year = datetime.datetime.now().year
-    #if request.is_ajax():
+
     if request.method == "POST":
         if request.POST.has_key(u'query'):
             value = request.POST[u'query']
             if len(value) > 2:
                 model_results = Bicycle.objects.filter(year__gte=datetime.datetime(cur_year-2, 1, 1)).filter(Q(model__icontains = value) | Q(brand__name__icontains = value)).order_by('-year')
-                #.values('id', 'model', 'type__type', 'brand__name',  'color', 'price', 'sale')
-                #.values('id', 'model', 'type__type', 'brand__name', 'year', 'color', 'price', 'sale');
                 data = serializers.serialize("json", model_results, fields = ('id', 'model', 'type', 'brand', 'color', 'price', 'year', 'sale'), use_natural_keys=False)
-#                data = serializers.serialize("json", list(model_results))
-#                data_dict = ValuesQuerySetToDict(model_results)
-#                data = simplejson.dumps(data_dict)
             else:
                 data = []
+                
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('bike_id'):
+                q = request.POST['bike_id']
+                search = Bicycle.objects.get(id=q)
+                data = search.model
+    else:
+        message = "Error"
+                
     return HttpResponse(data)                
 
 
@@ -2232,6 +2237,7 @@ def invoice_id_list(request, id=None, limit=0):
     psum = 0
     optsum = 0
     scount = 0
+    uaoptsum = 0
     for item in list:
         #psum = psum + (item['catalog__price'] * item['count'])
         psum = psum + (item.catalog.price * item.count)
@@ -3701,6 +3707,7 @@ def client_order_edit(request, id):
             pay = form.cleaned_data['pay']
             post = form.cleaned_data['post_id']
             cash_type = form.cleaned_data['cash_type']
+            client = form.cleaned_data['client']
             catalog = None
             if post:
                 catalog = Catalog.objects.get(id=post)
@@ -3708,13 +3715,17 @@ def client_order_edit(request, id):
             a.catalog = catalog
             a.save()
             cred = ClientCredits.objects.get(id = a.credit.id)
+            cred.client = client
             cred.price = pay
 #            cred.cash_type = CashType.objects.get(name=u"Готівка")
             cred.cash_type = cash_type
             cred.save()
             return HttpResponseRedirect('/client/order/view/')
     else:
-        form = ClientOrderForm(instance=a)
+        if a.catalog:
+            form = ClientOrderForm(instance=a, initial={'catalog' : a.catalog.pk, 'client': a.client.pk})
+        else:
+            form = ClientOrderForm(instance=a, initial={'client': a.client.pk})
 
     return render_to_response('index.html', {'form': form, 'weblink': 'clientorder.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 

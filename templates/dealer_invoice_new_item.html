@@ -1,10 +1,12 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Нові надходження</title>
+
 {% load template_math %}
 
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+<link rel="stylesheet" type="text/css" href="/media/css/table.css">
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
-<script src="/media/jquery-ui.js"></script>
+
+<script type="text/javascript" src="/media/jquery-ui.min.js"></script>
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 
 
@@ -112,13 +114,14 @@ $("#dialog").dialog({
       modal: true,
       buttons: {
         "Додати": function() {
+        	console.log("ATTR = " + $("#dtext").attr("ids"));        	
 			$.ajax({
-                type: "GET",
+                type: "POST",
                 url: "/shop/price/print/add/",
                 data: {id:  $("#dtext").attr("ids"), url: $('#spinner').val()},
                 dataType: "text",
                 success:function(msg){
-//                    alert("Все отлично ушло на сервер - " + msg);
+                    alert("Все отлично ушло на сервер - " + msg);
 //               	    $('#spinner').after('<p>ajax done</p>');
                 },
                 error:function(){
@@ -140,8 +143,11 @@ $(document).on("click", ".addprice", function(event) {
     $("#dtext").html($(this).attr('href'));
     $("#dtext").attr({"ids": $(this).attr('ids')});
 	var spinner = $("#spinner").spinner();
-	$("#spinner").val(1);       
-   $("#dialog").dialog("open");
+	$("#spinner").val(1);
+	console.log($(this).next('td').html());
+	$("#dialog").dialog("open");
+	$("#catalog_name").remove();
+	$("#dtext").after("<span id='catalog_name'>" + $(this).next('td').html() + "</span>");
 });
 
 
@@ -152,7 +158,7 @@ $(document).on("click", ".addprice", function(event) {
 
 <!-- Dialog to add print price -->
 	<div id="dialog" title="Add price">
-	<p id="dtext">Додати цінник до списку друку</p>
+	<p style="font-weight: bold;" id="dtext">Додати цінник до списку друку:</p>
 	<label for="spinner">Кількість:</label>
   	<input id="spinner" name="value" value="1">
 	</div>
@@ -160,7 +166,10 @@ $(document).on("click", ".addprice", function(event) {
 
 <div id="accordion" >
 
-<h3>EMPTY{{x.invoice.origin_id}}</h3> <div> <table>
+<h3>EMPTY{{x.invoice.origin_id}}</h3> 
+
+<div>
+<table id="iTable" class = "table table-bordered table-hover table-condensed table-sm">
 <tr>
 	<th>#</th>
    	<th>[ID] - Назва </th>
@@ -173,9 +182,11 @@ $(document).on("click", ".addprice", function(event) {
 
 {% for x in dinvoice_list %}
 {% ifchanged x.invoice %}
-  
-</table></div>
-<h3>{{x.invoice.origin_id}}</h3> <div class="content"> <table>
+</table>
+</div>
+
+<h3>{{x.invoice.origin_id}}</h3> <div class="content"> 
+<table id="iTable" class = "table table-bordered table-hover table-condensed table-sm"> 
 <tr>
 	<th>#</th>
    	<th>[ID] - Назва </th>
@@ -199,7 +210,7 @@ $(document).on("click", ".addprice", function(event) {
 {% endif %}
 
 <td class="addprice" ids="{{x.catalog.id}}">{{forloop.counter}}</td>
-<td>{{x.catalog}} {% if x.catalog.dealer_code %} [{{x.catalog.dealer_code}}] {% endif %}</td>
+<td class="cat_name">{{x.catalog}} {% if x.catalog.dealer_code %} [{{x.catalog.dealer_code}}] {% endif %}</td>
 <td id="count{{x.id}}" align="center">{{x.count}} шт.</td>
 <td>{{x.invoice.origin_id}}</td>
 <td class="recived" align="center">

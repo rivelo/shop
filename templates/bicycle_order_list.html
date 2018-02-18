@@ -2,7 +2,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Замовленні велосипеди</title>
 
- <link rel="stylesheet" type="text/css" href="/media/table.css">
+ <link rel="stylesheet" type="text/css" href="/media/css/table.css">
 <!-- -->
  
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
@@ -25,17 +25,17 @@
 	background: #FFFFFF !important;
   }
   
-  span:visited{ text-decoration:none; color:#293d6b; }
+/*  span:visited{ text-decoration:none; color:#293d6b; }
   span:hover{ text-decoration:underline; color:#293d6b; }
   span {color:#293d6b; cursor: pointer; }
-  
+*/  
 </style>
 
 <script type="text/javascript">
 
 $(document).ready(function() {
     // DataTable
-    var table = $('#bTable').DataTable({
+    var table = $('#iTable').DataTable({
         "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
         "iDisplayLength": 100,        
         "columnDefs": [
@@ -92,9 +92,9 @@ $("body").on('click', 'span.ref_done', function() {
 });
 </script>
 
-<h1>Список замовлених велосипедів ({{bicycles.count}}) <a href="/bicycle/order/add/">(Додати замовлення)</a></h1>
+<h1>Список замовлених велосипедів <a href="/bicycle/order/add/" class="badge badge-success">Створити замовлення</a></h1>
 
-<table id="bTable" class="display compact" cellspacing="0" width="100%">
+<table id="iTable" class="table table-bordered table-hover table-condensed display compact" cellspacing="0">
 <thead>
 	<tr>
 		<th>#</th>

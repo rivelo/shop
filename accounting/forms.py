@@ -206,10 +206,6 @@ class BicycleSaleEditForm(forms.ModelForm):
 class BicycleOrderForm(forms.ModelForm):
     cur_year = datetime.datetime.today().year
     client_id = forms.CharField(widget=forms.TextInput(attrs={'size': '50'}), max_length=50, label = 'Клієнт')
-    #client = forms.ModelChoiceField(widget=forms.Select(attrs={'class':'autocomplete'}), queryset = Client.objects.all(), empty_label="", label = 'Клієнт')    
-#    client = forms.IntegerField(widget=forms.HiddenInput(), label = 'Клієнт')
-#    model = forms.IntegerField(widget=forms.HiddenInput(), label = 'Модель велосипеду')
-    #model = forms.ModelChoiceField(queryset = Bicycle.objects.filter(year__gte=datetime.datetime(cur_year-1, 1, 1)).order_by('-year'), empty_label="", label = 'Модель велосипеду')
     model_id = forms.CharField(widget=forms.TextInput(attrs={'size': '100'}), label = 'Модель велосипеду')    
     size = forms.CharField(max_length=50, label = 'Розмір рами')
     price = forms.FloatField(initial = 0, label = 'Ціна')
@@ -217,7 +213,6 @@ class BicycleOrderForm(forms.ModelForm):
     prepay = forms.FloatField(initial = 0, label = 'Аванс')
     currency = forms.ModelChoiceField(queryset = Currency.objects.all(), label='Валюта')
     date = forms.DateTimeField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), label='Дата')
-    #done = forms.BooleanField(required=False) 
     description = forms.CharField(label='Опис', widget=forms.Textarea(), required=False)
     
     class Meta:

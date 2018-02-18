@@ -8,7 +8,7 @@
 	<script type="text/javascript">
 
 	</script>
-
+{% comment %}
 <style>
   .custom-combobox {
     position: relative;
@@ -26,13 +26,14 @@
     padding: 5px 10px;
   }
 </style>  
+{% endcomment %}
 	
 <script type="text/javascript">
 
 $(document).ready(function() {
 
 	$('#id_client_id').focus();
-	
+		
     $( "#id_client_id" ).autocomplete({
     	source: function( request, response ) {
         	$.ajax({
@@ -54,7 +55,7 @@ $(document).ready(function() {
         },
         minLength: 3,
         select: function( event, ui ) {
-           	$('#id_client').val(ui.item.pk_id);
+           	$('#id_client_id').val(ui.item.pk_id);
 	    	$(this).attr('c_id', ui.item.pk_id)
 	    	$('#id_sale').val(ui.item.sale);
         },
@@ -127,22 +128,46 @@ $("#UserEnter").submit(function() {
 });
 
 function id2name(){
+	if ( $("#id_client_id").val() != "" ) {
+		
+		$("#id_client_id").attr('c_id',	$("#id_client_id").val());
+		
             $.ajax({
                 type: "GET",
                 url: "/client/lookup/byid/",
-                data: { client_id: 2 },
+                data: { client_id: $("#id_client_id").val() },
                 dataType: "json",
                 success:function(msg){
                 	$.each(msg,function(index,item){
-                	$("#s_client").val(item)    
+                		$("#id_client_id").val(item)    
                     });
+                	
                 },
                 error:function(){
                     alert("При отправке возникли проблемы");
                 }
             });      
-
+	}
+	
+	
+	if ( $("#id_model_id").val() != "" ) {
+		$("#id_model_id").attr('c_id', $("#id_model_id").val());
+        $.ajax({
+            type: "POST",
+            url: "/bike/lookup/",
+            data: { bike_id: $("#id_model_id").val() },
+            dataType: "text",
+            success:function(msg){
+            		$("#id_model_id").val(msg);    
+            },
+            error:function(){
+                alert("При отправке возникли проблемы");
+            }
+        });		
+	}
 };
+
+id2name();
 
 $("#id_prepay").after('<select name="cash" id="id_cash">' +
 '<option value="2">Термінал pb.ua</option>' +
