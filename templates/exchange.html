@@ -1,19 +1,33 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+<script>
+$(document).ready(function() {
+
+$( "#usd" ).click(function() {
+	  $("#id_value").val($( "#usd" ).html());
+	  $("#id_currency").val(2)
+});
+
+$( "#eur" ).click(function() {
+	$("#id_value").val($( "#eur" ).html());
+	$("#id_currency").val(4);
+});
+
+});
+</script>
+
+
     <h1>Курс валют (Exchange)</h1>
+    {% if usd or eur %}
+    <h2>Долар: <span id='usd'>{{usd}}</span> / Євро: <span id='eur'>{{eur}}</span></h2>
+    {% endif %}
     <form action="." method="POST">
         <table>
             {{ form.as_ul }}
         </table>
         <p><input type="submit" value="Save"></p>
     </form>
-    
-    
-<br><br>
-<a href="/exchange/view/">Перегляд рахунків</a>
-<br>
-<a href="/">HOME</a>    
 
 
 

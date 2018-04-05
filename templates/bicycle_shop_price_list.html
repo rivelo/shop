@@ -51,8 +51,8 @@ font-size: 20px;
 
 
 <div class="container-fluid">
-
 <div class="row no-gutters">
+
 {% for bike in bicycles %}
 <div class="col-xs-6 col-lg-6">
 <div class="card">
@@ -60,7 +60,7 @@ font-size: 20px;
   	<img class="card-img-top" src="/media/{{bike.model.brand.logo}}">
 
     <ul class="list-group list-group-flush">
-    <li class="list-group-item"><h3 class="card-title"><b>Модель: <a style="color:black; font-size: 45px; margin-left:5px;" href="{% url 'bicycle-photo' bike.model.pk %}">{{bike.model.model}}</a> ({{bike.model.year.year}})</b> </h3></li>
+    <li class="list-group-item"><h3 class="card-title"><b>Модель: <a style="color:black; font-size: 45px; margin-left:5px;" href="{% url 'bicycle-photo' bike.model.pk %}">{{bike.model.model}}</a> ({{bike.model.year.year}})</b> </h3><h6>Колір: {{bike.model.color}}</h6></li>
     </ul>     	
 {% comment %}
 <div class="card-block">
@@ -86,25 +86,27 @@ font-size: 20px;
 <div style="clear:left;">
 </div>
 <ul class="list-group list-group-flush">
-  <li class="list-group-item"><h2 class="card-subtitle mb-2"> <b style="margin-right:5px;">Ціна: </b>	<s class="text-muted" style="margin-right:5px;">{{bike.model.price}} грн.</s> <b>{{bike.model.sale|div:-100|sub:-1|mul:bike.model.price|floatformat:"0"}} грн. </b></h2> </li>
+  <li class="list-group-item"><h2 class="card-subtitle mb-2"> <b style="margin-right:5px;">Ціна: </b>	{% if bike.model.sale > 0 %} <s class="text-muted" style="margin-right:5px;">{{bike.model.price}} грн.</s> {% endif %} <b>{{bike.model.sale|div:-100|sub:-1|mul:bike.model.price|floatformat:"0"}} грн. </b></h2> </li>
 </ul>  
-
-
-
-            
-        
-
-
-
 
 
   </div><!-- Конец текстового контента -->
 </div><!-- Конец карточки -->
+
 </div>
 {% if forloop.counter|divisibleby:"2"  %}
 </div><div class="row no-gutters">
 {% endif %}
+
 {% endfor %}
+
+
+{% comment %}
+<div class="row no-gutters">
+{% if forloop.counter|divisibleby:"2"  %}
+</div><div class="row no-gutters">
+{% endif %}
+
 
 
 </div>
@@ -115,7 +117,7 @@ font-size: 20px;
 
 
 
-{% comment %}
+{# comment #}
 
 <table BORDER=1 CELLPADDING=4>  
 <tr>

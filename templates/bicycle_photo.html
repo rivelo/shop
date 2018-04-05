@@ -355,7 +355,6 @@ function showdiv(){
 <br>
 <button type="button" id='clear_part' onClick="clear_fields()">Очистити</button>
 <button type="button" id='add_part' onClick="addpart()">Додати</button>
-
 </form> 
 </div>
 <br>
@@ -364,8 +363,15 @@ function showdiv(){
 
 <b>Розмір колес:</b> {{bicycle.wheel_size}}"</p>
 
-<b>Ціна: {{bicycle.price|floatformat:"0"}} {{bicycle.currency}}</b>
 
+{% if bicycle.geometry %}
+<b>Геометрія:</b>
+<br>
+<img src="/media/{{bicycle.geometry}}"	alt="{{bicycle.brand}} {{bicycle.model}} {{bicycle.year}}" title=""	style="max-width: 1000px;"  />
+{% endif %}
+
+<br>
+<b>Ціна: {{bicycle.price|floatformat:"0"}} {{bicycle.currency}}</b>
 <br>
 
 {% comment %}
@@ -379,10 +385,9 @@ hash = {{bicycle.youtube_val}} <br>
 {#  <iframe src="https://www.youtube.com/embed/QvWwq-RoGpg?start=21" width="360" style="height:200px" frameborder="0" allowfullscreen></iframe> #}
    
 <br>
-<a href="/bicycle/view/">Каталог велосипедів</a>
+<h3>
+<a href="/bicycle/view/" class="badge badge-success">Каталог велосипедів</a>
 <br>
-<a href="/bicycle/add/">Додати велосипед</a>
-<br>
-<a href="/bicycle-store/add/{{bicycle.id}}">Додати велосипед до
-магазину(Add)</a>
-
+<a href="/bicycle/add/" class="badge badge-success">Створити велосипед</a>
+<a href="/bicycle-store/add/{{bicycle.id}}" class="badge badge-success">Додати велосипед до магазину</a>
+</h3>

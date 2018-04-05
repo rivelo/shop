@@ -10,7 +10,7 @@ from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,
 from forms import ContactForm, ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm, BicycleStorage_Form, StorageType_Form 
 
 from models import Catalog, Client, ClientDebts, ClientCredits, ClientInvoice, ClientOrder, ClientMessage, ClientReturn, InventoryList
-from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, ClientInvoiceForm, ClientOrderForm
+from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, ClientInvoiceForm, ClientOrderForm, ClientEditForm
 
 from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType
 from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm
@@ -2427,8 +2427,29 @@ def curency_del(request, id):
     obj.delete()
     return HttpResponseRedirect('/curency/view/')
 
+from bs4 import BeautifulSoup
+import urllib2
+
+def goverla_currency():
+    url='https://goverla.ua/'
+    req = urllib2.Request(url)
+    response = urllib2.urlopen(req)
+    the_page = response.read()
+    soup = BeautifulSoup(the_page)
+    usd = soup.find("div", {"id": "usd"})
+    eur = soup.find("div", {"id": "eur"})
+    soup_usd = BeautifulSoup(str(usd))
+    soup_eur = BeautifulSoup(str(eur))
+    c_usd = int(soup_usd.find("div", {'class' : 'gvrl-table-cell ask'}).string)/100.0
+    c_eur = int(soup_eur.find("div", {'class' : 'gvrl-table-cell ask'}).string)/100.0
+    return [c_usd, c_eur]
+
 
 def exchange_add(request):
+    cur = goverla_currency()
+    c_usd = cur[0]
+    c_eur = cur[1]
+        
     a = Exchange(date = datetime.datetime.now())
     if request.method == 'POST':
         form = ExchangeForm(request.POST, instance = a)
@@ -2445,14 +2466,19 @@ def exchange_add(request):
     else:
         form = ExchangeForm(instance = a)
     #return render_to_response('exchange.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'exchange.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'eur': c_eur, 'usd': c_usd, 'weblink': 'exchange.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
 
 
 def exchange_list(request):
+    cur = goverla_currency()
+    c_usd = cur[0]
+    c_eur = cur[1]
+        
     curdate = datetime.datetime.now()
     list = Exchange.objects.filter(date__month=curdate.month)
     #return render_to_response('exchange_list.html', {'exchange': list.values()})
-    return render_to_response('index.html', {'exchange': list, 'weblink': 'exchange_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'exchange': list, 'eur': c_eur, 'usd': c_usd, 'weblink': 'exchange_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def exchange_edit(request, id):
@@ -2848,11 +2874,14 @@ def client_add(request):
             city = form.cleaned_data['city']
             email = form.cleaned_data['email']
             phone = form.cleaned_data['phone']
+            phone1 = form.cleaned_data['phone1']
             sale = form.cleaned_data['sale']
             summ = form.cleaned_data['summ']
             description = form.cleaned_data['description']
+            birthday = form.cleaned_data['birthday']
+            sale_on = form.cleaned_data['sale_on']
  
-            a = Client(name=name, forumname=forumname, country=country, city=city, email=email, phone=phone, sale=sale, summ=summ, description=description)
+            a = Client(name=name, forumname=forumname, country=country, city=city, email=email, phone=phone, sale=sale, summ=summ, description=description, phone1=phone1, birthday=birthday, sale_on=sale_on)
             a.save()
             #return HttpResponseRedirect('/client/view/')
             return HttpResponseRedirect('/client/result/search/?id=' + str(a.id))
@@ -2864,13 +2893,13 @@ def client_add(request):
 def client_edit(request, id):
     a = Client.objects.get(pk=id)
     if request.method == 'POST':
-        form = ClientForm(request.POST, instance=a)
+        form = ClientEditForm(request.POST, instance=a)
         if form.is_valid():
             form.save()
             #return HttpResponseRedirect('/client/view/')
             return HttpResponseRedirect('/client/result/search/?id='+id)
     else:
-        form = ClientForm(instance=a)
+        form = ClientEditForm(instance=a)
     return render_to_response('index.html', {'form': form, 'weblink': 'client.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -3884,7 +3913,7 @@ def client_result(request, tdelta = 30, id = None, email=False):
         client_workshop_sum = client_workshop_sum + a.price
             
     b_bike = Bicycle_Sale.objects.filter(client=user).values('model__model__model', 'model__model__brand__name', 'model__serial_number', 'model__size__name', 'date', 'service', 'id')
-    workshop_ticket = WorkTicket.objects.filter(client=user).values('id', 'date', 'description', 'status__name').order_by('-date')
+    workshop_ticket = WorkTicket.objects.filter(client=user).values('id', 'date', 'description', 'status__name', 'phone_status__name', 'phone_user__username', 'phone_date').order_by('-date')
     messages = ClientMessage.objects.filter(client=user).values('msg', 'status', 'date', 'user__username', 'id')
     status_msg = messages.values('status').filter(status=False).exists()
     rent = Rent.objects.filter(client=user)
@@ -4007,7 +4036,7 @@ def worktype_add(request):
             return HttpResponseRedirect('/worktype/view/')
     else:
         form = WorkTypeForm()
-    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html'})
+    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def worktype_edit(request, id):
@@ -4294,7 +4323,8 @@ def workshop_add(request, id=None, id_client=None):
             user = form.cleaned_data['user']            
             if request.user.is_authenticated():
                 user = request.user
-            
+            else:
+                return HttpResponse('Error: У вас не має прав для редагування, або ви не Авторизувались на сайті')
             WorkShop(client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay=pay).save()
             return HttpResponseRedirect('/workshop/view/')
     else:
@@ -4312,6 +4342,7 @@ def workshop_add(request, id=None, id_client=None):
 def workshop_edit(request, id):
     now = datetime.datetime.now()
     a = WorkShop.objects.get(pk=id)
+    owner = a.user
     if request.method == 'POST':
         form = WorkShopForm(request.POST, instance=a)
         if form.is_valid():
@@ -4321,8 +4352,12 @@ def workshop_edit(request, id):
             price = form.cleaned_data['price']
             description = form.cleaned_data['description']
             pay = form.cleaned_data['pay']
+            user = request.user 
             if request.user.is_authenticated():
-                user = request.user
+                if (request.user == owner) or (auth_group(request.user, 'admin')==True):
+                    user = form.cleaned_data['user']
+                else:
+                    user = owner
             WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, pay = pay, user=user).save()
             return HttpResponseRedirect('/workshop/view/')
     else:

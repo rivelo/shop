@@ -8,6 +8,8 @@ from models import Client, ClientDebts, CostType, Costs, ClientCredits, WorkGrou
 from django.contrib.auth.models import User
 import datetime
 
+from django.db.models import Q
+
 TOPIC_CHOICES = (
     ('general', 'General enquiry'),
     ('bug', 'Bug report'),
@@ -458,6 +460,35 @@ class ClientForm(forms.ModelForm):
     city = forms.CharField(max_length=255)
     email = forms.EmailField(required=False)
     phone = forms.CharField(max_length=255, required=False)
+    phone1 = forms.CharField(max_length=255, required=False)
+    sale = forms.IntegerField(required=False, initial=0)
+    summ = forms.FloatField(initial=0)
+    birthday = forms.DateField(label='Дата народженя (d/m/Y)', input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), required=False)
+    description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255, required=False)    
+
+    def clean_phone(self):
+        data = self.cleaned_data['phone']
+        res = Client.objects.filter( Q(phone__icontains = data) | Q(phone1__icontains=data))
+        if res:
+            raise forms.ValidationError("Клієнт з таким номером телефону вже існує!")
+
+        # Always return a value to use as the new cleaned data, even if
+        # this method didn't change it.
+        return data
+
+    class Meta:
+        model = Client
+        fields = '__all__'
+
+
+class ClientEditForm(forms.ModelForm):
+    name = forms.CharField(max_length=255)
+    forumname = forms.CharField(max_length=255, required=False)    
+    country = forms.ModelChoiceField(queryset = Country.objects.all(), initial=1)
+    city = forms.CharField(max_length=255)
+    email = forms.EmailField(required=False)
+    phone = forms.CharField(max_length=255, required=False)
+    phone1 = forms.CharField(max_length=255, required=False)
     sale = forms.IntegerField(required=False, initial=0)
     summ = forms.FloatField(initial=0)
     birthday = forms.DateField(label='Дата народженя (d/m/Y)', input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), required=False)

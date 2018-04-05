@@ -44,11 +44,9 @@ function chk_client(){
             //$('#chk_link').after('<span id="result"> - </span>');
             for (var i = 0, length = msg.length; i < length; i++) {
 			    if (i in msg) {
-        			$('#result_main').append('<span class="client_link" val="'+ msg[i].id +'" vname="'+ msg[i].name +'" style="font-size:100%;">' + msg[i].name + ' ('+ msg[i].forumname +') </span>, ')	
+        			$('#result_main').append('<span class="client_link" val="'+ msg[i].id +'" vname="'+ msg[i].name +'" style="font-size:100%;">['+msg[i].id+'] ' + msg[i].name + ' ('+ msg[i].forumname +') </span>, ')	
     			}
 			}
-            
-            
         },
             error:function(){
             alert("При отправке возникли проблемы");
@@ -68,7 +66,7 @@ function chk_client1(){
             $('#result_1').append('<span class="test_client1" style="padding-left:10px; color:red;" id="chk_span"><a href="javascript:void(0)" id="chk_link" >Check name - </a></span>');            
             for (var i = 0, length = msg.length; i < length; i++) {
 			    if (i in msg) {
-        			$('#result_1').append('<span class="client_link1" val="'+ msg[i].id +'" vname="'+ msg[i].name +'" style="font-size:100%;">' + msg[i].name + ' ('+ msg[i].forumname +') </span>, ')	
+        			$('#result_1').append('<span class="client_link1" val="'+ msg[i].id +'" vname="'+ msg[i].name +'" style="font-size:100%;">['+msg[i].id+'] ' + msg[i].name + ' ('+ msg[i].forumname +') </span>, ')	
     			}
 			}
             

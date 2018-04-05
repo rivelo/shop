@@ -446,7 +446,6 @@ $('.edit_workstatus').editable('/workticket/edit/', {
       	 	return {id_w : $(this).attr('id_workticket')};
      },
      callback : function(value, settings) {
-         
        switch(value) {
 		case 'Прийнято':
          $(this).closest("tr").attr('BGCOLOR', '#CCFF99');
@@ -468,6 +467,34 @@ $('.edit_workstatus').editable('/workticket/edit/', {
      }
  });
 
+$('.phone').editable('/workticket/edit/', { 
+    loadurl : '/phonestatus/view/',
+    type   : 'select',
+    submit : 'OK',
+    submitdata : function() {
+     	 	return {id_wp : $(this).attr('id_workticket')};
+    },
+    callback : function(value, settings) {
+{% comment %}
+    	switch(value) {
+		case 'Прийнято':
+        $(this).closest("tr").attr('class', 'w_true');
+        break;
+		case 'Ремонтується':
+        $(this).closest("tr").attr('class', 'w_working');
+		 break;
+		case 'Виконано':
+        $(this).closest("tr").attr('class', 'w_done_done');
+		 break;
+		case 'Виконано невидано':
+        $(this).closest("tr").attr('class', 'w_done');
+		 break;
+		default :
+        $(this).closest("tr").attr('class', 'w_true');
+      }
+{% endcomment %}    	
+    }
+}); 
 
 });
 </script>
@@ -509,7 +536,7 @@ $('.edit_workstatus').editable('/workticket/edit/', {
 <img style="display: none;" id="img_repair" src="http://thumb10.shutterstock.com/thumb_small/295516/103760093/stock-photo-bicycle-repair-sign-on-a-white-background-part-of-a-series-103760093.jpg" height="64px" >
 -->
 
-<img style="display: True; opacity: 0.2" id="img_repair" src="/media/images/bicycle-repair.jpg" height="56px" title="Майстерня">
+<img style="display: True; opacity: 0.2" id="img_repair" src="/media/images/bicycle-repair.jpg" height="56px" title="Майстерня" data-toggle="modal" data-target="#exampleModalCenter">
 {% if status_msg %}
 <img style="display: True; opacity: 1" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення">
 {% else %}
@@ -534,7 +561,8 @@ $('.edit_workstatus').editable('/workticket/edit/', {
 {% endif %}
 
 <span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="56px" height="56px" title="Відправити картку клієнта на Email"></span>
-     
+
+{% comment %}     
 <div id="dialog_r" title="Заявки на ремонт:">
 <table id="t_workticket" class = "table table-bordered table-hover table-condensed iTable" width="100%">
   <script>
@@ -575,14 +603,107 @@ $('.edit_workstatus').editable('/workticket/edit/', {
   <tr bgcolor="#FFFFFF">
 {% endif %}  
   <td>{{ticket.date}}</td><td>{{ticket.description}}</td><td class="edit_workstatus" id_workticket={{ticket.id}}>{{ticket.status__name}}</td>
+<td class="phone" id_workticket="{{ticket.id}}">       
+	{{ticket.phone_status__name}}
+</td>
+	{% if ticket.phone_user.username %}
+		<td title={{ticket.phone_user__username}} align="center">
+	{% else %}
+		<td align="center" title="{{ticket.phone_user__username}}">
+	{% endif %}       
+	{{ticket.phone_date|date:'d-m-Y H:i'}} 
+	</td>
+	
   </tr>
 {% endfor %}
 
 
-{% endif %}
+
 
 </table>
 </div>
+{% endcomment %}
+
+{% endif %}
+
+
+
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Заявки на ремонт</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+<table id="t_workticket" class = "table table-bordered table-hover table-condensed iTable" width="100%">
+  <script>
+	$( "#img_repair" ).click(function() {
+		window.location.href = "/workticket/add/client/"+ {{client_name.id}} +"/";	
+//    	console.log("/workticket/add/client/"+ {{client_name.id}} +"/");
+  	});
+  </script>
+
+
+{% for ticket in workshopTicket  %}
+{% if ticket.status__name = 'Прийнято' %}
+  <tr bgcolor="#CCFF99" > 
+  <script>
+  $( "#img_repair" ).unbind(); 
+  $( "#img_repair" ).click(function() {
+  $("#dialog_r").append($("#t_workticket"));
+  $( "#dialog_r" ).dialog({
+      buttons: {
+        "Створити": function() {
+        	$( this ).dialog( "close" );
+        	window.location.href = "/workticket/add/client/"+ {{client_name.id}} +"/";	
+        },
+        "Відмінити": function() {
+        	$( this ).dialog( "close" );	
+        },
+        
+        }
+  });
+  });
+
+//  $('#img_repair').show();
+  $('#img_repair').css("opacity", 1);
+
+  </script>
+  
+{% else %}
+  <tr bgcolor="#FFFFFF">
+{% endif %}  
+  <td>{{ticket.date}}</td><td>{{ticket.description}}</td><td class="edit_workstatus" id_workticket={{ticket.id}}>{{ticket.status__name}}</td>
+<td class="phone" id_workticket="{{ticket.id}}">       
+	{{ticket.phone_status__name}}
+</td>
+	{% if ticket.phone_user.username %}
+		<td title={{ticket.phone_user__username}} align="center">
+	{% else %}
+		<td align="center" title="{{ticket.phone_user__username}}">
+	{% endif %}       
+	{{ticket.phone_date|date:'d-m-Y H:i'}} 
+	</td>
+	
+  </tr>
+{% endfor %}
+
+
+
+</table>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 
 

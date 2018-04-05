@@ -4,10 +4,8 @@
 
 	<link rel="stylesheet" href="/media/jquery-ui.min.css">
 	<script src="/media/jquery-ui.min.js"></script>
-
-	<script type="text/javascript">
-
-	</script>
+ 
+ 	
 {% comment %}
 <style>
   .custom-combobox {
@@ -185,10 +183,14 @@ $('#id_client_id').focus();
 
 
 <h1>Створити замовлення велосипеду{{text}}</h1>
-<form id="UserEnter" action="." method="POST" enctype="multipart/form-data">
+<form id="UserEnter" action="." method="POST" enctype="multipart/form-data" >
+<button type="submit" class="btn btn-primary mb-2">Зберегти</button>
 <ul>
 	{{ form.as_ul }}
 </ul>
-<p><input type="submit" value="Save"></p>
+<input type="submit" value="Зберегти" class="btn btn-primary mb-2">
 </form>
+
+
+<br>
 
