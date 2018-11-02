@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django import template
 from django.contrib.auth.models import Group
+from django.contrib.auth.models import User
 import datetime
 
 register = template.Library()
@@ -141,7 +142,7 @@ def has_group(user, group_name):
     group = Group.objects.get(name=group_name) 
     return True if group in user.groups.all() else False
     #return user.groups.filter(name=group_name).exists()
- 
+
     
 @register.filter(name='date_left') 
 def date_left(date):

@@ -332,13 +332,13 @@ urlpatterns += patterns('',
     #operation by GROUP
     url(r'^workgroup/add/$', 'catalog.accounting.views.workgroup_add'),
     url(r'^workgroup/edit/(?P<id>\d+)$', 'catalog.accounting.views.workgroup_edit'),
-    url(r'^workgroup/view/$', 'catalog.accounting.views.workgroup_list'),
+    url(r'^workgroup/view/$', 'catalog.accounting.views.workgroup_list', name="workgrouplist"),
     url(r'^workgroup/delete/(?P<id>\d+)$', 'catalog.accounting.views.workgroup_delete'),
 
     url(r'^worktype/add/$', 'catalog.accounting.views.worktype_add'),
     url(r'^worktype/edit/(?P<id>\d+)$', 'catalog.accounting.views.worktype_edit'),
     url(r'^worktype/view/group/(?P<id>\d+)$', 'catalog.accounting.views.worktype_list'),        
-    url(r'^worktype/view/$', 'catalog.accounting.views.worktype_list'),
+    url(r'^worktype/view/$', 'catalog.accounting.views.worktype_list', name="worktypelist"),
     url(r'^worktype/delete/(?P<id>\d+)$', 'catalog.accounting.views.worktype_delete'),
     url(r'^worktype/price/$', 'catalog.accounting.views.worktype_ajax'),    
 

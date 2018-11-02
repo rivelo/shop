@@ -36,11 +36,12 @@
   		}
   span.two {background-color: #FF6600;
   		}
-  div.box {//border-radius: 5px;
+
+/*  div.box {//border-radius: 5px;
   		   background-color: #bfbfbf;
   		   font-size:200%;
   		   margin: 80px 0px 0px;
-  }  		
+  }*/  		
  		
 </style>		
 	
@@ -243,21 +244,26 @@ $(document).ready(function() {
 
 </script>
 
-    <h1>Рахунок на виконані роботи</h1>
-    <div> 
+<body>
+
+<h1><span class="badge badge-success">Рахунок на виконані роботи</span> {% if client_name %} >>>  <span class="badge badge-secondary">{{ client_name }}</span> {% endif %}</h1>
+    
+<div class="container mw-100">
+  <div class="row justify-content-between">
+    <div class="col-12 col-md-6">
     <form action="" method="POST" enctype="multipart/form-data">
         <table>
-
           <label for="tags">Клієнт: </label>
         	<input id="s_client" style="width: 400px;" />
             {{ form.as_table }}  
-<!--             {{ form.as_ul }} -->
         </table>
-        <p><input type="submit" value="Save"></p>
+        {# <p><input type="submit" value="Save"></p> #}
+        <button type="submit" class="btn btn-success btn-lg w-100"><b>Зберегти</b></button>
     </form>
-	</div>
-	
-<div style="float: none;" id="client_cloud">
+    <br>
+    </div>
+    <div class="col-12 col-md-6">
+<div id="client_cloud">
 {% for client in clients_list %}
 {% if client.num_inv >= 7 %}
 <span class="two" val='{{client.client__id}}' vname="{{client.client__name}}" sale="{{client.client__sale}}" style="font-size:200%;"> {{client.client__name}} ({{client.num_inv}}) </span>,
@@ -269,6 +275,14 @@ $(document).ready(function() {
 <span val='{{client.client__id}}' vname="{{client.client__name}}" sale="{{client.client__sale}}" style="font-size:100%;"> {{client.client__name}} ({{client.num_inv}}) </span>,
 {% endif %}
 {% endfor %}    
+</div>      
+    </div>
+  </div>
+
 </div>
+
+ 
+</body>
+	
 
 

@@ -2,11 +2,74 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Список робіт майстерні</title>
 
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+{# <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+
+</style>
 
 
-    <h1>Список робіт <a href="/worktype/add/">(Додати)</a></h1>
+
+    <h1><span class="badge badge-secondary">Список робіт</span> 
+    {% if form.name.value %} >>>  <span class="badge badge-secondary">{{ form.name.value }}</span> {% endif %} 
+    <a href="/worktype/add/" class="badge badge-success">Створити</a>
+    </h1>
+
+{% load poll_extras %}
 	
+<table class="table">
+
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Назва</th>
+      <th scope="col">Група робіт</th>
+      <th scope="col">Ціна</th>
+      <th scope="col">Опис</th>
+      <th scope="col">Дії</th>
+      {% if request.user|has_group:"admin" %}
+      <th scope="col"></th>
+      <th scope="col"></th>
+      {% endif %}
+    </tr>
+  </thead>
+  <tbody>
+
+{% for type in worktypes %}
+    <tr>
+      <th scope="row">{{forloop.counter}}</th>
+      <td>{{type.name}}</td>
+      <td><a href="/worktype/view/group/{{ type.work_group.id }}">{{type.work_group}}</a></td>
+      <td>{{type.price}}</td>
+      <td>{{type.description}}</td>
+      <td>
+      <a href="/workshop/add/{{type.id}}" title="Виконати роботу">
+		<i class="material-icons">add_circle_outline</i>
+	  </a>
+	  </td>
+	  {% if request.user|has_group:"admin" %}
+	  <td>
+	  <a href="/worktype/edit/{{ type.id }}" title="Редагувати">
+	  <i class="material-icons">create</i> 
+	  </a>
+	  </td>
+	  <td>            
+      <a href="/worktype/delete/{{ type.id }}" title="Видалити">
+      <i class="material-icons">delete_forever</i>
+      </a>
+      </td>
+	  {% endif %}
+      
+      
+    </tr>
+{% endfor %}
+    
+  </tbody>
+</table>	
+	
+{% comment %}	
     <table border="1">
     <tr>
     	<th>#</th>
@@ -40,7 +103,9 @@
 	{{type.description}}
 	</td>
 	<td>
-	<a href="/workshop/add/{{type.id}}">+</a>
+	<a href="/workshop/add/{{type.id}}">
+	<i class="material-icons">add_circle_outline</i>
+	</a>
 	</td>
 	<td>
 	<a href="/worktype/edit/{{ type.id }}">edit</a>            
@@ -52,9 +117,7 @@
     
     </table>
 
-
-<br><br>
-<a href="/worktype/add/">Створити новий вид роботи</a>       
+{% endcomment %}
 
 
 

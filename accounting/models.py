@@ -565,13 +565,23 @@ class ClientInvoice(models.Model):
 #            ua = self.model.price * 1
         #ua = self.price * cur_exchange2['average_val'] #['value__avg']
         if (self.currency.ids_char == 'UAH'):
-            percent_sale = (100-self.sale)*0.01
+            try:
+                percent_sale = (100-self.sale)*0.01
+            except:
+                percent_sale = (100-0)*0.01
+                self.sale = 0
+                self.save()
             profit = self.price * percent_sale * self.count - ua * self.count 
         #return cur_exchange1
         return (ua, profit)
 
     def get_client_profit(self):
-        res = (self.price * self.count) * (self.sale/100.0)
+        try:
+            res = (self.price * self.count) * (self.sale/100.0)
+        except:
+            res = (self.price * self.count) * (0/100.0)
+            self.sale = 0
+            self.save()
         return res 
             
     def __unicode__(self):

@@ -1,14 +1,47 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+<style>
 
-    <h1>Додати новий вид роботи</h1>
-    <form action="" method="POST" enctype="multipart/form-data">
-        <table>
-            {{ form.as_table }}
-        </table>
-        <p><input type="submit" value="Save"></p>
+</style>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+	document.getElementById("id_name").className += " form-control";
+	document.getElementById("id_price").className += " form-control";
+	document.getElementById("id_work_group").className += " form-control";
+	document.getElementById("id_description").className += " form-control";
+
+	$('#some_django_form_id').find("input[type='text'], select, textarea").each(function(index, element) {
+        $(element).addClass("form-control");
+    });
+	
+});
+<!--
+
+//-->
+</script>
+
+
+    <h1><span class="badge badge-success">{{add_edit_text}} роботу</span> {% if form.name.value %} >>>  <span class="badge badge-secondary">{{ form.name.value }}</span> {% endif %}</h1>
+    <form action="" method="POST" enctype="multipart/form-data" id="some_django_form_id">
+    {% csrf_token %}
+    <div class="form-group">
+        {# <table> #}
+            {# form.as_table #}
+            {{ form.as_p }}
+        {# </table> #}
+
+        {# form.name.label #}
+        {# form.name #}
+        
+        <button type="submit" class="btn btn-success btn-lg"><b>Зберегти</b></button>
+    </div>
     </form>
     <br>
-<a href="/">HOME</a>
+
+
+<h4><a href="{% url 'worktypelist'%}" class="badge badge-info">Список всіх робіт</a></h4>
+<h4><a href="{% url 'workgrouplist'%}" class="badge badge-light">Групи робіт</a></h4>
 
 

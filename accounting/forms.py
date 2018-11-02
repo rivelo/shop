@@ -640,10 +640,10 @@ class WorkGroupForm(forms.ModelForm):
 
         
 class WorkTypeForm(forms.ModelForm):
-    name = forms.CharField(max_length=255)
-    work_group = forms.ModelChoiceField(queryset = WorkGroup.objects.all())
-    price = forms.FloatField()
-    description = forms.CharField(label='Description', widget=forms.Textarea())
+    name = forms.CharField(max_length=255, label='Назва роботи')
+    work_group = forms.ModelChoiceField(queryset = WorkGroup.objects.all(), label='Група робіт')
+    price = forms.FloatField(label='Ціна')
+    description = forms.CharField(label='Короткий опис роботи', widget=forms.Textarea())
    
     class Meta:
         model = WorkType
@@ -652,7 +652,8 @@ class WorkTypeForm(forms.ModelForm):
 class WorkShopForm(forms.ModelForm):
     #client = forms.ModelChoiceField(widget=forms.Select(attrs={'class':'autocomplete'}), queryset = Client.objects.all(), empty_label="", label="Клієнт")
     client = forms.ModelChoiceField(widget=forms.HiddenInput(), queryset = Client.objects.all(), empty_label="")
-    date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), required=False, label="Дата")
+    date = forms.DateTimeField(initial = datetime.datetime.now(), label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'), required=False)
+    #(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y')
 #    work_type = forms.ModelChoiceField(widget=forms.Select(attrs={'class':'autocomplete', 'width':'340px'}), queryset = WorkType.objects.all())
     work_type = forms.ModelChoiceField(queryset = WorkType.objects.all(), label="Робота")    
     price = forms.FloatField(initial=0, label="Ціна")

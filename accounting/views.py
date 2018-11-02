@@ -1106,7 +1106,7 @@ def bicycle_sale_check_add(request, id):
                     try:
                         page = urllib.urlopen(url).read()
                     except:
-                        message = "Сервер не відповідає"
+                        message = "Сервер" + settings.HTTP_MINI_SERVER_IP + " не відповідає"
                         return HttpResponse(message, content_type="text/plain")
 
                     res = Check.objects.aggregate(max_count=Max('check_num'))
@@ -4036,7 +4036,7 @@ def worktype_add(request):
             return HttpResponseRedirect('/worktype/view/')
     else:
         form = WorkTypeForm()
-    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html', 'add_edit_text': 'Створити'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def worktype_edit(request, id):
@@ -4048,7 +4048,7 @@ def worktype_edit(request, id):
             return HttpResponseRedirect('/worktype/view/')
     else:
         form = WorkTypeForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html'})
+    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html', 'add_edit_text': 'Редагувати'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def worktype_list(request, id=None):
@@ -4358,6 +4358,7 @@ def workshop_edit(request, id):
                     user = form.cleaned_data['user']
                 else:
                     user = owner
+                    date = datetime.datetime.now() 
             WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, pay = pay, user=user).save()
             return HttpResponseRedirect('/workshop/view/')
     else:
@@ -4365,7 +4366,7 @@ def workshop_edit(request, id):
 
     nday = 7
     clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))        
-    return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'client_name': a.client}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workshop_list(request, year=None, month=None, day=None):
@@ -5867,7 +5868,10 @@ def all_user_salary_report(request, month=None, year=None, day=None, user_id=Non
                     d[u.id] = dic
             res = d
             l = len(res)
-            qbsum1 = qbsum1['total_price'] * 0.05 / l
+            try:
+                qbsum1 = qbsum1['total_price'] * 0.05 / l
+            except:
+                qbsum1 = 0
         else:
             w_list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username', 'user').annotate(total_price=Sum('price'))
             c_list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum'))
@@ -6845,7 +6849,7 @@ def shop_sale_check_add(request):
                     try:
                         page = urllib.urlopen(url).read()
                     except:
-                        message = "Сервер не відповідає"
+                        message = "Сервер "+settings.HTTP_MINI_SERVER_IP+" не відповідає"
                         return HttpResponse(message, content_type="text/plain")
 
                     res = Check.objects.aggregate(max_count=Max('check_num'))
