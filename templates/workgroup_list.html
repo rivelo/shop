@@ -1,56 +1,51 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{# <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
 
 <head>
     <title>Групи робіт</title>
-    <link rel="stylesheet" type="text/css" href="/media/table.css">
 </head>
-
-
-    <h1>Групи робіт</h1>
+    
+<h1><span class="badge badge-secondary">Групи робіт</span></h1> 
 	
-    <table border="1">
+<table class="table table-striped table-hover">
+     <thead>
     <tr>
     	<th>ID</th>
     	<th>Назва</th>
     	<th>Опис</th>
     	<th>Дія</th>
     </tr>    
-    
+    </thead>
+    <tbody>
     {% for type in workgroups %}
 <tr>
 	<td>       
 	{{type.id}}
 	</td>
 	<td>    
-	<a href="/worktype/view/group/{{ type.id }}">	{{type.name}} </a>
+	<b>
+	<a href="/worktype/view/group/{{ type.id }}" title="Переглянути роботи групи <<{{type.name}}>>">	{{type.name}} </a>
+	</b>
 	</td>	
 	<td>       
 	{{type.description}}
 	</td>
 	<td>
-	<a href="/workgroup/edit/{{ type.id }}">edit</a>
-    <a href="/workgroup/delete/{{ type.id }}">delete</a>
+	<a href="/workgroup/edit/{{ type.id }}">
+    	<i class="material-icons">create</i>
+    </a>
+    <a href="/workgroup/delete/{{ type.id }}" title="Видалити" onClick="return confirm('Ви впевненні що хочете видалити цю групу?')">
+       <i class="material-icons">delete_forever</i>
+    </a>
     </td>
 </tr>
 {% endfor %}   
     
-
-
-
+</tbody>
 </table>
-
-
-<br>
-<br>
-<a href="/workgroup/add/">Створити нову групу</a>
-<br>
-<a href="/workgroup/view/">Групи робіт</a>
-<br>
-<a href="/">Головне меню (HOME)</a>
-       
-
 
 
 

@@ -4013,7 +4013,7 @@ def workgroup_edit(request, id):
 
 
 def workgroup_list(request, id=None):
-    list = WorkGroup.objects.all()
+    list = WorkGroup.objects.all().order_by("tabindex")
     return render_to_response('index.html', {'workgroups': list, 'weblink': 'workgroup_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -4045,7 +4045,8 @@ def worktype_edit(request, id):
         form = WorkTypeForm(request.POST, instance=a)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect('/worktype/view/')
+            #return HttpResponseRedirect('/worktype/view/')
+            return HttpResponseRedirect('/worktype/view/group/'+ str(a.work_group.id))
     else:
         form = WorkTypeForm(instance=a)
     return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html', 'add_edit_text': 'Редагувати'}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -5299,7 +5300,7 @@ def workshop_payform(request):
         text = pytils_ua.numeral.in_words(int(sum))
         month = pytils_ua.dt.ru_strftime(u"%d %B %Y", wk[0].date, inflected=True)
         request.session['invoice_id'] = list_id
-        check_num = Check.objects.aggregate(Max('check_num'))['check_num__max']+1
+        check_num = Check.objects.aggregate(Max('check_num'))['check_num__max'] + 1
         return render_to_response('index.html', {'weblink': 'client_invoice_sale_check.html', 'check_invoice': wk, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'print':'True', 'is_workshop': 'True', 'check_num':check_num, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))        
 
     user = client.id
@@ -5343,6 +5344,36 @@ def client_ws_payform(request):
         client = inv.client
         desc = desc + inv.work_type.name + "; "
         sum = sum + inv.price
+
+# Без друку касового чеку
+    print_check = request.POST.get("print_check", False)
+    if print_check == False:
+        if 'pay' in request.POST and request.POST['pay']:
+            pay = request.POST['pay']
+            cash_type = CashType.objects.get(id = 1) # готівка
+            if float(request.POST['pay']) != 0:
+                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
+                ccred.save()
+        if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
+            pay = request.POST['pay_terminal']
+            cash_type = CashType.objects.get(id = 2) # термінал
+            if float(request.POST['pay_terminal']) != 0:
+                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
+                ccred.save()
+
+        ccred = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
+        ccred.save()
+        for item in wk:
+            item.pay = True
+            item.save()
+        
+        if client.id == 138:
+            return HttpResponseRedirect('/workshop/view/')
+         
+        url = '/client/result/search/?id=' + str(client.id)
+        return HttpResponseRedirect(url)
+        
+#--------- Begin section to send data to CASA ---------
 
     if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
         base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
@@ -5477,6 +5508,8 @@ def client_ws_payform(request):
     data =  {"cmd": "close"}
     url = base + urllib.urlencode(data)
     page = urllib.urlopen(url).read()
+
+#----- End section to send data to CASA  
             
     ccred = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
     ccred.save()
