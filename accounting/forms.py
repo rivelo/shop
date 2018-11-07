@@ -10,6 +10,8 @@ import datetime
 
 from django.db.models import Q
 
+from django.forms import formset_factory
+
 TOPIC_CHOICES = (
     ('general', 'General enquiry'),
     ('bug', 'Bug report'),
@@ -647,24 +649,26 @@ class WorkTypeForm(forms.ModelForm):
    
     class Meta:
         model = WorkType
-        fields = '__all__'    
+        fields = '__all__'
+
 
 class WorkShopForm(forms.ModelForm):
     #client = forms.ModelChoiceField(widget=forms.Select(attrs={'class':'autocomplete'}), queryset = Client.objects.all(), empty_label="", label="Клієнт")
     client = forms.ModelChoiceField(widget=forms.HiddenInput(), queryset = Client.objects.all(), empty_label="")
+#    client = forms.CharField(widget=forms.HiddenInput())
     date = forms.DateTimeField(initial = datetime.datetime.now(), label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'), required=False)
-    #(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y')
-#    work_type = forms.ModelChoiceField(widget=forms.Select(attrs={'class':'autocomplete', 'width':'340px'}), queryset = WorkType.objects.all())
     work_type = forms.ModelChoiceField(queryset = WorkType.objects.all(), label="Робота")    
     price = forms.FloatField(initial=0, label="Ціна")
-    pay = forms.BooleanField(initial=False, required=False, label="Оплачено?")
+    #pay = forms.BooleanField(initial=False, required=False, label="Оплачено?")
     description = forms.CharField(label='Опис', widget=forms.Textarea(), max_length=255, required=False)
     user = forms.ModelChoiceField(queryset = User.objects.all(), required=True, label='Користувач')    
     
     class Meta:
         model = WorkShop
         fields = '__all__'
+        exclude = ['pay']
 
+WorkShopFormset = formset_factory(WorkShopForm, extra=1)
 
 class WorkStatusForm(forms.ModelForm):
     name = forms.CharField(max_length=255)

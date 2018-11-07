@@ -16,7 +16,7 @@ from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerIn
 from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm
 
 from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus, YouTube
-from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm
+from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm, WorkShopFormset
   
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.core.exceptions import ObjectDoesNotExist
@@ -1905,7 +1905,7 @@ def invoicecomponent_add(request, mid=None, cid=None):
 #    return render_to_response('index.html', {'form': form, 'weblink': 'invoicecomponent.html', 'company_list': company_list, 'price_ua': price, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focus=0, upday=0, enddate=None):
+def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None):
     #company_list = Manufacturer.objects.none()
     company_list = Manufacturer.objects.all().only('id', 'name')
     #type_list = Type.objects.none() 
@@ -1956,7 +1956,16 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
         id_list.append(item['catalog'])
 
     new_list = []
-    sale_list = ClientInvoice.objects.filter(catalog__in=id_list).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
+    years_range  = None
+    sale_list = None
+    if auth_group(request.user, 'admin')==True:
+        years_range = ClientInvoice.objects.filter(catalog__in=id_list).extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')
+    if sel_year > 0:
+        sale_list = ClientInvoice.objects.filter(catalog__in=id_list, date__year = sel_year).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
+        #years_range = ClientInvoice.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id'))
+    else:
+        sale_list = ClientInvoice.objects.filter(catalog__in=id_list).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
+
     cat_list = Catalog.objects.filter(pk__in=id_list).values('type__name_ukr', 'description', 'locality', 'id', 'manufacturer__id', 'manufacturer__name', 'photo_url', 'youtube_url', 'last_update', 'user_update__username')        
 #    arrive_list = Catalog.objects.filter(pk__in = id_list).new_arrival()
     for element in list:
@@ -1986,6 +1995,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
             zsum = zsum + (element['balance'] * element['catalog__price'])
             zcount = zcount + element['balance']
             element['new_arrival'] = Catalog.objects.get(pk = element['catalog']).new_arrival()
+            element['get_realshop_count'] = Catalog.objects.get(pk = element['catalog']).get_realshop_count()
 #            element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
     
 # update count field in catalog table            
@@ -1993,7 +2003,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
         #upd.count = element['balance'] 
         #upd.save()
     
-    return render_to_response('index.html', {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def invoicecomponent_print(request):
@@ -4320,13 +4330,13 @@ def workshop_add(request, id=None, id_client=None):
             work_type = form.cleaned_data['work_type']
             price = form.cleaned_data['price']
             description = form.cleaned_data['description']
-            pay = form.cleaned_data['pay']
+            #pay = form.cleaned_data['pay']
             user = form.cleaned_data['user']            
             if request.user.is_authenticated():
                 user = request.user
             else:
                 return HttpResponse('Error: У вас не має прав для редагування, або ви не Авторизувались на сайті')
-            WorkShop(client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay=pay).save()
+            WorkShop(client=client, date=date, work_type=work_type, price=price, description=description, user=user).save()
             return HttpResponseRedirect('/workshop/view/')
     else:
         if work != None:
@@ -4336,8 +4346,53 @@ def workshop_add(request, id=None, id_client=None):
         else:        
             form = WorkShopForm(initial={'user': request.user})
     nday = 7
+    try:
+        wc_name = wclient.name
+        wc_id = wclient.id
+    except:
+        wc_name = None
+        wc_id = None
     clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))        
-    return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'client_name': wc_name, 'client_id': wc_id, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def workshop_add_formset(request):
+    now = datetime.datetime.now()
+    formset = formset = WorkShopFormset(None)
+    if request.method == 'POST':
+        formset = WorkShopFormset(request.POST)
+        if formset.is_valid():
+            for form in formset:
+                # extract name from each form and save
+                name = form.cleaned_data.get('name')
+                # save book instance
+                if name:
+                    WorkShop(client=client, date=date, work_type=work_type, price=price, description=description, user=user).save()
+            # once all books are saved, redirect to book list view
+            return HttpResponseRedirect('/workshop/view/')
+#===============================================================================
+# '''        
+#         form = WorkShopForm(request.POST)
+#         if form.is_valid():
+#             client = form.cleaned_data['client']
+#             date = form.cleaned_data['date']
+#             work_type = form.cleaned_data['work_type']
+#             price = form.cleaned_data['price']
+#             description = form.cleaned_data['description']
+#             #pay = form.cleaned_data['pay']
+#             user = form.cleaned_data['user']            
+#             if request.user.is_authenticated():
+#                 user = request.user
+#             else:
+#                 return HttpResponse('Error: У вас не має прав для редагування, або ви не Авторизувались на сайті')
+#             WorkShop(client=client, date=date, work_type=work_type, price=price, description=description, user=user).save()
+#             return HttpResponseRedirect('/workshop/view/')
+# '''        
+#===============================================================================
+    nday = 7
+    heading_message = 'Formset Demo'
+    clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))        
+    return render_to_response('index.html', { 'formset': formset, 'weblink': 'workshop_formset.html', 'clients_list':clients_list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workshop_edit(request, id):
@@ -4352,7 +4407,7 @@ def workshop_edit(request, id):
             work_type = form.cleaned_data['work_type']
             price = form.cleaned_data['price']
             description = form.cleaned_data['description']
-            pay = form.cleaned_data['pay']
+#            pay = form.cleaned_data['pay']
             user = request.user 
             if request.user.is_authenticated():
                 if (request.user == owner) or (auth_group(request.user, 'admin')==True):
@@ -4360,7 +4415,7 @@ def workshop_edit(request, id):
                 else:
                     user = owner
                     date = datetime.datetime.now() 
-            WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, pay = pay, user=user).save()
+            WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user).save()
             return HttpResponseRedirect('/workshop/view/')
     else:
         form = WorkShopForm(instance=a)
@@ -5546,18 +5601,14 @@ def client_payform(request):
             list_id.append( int(id.replace('checkbox_', '')) )
         ci = ClientInvoice.objects.filter(id__in=list_id)
         client = ci[0].client
+
+# Без друку касового чеку
         
         try: 
             base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
             data =  {"cmd": "get_status"}
             url = base + urllib.urlencode(data)
             page = urllib.urlopen(url).read()            
-#===============================================================================
-#            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-#            data =  {"cmd": "open"}
-#            url = base + urllib.urlencode(data)
-#            page = urllib.urlopen(url).read()
-#===============================================================================
         except:
             if auth_group(request.user, 'admin') == False:
                 status = False
@@ -6512,6 +6563,16 @@ def inventory_mistake(request, year=None, month=None, day=None):
     #list = im.exclude( check_all = True, real_count__gt = F('count'), real_count__lt = F('count'))
     list = im 
     #list = InventoryList.objects.filter(check_all = True, real_count__lt = F('count'))
+    return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def inventory_autocheck(request, year=None, month=None, day=None, update=False):
+    year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+    im = InventoryList.objects.filter( Q(date__gt = year_ago), ((Q(real_count = F('count')) & Q(check_all = False))) ).order_by('catalog__id')
+    if update == True:
+        im.update(check_all=True)
+         
+    list = im.values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'edit_date')
     return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 

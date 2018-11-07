@@ -220,6 +220,9 @@ $(document).ready(function() {
        		<a class="dropdown-item" href="/inventory/list/">Інвентеризація</a>
        		<a class="dropdown-item" href="/inventory/mistake/list/">Помилки</a>
        		<a class="dropdown-item" href="/inventory/mistake/not/all/list/">Не закриті</a>
+{% if request.user|has_group:"admin" %}
+       		<a class="dropdown-item" href="/inventory/autocheck/list/">Автовідмітка</a>
+{% endif %}       		
 		</div>	       		
       </li>
 

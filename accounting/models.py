@@ -580,6 +580,7 @@ class ClientInvoice(models.Model):
             res = (self.price * self.count) * (self.sale/100.0)
         except:
             res = (self.price * self.count) * (0/100.0)
+            
             self.sale = 0
             self.save()
         return res 
@@ -974,9 +975,14 @@ class WorkGroup(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     tabindex = models.IntegerField()
+
+    def work_ingroup_count(self):
+        r = WorkType.objects.filter(work_group = self).aggregate(work_count_sum = Count('pk'))
+        #res = r.price + self.cash - self.price
+        return r #int(round(res, 0))
     
     def __unicode__(self):
-        return u'%s -> %s' % (self.name, self.description)
+        return u'%s >>> %s' % (self.name, self.description)
 
     class Meta:
         ordering = ["name", "tabindex"]
@@ -987,6 +993,15 @@ class WorkType(models.Model):
     work_group = models.ForeignKey(WorkGroup)
     price = models.FloatField()
     description = models.TextField(blank=True, null=True)
+#    disable = model.BooleanField(default = False, verbose_name="Відображення")
+#    component_type = models.ManyToManyField(Photo, blank=True)
+#    dependence_work = models.ManyToManyField("self", blank=True)
+#    block = model.BooleanField(default = False, verbose_name="Блок/обєднання робіт")
+
+    def work_count(self):
+        r = WorkShop.objects.filter(work_type = self).aggregate(work_count_sum = Count('pk'), work_sum=Sum('price'))#.latest('date')
+        #res = r.price + self.cash - self.price
+        return r #int(round(res, 0))
     
     def __unicode__(self):
         #return u'Розділ %s. Робота: %s' % (self.work_group, self.name)

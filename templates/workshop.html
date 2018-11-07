@@ -246,7 +246,7 @@ $(document).ready(function() {
 
 <body>
 
-<h1><span class="badge badge-success">Рахунок на виконані роботи</span> {% if client_name %} >>>  <span class="badge badge-secondary">{{ client_name }}</span> {% endif %}</h1>
+<h1><span class="badge badge-success">Рахунок на виконані роботи</span> {% if client_name %} >>>  <a href="/client/result/search/?id={{client_id}}" class="badge badge-secondary">{{ client_name }}</a> {% endif %}</h1>
     
 <div class="container mw-100">
   <div class="row justify-content-between">

@@ -7,6 +7,8 @@
 <head>
     <title>Групи робіт</title>
 </head>
+
+{% load poll_extras %}
     
 <h1><span class="badge badge-secondary">Групи робіт</span></h1> 
 	
@@ -29,6 +31,9 @@
 	<b>
 	<a href="/worktype/view/group/{{ type.id }}" title="Переглянути роботи групи <<{{type.name}}>>">	{{type.name}} </a>
 	</b>
+	{% if request.user|has_group:"admin" %}
+	<span class="badge badge-pill badge-info " >{{type.work_ingroup_count.work_count_sum}}</span>
+	{% endif %}
 	</td>	
 	<td>       
 	{{type.description}}
