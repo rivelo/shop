@@ -6,11 +6,69 @@
 
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-<style>
+{% comment %}
+{# <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"> #}
+<link rel="stylesheet" href="/media/css/bootstrap-select.min.css"> 
 
-</style>
+{# <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> #} 
+{#<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>#}
 
+<script src="/media/js/bootstrap-select.min.js"></script>
+<script src="/media/js/i18n/defaults-ua_UA.min.js"></script>
+{% endcomment %}
+
+<link rel="stylesheet" href="/media/css/bootstrap.min.css"> 
+{#  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css"> #}
+{#  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"> #}
+<link rel="stylesheet" href="/media/css/bootstrap-select.min.css">
+
+
+{#<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>#}
+{#<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.bundle.min.js"></script>#}
+	<script type="text/javascript" src="/media/js/bootstrap.bundle.min.js"></script> 
+
+<script src="/media/js/bootstrap-select.min.js"></script>
+<script src="/media/js/i18n/defaults-ua_UA.min.js"></script>
+
+<style type="text/css">
+
+
+.no-gutters {
+  margin-right: 0;
+  margin-left: 0;
+
+  > .col,
+  > [class*="col-"] {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
+.content {
+  padding: 0px;
+  padding-top: 5px;
+}
+
+.sticky.is-sticky {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+}
+
+	select optgroup{
+    background:#000;
+    color:#fff;
+    font-style:normal;
+    font-weight:normal;
+    }
+  </style>
+  
+  
 <script>
+
 $(document).ready(function() {
 	$(".sum_work").hide()
 	
@@ -18,10 +76,159 @@ $(document).ready(function() {
 	    $(".sum_work").toggle();
 	});
 
+	$('.selectpicker').selectpicker();
 	
+	$('[data-toggle="tooltip"]').tooltip();
 });
 
 
+function delete_depence_work(item) {
+	var del_work_id = $(item).attr("dep_work");	
+	var w_id = $( item ).parents('tr').attr("work_id")
+//	console.log("del WorkID = " + $(item).attr("dep_work"));
+//	console.log("WorkID = " + w_id);
+	
+    $.ajax({
+        type: "POST",
+        url: "/work/depence/delete/",
+//        	url: "{% url 'add_work_depence' %}",
+    	data: {id:  w_id, del_work_id: del_work_id},
+    	dataType : 'json',
+    	success:function(json){
+    	   	if (json['status'] == true) {
+    			$(item).hide();
+    			$(item).prev().hide();
+    	   	}
+    		else {
+    			console.log('JSON = ' + json['error'] + ' STATUS = ' + json['status'] );
+    		    alert("Помилка: " + json['msg']);
+    		}
+    	 },
+    	 error:function(){
+    	    	alert("При відправці виникли проблеми");
+    	 }
+    }); 
+	
+};
+
+
+function delete_depence_comp_work(item){
+	var del_component_id = $(item).attr("dep_comp");	
+	var c_id = $( item ).parents('tr').attr("work_id")
+	
+    $.ajax({
+        type: "POST",
+        url: "/work/depence/components/delete/",
+    	data: {id:  c_id, del_component_id: del_component_id},
+    	dataType : 'json',
+    	success:function(json){
+    	   	if (json['status'] == true) {
+    			$(item).hide();
+    			$(item).parents('span').hide();
+    	   	}
+    		else {
+    			console.log('JSON = ' + json['error'] + ' STATUS = ' + json['status'] );
+    		    alert("Помилка: " + json['msg']);
+    		}
+    	 },
+    	 error:function(){
+    	    	alert("При відправці виникли проблеми");
+    	 }
+    }); 
+}
+
+
+function formSubmit(item){
+	var selected_dwork = [];
+/*	console.log("THIS = " + $( item ).parents('form').find("select option:selected") );
+	console.log("SELECTED = " + $( "select option:selected" ).tagName);
+	$( "select option:selected" ).each(function() {
+		console.log("SELECTED = " + $( this ).text() + " VAL = " + $( this ).val())
+	});
+	*/	
+	$( item ).parents('form').find("select option:selected").each(function() {
+//		console.log("SEL Form = " + $( this ).text() + " VAL = " + $( this ).val())
+		selected_dwork.push($( this ).val());	
+	});
+//	var point = $(item)
+//	console.log("WORK_ID = ", $( item ).parents('tr').attr("work_id") );
+	//$( "select option:selected" )
+	var w_id = $( item ).parents('tr').attr("work_id");
+	
+    $.ajax({
+        type: "POST",
+        url: "/work/depence/add/",
+//        	url: "{% url 'add_work_depence' %}",
+    	data: {id:  w_id, depence_id: selected_dwork},
+    	dataType : 'json',
+    	success:function(json){
+    	   	if (json['status'] == true) {
+//    			console.log("Кількість змінено");
+//    			$(item).hide();
+    			var wl = json['work_list']
+    			var i;
+    			for (i=0; i < wl.length; i++){
+    				console.log("Додано роботи -> " + wl[i]['id'] + " - " +  wl[i]['name'])		
+					var comp_text = '<label class="btn btn-outline-success">' + wl[i]["name"] + '<span class="badge badge-pill badge-secondary">' + wl[i]['price'] + ' грн.</span></label>'
+//    				$( item ).append(comp_text);
+//					console.log("item = " + $( item ).html())
+					$( item ).parents('form').after(comp_text);
+    			}    			    			
+    	   	}
+    		else {
+    			console.log('JSON = ' + json['error'] + ' STATUS = ' + json['status'] );
+    		    alert("Помилка: " + json['msg']);
+    		}
+    	 },
+    	 error:function(){
+    	    	alert("При відправці виникли проблеми");
+    	 }
+
+    }); 
+}
+
+
+function formSubmit_components(item){
+	var selected_components = [];
+	var w_id = $( item ).parents('tr').attr("work_id");
+	console.log("WORK_ID = ", $( item ).parents('tr').attr("work_id"));
+	$( item ).parents('form').find("select option:selected").each(function() {
+		console.log("SEL Form = " + $( this ).text() + " VAL = " + $( this ).val());
+		selected_components.push($( this ).val());	
+	});
+	
+    $.ajax({
+        type: "POST",
+        url: "/work/depence/components/add/",
+    	data: {id:  w_id, comp_ids: selected_components},
+    	dataType : 'json',
+    	success:function(json){
+    	   	if (json['status'] == true) {
+//    			console.log("Кількість змінено");
+//    			$(item).hide();
+    			var cl = json['comp_list']
+    			var i;
+    			for (i=0; i < cl.length; i++){
+    				console.log("Додано компоненти -> " + cl[i]['id'] + " - " +  cl[i]['name'])		
+					var comp_text = '<label class="btn btn-outline-dark">' + cl[i]["name"] + '</label>'
+//    				$( item ).append(comp_text);
+//					console.log("item = " + $( item ).parents('form').html())
+//						$( item ).parents('form').after('<span class="btn btn-dark">FOR</span>');
+					$( item ).parents('form').after(comp_text);
+    			}    			    			
+    	   	}
+    		else {
+    			console.log('JSON = ' + json['error'] + ' STATUS = ' + json['status'] );
+    		    alert("Помилка: " + json['msg']);
+    		}
+    	 },
+    	 error:function(){
+    	    	alert("При відправці виникли проблеми");
+    	 }
+
+    });
+	
+}
 
 </script>
 
@@ -31,6 +238,10 @@ $(document).ready(function() {
     </h1>
 
 {% load poll_extras %}
+
+    </div>
+    <!-- .container-fluid -->
+  </nav>   
 
 	
 <table class="table">
@@ -52,7 +263,7 @@ $(document).ready(function() {
   <tbody>
 
 {% for type in worktypes %}
-    <tr>
+    <tr work_id="{{type.pk}}">
       <th scope="row">{{forloop.counter}}</th>
       <td>{{type.name}} 
       {% if request.user|has_group:"admin" %}
@@ -61,10 +272,101 @@ $(document).ready(function() {
       {% endif %}
       </td>
       <td><a href="/worktype/view/group/{{ type.work_group.id }}">{{type.work_group}}</a></td>
-      <td>{{type.price}}</td>
-      <td>{{type.description}}</td>
+      <td> {% if type.sale > 0 %}
+	      	<s>{{type.price|floatformat:"0"}}{% if type.plus %}+{% endif %}</s>
+    		<b>{{type.get_sale_price}}</b>
+      	   {% else %}
+      	   	{{type.price|floatformat:"0"}}{% if type.plus %}+{% endif %}
+      	   {% endif %}
+      </td>
+      <td>{{type.description}}
+      <div class="btn-group-toggle" data-toggle="buttons">
+      {% for dependence_work in type.dependence_work.all %}
+  <label class="btn btn-success">
+    <input type="checkbox" checked autocomplete="off">{{dependence_work}}<span class="badge badge-pill badge-secondary">{{dependence_work.get_sale_price}} грн.</span>
+  </label>
+	<span class="btn btn-outline-danger" title="Видалити супутню роботу" dep_work="{{dependence_work.pk}}" onClick="if(confirm('Ви впевненні що хочете видалити {{dependence_work}}?')) delete_depence_work(this);" data-toggle="tooltip" data-html="true" data-placement="bottom">X</span>
+      {% endfor %}
+      </div>
+      {% if type.sum_depend_work.depend_sum %}
+      <span class="badge badge-pill badge-dark">Загальна сума робіт: {{type.sum_depend_work.depend_sum}} грн.</span>
+      {% endif %}
+<div class="row">
+  <div class="col-12">
+
+{% comment %}
+        <div class="form-group">
+{# Вибір супутніх або залежних робіт #}
+        <form class="form-inline-depence-work" role="search">
+        <label>Роботи:</label>
+          <select class="selectpicker dropup" multiple data-live-search="true" data-live-search-placeholder="Search" data-actions-box="true" data-width="85%">
+			<optgroup label="">
+{% for work in worklist %}
+{% ifchanged %}
+			</optgroup>       
+            <optgroup label="{{work.work_group}}" data-content="<span class='badge badge-success'>Група:</span>">
+{% endifchanged %}
+              <option value="{{work.pk}}">{{work}}</option>
+{% endfor %}
+          </select>
+          <input type="button" type="submit" onclick="formSubmit(this); return false" value="Надіслати">
+		</form>
+		</div>
+{% endcomment %}
+
+<form class="form-inline-depence-work" role="search">
+<div class="input-group">
+  <div class="input-group-prepend">
+    <span class="input-group-text" id="works">Роботи</span>
+  </div>
+          <select class="selectpicker dropup form-control" multiple data-live-search="true" data-live-search-placeholder="Search" data-actions-box="true">
+			<optgroup label="">
+{% for work in worklist %}
+{% ifchanged %}
+			</optgroup>       
+            <optgroup label="{{work.work_group}}" data-content="<span class='badge badge-success'>Група:</span>">
+{% endifchanged %}
+              <option value="{{work.pk}}">{{work}}</option>
+{% endfor %}
+          </select>
+  <div class="input-group-append">
+    <button class="btn btn-outline-secondary" type="button" type="button" type="submit" onclick="formSubmit(this); return false">Надіслати</button>
+  </div>
+</div>
+</form>
+
+		
+{# Вибір супутніх або залежних компонентів #}		
+        <form class="form-inline-depence-work" role="search_components">
+<div class="input-group">
+  <div class="input-group-prepend">
+    <span class="input-group-text" id="comptype">Компоненти</span>
+  </div>
+{#  <select class="custom-select" id="inputGroupSelect04"> #}
+  <select class="selectpicker dropup form-control" multiple data-live-search="true" data-live-search-placeholder="Search" data-actions-box="true">
+{% for comp in component_type_list %}
+          <option value="{{comp.pk}}">{{comp}}</option>
+{% endfor %}
+  </select>
+  <div class="input-group-append">
+    <button class="btn btn-outline-secondary" type="button" type="button" type="submit" onclick="formSubmit_components(this); return false">Надіслати</button>
+  </div>
+</div>
+		</form>          
+
+        
+    {% for dependence_comp in type.component_type.all %}
+  	<span class="btn btn-dark"><a class="text-light" href="/invoice/category/{{dependence_comp.pk}}/view/">{{dependence_comp}}</a>  
+	<span class="btn btn-outline-danger" title="Видалити компонент" dep_comp="{{dependence_comp.pk}}" onClick="if(confirm('Ви впевненні що хочете видалити {{dependence_work}}?')) delete_depence_comp_work(this);" data-toggle="tooltip" data-html="true" data-placement="bottom">X</span>
+	</span>
+    {% endfor %}
+
+</div>
+</div>
+
+      </td>
       <td>
-      <a href="/workshop/add/{{type.id}}" title="Виконати роботу">
+      <a href="/workshop/add/{{type.id}}" title="Виконати роботу" data-toggle="tooltip" data-html="true" data-placement="right">
 		<i class="material-icons">add_circle_outline</i>
 	  </a>
 	  </td>
@@ -75,7 +377,7 @@ $(document).ready(function() {
 	  </a>
 	  </td>
 	  <td>            
-      <a href="/worktype/delete/{{ type.id }}" title="Видалити">
+      <a href="/worktype/delete/{{ type.id }}" title="Видалити" onClick="return confirm('Ви впевненні що хочете видалити дану роботу?')">
       <i class="material-icons">delete_forever</i>
       </a>
       </td>

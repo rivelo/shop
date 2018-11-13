@@ -10,7 +10,6 @@ class Migration(migrations.Migration):
     dependencies = [
         ('accounting', '0010_auto_20180215_1431'),
     ]
-
     operations = [
         migrations.AddField(
             model_name='catalog',

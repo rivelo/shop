@@ -2,23 +2,11 @@
 
 <link rel="stylesheet" type="text/css" href="/media/css/table.css">
 
-<h1>Оборот коштів за місяць {{date_month}} року</h1>
+<h1><span class="badge badge-info">Оборот коштів за місяць {{date_month}} року </span></h1>
 
 {# range(12)#}
 
 {% load poll_extras %}
-
-{% comment %}
-<b>Рік:</b>
-<a href="/shop/sale/year/2011/month/1/view">2011</a>, 
-<a href="/shop/sale/year/2012/month/1/view">2012</a>,
-<a href="/shop/sale/year/2013/month/1/view">2013</a>
-<a href="/shop/sale/year/2014/month/1/view">2014</a>
-<a href="/shop/sale/year/2015/month/1/view">2015</a>
-<a href="/shop/sale/year/2016/month/1/view">2016</a>
-<a href="/shop/sale/year/2017/month/1/view">2017</a>
-<br>
-{% endcomment %}
 
 <h3><b>Рік:</b>
     {% for year in year_list %}
@@ -48,7 +36,7 @@
 {% endfor %}
 </h3>
 
-	<table class = "table table-bordered table-hover table-condensed" id="iTable" style="width:600px">
+	<table class = "table table-bordered table-hover table-condensed text-center" id="iTable" style="width:600px">
 	<tr>
 	<th>Дата</th>
 	<th>Оплати</th>

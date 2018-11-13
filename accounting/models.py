@@ -36,7 +36,9 @@ class Type(models.Model):
     description_ukr = models.CharField(max_length=255, blank=True, null=True)
     bike_order = models.PositiveSmallIntegerField(blank=True, default = 0)
     group = models.ForeignKey(GroupType, blank=True, null=True)
-#   icon = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
+#    synonym
+#    icon = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
+#    icon_select = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
     
     def __unicode__(self):
         return u'%s / %s' % (self.name, self.name_ukr)
@@ -825,6 +827,10 @@ class Bicycle_Store(models.Model):
         percent_sale = (100-self.model.sale)*0.01
         price = self.model.price * percent_sale
         return price
+
+    def get_client(self):
+        bsale = self.bicycle_sale_set.all()
+        return bsale
     
     def __unicode__(self):
         #return self.model
@@ -993,15 +999,26 @@ class WorkType(models.Model):
     work_group = models.ForeignKey(WorkGroup)
     price = models.FloatField()
     description = models.TextField(blank=True, null=True)
-#    disable = model.BooleanField(default = False, verbose_name="Відображення")
-#    component_type = models.ManyToManyField(Photo, blank=True)
-#    dependence_work = models.ManyToManyField("self", blank=True)
-#    block = model.BooleanField(default = False, verbose_name="Блок/обєднання робіт")
+    disable = models.BooleanField(default = False, verbose_name="Відображення")
+    component_type = models.ManyToManyField(Type, blank=True)
+    dependence_work = models.ManyToManyField("self", blank=True)
+    block = models.BooleanField(default = False, verbose_name="Блок/обєднання робіт")
+    plus = models.BooleanField(default = False, verbose_name="Сума+")
+    sale = models.FloatField(default = 0, blank=True, null=True)
 
     def work_count(self):
         r = WorkShop.objects.filter(work_type = self).aggregate(work_count_sum = Count('pk'), work_sum=Sum('price'))#.latest('date')
         #res = r.price + self.cash - self.price
         return r #int(round(res, 0))
+
+    def get_sale_price(self):
+        r = self.price/100 * (100 - self.sale)
+        base = 5
+        return int(base * round(float(r)/base)) 
+
+    def sum_depend_work(self):
+        r = WorkType.objects.filter(dependence_work = self).aggregate(depend_sum=Sum('price'))
+        return r 
     
     def __unicode__(self):
         #return u'Розділ %s. Робота: %s' % (self.work_group, self.name)

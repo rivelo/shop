@@ -1,5 +1,8 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 <link rel="stylesheet" type="text/css" href="/media/css/table.css">
 <title>Продані велосипеди</title>
 
@@ -25,20 +28,20 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 });
 </script>
 
-<br>
 {% for group in user.groups.all %} {# перевірка на адмін доступ #}
     {% if group.name == 'admin' %}
+<h5>
+{% for item in header_links %}
+<a href="{% url 'bike-sale-by-year' item.0 %}" class="badge badge-warning"> Рік {{item.0}} ({{item.1}})  </a> 
+{% endfor %}
+</h5>
 
 {% for item in header_links %}
-<a href="{% url 'bike-sale-by-year' item.0 %}"> Рік {{item.0}} ({{item.1}})  </a> / 
-{% endfor %}
-<br>
-{% for item in header_links %}
-<a href="/bicycle/sale/brand/11/year/{{item.0}}/month/1/view">Orbea {{item.0}}</a> /
-<a href="/bicycle/sale/brand/1/year/{{item.0}}/month/1/view">Kellys {{item.0}}</a> /
-<a href="/bicycle/sale/brand/3/year/{{item.0}}/month/1/view">Trek {{item.0}}</a> /
-<a href="/bicycle/sale/brand/138/year/{{item.0}}/month/1/view">Schwinn {{item.0}}</a> /
-<a href="/bicycle/sale/brand/19/year/{{item.0}}/month/1/view">Cannondale {{item.0}}</a> /
+<a href="/bicycle/sale/brand/11/year/{{item.0}}/month/1/view" class="badge badge-primary">Orbea {{item.0}}</a> 
+<a href="/bicycle/sale/brand/1/year/{{item.0}}/month/1/view" class="badge badge-secondary">Kellys {{item.0}}</a> 
+<a href="/bicycle/sale/brand/3/year/{{item.0}}/month/1/view" class="badge badge-danger">Trek {{item.0}}</a> 
+<a href="/bicycle/sale/brand/138/year/{{item.0}}/month/1/view" class="badge badge-light">Schwinn {{item.0}}</a> 
+<a href="/bicycle/sale/brand/19/year/{{item.0}}/month/1/view" class="badge badge-success">Cannondale {{item.0}}</a> 
 
 {% endfor %}
 
@@ -48,18 +51,21 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 
 {#bicycles.0.model.model.brand}} - {{bicycles.0.model.model.year.year#}
 {% if month and year %}
-<h1>Список проданих велосипедів за {{month}} місяць {{year}} року</h1>
+<h1><span class="badge badge-info">Список проданих велосипедів за {{month}} місяць {{year}} року</span></h1>
 {% else %}
 	{% if brand %}
-	<h1>Список проданих велосипедів {{brand}} за {{year}} рік</h1>
+	{#<h1>Список проданих велосипедів {{brand}} за {{year}} рік</h1> #}
+	<h1><span class="badge badge-info">Список проданих велосипедів {{brand}} за {{year}} рік</span></h1>
 	{% else %}
-	<h1>Список проданих велосипедів за {{year}} рік</h1>
+	{# <h1>Список проданих велосипедів за {{year}} рік</h1> #}
+	<h1><span class="badge badge-info">Список проданих велосипедів за {{year}} рік</span></h1>
 	{% endif %}
 {% endif %}
 
 {% load template_math %}   
 
-<table border="1" id="iTable" class = "table table-bordered table-hover table-condensed table-sm">
+{#<table border="1" id="iTable" class = "table table-bordered table-hover table-condensed table-sm">#}
+<table class="table table-striped table-hover table-bordered" id="iTable">
 	<thead class="thead-light">
 	<tr>
 		<th>№</th>
@@ -88,7 +94,11 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 		<td title="Редагувати"><a href="/bicycle/sale/edit/{{ type.id }}">{{type.id}}</a></td>
 <!-- 		<td title="{{type.model.size}}"><a href="/bicycle/photo/{{type.model.model.id}}">{{type.model}}</a></td>
  -->
+{% if request.user|has_group:"admin" %}
 		<td title="{{type.model.size}}"><a href="/bicycle-store/edit/{{type.model.id}}">{{type.model}}</a></td>
+{% else %}		
+		<td title="{{type.model.size}}">{{type.model}}</td>
+{% endif %}
 		<td>{{type.model.serial_number}}</td>
 		<td><a href="/client/{{type.client.id}}">{{type.client}}</a></td>
 		<td title="{{type.price|percentage:type.sale}}">{{type.price}}</td>
@@ -112,8 +122,8 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 		</td>
 		</td>
 		<td>{{type.description}}</td>
-		<td><a href="/bicycle/sale/{{ type.id }}/check">check</a>
-		<a href="/bicycle/sale/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')">delete</a></td>
+		<td><a href="/bicycle/sale/{{ type.id }}/check" title="Чек на велосипед"><i class="material-icons">receipt</i></a>
+		<a href="/bicycle/sale/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')" title="Видалити"><i class="material-icons">delete_forever</i></a></td>
 	</tr>
 	{% endfor %}
 
@@ -148,8 +158,9 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 	</table>
 
 {% if request.user|has_group:"admin" %}	
-		<br>
-		<a href="/bicycle/sale/report/month/">Звіт продажів по місяцях</a>
-		<br>
-		<a href="/bicycle/sale/report/brand/">Звіт продажів по виробнику</a>
+		<h3>
+		<a class="badge badge-dark" href="/bicycle/sale/report/month/">Звіт продажів по місяцях</a>
+		
+		<a class="badge badge-dark" href="/bicycle/sale/report/brand/">Звіт продажів по виробнику</a>
+		</h3>
 {% endif %}		

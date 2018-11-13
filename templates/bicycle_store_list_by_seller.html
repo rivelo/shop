@@ -1,9 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Велосипеди - магазин</title>
-<link rel="stylesheet" type="text/css" href="/media/table.css">
 
-<script type="text/javascript" src="/media/jquery-1.7.2.min.js"></script>
+{# <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+{# <script type="text/javascript" src="/media/jquery-1.7.2.min.js"></script> #}
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 
 <script>
@@ -66,7 +68,7 @@ $(document).ready(function() {
 
 </script>
 
-
+{% comment %}
 <h1>Список велосипедів у магазині <br>{{text}}</h1>
 <a href="/bicycle-store/all/view/seller/">Всі</a>
 <a href="/bicycle-store/view/seller/">Наявні</a>
@@ -88,14 +90,22 @@ $(document).ready(function() {
 <a href="/bicycle-store/view/seller/bycompany/{{comp.model__brand}}/">{{comp.model__brand__name}}[{{comp.num_company}}]</a>
 {% endfor %}
 
+{% endcomment %}
+
 {% load template_math %}   
+
+<h1><span class="badge badge-info">Пошук велосипедів </span></h1>
 
 <form action="/bicycle/store/price/print/" method="post" name="formBPrice">
 
-<table border="1">
+ 
+	
+<table class="table table-striped table-hover">
+{# <table border="1"> #}
+<thead>
     <tr>
     	<th>#</th>
-    	<th>ID</th>
+    	<th></th>
     	<th style="text-align: left"> Велосипед</th>
     	<th >Номер рами</th>
     	<th>Розмір рами</th>
@@ -112,7 +122,8 @@ $(document).ready(function() {
     	<th>Дія</th>
     	<th></th>
     </tr>    
-    
+</thead>
+<tbody>    
 {% for type in bicycles %}
 {% ifequal type.count 0 %}
 <tr>
@@ -124,10 +135,12 @@ $(document).ready(function() {
 	{{forloop.counter}}
 	</td>
 	<td>       
-	<a href="/bicycle/sale/id/{{type.id}}/view/">{{type.id}}</a> 
+	<a href="/bicycle/photo/{{type.model.id}}" title="Фото">
+	<i class="material-icons">photo_size_select_actual</i>
+	</a> 
 	</td>
 	<td>
-	<a href="/bicycle/photo/{{type.model.id}}">{{type.model}}</a>       
+	<a href="/bicycle/sale/id/{{type.get_client.0.pk}}/view/" title="Детальніше">{{type.model}}</a>       
 	</td>
       
 {% if user.is_authenticated %}
@@ -186,9 +199,14 @@ $(document).ready(function() {
 	</td>
 	<td>
 {% if perms.accounting.add_preorder %}	
-    <a href="/bicycle-store/edit/{{ type.id }}">edit</a> 
+   
+	<a href="/bicycle-store/edit/{{ type.id }}" title="Редагувати">
+    	<i class="material-icons">create</i>
+    </a>
+    <a href="/bicycle-store/delete/{{ type.id }}" title="Видалити" onClick="return confirm('Ви впевненні що хочете видалити цю групу?')">
+       <i class="material-icons">delete_forever</i>
+    </a>
     
-    <a href="/bicycle-store/delete/{{ type.id }}">delete</a>
 {% endif %}
     </td>
 	<td align="center">
@@ -196,8 +214,8 @@ $(document).ready(function() {
 	</td>    
 </tr>
 {% endfor %}       
-
-
+</tbody>
+<thead>
 <tr>
     	<th></th>
     	<th></th>
@@ -217,7 +235,7 @@ $(document).ready(function() {
     	<th></th>
     	<th><input type="submit" value="Цінники" name="BPrice"></th>    	
     </tr>        
-   
+</thead>   
 <table>
 
 {% if html %}

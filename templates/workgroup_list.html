@@ -8,6 +8,13 @@
     <title>Групи робіт</title>
 </head>
 
+<script>
+$(document).ready( function() {
+
+	$('[data-toggle="tooltip"]').tooltip();
+})
+</script>
+
 {% load poll_extras %}
     
 <h1><span class="badge badge-secondary">Групи робіт</span></h1> 
@@ -39,10 +46,10 @@
 	{{type.description}}
 	</td>
 	<td>
-	<a href="/workgroup/edit/{{ type.id }}">
+	<a href="/workgroup/edit/{{ type.id }}" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="right">
     	<i class="material-icons">create</i>
     </a>
-    <a href="/workgroup/delete/{{ type.id }}" title="Видалити" onClick="return confirm('Ви впевненні що хочете видалити цю групу?')">
+    <a href="/workgroup/delete/{{ type.id }}" title="Видалити" onClick="return confirm('Ви впевненні що хочете видалити цю групу?')" data-toggle="tooltip" data-html="true" data-placement="left">
        <i class="material-icons">delete_forever</i>
     </a>
     </td>

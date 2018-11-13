@@ -1,33 +1,44 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<head>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+<link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" />
+<link type="text/css" rel="stylesheet" href="/media/css/mainstyle.css">
+</head>
 
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+{# <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
 
 {% load poll_extras %}
 
-    <h1>Денна виручка від продажу товарів <a href="/shop/sale/day/add/">(Додати)</a>
-    <br></h1>
+<script>
+$(document).ready( function() {
+
+	$('[data-toggle="tooltip"]').tooltip();
+})
+</script>
+
+
+<body>
+    <h1><span class="badge badge-dark">Денна виручка від продажу товарів </span> <a href="/shop/sale/day/add/" class="badge badge-success" title="Додати" data-toggle="tooltip" data-html="true" data-placement="right"><i class="material-icons md-36" >add_box</i></a></h1>
     <h2>
     За місяць: 
-    <a href="/shop/sale/view/month/1">01,</a>
-	<a href="/shop/sale/view/month/2">02,</a>
-	<a href="/shop/sale/view/month/3">03,</a>
-	<a href="/shop/sale/view/month/4">04,</a>
-	<a href="/shop/sale/view/month/5">05,</a>
-	<a href="/shop/sale/view/month/6">06,</a>
-	<a href="/shop/sale/view/month/7">07,</a>
-	<a href="/shop/sale/view/month/8">08,</a>
-	<a href="/shop/sale/view/month/9">09,</a>
-	<a href="/shop/sale/view/month/10">10,</a>
-	<a href="/shop/sale/view/month/11">11,</a>
-	<a href="/shop/sale/view/month/12">12,</a>
+    {% for month in l_month %}
+    {% if month == sel_month %}
+    	<a href="/shop/sale/view/month/{{month}}" class="badge badge-success select">{{month}}</a>
+    {% else %}
+    	<a href="/shop/sale/view/month/{{month}}" class="badge badge-success">{{month}}</a>
+    {% endif %}
+    
+    {% endfor %}
 	</h2>
 	
-	
-    <table border="1">
-    <tr>
-    	<th>ID</th>
+<div class="row">
+<div class="col-12 col-lg-12 col-xl-9"> 	
+<table class="table table-striped table-hover table-sm" class="d-flex align-content-center">
+<thead class="thead-dark">
+    <tr class="text-center">
+    	<th></th>
     	<th>Дата</th>
     	<th>Каса (грн.)</th>
     	<th>Готівка за День</th>
@@ -37,14 +48,18 @@
     	<th>Видано з каси</th>
     	<th>Дія</th>
     </tr>
- 
+</thead>    
+<tbody> 
 {% for type in shopsales %}
-<tr>
+<tr class="text-center">
 	<td>
-	 	<a href="/shop/year/{{type.date|date:"Y"}}/month/{{type.date|date:"m"}}/day/{{type.date|date:"d"}}/view/">{{type.id}}</a>
+	 	<a href="/shop/year/{{type.date|date:"Y"}}/month/{{type.date|date:"m"}}/day/{{type.date|date:"d"}}/view/" title="Детальний список" data-toggle="tooltip" data-html="true" data-placement="right">
+	 	{#type.id#}
+	 	<i class="material-icons">list_alt</i>
+	 	</a>
 	</td>
 	<td>       
-	<abbr title="[{{type.date|time:"H:i"}}] {{type.user}}"> {{type.date|date}} </abbr>
+	<abbr title="{{type.user}} <br> {{type.date|time:"H:i"}} " data-toggle="tooltip" data-html="true" data-placement="top"> {{type.date|date}} </abbr>
 	</td>
 	<td>       
 	{{type.price}} 
@@ -66,12 +81,13 @@
 	</td>
 	
 	<td>
-	<a href="/shop/sale/day/edit/{{ type.id }}">edit</a>
-    <a href="/shop/sale/day/{{ type.id }}/delete/" onclick="return confirm('Видалити виручку?')">delete</a>
+	<a href="/shop/sale/day/edit/{{ type.id }}" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="right"><i class="material-icons">create</i></a>
+    <a href="/shop/sale/day/{{ type.id }}/delete/" onclick="return confirm('Видалити виручку?')" title="Видалити" data-toggle="tooltip" data-html="true" data-placement="top"><i class="material-icons md-36">delete_forever</i></a>
     </td>
 </tr>
 {% endfor %}   
-
+</tbody>
+<thead>
 <tr>
     	<th></th>
     	<th>Сума</th>
@@ -90,8 +106,10 @@
     	<th></th>
     	{% endif %}
 </tr> 
-
+</thead>
 </table>
 
-<br>
+</div>
+</div>
 
+</body>

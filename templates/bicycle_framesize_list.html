@@ -1,11 +1,19 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+{# <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+{% load poll_extras %}
 
 
-<h1>Розміри рам <a href="/bicycle-framesize/add/">(Додати)</a></h1>
+<h1><span class="badge badge-info">Розміри рам </span> <a href="/bicycle-framesize/add/" class="badge badge-success">Створити <i class="material-icons">add_circle_outline</i></a></h1>
 
-<table>
-	<tr>
+
+<div class="row align-items-center">
+    <div class="col-xl-4 col-lg-8">
+
+<table class="table table-striped table-hover table-bordered">
+<thead>
+	<tr align="center">
 		<th>ID</th>
 		<th>Назва</th>
 		<th>Розмір (см)</th>
@@ -13,7 +21,8 @@
 		<th>Звіт</th>
 		<th>Дія</th>
 	</tr>
-
+</thead>
+<tbody>
 	{% for type in framesizes %}
 	<tr>
 		<td><a href="/bicycle/framesize/edit/{{ type.id }}">{{type.id}}</a>
@@ -21,13 +30,14 @@
 		<td>{{type.name}}</td>
 		<td>{{type.cm}}</td>
 		<td>{{type.inch}}</td>
-		<td><a href="/bicycle/store/report/bysize/{{ type.id }}/">Наявні
-		велосипеди</a></td>
-		<td><a href="/bicycle/framesize/delete/{{ type.id }}" onclick="return confirm('Видалити запис - {{type.name}}?')">delete</a></td>
+		<td align="center" title="Наявні велосипеди">
+			<a href="/bicycle/store/report/bysize/{{ type.id }}/"><i class="material-icons">list_alt</i></a>
+		</td>
+		<td align="center"><a href="/bicycle/framesize/delete/{{ type.id }}" onclick="return confirm('Видалити запис - {{type.name}}?')"><i class="material-icons">delete_forever</i> </a></td>
 	</tr>
 	{% endfor %}
+</tbody>
+</table>
 
-	<table>
-
-	<br>
-	<a href="/bicycle-framesize/add/">Додати новий розмір</a>
+</div>
+</div>

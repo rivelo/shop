@@ -1742,7 +1742,9 @@ var table = $('#iTable').DataTable();
 	{{ type.balance|floatformat }}	
 {% endif %}		
 	</a>
-	<span class="badge badge-light">{{ type.get_realshop_count }}</span>	
+	{% if request.user|has_group:"admin" %}
+	<span class="badge badge-light">{{ type.get_realshop_count }}</span>
+	{% endif %}
 {% endifequal %}
 	</td>
 	

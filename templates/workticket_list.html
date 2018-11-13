@@ -2,6 +2,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Майстерня/Заявки</title>
 
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
 <link rel="stylesheet" href="/media/css/table.css">
 
@@ -9,7 +11,7 @@
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 
 <link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" />
-<script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script>
+{#<script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script>#}
 
 <style>
 
@@ -21,16 +23,26 @@
 	background-color: #FFFF99;
 }
 
+.tooltip-inner {
+  background-color: #73AD21 !important;
+  color: #color ;
+  font-size: 20px; 
+  width: 500px;
+  
+}
+
 </style> 
 
 <script>
 $(document).ready(function() {
 
-	$('[title!=""]').qtip({
+	 $('[data-toggle="tooltip"]').tooltip();
+	
+/*	$('[title!=""]').qtip({
 	    position: {
 	        at: 'top left'
 	    }
-	});
+	}); */
 	
 /*	
 	$(document).tooltip({
@@ -199,15 +211,15 @@ $('.phone').editable('/workticket/edit/', {
 	{{forloop.counter}}
 	</td>
 	<td>       
-	<a href="/workticket/edit/{{ type.id }}" title="Edit"> {{type.id}}</a>
+	<a href="/workticket/edit/{{ type.id }}" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="right"> {{type.id}}</a>
 	</td>
 	<td>       
 <!--	<a href="/workshop/done/client/{{ type.client.id }}/"> -->  
-	<a href="/client/result/search/?id={{ type.client.id }}" title="{{type.client}} {{type.client.phone|phone2Str}}">
+	<a href="/client/result/search/?id={{ type.client.id }}" title="{{type.client}}  {{type.client.phone|phone2Str}}" data-toggle="tooltip" data-html="true" data-placement="bottom" >
 	{{type.client.name}} {% if type.client.forumname %} ({{type.client.forumname}}) {% endif %}   
 	</a>
 	</td>
-	<td data-toggle="tooltip" data-placement="right" title="Створено користувачем <b>{{type.user.username}}</b>">       
+	<td data-toggle="tooltip" data-html="true" data-placement="right" title="Створено користувачем <br> <b>{{type.user.username}}</b> ">       
 	{{type.date|date}}
 	</td>
 {#	<td>	{{type.user.username}}	</td> #}
@@ -234,7 +246,7 @@ $('.phone').editable('/workticket/edit/', {
 	{{type.description}}
 	</td>
 	<td>
-    <a href="/workticket/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')">delete</a>
+    <a href="/workticket/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')"><i class="material-icons">delete_forever</i></a>
     </td>
 </tr>
 {% endfor %}       

@@ -1,14 +1,22 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-<h1>Звіт проданих велосипедів по виробнику</h1>
+<h1><span class="badge badge-info">Звіт проданих велосипедів по виробнику</span></h1>
 
-	<table border=1>
+
+<div class="row no-gutters">
+    <div class="col-3">
+    
+<table class="table table-striped table-hover table-bordered text-center">
+
+<thead>
 	<tr>
 	<th>#</th>
 	<th>Модель</th>
 	<th>Кількість</th>
 	<th>id</th>
-	
+	</tr>
+</thead>
+<tbody>	
 {% for item in bicycles %}
 {% ifequal item.bcount 0 %}
 {%else%}
@@ -28,6 +36,9 @@
 {% endifequal %}
 	{% endfor %}
 	</tr>
+</tbody>
 	
-	</table>
+</table>
 	
+</div>
+</div>

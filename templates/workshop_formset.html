@@ -1,0 +1,370 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Додати роботи</title>
+
+	<script type="text/javascript" src="/media/jquery.searchabledropdown-1.0.8.min.js"></script>
+	
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script src="/media/jquery-ui.min.js"></script>
+	
+	
+<style type="text/css">
+  .custom-combobox {
+    position: relative;
+    display: inline-block;
+  }
+  .custom-combobox-toggle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin-left: -1px;
+    padding: 0;
+  }
+  .custom-combobox-input {
+    margin: 0;
+    padding: 5px 10px;
+  }
+
+  span:visited{ text-decoration:none; color:#293d6b; }
+  span:hover{ text-decoration:underline; color:#FFF; }
+  span {color:#293d6b; 
+  		cursor: pointer; 
+  		border-radius: 5px;
+  		color: #FFF;
+  		background-color: #4A4A4A;
+  		}
+  span.one {background-color: #5cb85c;
+  		}
+  span.two {background-color: #FF6600;
+  		}
+
+/*  div.box {//border-radius: 5px;
+  		   background-color: #bfbfbf;
+  		   font-size:200%;
+  		   margin: 80px 0px 0px;
+  }*/  		
+ 		
+</style>		
+	
+<script type="text/javascript">
+(function( $ ) {
+    $.widget( "custom.combobox", {
+      _create: function() {
+        this.wrapper = $( "<span>" )
+          .addClass( "custom-combobox" )
+          .insertAfter( this.element );
+ 
+        this.element.hide();
+        this._createAutocomplete();
+        this._createShowAllButton();
+      },
+ 
+      _createAutocomplete: function() {
+        var selected = this.element.children( ":selected" ),
+          value = selected.val() ? selected.text() : "";
+ 
+        this.input = $( "<input>" )
+          .appendTo( this.wrapper )
+          .val( value )
+          .attr( "title", "" )
+          .addClass( "custom-combobox-input ui-widget ui-widget-content ui-state-default ui-corner-left" )
+          .autocomplete({
+            delay: 0,
+            minLength: 0,
+            select: function( event, ui ){
+            $.getJSON("/worktype/price/", {id: $("select#id_work_type").val()}, function(data) {
+    			$('#id_price').val(data[0].price);
+			});
+            },
+            source: $.proxy( this, "_source" )
+          })
+          .tooltip({
+            tooltipClass: "ui-state-highlight"
+          });
+ 
+        this._on( this.input, {
+          autocompleteselect: function( event, ui ) {
+            ui.item.option.selected = true;
+            this._trigger( "select", event, {
+              item: ui.item.option
+            });
+          },
+ 
+          autocompletechange: "_removeIfInvalid"
+        });
+      },
+ 
+      _createShowAllButton: function() {
+        var input = this.input,
+          wasOpen = false;
+        $( "<a>" )
+          .attr( "tabIndex", -1 )
+          .attr( "title", "Show All Items" )
+          .tooltip()
+          .appendTo( this.wrapper )
+          .button({
+            icons: {
+              primary: "ui-icon-triangle-1-s"
+            },
+            text: false
+          })
+          .removeClass( "ui-corner-all" )
+          .addClass( "custom-combobox-toggle ui-corner-right" )
+          .mousedown(function() {
+            wasOpen = input.autocomplete( "widget" ).is( ":visible" );
+          })
+          .click(function() {
+            input.focus();
+ 
+            // Close if already visible
+            if ( wasOpen ) {
+              return;
+            }
+ 
+            // Pass empty string as value to search for, displaying all results
+            input.autocomplete( "search", "" );
+          });
+      },
+ 
+      _source: function( request, response ) {
+        var matcher = new RegExp( $.ui.autocomplete.escapeRegex(request.term), "i" );
+        response( this.element.children( "option" ).map(function() {
+          var text = $( this ).text();
+          if ( this.value && ( !request.term || matcher.test(text) ) )
+            return {
+              label: text,
+              value: text,
+              option: this
+            };
+        }) );
+      },
+ 
+      _removeIfInvalid: function( event, ui ) {
+ 
+        // Selected an item, nothing to do
+        if ( ui.item ) {
+          return;
+        }
+ 
+        // Search for a match (case-insensitive)
+        var value = this.input.val(),
+          valueLowerCase = value.toLowerCase(),
+          valid = false;
+        this.element.children( "option" ).each(function() {
+          if ( $( this ).text().toLowerCase() === valueLowerCase ) {
+            this.selected = valid = true;
+            return false;
+          }
+        });
+ 
+        // Found a match, nothing to do
+        if ( valid ) {
+          return;
+        }
+ 
+        // Remove invalid value
+        this.input
+          .val( "" )
+          .attr( "title", value + " didn't match any item" )
+          .tooltip( "open" );
+        this.element.val( "" );
+        this._delay(function() {
+          this.input.tooltip( "close" ).attr( "title", "" );
+        }, 2500 );
+        this.input.autocomplete( "instance" ).term = "";
+      },
+ 
+      _destroy: function() {
+        this.wrapper.remove();
+        this.element.show();
+      }
+    });
+  })( jQuery );
+
+$(document).ready(function() {
+
+	$("#id_work_type").combobox();      
+	$('.ui-autocomplete-input').css('width','280px');
+
+	$("#s_client").val($('#id_client').val());
+	
+    $( "#s_client" ).autocomplete({
+    	source: function( request, response ) {
+        	$.ajax({
+                type: "GET",
+                url: "/client/lookup",
+				data: { query: $("#s_client").val() },
+                dataType: "json",
+                success: function( data ) {
+                        	response( $.map( data, function( item ) {
+                            return {
+                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
+                                value: item.fields.name,
+                                idid: item.fields.sale,
+                                pk_id: item.pk                                
+    							}
+                        	}));                                
+                            }
+            })
+        },
+        minLength: 3,
+        select: function( event, ui ) {
+	    	$('#id_client').val(ui.item.pk_id);
+        },
+        open: function() {
+        	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+        },
+        close: function() {
+        	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+        }
+    });
+
+
+    $("#s_client").focus();
+
+/*	
+	$("#id_work_type").change(function(){
+		$.getJSON("/worktype/price/", {id: $("select#id_work_type").val()}, function(data) {
+    		$('#id_price').val(data[0].price);
+		});
+	});
+*/	
+//	$('#id_user').parents("tr").hide();
+	//$('#id_user').hide();
+	//$('#client_cloud').insertAfter('#id_client');
+	
+	$('#client_cloud span').click(function(){
+    	//$(this).hide();
+    	$("#s_client").val($(this).attr('vname'));
+    	$('#id_client').val($(this).attr('val'));
+    	$('#id_work_type').next().find('input').focus();
+    });	
+    
+   
+});
+
+
+function updateElementIndex(el, prefix, ndx) {
+    var id_regex = new RegExp('(' + prefix + '-\\d+)');
+    var replacement = prefix + '-' + ndx;
+    if ($(el).attr("for")) $(el).attr("for", $(el).attr("for").replace(id_regex, replacement));
+    if (el.id) el.id = el.id.replace(id_regex, replacement);
+    if (el.name) el.name = el.name.replace(id_regex, replacement);
+}
+function cloneMore(selector, prefix) {
+    var newElement = $(selector).clone(true);
+    var total = $('#id_' + prefix + '-TOTAL_FORMS').val();
+    newElement.find(':input').each(function() {
+        var name = $(this).attr('name').replace('-' + (total-1) + '-', '-' + total + '-');
+        var id = 'id_' + name;
+        $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
+    });
+    total++;
+    $('#id_' + prefix + '-TOTAL_FORMS').val(total);
+    $(selector).after(newElement);
+    var conditionRow = $('.form-row:not(:last)');
+    conditionRow.find('.btn.add-form-row')
+    .removeClass('btn-success').addClass('btn-danger')
+    .removeClass('add-form-row').addClass('remove-form-row')
+    .html('<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>');
+    return false;
+}
+function deleteForm(prefix, btn) {
+    var total = parseInt($('#id_' + prefix + '-TOTAL_FORMS').val());
+    if (total > 1){
+        btn.closest('.form-row').remove();
+        var forms = $('.form-row');
+        $('#id_' + prefix + '-TOTAL_FORMS').val(forms.length);
+        for (var i=0, formCount=forms.length; i<formCount; i++) {
+            $(forms.get(i)).find(':input').each(function() {
+                updateElementIndex(this, prefix, i);
+            });
+        }
+    }
+    return false;
+}
+$(document).on('click', '.add-form-row', function(e){
+    e.preventDefault();
+    cloneMore('.form-row:last', 'form');
+    return false;
+});
+$(document).on('click', '.remove-form-row', function(e){
+    e.preventDefault();
+    deleteForm('form', $(this));
+    return false;
+});
+
+</script>
+
+<body>
+
+<h1><span class="badge badge-success">Список виконаних робіт</span> {% if client_name %} >>>  <a href="/client/result/search/?id={{client_id}}" class="badge badge-secondary">{{ client_name }}</a> {% endif %}</h1>
+    
+<div class="container mw-100">
+  <div class="row justify-content-between">
+    <div class="col-12 col-md-6">
+{#    <form action="" method="POST" enctype="multipart/form-data"> #}
+        
+<form class="form-horizontal" method="POST" action="">
+{% csrf_token %}
+{{ formset.management_form }}
+{% for form in formset %}
+<div class="row form-row spacer">
+    <div class="col-2">
+        <label>{{form.name.label}}Test</label>
+    </div>
+    <div class="col-4">
+        <div class="input-group">
+            {{form.name}}
+            <input id="s_client" style="width: 400px;" />
+            <div class="input-group-append">
+                <button class="btn btn-success add-form-row">+</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+<div class="row spacer">
+    <div class="col-4 offset-2">
+        <button type="submit" class="btn btn-block btn-primary">Create</button>
+    </div>
+</div>
+</form>
+
+{% comment %}        
+        <table>
+          <label for="tags">Клієнт: </label>
+        	<input id="s_client" style="width: 400px;" />
+            {{ form.as_table }}  
+        </table>
+        {# <p><input type="submit" value="Save"></p> #}
+        <button type="submit" class="btn btn-success btn-lg w-100"><b>Зберегти</b></button>
+        
+    </form>
+{% endcomment %}    
+    <br>
+    </div>
+    
+    <div class="col-12 col-md-6">
+<div id="client_cloud">
+{% for client in clients_list %}
+{% if client.num_inv >= 7 %}
+<span class="two" val='{{client.client__id}}' vname="{{client.client__name}}" sale="{{client.client__sale}}" style="font-size:200%;"> {{client.client__name}} ({{client.num_inv}}) </span>,
+{% endif %}
+{% if client.num_inv >= 3 and client.num_inv < 7 %}
+<span class="one" val='{{client.client__id}}' vname="{{client.client__name}}" sale="{{client.client__sale}}" style="font-size:150%;"> {{client.client__name}} ({{client.num_inv}}) </span>,
+{% endif %}
+{% if client.num_inv < 3 %} 
+<span val='{{client.client__id}}' vname="{{client.client__name}}" sale="{{client.client__sale}}" style="font-size:100%;"> {{client.client__name}} ({{client.num_inv}}) </span>,
+{% endif %}
+{% endfor %}    
+</div>      
+    </div>
+  </div>
+
+</div>
+
+ 
+</body>
+	
+
+

@@ -2,17 +2,20 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" type="text/css" href="/media/table.css">
 
-<h1>Список проданих велосипедів по місяцях</h1>
+<h1><span class="badge badge-info">Список проданих велосипедів по місяцях</span></h1>
 
-<table border="1">
+
+<div class="row no-gutters">
+    <div class="col-3">
+<table class="table table-striped table-hover table-bordered text-center">
 	<tr>
 		<th>№</th>
 		<th>Рік</th>
 		<th>Місяць</th>
-		<th>Кількість</th>
+		<th>К-ть</th>
 		<th>Сума (грн)</th>
 	</tr>
-
+<tbody>
 	{% for type in bicycles %}
 	<tr>
 		<td align="center">{{forloop.counter}}</td>
@@ -30,12 +33,8 @@
 		<th align="right">{{bike_sum}}</th>
 		<th>{{all_sum}} грн.</th>
 	</tr>
-
-
+</tbody>
 </table>
 
-		<br>
-		<a href="/bicycle/sale/add/">Продати велосипед</a>
-		<br>
-		<a href="/bicycle/add/">Додати велосипед до каталогу</a>
-		
+</div>
+</div>		

@@ -2,20 +2,54 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Виписка по клієнту: {{client_name.name}}</title>
 
+<head>
+	<link rel="stylesheet" href="/media/css/table.css"> 
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+</head>
+
 {% load poll_extras %}
 
-	<link rel="stylesheet" href="/media/css/table.css">
-	<link rel="stylesheet" href="/media/jquery-ui.min.css">
-	<script src="/media/jquery-ui.min.js"></script>	
-	<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
-	
 
-{% comment %}
 <style type="text/css">
+
 table#balance a{
 	color: black;
 }
+
+.tooltip-inner {
+  background-color: #73AD21 !important;
+  color: #color ;
+/*  font-size: 20px; */
+  width: 500px;
+  
+}
+
+.bs-tooltip-top .arrow::before, .bs-tooltip-auto[x-placement^="top"] .arrow::before {
+  border-top-color: #73AD21 !important;
+}
+
+.bs-tooltip-right .arrow::before, .bs-tooltip-auto[x-placement^="right"] .arrow::before {
+  border-right-color: #73AD21 !important;
+}
+
+
+.bs-tooltip-bottom .arrow::before, .bs-tooltip-auto[x-placement^="bottom"] .arrow::before {
+  border-bottom-color: #73AD21 !important;
+}
+
+
+.bs-tooltip-left .arrow::before, .bs-tooltip-auto[x-placement^="left"] .arrow::before {
+  border-left-color: #73AD21 !important;
+}
+ 
+.tooltip.warning .tooltip-inner          { background-color:    #ec971f; }
+.tooltip.warning.top > .tooltip-arrow    { border-top-color:    #ec971f; }
+.tooltip.warning.right > .tooltip-arrow  { border-right-color:  #ec971f; }
+.tooltip.warning.bottom > .tooltip-arrow { border-bottom-color: #ec971f; }
+.tooltip.warning.left > .tooltip-arrow   { border-left-color:   #ec971f; } 
+    
 </style>
+{% comment %}
 {% endcomment %}
 
 
@@ -23,11 +57,19 @@ table#balance a{
     
 <script language="JavaScript">
 $(document).ready(function() {
-	$(document).tooltip({
+
+/*	$(document).tooltip({
 		content: function () {
         return $(this).prop('title');
         }
     });
+	*/
+	
+
+	$('[data-toggle="tooltip"]').tooltip();
+		$('[data-toggle="tooltip"]').show();
+
+	
 	$("#dialog").hide();
 	$("#dialog_r").hide();
 	$("#dialog_msg").hide();
@@ -441,7 +483,7 @@ $('.edit_workstatus').editable('/workticket/edit/', {
      loadurl : '/workstatus/view/',
      type   : 'select',
      submit : 'OK',
-     event: 'dblclick', //'dblclick',
+     event: 'click', //'dblclick',
      submitdata : function() {
       	 	return {id_w : $(this).attr('id_workticket')};
      },
@@ -505,7 +547,7 @@ $('.phone').editable('/workticket/edit/', {
     width: 800px;      
     float:left;  ">
     <h1>Виписка по клієнту:
-    <span title="Телефон: {{client_name.phone|phone2Str}} <br> E-mail: {{client_name.email}}">
+    <span data-html="true" title="<font size='1'>Телефон: </font> <font size='4'>{{client_name.phone|phone2Str}}</font> <br> <font size='2'> E-mail: {{client_name.email}}</font>" data-toggle="tooltip" data-placement="bottom">
     	 <a href=/client/edit/{{client_name.id}}> {{client_name.name}} ({{client_name.forumname}}) </a>
     </span>
     </h1>
@@ -518,7 +560,7 @@ $('.phone').editable('/workticket/edit/', {
 </div>
 
 <!-- dialog for client message -->
-<div id="dialog_msg" title="Повідомлення">
+<div id="dialog_msg" title="Повідомлення" >
 {% for msg in messages %}
 {% if msg.status  %}
 <div id="msg_{{msg.id}}" class="standart" msg_id="{{msg.id}}" data-title="Клікніть для зміни статусу. Статус: {{msg.status|yesno:'Доставлено,В черзі'}}">
@@ -536,14 +578,14 @@ $('.phone').editable('/workticket/edit/', {
 <img style="display: none;" id="img_repair" src="http://thumb10.shutterstock.com/thumb_small/295516/103760093/stock-photo-bicycle-repair-sign-on-a-white-background-part-of-a-series-103760093.jpg" height="64px" >
 -->
 
-<img style="display: True; opacity: 0.2" id="img_repair" src="/media/images/bicycle-repair.jpg" height="56px" title="Майстерня" data-toggle="modal" data-target="#exampleModalCenter">
+<img style="display: True; opacity: 0.2" id="img_repair" src="/media/images/bicycle-repair.jpg" height="56px" title="Майстерня" data-toggle="modal" data-target="#exampleModalCenter" >
 {% if status_msg %}
-<img style="display: True; opacity: 1" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення">
+<img style="display: True; opacity: 1" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення" data-toggle="tooltip" data-placement="bottom">
 {% else %}
-<img style="display: True; opacity: 0.2" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення">
+<img style="display: True; opacity: 0.2" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення: ВІДСУТНІ" data-toggle="tooltip" data-placement="bottom">
 {% endif %}
 {% if b_bike %}
-<img style="display: True;" id="img_bike" src="/media/images/green-bicycle_ico.png" height="50px" title="Придбані велосипеди">
+<img style="display: True;" id="img_bike" src="/media/images/green-bicycle_ico.png" height="50px" title="Придбані велосипеди" data-toggle="tooltip" data-placement="bottom">
 {% endif %}
 
 <img style="display: None;" id="img_attention" src="/media/images/system-attention-icon.png" height="50px" title="Непроведені операції/роботи">
@@ -560,7 +602,7 @@ $('.phone').editable('/workticket/edit/', {
 <img style="display: None;" id="img_rent" src="/media/images/test_icon.png" height="50px" title="Тест сидінь">
 {% endif %}
 
-<span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="56px" height="56px" title="Відправити картку клієнта на Email"></span>
+<span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="56px" height="56px" title="Відправити картку клієнта на Email" data-toggle="tooltip" data-placement="left"></span>
 
 {% comment %}     
 <div id="dialog_r" title="Заявки на ремонт:">
@@ -718,7 +760,7 @@ $('.phone').editable('/workticket/edit/', {
 
     <div style="clear:both;">
 	<br>
-	 <h2 style="color:red;"> Cума:  {{clients|floatformat:2}} грн.
+	 <h2 style="color:red;" > Cума:  {{clients|floatformat:2}} грн.
 	 </h2>	
 	
 	</div>
@@ -979,19 +1021,21 @@ $('.phone').editable('/workticket/edit/', {
 </div>
 
 <h3>
-<a class="badge badge-pill badge-secondary" href=/workticket/add/client/{{client_name.id}}/> 
+<a class="badge badge-pill badge-secondary" href="/workticket/add/client/{{client_name.id}}/"> 
 Створити заявку на ремонт
 </a>
-<a class="badge badge-pill badge-secondary" href=/workshop/add/client/{{client_name.id}}/> 
+<a class="badge badge-pill badge-secondary" href="/workshop/add/client/{{client_name.id}}/" data-toggle="tooltip" data-placement="bottom" data-type="warning" title="Додати клієнту роботу"> 
 Додати роботу
 </a>
-<a class="badge badge-pill badge-secondary" href=/client/search/> Пошук клієнта </a>
+<a class="badge badge-pill badge-secondary" href="/client/search/"> Пошук клієнта </a>
 </h3>
 
 
 {% orm_debug %}
 {% endif %}
  
+	<script src="/media/jquery-ui.min.js"></script>	
+	<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 
 
 

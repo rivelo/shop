@@ -72,7 +72,13 @@
             minLength: 0,
             select: function( event, ui ){
             $.getJSON("/worktype/price/", {id: $("select#id_work_type").val()}, function(data) {
-    			$('#id_price').val(data[0].price);
+    			$('#id_price').val(data['data'][0]['price']);
+    			$("#depence_component").empty();
+    			for (i=0; i < data['dep'].length; i++){
+//    				$("#depence_component").append("<span>"+ data['dep'][i]['name'] +"</span>");
+    				$("#depence_component").append('<span class="btn btn-dark"><a class="text-light" href="/invoice/category/' + data['dep'][i]['pk'] + '/view/">' + data['dep'][i]['name']+ ' / '+ data['dep'][i]['name_ukr'] +'</a></span> ');
+    			}
+    			
 			});
             },
             source: $.proxy( this, "_source" )
@@ -279,7 +285,14 @@ $(document).ready(function() {
     </div>
   </div>
 
+<div class="row">
+    <div class="col-12 col-md-6" id="depence_component">
+{#  	<span class="btn btn-dark"><a class="text-light" href="/invoice/category/{{dependence_comp.pk}}/view/">{{dependence_comp}}</a></span> #}
+	</div>
 </div>
+
+</div>
+<br>
 
  
 </body>

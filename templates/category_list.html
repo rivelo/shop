@@ -1,27 +1,42 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<head>
     <title>Класифікатор велокомпонентів</title>
-    <link rel="stylesheet" type="text/css" href="/media/table.css">
-    <h1>Список велокомпонентів (List of Component type)</h1>
+{#    <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>    
+    
+<body>    
+    <h1><span class="badge badge-secondary">Список типів велокомпонентів</span> <a class="badge badge-success" href="/category/add/" title="Створити новий тип"><i class="material-icons">add_circle_outline</i></a></h1>
 	
-    <table border="1">
-    <tr>
-    	<th>ID</th>
+{#<table border="1"> #}
+<div class="table-responsive">
+<table class="table table-striped table-hover table-sm" >
+<thead class="table-success">
+    <tr class="text-center">
+    	<th>#</th>
     	<th>Назва типу</th>
     	<th>Опис</th>
     	<th>Назва, українською</th>
     	<th>Опис, українською</th>
     	<th>Дія</th>
     </tr>    
-
-
+</thead>
+<tbody>
 {% for type in categories %}
-<tr>
-	<td>       
-	{{type.id}}
+<tr class="text-center">
+	<td>      
+	{{forloop.counter}} 
+	{#type.id#}
 	</td>
 	<td>       
 	<a href="/catalog/type/{{type.id}}/view/">{{type.name}}</a>
+{#	<img src="/media/upload/icons/wheel_64.png" class="img-thumbnail" alt="Wheel"> #}
+	<img src="/media/upload/icons/{{type.name|slugify}}-64.png" class="rounded" alt="Wheel">
+	<img src="/media/upload/icons/{{type.name|slugify}}-select-64.png" class="rounded" alt="Wheel">
+	<img src="/media/upload/icons/{{type.name|slugify}}-128.png" width="64px" class="rounded" alt="Wheel">
+	<img src="/media/upload/icons/{{type.name|slugify}}-select-128.png" width="64px" class="rounded" alt="Wheel">
 	</td>
 	<td>       
 	{{type.description}}
@@ -33,20 +48,15 @@
 	{{type.description_ukr}}
 	</td>
 	<td>
-	<a href="/category/edit/{{ type.id }}">edit</a>
-    <a href="/category/delete/{{ type.id }}">delete</a>
+	<a href="/category/edit/{{ type.id }}" title="Редагувати"><i class="material-icons">create</i> </a>
+	<a href="/category/delete/{{ type.id }}" title="Видалити" onclick="return confirm('Видалити запис?')"><i class="material-icons">delete_forever</i></a>
     </td>
 </tr>
 {% endfor %}   
-
+</tbody>
     
-<table>
+</table>
+</div>
 
-
-<br><br>
-<a href="/">Головне меню (HOME)</a>
-<br>
-<a href="/category/add/">Створити новий тип (Add)</a>       
-
-
+</body>
 

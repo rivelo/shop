@@ -996,15 +996,12 @@ def bicycle_sale_list(request, year=False, month=False, id=None):
         month = datetime.datetime.now().month
         #list = Bicycle_Sale.objects.all().order_by('date')
         if (id != None):
-            list = Bicycle_Sale.objects.filter(model=id).order_by('date')
+            list = Bicycle_Sale.objects.filter(pk = id).order_by('date')
         else:
             list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
-    if (year != False) & (month != False):
+    if (year != False) & (month != False) & (id == None):
         list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
-       
     header_bike = Bicycle_Sale.objects.filter().extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')
-#     Order.objects.filter().extra({'month':"Extract(month from created)"}).values_list('month').annotate(Count('id'))
-#     Order.objects.filter().extra({'day':"Extract(day from created)"}).values_list('day').annotate(Count('id'))
     psum = 0
     price_summ = 0
     profit_summ = 0
@@ -1045,7 +1042,10 @@ def bicycle_sale_list_by_brand(request, year=False, month=False, id=None):
         profit_summ = profit_summ + item.get_profit()[1]
         if item.service == False:
             service_summ =  service_summ + 1
-    brand = list[0].model.model.brand.name
+    try:
+        brand = list[0].model.model.brand.name
+    except:
+        brand = None
     return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ':price_summ, 'header_links':header_bike, 'price_opt': price_opt, 'profit_summ':profit_summ, 'service_summ':service_summ, 'year':year, 'brand':brand, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -2386,7 +2386,7 @@ def category_add(request):
     else:
         form = CategoryForm(instance = a)
     #return render_to_response('category.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'category.html'})
+    return render_to_response('index.html', {'form': form, 'weblink': 'category.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 def category_edit(request, id):
     a = Type.objects.get(pk=id)
@@ -2397,7 +2397,7 @@ def category_edit(request, id):
             return HttpResponseRedirect('/category/view/')
     else:
         form = CategoryForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'category.html', 'text': 'Обмін валют (редагування)'})
+    return render_to_response('index.html', {'form': form, 'weblink': 'category.html', 'text': 'Обмін валют (редагування)'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 def category_del(request, id):
     obj = Type.objects.get(id=id)
@@ -2704,22 +2704,34 @@ def catalog_set(request):
             if POST.has_key('id') and POST.has_key('update_enddate'):
                 pk = request.POST['id']                
                 s = request.POST['update_enddate']
-                print "ID cat = " + pk
-                print "date cat = " + s
                 obj = Catalog.objects.get(pk = pk)
                 conv = datetime.datetime.strptime(s, '%d-%m-%Y').date()                                
                 obj.date = conv
-#                obj.last_update = datetime.datetime.now()
-#                obj.user_update = request.user
                 obj.save() 
                 d = {}
-                #c = Catalog.objects.filter(pk = pk).values_list('date', flat=True)
-                print "CATALOG = " + str(obj.date)
-                # d['upd'] = c['date']
                 d['status'] = True
                 d['msg'] = 'Done'
                 response = JsonResponse(d)
                 return response                
+
+            if POST.has_key('id') and POST.has_key('count'):
+                d = {}
+                if auth_group(request.user, 'admin')==False:
+                    d['status'] = False
+                    d['msg'] = 'Ви не має достаттньо повноважень для даної функції'
+                    response = JsonResponse(d)
+                    return response                
+#                    return HttpResponse('Error: У вас не має прав для редагування')
+                pk = request.POST['id']                
+                count = request.POST['count']
+                obj = Catalog.objects.get(pk = pk)
+                obj.count = count
+                obj.save() 
+                d['status'] = True
+                d['msg'] = 'Done'
+                response = JsonResponse(d)
+                return response                
+
                 #return HttpResponse(c)
               #  return HttpResponse(simplejson.dumps(list(c)))
     else :
@@ -4068,8 +4080,9 @@ def worktype_list(request, id=None):
         list = WorkType.objects.filter(work_group=id)
     else:
         list = WorkType.objects.all()
-    
-    return render_to_response('index.html', {'worktypes': list, 'weblink': 'worktype_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    worklist = WorkType.objects.all().order_by('work_group')
+    component_type_list = Type.objects.all().order_by('group')
+    return render_to_response('index.html', {'worktypes': list, 'worklist': worklist, 'component_type_list':component_type_list, 'weblink': 'worktype_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 #===============================================================================
 # 
@@ -4085,6 +4098,122 @@ def worktype_delete(request, id):
     obj.delete()
     return HttpResponseRedirect('/worktype/view/')
 
+
+def worktype_depence_add(request):
+    if request.is_ajax():
+        if request.method == 'POST': 
+            if request.POST.has_key('id') and request.POST.has_key('depence_id[]'):
+                d = {}
+                id = request.POST['id']                
+                dep_ids = request.POST.getlist('depence_id[]')
+                obj = WorkType.objects.get(pk = id)
+                dw = WorkType.objects.filter(pk__in = dep_ids)
+                dw_list = list(dw)
+#                print "Depence = " + str(dw[0].pk)
+                #obj.dependence_work.add(dw[0])
+                obj.dependence_work.add(*dw_list)
+                obj.save() 
+                d['status'] = True
+                d['msg'] = 'Done'
+                d['work_list'] = list(dw.values('id', 'name', 'price'))
+                response = JsonResponse(d)
+                return response
+            else:
+                d['status'] = False
+                d['msg'] = 'Парамтри не передано або вони невірні'
+                response = JsonResponse(d)
+                return response
+                       
+    else:
+        return HttpResponse('Error: Щось пішло не так під час запиту')     
+
+
+def worktype_depence_component_add(request):
+    if request.is_ajax():
+        if request.method == 'POST': 
+            if request.POST.has_key('id') and request.POST.has_key('comp_ids[]'):
+                d = {}
+                id = request.POST['id']                
+                dep_ids = request.POST.getlist('comp_ids[]')
+                obj = WorkType.objects.get(pk = id)
+                dw = Type.objects.filter(pk__in = dep_ids)
+                dw_list = list(dw)
+#                print "Depence = " + str(dw[0].pk)
+                #obj.dependence_work.add(dw[0])
+                obj.component_type.add(*dw_list)
+                obj.save() 
+                d['status'] = True
+                d['msg'] = 'Done'
+                d['comp_list'] = list(dw.values('id', 'name'))
+                response = JsonResponse(d)
+                return response
+            else:
+                d['status'] = False
+                d['msg'] = 'Парамтри не передано або вони невірні'
+                response = JsonResponse(d)
+                return response
+                       
+    else:
+        return HttpResponse('Error: Щось пішло не так під час запиту')     
+    
+
+def worktype_depence_delete(request):
+    d = {}
+    if (auth_group(request.user, 'seller')==False) or (auth_group(request.user, 'admin')==False):
+        d['status'] = False
+        d['msg'] = 'Ви не має достаттньо повноважень для даної функції'
+        response = JsonResponse(d)
+        return response                
+    if request.is_ajax():
+        if request.method == 'POST': 
+            if request.POST.has_key('id') and request.POST.has_key('del_work_id'):
+                id = request.POST['id']                
+                dep_work_id = request.POST['del_work_id']
+                obj = WorkType.objects.get(pk = id)
+                dw = WorkType.objects.get(pk = dep_work_id)
+                obj.dependence_work.remove(dw)
+                obj.save() 
+                d['status'] = True
+                d['msg'] = 'Done'
+                response = JsonResponse(d)
+                return response
+            else:
+                d['status'] = False
+                d['msg'] = 'Парамтри не передано або вони невірні'
+                response = JsonResponse(d)
+                return response
+    else:
+        return HttpResponse('Error: Щось пішло не так під час запиту')     
+
+
+def worktype_depence_component_delete(request):
+    d = {}
+    if (auth_group(request.user, 'seller')==False) or (auth_group(request.user, 'admin')==False):
+        d['status'] = False
+        d['msg'] = 'Ви не має достаттньо повноважень для даної функції'
+        response = JsonResponse(d)
+        return response                
+    if request.is_ajax():
+        if request.method == 'POST': 
+            if request.POST.has_key('id') and request.POST.has_key('del_component_id'):
+                id = request.POST['id']                
+                dep_comp_id = request.POST['del_component_id']
+                obj = WorkType.objects.get(pk = id)
+                dc = Type.objects.get(pk = dep_comp_id)
+                obj.component_type.remove(dc)
+                obj.save() 
+                d['status'] = True
+                d['msg'] = 'Done'
+                response = JsonResponse(d)
+                return response
+            else:
+                d['status'] = False
+                d['msg'] = 'Парамтри не передано або вони невірні'
+                response = JsonResponse(d)
+                return response
+    else:
+        return HttpResponse('Error: Щось пішло не так під час запиту')     
+    
 
 def workstatus_add(request):
     text = 'Створити новий статус роботи'
@@ -4476,7 +4605,8 @@ def worktype_ajax(request):
         message = "Error"
 
     search = WorkType.objects.filter(id=q).values('price', 'description')
-    return HttpResponse(simplejson.dumps(list(search)), content_type="application/json")
+    comp_depence = Type.objects.filter(worktype__pk = q).values('name', 'pk', 'name_ukr')  
+    return HttpResponse(simplejson.dumps({'data': list(search), 'dep': list(comp_depence)}), content_type="application/json")
 
 
 def workshop_pricelist(request, pprint=False):
@@ -4630,7 +4760,7 @@ def shopdailysales_list(request, month=None, year=None):
 #    for item in list:
 #        sum = sum + item.price
 #'summ':sum,
-    return render_to_response('index.html', {'shopsales': list, 'total_sum': total_sum, 'weblink': 'shop_sales_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'shopsales': list, 'total_sum': total_sum, 'l_month': xrange(1,13), 'sel_month':int(month), 'weblink': 'shop_sales_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def shopdailysales_delete(request, id):

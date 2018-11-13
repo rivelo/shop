@@ -1,15 +1,17 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <html lang="en">
-<link type="text/css" rel="stylesheet" href="/media/paginator.css">
+
+
 <head>
     <title>Список проданого товару</title>
-
+    <link type="text/css" rel="stylesheet" href="/media/paginator.css">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="/media/css/table.css"> 
 {#    <link rel="stylesheet" type="text/css" href="/media/css/tooltip.css"> #}
 
 
-<link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" />
-<script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script>
+{# <link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" /> #}
+{# <script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script> #}
 
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
 <link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
@@ -29,34 +31,6 @@
 
 <style>
 
-	table a {
-/*		color: #272728;
-	color: #006600; */
-/*		background-color:#006600; */
-	}
-
-/*	a.select {
-		color: #FFFFFF;
-		background-color:#006600;
-	}
-	a.non {
-		color: #0000FF;
-		background-color:#FFFFFF;
-	}
-*/
-
-	
-/* Класс контекстного меню: */ .context-menu {     position: absolute; /* Задаем абсолютное позиционирование для нашего меню */     display: none; /* Изначально не показываем его */    
- background-color: #fff; /* Цвет фона меню */     
- border: 1px solid #333; /* Граница */      
- /* Немного красивостей. Добавляем тень для нашего меню, что бы визуально отобразить его слегка выше остальных элементов страницы: */     
- -moz-box-shadow: -5px 2px 10px rgba(0,0,0,0.5);     -webkit-box-shadow: -5px 2px 10px rgba(0,0,0,0.5);     box-shadow: -5px 2px 10px rgba(0,0,0,0.5); }  
- /* Добавляем стили для списка который будет находиться внутри меню и, собственно, содержать его пункты: */ 
- .context-menu ul { list-style: none; margin: 0; padding: 0; }              .context-menu ul li { margin: 0; padding: 0; background-color: #fff; display: block; }  
- /* Стили для ссылок пунктов меню: */ 
- .context-menu ul li a { color: #333; text-decoration: none; font-size: 12px; display: block; padding: 5px; }             
- .context-menu ul li a:hover { background-color: #eee; }  	
- 
 label.ressum {
 color: #B4886B;
 font-weight: bold;
@@ -65,146 +39,13 @@ width: 150px;
 //float: left;
 }
 
-{% comment %}
-
-abbr {
-    position: relative;
-}
-abbr:hover::after {
-    position: relative; // absolute;
-    bottom: 100%;
-    //left: 100%;
-    width: 120px;
-    display: block;
-    padding: 1em;
-    background: yellow;
-    content: attr(title);
-}
-
-.tooltip {
-    position: relative;
-    display: inline-block;
-    border-bottom: 1px dotted black;
-}
-
-.tooltip .tooltiptext-up,
-.tooltip .tooltiptext-left,
-.tooltip .tooltiptext-right,
-.tooltip .tooltiptext-down,
-.tooltip .tooltiptext 
-{
-    visibility: hidden;
-    width: 100px;
-    background-color: #555;
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 5px 0;
-    position: absolute;
-    z-index: 1;
-    margin-left: -60px;
-    opacity: 0;
-    transition: opacity 1s;
-    
-}
-
-.tooltip .tooltiptext-left {
-	top: -5px;
-    right: 105%; 
-}
-
-.tooltip .tooltiptext-left::after {
-	content: " ";
-    position: absolute;
-    top: 50%;
-    left: 100%; /* To the right of the tooltip */
-    margin-top: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: transparent transparent transparent black;
-
-}
-
-.tooltip .tooltiptext-down {
-	width: 120px;
-    top: 100%;
-    left: 50%; 
-    margin-left: -60px; /* Use half of the width (120/2 = 60), to center the tooltip */
-}
-
-.tooltip .tooltiptext-down::after {
-	content: " ";
-    position: absolute;
-    bottom: 100%;  /* At the top of the tooltip */
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: transparent transparent black transparent;
-}
-
-.tooltip .tooltiptext-right {
-	width: 150px;
-	top: -5px;
-    left: 305%; 
-}
-
-.tooltip .tooltiptext-right::after {
-    content: " ";
-    position: absolute;
-    top: 50%;
-    right: 100%; /* To the left of the tooltip */
-    margin-top: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: transparent black transparent transparent;
-}
-
-
-.tooltip .tooltiptext {
-    bottom: 105%;
-    left: 50%;
-}
-
-.tooltip .tooltiptext::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: #555 transparent transparent transparent;
-}
-
-.tooltip:hover .tooltiptext{
-    visibility: visible;
-    opacity: 1;
-}
-
-.tooltip:hover .tooltiptext-down {
-    visibility: visible;
-    opacity: 1;
-}
-
-.tooltip:hover .tooltiptext-left {
-    visibility: visible;
-    opacity: 1;
-}
-
-.tooltip:hover .tooltiptext-right{
-    visibility: visible;
-    opacity: 1;
-}
-
-{% endcomment %}
 </style>
 
 
 <body onLoad="res()">
 
 <script type="text/javascript">
-function res()
+/*function res()
 {
 var p=0;
 var All=document.forms['formSum'];
@@ -216,8 +57,20 @@ for(var i = 0; i < All.elements.length; ++i) {
 	document.getElementById('for_pay').innerHTML = p.toFixed(2)+" грн.";
 	//document.getElementById('debet').innerHTML = parseFloat(document.getElementById('for_pay').innerHTML)+parseFloat(document.getElementById('workshop_pay').innerHTML);
 }
+}*/
+
+function res() {
+	var sum = 0;
+	var ar = $(".mc:input:checked");
+	$(".mc:input:checked").each(function() {
+        //a.push(this.value);
+        sum = sum + parseFloat(this.value)
+//		console.log("PRINT P = " + this.value)
+    });
+
+	document.getElementById('for_pay').innerHTML = sum.toFixed(2)+" грн.";
 }
-    
+
 function resWorkshop()
 {
 var p=0;
@@ -234,19 +87,11 @@ for(var i = 0; i < All.elements.length; ++i) {
 
 $(document).ready( function() {
 
-//    $('.tooltip').tooltip();   	
+$('[data-toggle="tooltip"]').tooltip();
 
-$('[title!=""]').qtip({
-    position: {
-        at: 'top left'
-    }
-});
+// $('#maincheck').prop('checked', true);
 
-/*$(function () {
-  $('[data-toggle="tooltip"]').tooltip()
-})*/
 
-	
 $("#dialog_client").dialog({
 	autoOpen: false,
     resizable: true,
@@ -477,7 +322,6 @@ $( "#client_name" ).autocomplete({
 });
 
 
-
 	$("#maincheck").click( function() {
     	if($('#maincheck').prop('checked')){
 /*        	$('.mc').attr('checked', true); */
@@ -488,6 +332,7 @@ $( "#client_name" ).autocomplete({
         }
         res();
      });
+	
        
 	$(".menu").menu({
   	disabled: false,
@@ -506,9 +351,6 @@ $( "#client_name" ).autocomplete({
 	$(".menu").hide();
 	$(".profit").hide();
 
-$("#itable").click(function(){
-	$('.context-menu').remove();
-});
 
 $("#sp_cash").click(function(){
 	calc_sum();
@@ -518,73 +360,30 @@ $("#sp_count").on( "spinchange", function( event, ui ) {
 	calc_sum();
 });
 
-$(".operation").click(function(event) {
-// Убираем css класс selected-html-element у абсолютно всех элементов на странице с помощью селектора "*":         
-$('*').removeClass('selected-html-element');         
-// Удаляем предыдущие вызванное контекстное меню:         
-$('.context-menu').remove();                 
- // Проверяем нажата ли именно правая кнопка мыши:         
-// if (event.which === 3)  {                          
-// Получаем элемент на котором был совершен клик:             
-var target = $(event.target);                          
-
-var iid = 0;
-if (target.prop('tagName')=="IMG") {
-	console.log("Target = ", target.parent('td').parent('tr').attr("ci_id"));
-	console.log("max = ", target.parent('td').parent("tr").attr("count"));
-	iid = target.parent('td').parent('tr').attr("ci_id");
-	cat_id = target.parent('td').parent('tr').attr("cat_id");
-	$("#sp_count").attr('max', target.parent('td').parent('tr').attr("count"))
-	$("#sp_count").attr('value',target.parent('td').parent('tr').attr("count"));
-}
-if (target.prop('tagName')=="TD") {
-	console.log("Target = ", target.parent('tr').attr("ci_id"));
-	console.log("max = ", target.parent("tr").attr("count"));
-	iid = target.parent('tr').attr("ci_id");
-	cat_id = target.parent('tr').attr("cat_id");
-	$("#sp_count").attr('max', target.parent('tr').attr("count"))
-	$("#sp_count").attr('value',target.parent('tr').attr("count"));
-}
-
-var dprice = parseFloat($("tr[ci_id ='"+iid+"'] td.tsum").html()) / parseFloat($("tr[ci_id ='"+iid+"'] td.tcount").html()); 
-$("#dialog_return").attr('price', dprice);
-//console.log("Price = ", $("tr[ci_id ='"+iid+"'] td.tprice").html());
-$("#dialog_return").attr("id_target", iid);
-     
-// Создаем меню:             
-$('<div/>', { class: 'context-menu' 
-// Присваиваем блоку наш css класс контекстного меню:             
-})  .css({left: event.pageX+'px', 
-// Задаем позицию меню на X                 
-top: event.pageY+'px' 
-// Задаем позицию меню по Y             
-})             
-.appendTo('body') 
-// Присоединяем наше меню к body документа:             
-.append( // Добавляем пункты меню:                  
-//$('<ul/>').append('<li><a href="/client/invoice/'+ iid +'/delete/" onclick="return confirm("Видалити запис?")">Видалити</a></li>')
-$('<ul/>').append('<li><a href="/client/invoice/'+ iid +'/delete/" onclick="return confirm('+ "'Видалити запис?'" +');">Видалити</a></li>')
-.append('<li><a href="/client/invoice/'+ iid +'/edit">Редагувати</a></li>')
-.append('<li><a href="/client/invoice/catalog/'+ cat_id +'/add/">Продати ще</a></li>')
-//.append('<li><a href="/client/invoice/return/'+ iid +'/add/">Обмін/Повернення</a></li>')
-.append('<li><a href="#" onclick="show_ret();return false">Обмін/Повернення</a></li>')
-.append('<li><a href="#" onclick="show_client();return false">Змінити клієнта/кількість</a></li>')
-).show('fast'); 
-// Показываем меню с небольшим стандартным эффектом jQuery. Как раз очень хорошо подходит для меню   
-//}
-     });
-
 {% if request.user|has_group:"admin" %}
 $("#show_profit").click(function(){
 	$(".profit").toggle();
 });
 {% endif %}
 
+{% if request.user|has_group:"admin" %}
+$("#show_date").click(function(){
+	$(".operate_date").toggle();
+});
+{% endif %}
+
 });
 
 
-function show_ret() {
-	$( "#dialog_return" ).dialog("open");
+function show_ret(ciid, item) {
+	//iid = $(this).attr("tvalue");
+	iid = ciid
+	console.log("Catalog = " + $(item).parents('tr').find('td.cat_name').html())// > td.cat_name').html() );
+	$("#dialog_return").attr("id_target", iid);
+	$("#dialog_return").dialog("open");
+	//$("ui-id-2").attr("html", "New title");
+	//document.getElementById("ui-id-2").innerHTML = "Повернення: " + ""
+	$("#ui-id-2").html("Повернення: " + $(item).parents('tr').find('td.cat_name').html());
 }
 
 
@@ -596,6 +395,39 @@ function show_client() {
 function calc_sum() {
 	var dsum = $("#sp_count").val() * $("#dialog_return").attr("price");  
 	$("#print_sum").html("Сума: " + dsum);
+}
+
+function change_count(item){
+/*	console.log("TR = " + item.tagName); 
+	console.log("ATTR = " + $(item).parents('tr').attr('ci_id'));
+	console.log("ATTR count = " + $(item).html()); */
+	//console.log("ATTR = " + $(item).parents('td').parents('tr').attr('ci_id'));
+	var rcount, pk
+	pk = $(item).parents('tr').attr('cat_id');
+	rcount = $(item).html();
+	
+$.ajax({
+    type: "POST",
+    	//url: "/catalog/" + $(item).parents('tr').attr('ci_id') + "/update/count/",
+    	url: "{% url 'cat_set_attr' %}",
+	    data: {id:  pk, count: rcount},
+	    dataType : 'json',
+	    success:function(json){
+	    	if (json['status'] == true) {
+//				console.log("Кількість змінено");
+				$(item).hide();
+	    	}
+	   		else {
+	   			console.log('JSON = ' + json['error'] + ' STATUS = ' + json['status'] );
+	   		    alert("Помилка: " + json['msg']);
+	   		}
+	    },
+	    error:function(){
+	    	alert("При відправці виникли проблеми");
+	    }
+
+});
+	
 }
 
 </script>
@@ -627,7 +459,7 @@ function calc_sum() {
 </h2>    
 {% endif %}
 
-    <h1>Список проданого товару [{{sel_day}}/{{sel_month}}/{{sel_year}}] <span id="clear_basket"><img src="/media/images/Ecommerce Return.ico" width="32" height="32"> </span> </h1> 
+<h1><span class="badge badge-dark">Список проданого товару</span> <span class="badge badge-info" id="show_date">{{sel_day}}/{{sel_month}}/{{sel_year}}</span> <span id="clear_basket"><img src="/media/images/Ecommerce Return.ico" title="видалити всі відмічені" width="32" height="32" data-toggle="tooltip" data-html="true" data-placement="right"> </span> </h1> 
     
 <form action="/payform/" method="post" name="formSum">   
 
@@ -661,23 +493,20 @@ function calc_sum() {
     <table border="1" id="iTable" class = "table table-bordered table-hover table-condensed">
 	<tr>
     	<th>#</th>	
-    	<th>ID 
-		</th>
     	<th>Клієнт</th>
     	<th>Назва компонента</th>
     	<th>К-ть</th>
     	<th id="show_profit">Ціна</th>
     	<th class="profit">Profit</th>
     	<th>Сума</th>
-    	<th>Валюта</th>
+{#    	<th>Валюта</th> #}
     	<th data-toggle="tooltip" data-placement="right" title="Знижка %">%</th>    	
-    	<th>Оплата</th>    	    	
-    	<th>Дата</th>
+{#    	<th>Оплата</th> #}    	    	
+    	<th class="operate_date">Дата</th>
     	<th>Опис</th>
-    	<th>Дія</th>
+    	<th>Дія <input type="checkbox" id="maincheck" checked /> </th>
     	<th><input type="submit" value="Оплата"><div id="for_pay" style="COLOR: red" BGCOLOR="#D5FFB4"></div></th>
     	<th>Зал.
-    	<input type="checkbox" name="maincheck" id="maincheck"/>
     	</th>
     </tr>
     
@@ -691,16 +520,13 @@ function calc_sum() {
 <tr class="reserv" ci_id="{{type.id}}" cat_id="{{type.catalog.pk}}" count="{{type.count}}">
 {% endifequal %}
 
-	<td data-toggle="tooltip" data-placement="right" title="Створено користувачем {{type.user.username}}">
+	<td data-toggle="tooltip" data-placement="right" title="Створено користувачем <br> {{type.user.username}}" data-html="true">
 	{{forloop.counter}}
 <!-- 
 	<abbr title="Створено користувачем {{type.user.username}}" rel="tooltip">
 	{{forloop.counter}}
 	</abbr>
  -->	
-	</td>
-	<td>       
-    <a href="/client/invoice/{{type.id}}/edit">{{type.id}}</a>
 	</td>
 	<td class="client">
 	<a href="/client/result/search/?id={{type.client.id}}">
@@ -729,35 +555,40 @@ function calc_sum() {
 	<td class="tsum">       
 	{{type.sum}}     
 	</td>
-	<td>       
-	{{type.currency.name}}
-	</td>
+{#	<td>	{{type.currency.name}}	</td> #}
 	<td align="center" title="Економія склала {{type.get_client_profit}} грн.">       
 	{{type.sale}}
 	</td>
-	<td class="tpay">       
-	{{type.pay}}
-	</td>	
-	<td> 
+{#	<td class="tpay">       	{{type.pay}}	</td> #}	
+	<td class="operate_date"> 
 	{{type.date|date:'d-m-Y H:i' }}
 	</td>
 	<td>
 	{{type.description}}
 	</td>
-	<td class="operation" onclick="event.cancelBubble=true;">
-	<img src="/media/images/Actions-system-run-icon.png" width="32px">
-	<ul class="menu">
-  <li>Повернення</li>
-  <li>Видалення
-    <ul>
-      <li>Item 3-1</li>
-      <li>Редагування</li>
-    </ul>
-  </li>
-</ul>
-{#    <a href="/client/invoice/{{type.id}}/delete/" onclick="return confirm('Видалити запис?')">delete</a> #}
+<td>
+<div class="btn-group dropleft">
+  <a type="button" class="btn btn-success" href="/client/invoice/{{type.id}}/edit" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="left"><i class="material-icons">edit</i></a>
+  <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    <span class="sr-only">Toggle Dropdown</span>
+  </button>
+  <div class="dropdown-menu">
+<a class="dropdown-item" href="/client/invoice/{{type.id}}/delete/" onclick="return confirm('+ "'Видалити запис?'" +');">Видалити</a>
+<a class="dropdown-item" href="/client/invoice/{{type.id}}/edit">Редагувати</a>
+<a class="dropdown-item" href="/client/invoice/catalog/{{type.catalog.id}}/add/">Продати ще</a>
+{#<a class="dropdown-item" href="/client/invoice/return/{{type.id}}/add/">Обмін/Повернення</a>#}
+<a class="dropdown-item" href="#" onclick="show_ret(ciid={{type.id}}, this);return false">Обмін/Повернення</a>
+<a class="dropdown-item" href="#" onclick="show_client();return false">Змінити клієнта/кількість</a>
+  
+{#    <div class="dropdown-divider"></div> #}
+{#    <a class="dropdown-item" href="#">Separated link</a> #}
+    
+  </div>
+</div>
+	
     </td>
     <td align="center">
+    
 <!-- 	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{type.sum}}" onclick="resWorkshop()"/>
  -->	
 
@@ -773,20 +604,22 @@ function calc_sum() {
 	</td>
 	
 	{% if type.catalog.get_realshop_count == type.catalog.count %}
-	<td align="center" title="Ящик номер: {{type.catalog.locality}}">
+	<td align="center" title="Ящик номер: {{type.catalog.locality}}" data-toggle="tooltip" data-html="true" data-placement="left">
 	{% else %}
-	<td align="center" bgcolor="yellow" title="Ящик номер: {{type.catalog.locality}}">
-	({{type.catalog.get_realshop_count}})
+	<td align="center" bgcolor="yellow" title="Ящик номер: {{type.catalog.locality}}" data-toggle="tooltip" data-html="true" data-placement="left">
+	<span class="badge badge-pill badge-warning" onclick="change_count(this)">{{type.catalog.get_realshop_count}}</span>
 	{% endif %}
-{#	<abbr title="Ящик номер: {{type.catalog.locality}}" style="display: inline;" rel="tooltip"> 	</abbr> #} 
-	{{type.catalog.count}} {# [{{type.catalog.get_invoice_count}} - {{type.catalog.get_clientinvoice_count}}] #}  
+ 
+	{{type.catalog.count}} 
+
+
 	</td>
 </tr>
 {% endfor %}         
 
     	<tr>
     	<th></th>	
-    	<th></th>
+    	
     	<th></th>
     	<th>Загальна кількість проданих товарів:</th>
     	<th>{{countall}}</th>
@@ -794,9 +627,9 @@ function calc_sum() {
     	<th class="profit">{% if perms.accounting.add_preorder %} {{sum_profit|floatformat:"2"}} {% endif %}</th>
     	<th>{{sumall}}</th>
     	<th>грн.</th>
-    	<th></th>
-    	<th></th>
-    	<th></th>
+    	
+
+    	<th class="operate_date"></th>
     	<th></th>
     	<th></th>
     	<th><input type="submit" value="E-mail" name="send_check"></th>
