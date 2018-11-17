@@ -9,7 +9,6 @@
     <link rel="stylesheet" type="text/css" href="/media/css/table.css"> 
 {#    <link rel="stylesheet" type="text/css" href="/media/css/tooltip.css"> #}
 
-
 {# <link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" /> #}
 {# <script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script> #}
 
@@ -88,6 +87,7 @@ for(var i = 0; i < All.elements.length; ++i) {
 $(document).ready( function() {
 
 $('[data-toggle="tooltip"]').tooltip();
+$(".op_datetime").hide();
 
 // $('#maincheck').prop('checked', true);
 
@@ -459,10 +459,50 @@ $.ajax({
 </h2>    
 {% endif %}
 
-<h1><span class="badge badge-dark">Список проданого товару</span> <span class="badge badge-info" id="show_date">{{sel_day}}/{{sel_month}}/{{sel_year}}</span> <span id="clear_basket"><img src="/media/images/Ecommerce Return.ico" title="видалити всі відмічені" width="32" height="32" data-toggle="tooltip" data-html="true" data-placement="right"> </span> </h1> 
-    
-<form action="/payform/" method="post" name="formSum">   
+<form action="/payform/" method="post" name="formSum">
 
+{% comment %} 
+<div class="row">
+  <div class="col-8 p-2"> 
+<h1><span class="badge badge-dark">Список проданого товару</span> <span class="badge badge-info" id="show_date">{{sel_day}}/{{sel_month}}/{{sel_year}}</span> <span id="clear_basket"><img src="/media/images/Ecommerce Return.ico" title="видалити всі відмічені" width="32" height="32" data-toggle="tooltip" data-html="true" data-placement="right"> </span> </h1> 
+</div>
+ 
+ <div class="col-4">
+  <div class="input-group mb-3">
+  <div class="input-group-prepend">
+  	<span id="for_pay1" style="COLOR: red" class="input-group-text font-weight-bold" >2133</span>
+    <span class="input-group-text" id="basic-addon1">Грн.</span>
+  </div>
+ <input type="submit" value="Оплата" type="button" class="btn btn-warning font-weight-bold">
+{# <input type="submit" value="E-mail" name="send_check"> #}
+</div>
+
+ <h5 id="for_pay" class="font-weight-bold" style="COLOR: red" ></h5>
+ <input type="submit" value="Оплата" type="button" class="btn btn-warning font-weight-bold">
+ <input type="submit" value="E-mail" name="send_check">
+ </div>    
+</div>
+{% endcomment %}
+
+<div class="d-flex">
+   <div class="mr-auto">
+   <h1><span class="badge badge-dark">Список проданого товару</span> <span class="badge badge-info" id="show_date">{{sel_day}}/{{sel_month}}/{{sel_year}}</span> <span id="clear_basket"><img src="/media/images/Ecommerce Return.ico" title="видалити всі відмічені" width="32" height="32" data-toggle="tooltip" data-html="true" data-placement="right"> </span> </h1>
+   </div>
+   
+ <div class="ml-auto">
+  <div class="input-group ">
+  <div class="input-group-prepend">
+  	<span id="for_pay" style="COLOR: red" class="input-group-text font-weight-bold" >2133</span>
+    <span class="input-group-text" id="basic-addon1">Грн.</span>
+  </div>
+ <input type="submit" value="Оплата" type="button" class="btn btn-warning font-weight-bold">
+{# <input type="submit" value="E-mail" name="send_check"> #} 
+</div>
+    
+ </div>
+</div>
+
+<!-- ДІАЛОГИ Begin -->
 <div id="dialog_client" title="Змінити клієнта" id_target="">
 <label>Клієнт</label>
 <input id="client_name" value="" style="width: 350px;">
@@ -489,6 +529,8 @@ $.ajax({
 <input type="checkbox" id="sp_cash" >
 <label id="print_sum" class="ressum">Сума:</label>
 </div>
+<!-- ДІАЛОГИ End -->
+
 
     <table border="1" id="iTable" class = "table table-bordered table-hover table-condensed">
 	<tr>
@@ -502,10 +544,13 @@ $.ajax({
 {#    	<th>Валюта</th> #}
     	<th data-toggle="tooltip" data-placement="right" title="Знижка %">%</th>    	
 {#    	<th>Оплата</th> #}    	    	
-    	<th class="operate_date">Дата</th>
+    	<th class="operate_date">Час</th>
     	<th>Опис</th>
-    	<th>Дія <input type="checkbox" id="maincheck" checked /> </th>
-    	<th><input type="submit" value="Оплата"><div id="for_pay" style="COLOR: red" BGCOLOR="#D5FFB4"></div></th>
+    	<th>Дія  </th>
+    	<th>
+    	<input type="checkbox" id="maincheck" checked />
+    	{#<input type="submit" value="Оплата"><div id="for_pay" style="COLOR: red" BGCOLOR="#D5FFB4"></div>#}
+    	</th>
     	<th>Зал.
     	</th>
     </tr>
@@ -560,8 +605,9 @@ $.ajax({
 	{{type.sale}}
 	</td>
 {#	<td class="tpay">       	{{type.pay}}	</td> #}	
-	<td class="operate_date"> 
-	{{type.date|date:'d-m-Y H:i' }}
+	<td class="operate_date">
+	<label class="op_datetime">{{type.date|date:'d.m.Y H:i' }}</label> 
+	{{type.date|date:'H:i' }}
 	</td>
 	<td>
 	{{type.description}}
@@ -627,12 +673,10 @@ $.ajax({
     	<th class="profit">{% if perms.accounting.add_preorder %} {{sum_profit|floatformat:"2"}} {% endif %}</th>
     	<th>{{sumall}}</th>
     	<th>грн.</th>
-    	
-
     	<th class="operate_date"></th>
     	<th></th>
-    	<th></th>
     	<th><input type="submit" value="E-mail" name="send_check"></th>
+    	<th>   	</th>
     	<th></th>
     </tr>
     

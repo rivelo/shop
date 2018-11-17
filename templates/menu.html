@@ -1,5 +1,6 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="/media/menu.css">
 <script language="javascript" src="/media/menu.js" type="text/javascript"></script>
 
@@ -78,11 +79,11 @@ $(document).ready(function() {
 	<li class="nav-item dropdown">
 		<a class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" href="#">Робота з клієнтами</a>
 		<div class="dropdown-menu" aria-labelledby="navbarDropdown">
-			<a class="dropdown-item" href="/client/add/">Створити нового клієнта</a>
-			<a class="dropdown-item" href="/client/search/">Пошук клієнта</a>
+			<a class="dropdown-item" href="/client/add/"><i class="material-icons">person_add</i> Створити нового клієнта</a>
+			<a class="dropdown-item" href="/client/search/"><i class="material-icons">search</i> Пошук клієнта</a>
 		<div class="dropdown-divider"></div>			
 			<a class="dropdown-item" href="/clientmessage/list/">Повідомлення для клієнтів</a>
-			<a class="dropdown-item" href="/client/view/">Клієнти</a>
+			<a class="dropdown-item" href="/client/view/"><i class="material-icons">people</i> Клієнти</a>
 			<a class="dropdown-item" href="/client/email/view/">Клієнти з Email</a>
 			<a class="dropdown-item" href="/client/join/">Обєднання клієнтів</a>
 		<div class="dropdown-divider"></div>
@@ -155,7 +156,7 @@ $(document).ready(function() {
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
        		<a class="dropdown-item" href="/invoice/manufacture/view/">Вибірка по виробнику</a>
        		<a class="dropdown-item" href="/invoice/category/view/">Вибірка по категоріях</a>
-       		<a class="dropdown-item" href="/client/invoice/view/">Проданий товар</a>
+       		<a class="dropdown-item" href="/client/invoice/view/"><i class="material-icons">shopping_cart</i> Проданий товар</a>
         <div class="dropdown-divider"></div>        
   			<a class="dropdown-item" href="/shop/price/print/list/">Черга цінників для друку</a>
 			<a class="dropdown-item" href="/shop/price/print/view/">Цінники для друку</a>	
@@ -163,12 +164,12 @@ $(document).ready(function() {
 			<a class="dropdown-item" href="/shop/price/company/12/view/">Цінники по виробнику</a>
         <div class="dropdown-divider"></div>
 			<a class="dropdown-item" href="/client/invoice/return/list/">Повернений товар</a>
-       		<a class="dropdown-item" href="/invoice/price/update/1/view/">Оновлені товари</a>
-       		<a class="dropdown-item" href="/invoice/enddate/list/">Товари з терміном</a>
-       		<a class="dropdown-item" href="/invoice/search/">Пошук наявного товару</a>
+       		<a class="dropdown-item" href="/invoice/price/update/1/view/"><i class="material-icons">update</i> Оновлені товари</a>
+       		<a class="dropdown-item" href="/invoice/enddate/list/"><i class="material-icons">calendar_today</i> Товари з терміном</a>
+       		<a class="dropdown-item" href="/invoice/search/"><i class="material-icons">search</i> Пошук наявного товару</a>
 {#       		<a class="dropdown-item" href="/invoice/list/10/view/">Наявний товар 10 останніх</a> #}
        		<a class="dropdown-item" href="/invoice/sale/list/">Товари зі ЗНИЖКАми</a>
-       		<a class="dropdown-item" href="/dealer/invoice/new/">Нові надходження</a>
+       		<a class="dropdown-item" href="/dealer/invoice/new/"><i class="material-icons">local_shipping</i> Нові надходження</a>
        		
 		</div>	       		
       </li>
@@ -178,11 +179,11 @@ $(document).ready(function() {
           Майстерня
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-			<a class="dropdown-item" href="/workshop/add/">Додати роботу</a>
-  			<a class="dropdown-item" href="/workshop/view/">Виконані роботи</a>		
-			<a class="dropdown-item" href="/workticket/view/">Заявки</a>   
+			<a class="dropdown-item" href="/workshop/add/"><i class="material-icons">queue</i> Додати роботу</a>
+  			<a class="dropdown-item" href="/workshop/view/"><i class="material-icons">build</i> Виконані роботи</a>		
+			<a class="dropdown-item" href="/workticket/view/"><i class="material-icons">assignment</i>Заявки</a>   
 		<div class="dropdown-divider"></div>
-			<a class="dropdown-item" href="/workshop/price/list/">Прайс майстерні</a>
+			<a class="dropdown-item" href="/workshop/price/list/"><i class="material-icons">view_list</i> Прайс майстерні</a>
 		<div class="dropdown-divider"></div>			
 			<a class="dropdown-item" href="/workgroup/view/">Групи робіт</a>
 			<a class="dropdown-item" href="/worktype/view/">Види робіт</a>
@@ -206,8 +207,8 @@ $(document).ready(function() {
           Замовлення
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-			<a class="dropdown-item" href="/client/order/add/">Замовити</a>
-			<a class="dropdown-item" href="/client/order/view/">Список замовлених запчастин</a>
+			<a class="dropdown-item" href="/client/order/add/"><i class="material-icons">library_add</i> Замовити</a>
+			<a class="dropdown-item" href="/client/order/view/"><i class="material-icons">reorder</i> Список замовлених запчастин</a>
 		</div>	       		
       </li>
 
@@ -219,7 +220,7 @@ $(document).ready(function() {
 			<a class="dropdown-item" href="/storage/boxes/list/">Список ящиків</a>
        		<a class="dropdown-item" href="/catalog/search/locality/">Назва ящика</a>
        		<a class="dropdown-item" href="/storage/boxes/">Список товарів по ящиках</a>
-       		<a class="dropdown-item" href="/inventory/list/">Інвентеризація</a>
+       		<a class="dropdown-item" href="/inventory/list/"><i class="material-icons">assignment</i> Інвентеризація</a>
        		<a class="dropdown-item" href="/inventory/mistake/list/">Помилки</a>
        		<a class="dropdown-item" href="/inventory/mistake/not/all/list/">Не закриті</a>
 {% if request.user|has_group:"admin" %}
@@ -264,7 +265,7 @@ $(document).ready(function() {
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
 			<a class="dropdown-item" href="/report/sales/user/report/">Продажі за місяць</a>
  			<a class="dropdown-item" href="/report/workshop/byuser/">Роботи за місяць</a>
- 			<a class="dropdown-item" href="/shop/sale/day/add/">Денна каса</a>
+ 			<a class="dropdown-item" href="/shop/sale/day/add/"><i class="material-icons">query_builder</i> Денна каса</a>
  			<a class="dropdown-item" href="/shop/sale/view/">Денна каса (за місяць)</a>
 		</div>	       		
       </li>
@@ -285,15 +286,15 @@ $(document).ready(function() {
          Report's
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-			<a class="dropdown-item" href="/shop/sale/month/view/">Оборот коштів за місяць</a>
+			<a class="dropdown-item" href="/shop/sale/month/view/"><i class="material-icons">poll</i> Оборот коштів за місяць</a>
 			<a class="dropdown-item" href="/invoice/all/report/">Сума по наявному товару</a>
 			<a class="dropdown-item" href="/client/invoice/report/">Сума проданих аксесуарів по місяцях</a>
 			<a class="dropdown-item" href="/bicycle-store/all/view/seller/" >Всі велосипеди в магазині</a>
 		<div class="dropdown-divider"></div>			
-			<a class="dropdown-item" href="/report/salary/all_user/">Зарплата by USer</a>
+			<a class="dropdown-item" href="/report/salary/all_user/"><i class="material-icons">monetization_on</i> Зарплата by USer</a>
 			<a class="dropdown-item" href="/workday/user/all/report/">Робочі дні by USer</a>
 		<div class="dropdown-divider"></div>
-			<a class="dropdown-item" href="/shop/sale/day/add/">Денна каса</a>
+			<a class="dropdown-item" href="/shop/sale/day/add/"><i class="material-icons">query_builder</i> Денна каса</a>
 			<a class="dropdown-item" href="/shop/sale/view/">Денна каса (за місяць)</a>
 		<div class="dropdown-divider"></div>			
 			<a class="dropdown-item" href="/dealer/invoice/miss/">Нові надходження (помилки)</a>

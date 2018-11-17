@@ -4,6 +4,7 @@
 <head>
 <title>{{company_name|capfirst}}{{category_name|capfirst}} - Наявний товар</title>
 
+
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
 <link rel="stylesheet" href="/media/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="/media/css/dataTables.jqueryui.css">
@@ -11,7 +12,9 @@
 {#<link rel="stylesheet" href="/media/css/tooltip.css">#}
 <link rel="stylesheet" href="/media/css/datepicker.min.css">
 <link rel="stylesheet" type="text/css" href="/media/css/table.css">
-  	
+<link rel="stylesheet" href="/media/css/mainstyle.css">
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">  	
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">  	
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/typicons/2.0.7/typicons.min.css" />
 
@@ -34,6 +37,11 @@
 </head>
 
 <style>
+
+.photoModalbutton{
+	cursor: pointer;
+}
+
   .custom-combobox {
     position: relative;
     display: inline-block;
@@ -383,7 +391,10 @@ function update_enddate(pk, date) {
 
 
 $(document).ready(function() {
-    // DataTable
+
+	$('[data-toggle="tooltip"]').tooltip();	
+	
+	// DataTable
     var table = $('#iTable').DataTable({
         "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
         "iDisplayLength": 100,        
@@ -484,6 +495,74 @@ $(document).ready(function() {
       });   
 
     
+	$('.photoModalbutton').on('click', function (e) {
+		$("#photo_url").attr("ids", $(this).attr('pk_catalog'));
+		$('#photoModal').modal('toggle');  
+		$.ajax({
+            type: "POST",
+            url: "/photo/url/get/",
+            data: {id:  $(this).attr('pk_catalog') },
+            dataType: "json",
+            success:function(data){
+
+            var st = JSON.stringify(data);
+			var p = jQuery.parseJSON(st);
+//			console.log("aData = " + data.aData.length);
+			$(".carousel-inner").empty();
+			$(".carousel-indicators").empty();
+			
+			if (data.aData.length > 0) {
+					
+				$("#exampleModalLongTitle").html("Фото - " + p.cname); //aData[0].id); 
+					$.each(p.aData,function(index, item){
+						var item_url
+						if (item.url != null) {
+							item_url = item.url
+							console.log("ITEM_URL = " + item_url);
+						}
+						
+						if (item.local != null) {
+							item_url = item.local
+							console.log("ITEM_URL_Local = " + item_url);
+						}
+						
+						
+						if (index == 0){
+							str_photo = '<div class="carousel-item active"><img id="image_' + index + '" src="'+ item_url + '" class="d-block w-100"></div>'
+							str_indicator = '<li data-target="#carouselExampleIndicators" data-slide-to="' + index + '" class="active"></li>'
+						}
+						else {
+							str_photo = '<div class="carousel-item"><img id="image_' + index + '" src="'+ item_url + '" class="d-block w-100"></div>'
+							str_indicator = '<li data-target="#carouselExampleIndicators" data-slide-to="' + index + '"></li>'
+						}
+						
+//						console.log("APPEND_INDICATOR = " + str_indicator);
+//						console.log("APPEND = " + str_photo);
+						$(".carousel-inner").append(str_photo);
+						$(".carousel-indicators").append(str_indicator);
+					})
+				}
+				else {
+			   		/* $("#photo_url").attr({'ids': p.id});
+			   		$("#dialog_photo_add").dialog({ title: p.cname });
+						$("#dialog_photo_add").dialog("open");
+						
+						$("#photo_url").select();*/
+				}   					
+            },
+            error:function(){
+                alert("При відправці виникли проблеми");
+            }
+        });		
+		
+		});	    
+
+
+ $('.photoAddbutton').on('click', function (e) {    
+	 $('#photoModal').modal('toggle'); 
+	 $("#dialog_photo_add").dialog("open");
+ })
+
     
  $("body").on('click', '#sel_all', function() {
 	var status = $('#sel_all').attr('val')
@@ -1496,6 +1575,45 @@ var table = $('#iTable').DataTable();
 {# <body onload="document.getElementById('tsearch_field').focus()"> #}
 <body> 
 
+<!-- Modal PHOTO -->
+<div class="modal fade" id="photoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Фото: {{form.name.value}}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="m_content">
+
+{# begin ФОТО карусель #}
+<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+  <ol class="carousel-indicators">
+  </ol>
+  <div class="carousel-inner">
+  </div>
+  <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="sr-only">Previous</span>
+  </a>
+  <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="sr-only">Next</span>
+  </a>
+</div>  
+{# end ФОТО карусель #}
+        
+      </div>
+      <div class="modal-footer">  
+      	<button type="button" class="btn btn-success photoAddbutton" title="Додати фото"  data-toggle="tooltip" data-placement="top"><i class="material-icons">add_photo_alternate</i></button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" title="Закрити вікно"  data-toggle="tooltip" data-placement="top">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal PHOTO end -->
+
 <div style="width:300px; float:left;"> 
 <select id="m_combobox">
 <option value="">Select one...</option>
@@ -1515,7 +1633,7 @@ var table = $('#iTable').DataTable();
 </div>
 
 <div style="clear:left;">
-     <h1>Список наявного товару <span id="c_c">({{company_name|capfirst}}{{category_name|capfirst}})</span> 
+     <h1><span class="badge badge-secondary">Список наявного товару</span> <span class="badge badge-info" id="c_c">{{company_name|capfirst}}{{category_name|capfirst}}</span> 
      <span id="b_buy"><img src="/media/images/Ecommerce Buy.ico" width="32" height="32"> </span>
 {% if request.user|has_group:"admin" %}     
      <span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="42" height="42"></span>
@@ -1631,9 +1749,13 @@ var table = $('#iTable').DataTable();
     </tr>
     
     <tr>
-    	<th align="center" >Поч.</th>
-    	<th align="center" >Прод</th>
-    	<th align="center" >Наявність</th>
+    	<th align="center" >
+    	<i class="material-icons" title="Прихід в магазин" data-toggle="tooltip" data-placement="top">local_shipping</i>
+    	</th>
+    	<th align="center" title="Продажі" data-toggle="tooltip" data-placement="top">
+    	<i class="material-icons">transfer_within_a_station</i>
+    	</th>
+    	<th align="center" title="Наявність в магазині" data-toggle="tooltip" data-placement="top"><i class="material-icons">store_mall_directory</i></th>
     	
     </tr>
     </thead>
@@ -1695,9 +1817,11 @@ var table = $('#iTable').DataTable();
 {% endif %}	
 
 {% if type.photo_url != None %}
-	<img class="c_photo" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/photo_ico_true.png" width="24" height="24">
+{#	<img class="c_photo" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/photo_ico_true.png" width="24" height="24"> #}
+	<span class="photoModalbutton" style="color:#17aa35" pk_catalog={{type.catalog}} title="Фото"  data-toggle="tooltip" data-placement="right"><i class="material-icons">photo_library</i></span>
 {% else %}
-	<img class="c_photo" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/photo_ico.png" width="24" height="24">
+{#	<img class="c_photo" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/photo_ico.png" width="24" height="24"> #}
+	<span class="photoModalbutton" pk_catalog={{type.catalog}} title="Фото"  data-toggle="tooltip" data-placement="right"><i class="material-icons">photo_library</i></span>
 {% endif %}	
 	</td>
 	<td class="c_name">
@@ -1829,7 +1953,7 @@ var table = $('#iTable').DataTable();
     	<th></th>
     	<th></th>
     	<th></th>
-    	<th>Кількість: {{zcount}}</th>
+    	<th>Сума: {{zcount|floatformat}}</th>
     	<th></th>    	
     	<th>{{zsum}} грн.</th>
     	<th></th>

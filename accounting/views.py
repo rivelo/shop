@@ -43,7 +43,6 @@ from django.core import serializers
 
 import pytils_ua
 import urllib
-from django.conf import settings
 
 from django.core.mail import EmailMultiAlternatives
 from urlparse import urlsplit
@@ -2760,7 +2759,7 @@ def catalog_edit(request, id=None):
         form = CatalogForm(instance=a)
     #url=request.META['HTTP_REFERER']
 
-    return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'cat_pk': id, 'catalog_obj': a.photo_url.all(), 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def catalog_list(request, id=None):
@@ -2811,10 +2810,12 @@ def catalog_type_list(request, id):
 
 
 def catalog_delete(request, id):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse('Помилка: У вас не достатньо прав для даної операції.')
     obj = Catalog.objects.get(id=id)
-    #del_logging(obj)
+    del_logging(obj)
     obj.delete()
-    return HttpResponseRedirect('/catalog/search/')
+    return HttpResponseRedirect('/catalog/search/id/')
 
 
 def catalog_search_id(request):
@@ -2870,11 +2871,6 @@ def catalog_lookup(request):
                 
     return HttpResponse(data)    
     #return HttpResponse(json)
-
-
-def photo_list(request):
-    list = Photo.objects.all().values('user', 'date', 'url', 'catalog__name', 'catalog__id', 'catalog__ids', 'user__username', 'id').order_by('-date')
-    return render_to_response('index.html', {'weblink': 'photo_list.html', 'list': list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def catalog_get_locality(request):
@@ -5731,9 +5727,8 @@ def client_payform(request):
             list_id.append( int(id.replace('checkbox_', '')) )
         ci = ClientInvoice.objects.filter(id__in=list_id)
         client = ci[0].client
-
-# Без друку касового чеку
-        
+       
+#--------- Begin section to send data to CASA ---------
         try: 
             base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
             data =  {"cmd": "get_status"}
@@ -5754,6 +5749,36 @@ def client_payform(request):
             
     else:
         return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext':'Не вибрано жодного товару', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+# Без друку касового чеку
+    print_check = request.POST.get("print_check", False)
+    if print_check == False:
+        if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
+            if client.id == settings.CLIENT_UNKNOWN:
+                if (float(request.POST['pay']) + float(request.POST['pay_terminal']) < sum):
+                #return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8");
+                    return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': "Невідомий клієнт не може мати борг"}, context_instance=RequestContext(request, processors=[custom_proc]))
+        
+        if 'pay' in request.POST and request.POST['pay']:
+            pay = request.POST['pay']
+            cash_type = CashType.objects.get(id = 1) # готівка
+            if float(request.POST['pay']) != 0:
+                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
+                ccred.save()
+        if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
+            pay = request.POST['pay_terminal']
+            cash_type = CashType.objects.get(id = 2) # термінал
+            if float(request.POST['pay_terminal']) != 0:
+                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
+                ccred.save()
+    
+        cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
+        cdeb.save()
+        if client.id == settings.CLIENT_UNKNOWN:
+            return HttpResponseRedirect('/client/invoice/view/')
+        url = '/client/result/search/?id=' + str(client.id)
+        return HttpResponseRedirect(url)
+
 
     if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
         if client.id == settings.CLIENT_UNKNOWN:
@@ -6528,7 +6553,58 @@ def photo_url_add(request):
     return HttpResponse(search, content_type="text/plain")
 
 
-def photo_url_get(request):
+import StringIO, requests, os
+from PIL import Image
+from django.utils.text import slugify
+
+def retrieve_image(url):
+    response = requests.get(url)
+    return StringIO.StringIO(response.content)
+
+def save_photo_local(obj, url, d_url, file_path, filename):
+    try:
+        ri = retrieve_image(url)
+        image = Image.open(ri)
+        print "Django FileName = " + d_url + filename
+        #obj.local = filename
+        print "FileName = " + filename
+        if os.path.isfile(file_path + filename):
+            print "isFile = True"
+            obj.local = d_url + filename
+            obj.save()
+            tempfile = file_path + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:]
+            print "Image OBJ = " + tempfile
+            im1 = Image.open(file_path + filename)
+            image.save(file_path + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:], 'JPEG')
+            #image.save('c:\svn\catalog\catalog\media/download/398292-305.jpg', 'JPEG')
+            im2 = Image.open(tempfile)
+            print "image file = " + file_path + filename
+            if im1 == im2: 
+                print "File is SAME/equal"
+                os.remove(tempfile)
+            else:
+                print "Save another file..."+ file_path + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:]
+                image.save(file_path + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:], 'JPEG')
+                obj.local = d_url + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:]
+                obj.save()
+                pass
+            return False
+        else:
+            image.save(file_path + filename, 'JPEG')
+            obj.local = d_url + filename  
+            obj.www = url
+            obj.save()
+            print "File save = " + file_path +  filename
+            return obj
+        
+    except:
+        print "EXCEPT save_photo_local"
+        pass
+
+    return obj
+
+
+def photo_url_get(request, id=None):
     if request.is_ajax():
         if request.method == 'POST':  
 #            if auth_group(request.user, 'admin')==False:
@@ -6537,22 +6613,221 @@ def photo_url_get(request):
             if POST.has_key('id'):
                 pid = request.POST.get('id')
                 #photo_list = Photo.objects.filter(catalog__id = pid).values_list('url', 'description', 'id')
-                photo_list = Photo.objects.filter(catalog__id = pid).values('url', 'description', 'id')
+                photo_list = Photo.objects.filter(catalog__id = pid).values('url', 'www', 'local', 'description', 'id')
                 cat = Catalog.objects.get(id = pid)
                 c_name = "[" + cat.ids + "] - " + cat.name
                 try:
                     json = simplejson.dumps({'aData': list(photo_list), 'id': pid, 'cname': c_name})
                 except:
                     json = simplejson.dumps({'aData': "None", 'id': pid, 'cname': c_name})
-#                json = simplejson.dumps(photo_list)
 
+        return HttpResponse(json, content_type='application/json')
+    else:
+        #id = request.POST.get('id')
+        obj = Photo.objects.get(pk = id)
+        bset = obj.bicycle_set.all()
+        cat_set = obj.catalog_set.all()
+        str_cat = ''
+        str_bike = ''
+        for cat in cat_set:
+            str_cat = str_cat + str(cat.pk) + "["+ str(cat.ids) +"] | " 
+        for bike in bset:            
+            str_bike = str_bike + str(bike.pk)
+        
+        status_cat = cat_set.exists()
+        status_bike = bset.exists()
+        
+        o_url = ''
+        if obj.url == "":
+            o_url = obj.www
+        if obj.www == None:
+            o_url = obj.url
+        else:
+            o_url = obj.www
+        print "oURL = " + o_url
+        print "oWwww = " + str(obj.www)
+        print "obj_url = " + obj.url
+        print "olocal = " + (str(obj.local) or "")
+
+        file_path = settings.MEDIA_ROOT + 'download/'
+        filetype = ".jpg"
+        media = settings.MEDIA_URL + 'download/'
+        print "file_path = " + file_path
+        filename = ''
+        dirname_glob = settings.PROJECT_DIR
+
+        if (not status_cat) and (not status_bike):
+            filename = "new-file-" + str(obj.pk)
+        if (status_cat) and (not status_bike):
+            filename = cat_set[0].ids
+            filename = slugify(filename)
+        if (not status_cat) and (status_bike):            
+            filename = bset[0].id
+            filename = slugify(filename)
+        print "File name = " + filename + filetype
+        print "Local path = " + dirname_glob[:-1]
+        
+        if obj.local == None or obj.local == '':
+            print "Locale = None"
+            save_photo_local(obj, o_url, media, file_path, filename + filetype)            
+#            return HttpResponse("Local NoneType")
+            str_obj = "<img style='max-width:500px' src='" + str(o_url) + "'> <br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + obj.url + "<br>local = " + (str(obj.local) or "") + "  <br>  www = " + str(obj.www)
+            return HttpResponse(str_obj)
+        
+        print "Local path + obj = " + dirname_glob[:-1] + obj.local
+        if (obj.local <> '') and (os.path.isfile(dirname_glob[:-1] + obj.local)):
+            #print "File LOCAL exists = " + str(settings.MEDIA_ROOT + obj.local)
+            print "File Local exists = " + dirname_glob[:-1] + obj.local
+            #obj.local = ''
+            #obj.save()
+            str_obj = "<img style='max-width:500px' src='" + (str(obj.local) or "") + "'> <br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + obj.url + "<br>local = " + (str(obj.local) or "") + "  <br>  www = " + str(obj.www)
+            return HttpResponse(str_obj)
+
+        if ((obj.local <> '') and (not os.path.isfile(dirname_glob[:-1] + obj.local)) and (o_url <> '')):
+            print "Local var is False"
+            save_photo_local(obj, o_url, media, file_path, filename + filetype)
+
+        print "LAST return"
+        str_obj = "<img style='max-width:500px' src='" + (str(obj.local) or "") + "'> <br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + obj.url + "<br>local = " + (str(obj.local) or "") + "  <br>  www = " + str(obj.www)
+        #str_obj = "<img style='max-width:500px' src='"+ str(obj.local) or "" + "'><br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + str(obj.url) or "" + "<br>local = " + str(obj.local) or "" + "  <br>  www = " + str(obj.www) or ""  
+        return HttpResponse(str_obj) 
+
+
+def change_photo_url(obj_photo):
+    obj = obj_photo 
+#    Photo.objects.get(pk = id)
+    bset = obj.bicycle_set.all()
+    cat_set = obj.catalog_set.all()
+    str_cat = ''
+    str_bike = ''
+    status_cat = cat_set.exists()
+    status_bike = bset.exists()
+    o_url = ''
+    if obj.url == "":
+        o_url = obj.www
+    if obj.www == None:
+        o_url = obj.url
+    else:
+        o_url = obj.www
+    print "oURL = " + o_url
+
+    file_path = settings.MEDIA_ROOT + 'download/'
+    filetype = ".jpg"
+    media = settings.MEDIA_URL + 'download/'
+    print "file_path = " + file_path
+    filename = ''
+    dirname_glob = settings.PROJECT_DIR
+
+    if (not status_cat) and (not status_bike):
+        filename = "new-file-" + str(obj.pk)
+    if (status_cat) and (not status_bike):
+        filename = cat_set[0].ids
+        filename = slugify(filename)
+    if (not status_cat) and (status_bike):            
+        filename = bset[0].id
+        filename = slugify(unicode(str(filename), "utf-8"))
+    if obj.local == None or obj.local == '':
+        print "Locale = None"
+        save_photo_local(obj, o_url, media, file_path, filename + filetype)            
+        return True
+
+    if (obj.local <> '') and (os.path.isfile(dirname_glob[:-1] + obj.local)):
+        print "File Local exists = " + dirname_glob[:-1] + obj.local
+        return True
+
+    if ((obj.local <> '') and (not os.path.isfile(dirname_glob[:-1] + obj.local)) and (o_url <> '')):
+        print "Local var is False"
+        save_photo_local(obj, o_url, media, file_path, filename + filetype)
+
+    print "LAST return"
+    return True
+
+
+def photo_del_field(request):
+    if auth_group(request.user, 'admin')==False:
+        #return HttpResponse('Error: У вас не має прав для редагування')
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('id'):
+                pid = request.POST.get('id')
+                try:
+                    photo = Photo.objects.get(pk = pid)    
+                    if POST.has_key('local'):
+                        local = request.POST.get('local')
+                        loc = photo.local
+                        photo.local = ''
+                        photo.save()
+                        msg = 'Фото '+ str(loc) +' видалено'
+                        json = simplejson.dumps({'status': True, 'msg': msg})
+                        return HttpResponse(json, content_type='application/json')
+                    if POST.has_key('www'):
+                        www = request.POST.get('www')
+                        www = photo.www
+                        photo.www = None
+                        photo.save()
+                        msg = 'Фото '+ '['+str(photo.pk)+'] ' + str(www) +' видалено'
+                        json = simplejson.dumps({'status': True, 'msg': msg})
+                        return HttpResponse(json, content_type='application/json')
+                    if POST.has_key('url'):
+                        url = request.POST.get('url')
+                        url = photo.url
+                        photo.url = ''
+                        photo.save()
+                        msg = 'Фото '+'['+str(photo.pk)+'] ' + str(url) +' видалено'
+                        json = simplejson.dumps({'status': True, 'msg': msg})
+                        return HttpResponse(json, content_type='application/json')
+                    
+                except:
+                    json = simplejson.dumps({'status': False, 'msg': u'Ajax: Photo get ERRROR'})
+                    return HttpResponse(json, content_type='application/json')
+            
+                
+#                    return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Такого фото вже не існує, спробуйте оновити сторінку, та повторіть спробу'}, context_instance=RequestContext(request, processors=[custom_proc]))                    
+    json = simplejson.dumps({'status': False, 'msg': u'Ajax: Щось пішло не так'})
     return HttpResponse(json, content_type='application/json')
 
 
+
+def photo_list(request, show=2):
+    list = None
+    show = int(show)
+    print "PARAM id = " + str(show) + " type = " + str(type(show))     
+    if show == 0: # Show all
+        list = Photo.objects.exclude(catalog = None)
+        #list = Photo.objects.filter(catalog = None)
+    if show == 1: # New record with Catalog connect
+        list = Photo.objects.exclude((Q(www = '') | Q (www = None)) & Q(catalog = None))
+    if show == 2: # New record with Catalog connect        
+        list = Photo.objects.exclude( (Q(www = '') | Q (www = None)) )
+    if show == 3: # Show all who catalog in None
+        list = Photo.objects.filter(catalog = None)
+    if show == 4: # Show all who have URL field
+        list = Photo.objects.exclude( (Q(url = '') | Q (catalog = None)) )
+
+        
+#    list = Photo.objects.filter((Q(www = '') | Q (www = None)) & Q(catalog = None)).values('user', 'date', 'url', 'catalog__name', 'catalog__id', 'catalog__ids', 'user__username', 'id', 'bicycle__model', 'bicycle', 'local', 'www').order_by('-date')
+    for iphoto in list:
+        psts = change_photo_url(iphoto)
+        print "[" + str(iphoto.pk) + "] - "+ str(psts) 
+            
+    return render_to_response('index.html', {'weblink': 'photo_list.html', 'list': list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
 def photo_url_delete(request, id=None):
-    obj = None
     if auth_group(request.user, 'seller')==False:
         return HttpResponseRedirect('/catalog/photo/list/')
+
+    obj = None
+    if (id <> None):
+        try:        
+            obj = Photo.objects.get(pk = id)
+            obj.delete()
+        except:
+            return HttpResponse("Дане фото вже видалене спробуйте інший ID")#, content_type="text/plain")
+                         
     try:
         if request.is_ajax():
             if request.method == 'POST':  
@@ -6567,8 +6842,7 @@ def photo_url_delete(request, id=None):
             obj = Photo.objects.get(id = id)
     except:
         pass
-    del_logging(obj)
-    obj.delete()
+
     return HttpResponseRedirect('/catalog/photo/list/')
     
 
@@ -6779,8 +7053,7 @@ def inventory_get(request):
                 
                 #json = serializers.serialize('json', p_cred_month, fields=('id', 'date', 'price', 'description', 'user', 'user_username'))
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
-        
-    
+
     return HttpResponse(data_c, content_type='application/json')        
 
 
@@ -6804,7 +7077,6 @@ def inventory_get_listid(request):
                 
                 #json = serializers.serialize('json', p_cred_month, fields=('id', 'date', 'price', 'description', 'user', 'user_username'))
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
-        
     
     return HttpResponse(i_list, content_type='application/json')        
 

@@ -103,6 +103,8 @@ EMAIL_HOST_USER = 'velorivne@gmail.com'
 EMAIL_HOST_PASSWORD = 'gvelovelo'
 EMAIL_PORT = 587
 
+
+PROJECT_DIR = os.path.join(dirname, '')
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
 #MEDIA_ROOT = 'd:/develop/catalog/media/'

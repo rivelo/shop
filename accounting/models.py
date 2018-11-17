@@ -11,6 +11,7 @@ from django.db.models import F
 
 from urlparse import urlparse,parse_qs,urlunparse
 from urllib import urlencode
+import httplib
 
 # Group Type = Group for Component category 
 class GroupType(models.Model):
@@ -36,7 +37,9 @@ class Type(models.Model):
     description_ukr = models.CharField(max_length=255, blank=True, null=True)
     bike_order = models.PositiveSmallIntegerField(blank=True, default = 0)
     group = models.ForeignKey(GroupType, blank=True, null=True)
-#    synonym
+    synonym = models.CharField(max_length=255, blank=True, null=True)
+    synonym_ukr = models.CharField(max_length=255, blank=True, null=True)
+    ico_status = models.BooleanField(default=False, verbose_name="Наявність іконки")
 #    icon = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
 #    icon_select = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
     
@@ -132,15 +135,54 @@ class Manufacturer(models.Model):
         ordering = ["name"]    
 
 
+import os.path
+import urllib2
+from django.conf import settings
+
 class Photo(models.Model):
     url = models.CharField(max_length=255)
+    local = models.CharField(max_length=255, blank=True, null=True)
+    www = models.URLField(blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     description = models.TextField(blank=True, null=True)
     #goo_url = models.CharField(max_length=255)
+
+    def image_local_exists(self):
+        path = self.url
+#        domain = urlparse(path).hostname
+        file_path = settings.MEDIA_ROOT        
+        if self.local and os.path.isfile(file_path.split('\media')[0] + self.local):
+            return True
+        else:
+            if self.url <> "":
+                try:
+                    url_obj = urllib2.urlopen(self.url)
+                    return True
+                except:
+                    pass
+                    #return False
+            if self.www <> "":
+                try:
+                    url_obj = urllib2.urlopen(self.url)
+                    return True
+                except:
+                    return False
+
+        return False
+
+    def catalog_show(self):
+        cat_list = self.catalog_set.all()
+        str = ''
+        for cat in cat_list:
+            str = str + "["+cat.ids+"] " + cat.name + "<br>"
+        return str
+
+    def catalog_show_simple(self):
+        return self.catalog_set.all()
     
     def __unicode__(self):
-        return u'%s' % self.url
+        return u'%s %s' % (self.url, self.local) 
 
     class Meta:
         ordering = ["date", "description"]    
@@ -296,6 +338,23 @@ class Catalog(models.Model):
             else:
                 return "через 1-%s дні має приїхати - %s шт." % (days, count)
         return False
+
+    def get_photos(self):
+        photos_list = []
+        if self.photo:
+            photos_list.append(self.photo)
+        if self.photo_url:
+            p_url = self.photo_url.all()
+        for photo in p_url:
+            if photo.local:
+                photos_list.append(photo.local)
+            if photo.url:
+                photos_list.append(photo.url)
+        if photos_list:
+            return photos_list
+        else:
+            return False
+            
         
     def _get_full_name(self):
         p = self.inv_price()
@@ -303,7 +362,7 @@ class Catalog(models.Model):
         if self.price < cprice:
             return "Ahtung!!!"
         return 'Price OK = ' + str(cprice)
-    chk_price = property(_get_full_name)
+    chk_price = property(_get_full_name) # Перевірка на правильність ціни
 
     
     def __unicode__(self):
