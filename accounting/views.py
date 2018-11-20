@@ -7734,7 +7734,7 @@ def discount_add(request):
         POST = request.POST
         
         if form.is_valid():
-            print "POST = " + form.cleaned_data['name']
+#            print "POST = " + form.cleaned_data['name']
             if POST.has_key('name'):
                 name = request.POST['name']
             else:
