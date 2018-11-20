@@ -1,9 +1,15 @@
 python manage.py makemigrations
 python manage.py migrate
 python manage.py migrate --fake
+python manage.py showmigrations
 
 python manage.py validate
 python manage.py sqlall books
+
+django 1.6
+python manage.py migrate music --fake 0011
+python manage.py migrate accounting --list
+
 
 
 /usr/local/lib/python2.5/site-packages/django/bin/django-admin.py startproject cms
@@ -12,7 +18,8 @@ python manage.py syncdb
 # create new project
 python manage.py startapp books 
 
-
+# Проблема з UTF-8 при збереженні
+ALTER TABLE accounting_discount CONVERT TO CHARACTER SET utf8;
 
 CREATE USER user@localhost IDENTIFIED BY "topsecret";
 CREATE DATABASE mysite;
