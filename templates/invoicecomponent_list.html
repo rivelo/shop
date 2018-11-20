@@ -1644,7 +1644,10 @@ var table = $('#iTable').DataTable();
           <span class="badge badge-light">{{yy.1}}</span>
      </a>
      {% endfor %}
+     <span class="badge badge-danger">{{category_name.get_discount.0}}</span>
+{#     <span class="badge badge-warning">{{cat_discount.0}}</span> #}
      </h1>
+      
 </div>
 
 <!-- Dialog print PHPbb -->
@@ -1840,12 +1843,12 @@ var table = $('#iTable').DataTable();
 	
 	</td>
 	<td align="center">
-	<a href="/invoice/catalog/{{type.catalog}}/view/" title="Надходження">
+	<a href="/invoice/catalog/{{type.catalog}}/view/" title="Надходження" data-toggle="tooltip" data-placement="top">
 	{{type.sum_catalog}}
 	</a>
 	</td>
 	<td align="center">
-	<a href="/client/invoice/catalog/{{type.catalog}}/view/" title="Проданий товар">
+	<a href="/client/invoice/catalog/{{type.catalog}}/view/" title="Проданий товар" data-toggle="tooltip" data-placement="top">
 	{{type.c_sale|floatformat }}
 	</a>
 	</td>
@@ -1859,10 +1862,10 @@ var table = $('#iTable').DataTable();
 {% else %}
 		
 {% if type.new_arrival %}
-	<a href="/client/invoice/catalog/{{type.catalog}}/add" title="{{type.new_arrival}}">
+	<a href="/client/invoice/catalog/{{type.catalog}}/add" title="{{type.new_arrival}}" data-toggle="tooltip" data-placement="top">
 	{{ type.balance|floatformat }}
 {% else %}
-	<a href="/client/invoice/catalog/{{type.catalog}}/add" title="Продати товар">
+	<a href="/client/invoice/catalog/{{type.catalog}}/add" title="Продати товар" data-toggle="tooltip" data-placement="top">
 	{{ type.balance|floatformat }}	
 {% endif %}		
 	</a>
@@ -1889,7 +1892,7 @@ var table = $('#iTable').DataTable();
 {% if type.catalog__price = type.catalog__last_price %}
 {{type.catalog__price}} грн.
 {% endif %}
-
+<h5><span class="badge badge-danger">{{type.get_discount|floatformat:"0"}}</span></h5>
 </td>
 {% else %}
 <td align="center" BGCOLOR="#FF6600" class="price_edit" id_price={{type.catalog}}>

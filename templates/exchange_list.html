@@ -1,12 +1,16 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-<link rel="stylesheet" type="text/css" href="/media/css/table.css">
+<head>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="/media/css/table.css"> 
+</head>
 
-    <h1>Курс валют / Exchange rate <a href="/exchange/add/" class="badge badge-success">Додати</a></h1>
+<body>
+    <h1><span class="badge badge-secondary">Курс валют / Exchange rate </span> <a href="/exchange/add/" class="badge badge-success"><i class="material-icons">add_circle_outline</i></a></h1>
     <h2>Долар: {{usd}} / Євро: {{eur}}</h2>
     
-   <table  id="iTable" class = "table table-bordered table-hover table-condensed table-sm" style="width:500px">
+   <table  id="iTable" class = "table table-bordered table-hover table-condensed table-sm" style="width:500px"> 
 	<tr>
     	<th>ID</th>
     	<th>Дата</th>
@@ -36,10 +40,10 @@
         
 {% if user.is_authenticated %}
 		<td class="text-center">        
-            <a href="/exchange/edit/{{ cur.id }}" class="badge badge-success">edit</a>
+            <a href="/exchange/edit/{{ cur.id }}" class="badge badge-success"><i class="material-icons">create</i></a>
         </td>
         <td class="text-center">
-            <a href="/exchange/delete/{{ cur.id }}" class="badge badge-warning">delete</a>
+            <a href="/exchange/delete/{{ cur.id }}" class="badge badge-warning"><i class="material-icons">delete</i></a>
         </td>
 {% endif %}
 		
@@ -47,5 +51,5 @@
     </tr>
     {% endfor %}
     <table>
-
+</body>
 

@@ -12,8 +12,8 @@ from forms import ContactForm, ManufacturerForm, CountryForm, CurencyForm, Categ
 from models import Catalog, Client, ClientDebts, ClientCredits, ClientInvoice, ClientOrder, ClientMessage, ClientReturn, InventoryList
 from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, ClientInvoiceForm, ClientOrderForm, ClientEditForm
 
-from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType
-from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm
+from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType, Discount
+from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm, DiscountForm 
 
 from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus, YouTube
 from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm, WorkShopFormset
@@ -62,13 +62,17 @@ def custom_proc(request):
 
     
 def auth_group(user, group):
-    return True if user.groups.filter(name=group) else False
+    print "USER = " + str(user.groups.all())
+    if user.groups.filter(name=group).exists():
+        print "G = TRUE"
+        return True
+    #return True if user.groups.filter(name=group) else False
 
 
 def current_url(request):
     return request.get_full_path()
 
-
+# old function
 def search(request):
     query = request.GET.get('q', '')
     if query:
@@ -88,16 +92,7 @@ def del_logging(obj):
     file_name = 'test_log'
     log_path = settings.MEDIA_ROOT + 'logs/' + file_name + '.log'
     log_file = open(log_path, 'a')
-    #for s in obj:
-    #    result = result + ' | ' + s 
-    #log_file.write("DELETE FROM TABLE " + table_name + " WHERE id = " + obj.name + "\n")
     log_file.write("%s >>> DELETE FROM TABLE %s WHERE id = %s \n" % (str(datetime.datetime.now()), obj._meta.verbose_name, obj.id) )
-    #obj._meta.object_name
-    #obj._meta.verbose_name
-    #obj.__class__.__name__
-    
-    #for obj_f in obj._meta.get_all_field_names():
-    #    log_file.write("Key %s Value \n" % obj_f)
         
     for f in obj._meta.fields:
         log_file.write("Key = " + f.name + " - ") # field name
@@ -1993,16 +1988,25 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
             new_list.append(element)
             zsum = zsum + (element['balance'] * element['catalog__price'])
             zcount = zcount + element['balance']
-            element['new_arrival'] = Catalog.objects.get(pk = element['catalog']).new_arrival()
-            element['get_realshop_count'] = Catalog.objects.get(pk = element['catalog']).get_realshop_count()
+            cat_obj = Catalog.objects.get(pk = element['catalog'])
+            element['new_arrival'] = cat_obj.new_arrival()
+            element['get_realshop_count'] = cat_obj.get_realshop_count()
+            element['get_discount'] = cat_obj.get_discount()
 #            element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
     
 # update count field in catalog table            
         #upd = Catalog.objects.get(pk = element['catalog'])
         #upd.count = element['balance'] 
         #upd.save()
+    vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'next': current_url(request)}
+#    calendar = embeded_calendar()
+#    cat_discount = cat_name.get_discount()
+#    vars.update({'cat_discount': cat_discount})
     
-    return render_to_response('index.html', {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+#    categ = type_list.get(id=cid)
+#    vars.update({'type_obj': categ})
+    
+    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def invoicecomponent_print(request):
@@ -2568,6 +2572,20 @@ def manufacturer_delete(request, id):
     del_logging(obj)
     obj.delete()
     return HttpResponseRedirect('/manufacturer/view/')
+
+
+def manufacturer_lookup(request):
+    data = []
+    if request.method == "POST":
+        if request.POST.has_key(u'query'):
+            value = request.POST[u'query']
+            if len(value) > 2:
+                results = Manufacturer.objects.filter(name__icontains = value)
+                #model_results = Client.objects.filter(Q(name__icontains = value) | Q(forumname__icontains = value))
+                data = serializers.serialize("json", results, fields=('name','id', 'country', 'www'))
+            else:
+                data = []
+    return HttpResponse(data)    
 
 
 def catalog_import(request):
@@ -4156,7 +4174,7 @@ def worktype_depence_component_add(request):
 def worktype_depence_delete(request):
     d = {}
     if (auth_group(request.user, 'seller')==False) or (auth_group(request.user, 'admin')==False):
-        d['status'] = False
+        d['status'] = False 
         d['msg'] = 'Ви не має достаттньо повноважень для даної функції'
         response = JsonResponse(d)
         return response                
@@ -4439,6 +4457,11 @@ def workticket_delete(request, id):
 
 
 def workshop_add(request, id=None, id_client=None):
+    if request.user.is_authenticated():
+        user = request.user
+    else:
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
+#        return HttpResponse('Error: У вас не має прав для редагування, або ви не Авторизувались на сайті')
     now = datetime.datetime.now()
     work = None
     wclient = None
@@ -4449,23 +4472,15 @@ def workshop_add(request, id=None, id_client=None):
     
     if request.method == 'POST':
         form = WorkShopForm(request.POST)
+        
         if form.is_valid():
-            client = form.cleaned_data['client']
-            date = form.cleaned_data['date']
-            work_type = form.cleaned_data['work_type']
-            price = form.cleaned_data['price']
-            description = form.cleaned_data['description']
-            #pay = form.cleaned_data['pay']
-            user = form.cleaned_data['user']            
-            if request.user.is_authenticated():
-                user = request.user
-            else:
-                return HttpResponse('Error: У вас не має прав для редагування, або ви не Авторизувались на сайті')
-            WorkShop(client=client, date=date, work_type=work_type, price=price, description=description, user=user).save()
+            form.save()
+            
+            #WorkShop(client=client, date=date, work_type=work_type, price=price, description=description, user=user).save()
             return HttpResponseRedirect('/workshop/view/')
     else:
         if work != None:
-            form = WorkShopForm(initial={'work_type': work.id, 'price': work.price, 'user': request.user})
+            form = WorkShopForm(initial={'work_type': work.id, 'price': work.get_sale_price, 'user': request.user})
         elif wclient != None:
             form = WorkShopForm(initial={'client': wclient.id, 'user': request.user})
         else:        
@@ -4478,7 +4493,7 @@ def workshop_add(request, id=None, id_client=None):
         wc_name = None
         wc_id = None
     clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))        
-    return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'client_name': wc_name, 'client_id': wc_id, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'client_name': wc_name, 'client_id': wc_id, 'work': work, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workshop_add_formset(request):
@@ -4523,6 +4538,7 @@ def workshop_add_formset(request):
 def workshop_edit(request, id):
     now = datetime.datetime.now()
     a = WorkShop.objects.get(pk=id)
+    work = a.work_type
     owner = a.user
     if request.method == 'POST':
         form = WorkShopForm(request.POST, instance=a)
@@ -4547,7 +4563,7 @@ def workshop_edit(request, id):
 
     nday = 7
     clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))        
-    return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'client_name': a.client}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'client_name': a.client, 'work': work}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workshop_list(request, year=None, month=None, day=None):
@@ -4603,6 +4619,19 @@ def worktype_ajax(request):
     search = WorkType.objects.filter(id=q).values('price', 'description')
     comp_depence = Type.objects.filter(worktype__pk = q).values('name', 'pk', 'name_ukr')  
     return HttpResponse(simplejson.dumps({'data': list(search), 'dep': list(comp_depence)}), content_type="application/json")
+
+
+def worktype_lookup(request):
+    data = []
+    if request.method == "POST":
+        if request.POST.has_key(u'query'):
+            value = request.POST[u'query']
+            if len(value) > 2:
+                results = WorkType.objects.filter(name__icontains = value, disable = False)
+                data = serializers.serialize("json", results, fields=('name', 'id', 'price', 'dependence_work', 'get_sale_price', 'sale', 'work_group'))
+            else:
+                data = []
+    return HttpResponse(data)    
 
 
 def workshop_pricelist(request, pprint=False):
@@ -6972,7 +7001,7 @@ def inventory_mistake(request, year=None, month=None, day=None):
 
 def inventory_autocheck(request, year=None, month=None, day=None, update=False):
     year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-    im = InventoryList.objects.filter( Q(date__gt = year_ago), ((Q(real_count = F('count')) & Q(check_all = False))) ).order_by('catalog__id')
+    im = InventoryList.objects.filter( Q(date__gt = year_ago), ((Q(real_count = F('count')) & Q(check_all = False))) ).annotate(mdate=Max('date', distinct=True)).order_by('catalog__id')
     if update == True:
         im.update(check_all=True)
          
@@ -7688,6 +7717,93 @@ def youtube_url_add(request, id=None):
             
             response = JsonResponse(d)
             return response
+
+
+def discount_add(request):
+    if auth_group(request.user, 'seller')==True:
+    #if request.user.is_authenticated():
+        user = request.user
+    else:
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+    a = Discount()
+    name = ''
+    if request.method == 'POST':
+        form = DiscountForm(request.POST, instance = a)
+        #form = RentForm(request.POST)
+        POST = request.POST
+        
+        if form.is_valid():
+            print "POST = " + form.cleaned_data['name']
+            if POST.has_key('name'):
+                name = request.POST['name']
+            else:
+                name = form.cleaned_data['name']
+            ds = form.cleaned_data['date_start']
+            de = form.cleaned_data['date_end']
+            #conv_ds = datetime.datetime.strptime(ds, '%d-%m-%Y').date()
+            #conv_de = datetime.datetime.strptime(de, '%d-%m-%Y').date()
+            f = form.save(commit=False)
+            f.date_start = ds
+            f.date_end = de
+            #f.name = "Black Friday"
+            f.name = name
+            f.save()
+            
+            return HttpResponseRedirect('/discount/list/')
+    else:
+        form = DiscountForm(instance = a)
+    return render_to_response('index.html', {'form': form, 'weblink': 'discount.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    
+
+def discount_list(request):
+    list = None
+    list = Discount.objects.all()#exclude( (Q(url = '') | Q (catalog = None)) )
+#    list = Photo.objects.filter((Q(www = '') | Q (www = None)) & Q(catalog = None)).values('user', 'date', 'url', 'catalog__name', 'catalog__id', 'catalog__ids', 'user__username', 'id', 'bicycle__model', 'bicycle', 'local', 'www').order_by('-date')
+    return render_to_response('index.html', {'weblink': 'discount_list.html', 'list': list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def discount_delete(request):
+    d = {}
+    if (auth_group(request.user, 'seller')==False) or (auth_group(request.user, 'admin')==False):
+        d['status'] = False 
+        d['msg'] = 'Ви не має достаттньо повноважень для даної функції'
+        response = JsonResponse(d)
+        return response                
+    if request.is_ajax():
+        if request.method == 'POST': 
+            if request.POST.has_key('id'):
+                id = request.POST['id']                
+                obj = Discount.objects.get(pk = id)
+                obj.delete()
+                d['status'] = True
+                d['msg'] = 'Done'
+                response = JsonResponse(d)
+                return response
+            else:
+                d['status'] = False
+                d['msg'] = 'Парамтри не передано або вони невірні'
+                response = JsonResponse(d)
+                return response
+    else:
+        return HttpResponse('Error: Щось пішло не так під час запиту')     
+
+
+def discount_lookup(request):
+    data = None
+    cur_date = datetime.date.today()
+    if request.is_ajax():
+        if request.method == "POST":
+            if request.POST.has_key(u'query'):
+                value = request.POST[u'query']
+                if len(value) > 2:
+                    model_results = Discount.objects.filter(Q(name__icontains = value), Q(date_end__gt = cur_date) ).order_by('date_start', 'name')
+                    data = serializers.serialize("json", model_results, fields = ('id', 'name', 'date_start', 'date_end'), use_natural_keys=False)
+#                else:
+#                    model_results = Type.objects.all().order_by('name')
+#                    data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name'), use_natural_keys=False)                    
+#                    data = []
+    return HttpResponse(data)                 
 
 
 def send_workshop_sound(request):

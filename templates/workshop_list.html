@@ -24,7 +24,7 @@
 </style> 
 
 <script language="JavaScript">
-
+// OLD function
 function resWorkshop()
 {
 var p=0;
@@ -33,12 +33,24 @@ for(var i = 0; i < All.elements.length; ++i) {
 	if(All.elements[i].checked){
 	p+=parseFloat(All.elements[i].value);
 	}
-	document.getElementById('workshop_pay').innerHTML = "До оплати: <br>" + p.toFixed(2)+" грн.";
+//	document.getElementById('workshop_pay').innerHTML = "До оплати: <br>" + p.toFixed(2)+" грн.";
+	document.getElementById('workshop_pay').innerHTML = "" + p.toFixed(2)+" грн.";
 }
 }
 
+
+function res() {
+	var sum = 0;
+	var ar = $(".mc:input:checked");
+	$(".mc:input:checked").each(function() {
+        sum = sum + parseFloat(this.value)
+    });
+	document.getElementById('workshop_pay').innerHTML = sum.toFixed(2)+" грн.";
+}
+
 $(document).ready(function() {
-	
+
+	$('[data-toggle="tooltip"]').tooltip();
 	
  $(".w_del").click(function(){
 
@@ -61,11 +73,23 @@ $(document).ready(function() {
  }
 	
  });
+ 
+	$("#maincheck").click( function() {
+    	if($('#maincheck').prop('checked')){
+        	$('.mc').prop( "checked", true )
+        } else {
+
+            $('.mc').prop( "checked", false )
+        }
+    	res();
+     });
+ 
+ 
 });
     
 </script>
 
-<body onLoad="resWorkshop()">
+<body onLoad="res()">
 
 <br>
 <h2>
@@ -90,11 +114,28 @@ $(document).ready(function() {
     {% endfor %}
 </h2>    
 
-    <h1> <span class="badge badge-info">Виконані роботи за {{sel_day}}.{{sel_month}}.{{sel_year}} року</span>
-     <a href="/workshop/add/" class="badge badge-secondary">Додати роботу</a></h1>
-	
 <form action="/payform/workshop/" method="post" name="formWorkshopSum">
-<br> 
+
+<div class="d-flex">
+   <div class="mr-auto">
+   <h1><span class="badge badge-dark">Виконані роботи за {{sel_day}}.{{sel_month}}.{{sel_year}} року</span> <span class="badge badge-info" id="show_date">{{sel_day}}/{{sel_month}}/{{sel_year}}</span> 
+   <a href="/workshop/add/" class="badge badge-secondary" data-toggle="tooltip" data-html="true" data-placement="right" title="Додати роботу"><i class="material-icons">add_circle_outline</i></a> </h1>
+   </div>
+   
+ <div class="ml-auto">
+  <div class="input-group ">
+  <div class="input-group-prepend">
+  	<span id="workshop_pay" style="COLOR: red" class="input-group-text font-weight-bold" >2133</span>
+    <span class="input-group-text" id="basic-addon1">Грн.</span>
+  </div>
+ <input type="submit" value="Оплата" type="button" class="btn btn-warning font-weight-bold">
+{# <input type="submit" value="E-mail" name="send_check"> #} 
+</div>
+    
+ </div>
+</div>
+	
+
     <table id="iTable" class = "table table-bordered table-hover table-condensed">
     <tr>
     	<th>#</th>
@@ -107,7 +148,7 @@ $(document).ready(function() {
 {% if user.is_authenticated %}	    	
     	<th>Дія</th>
 {% endif %}    	
-    	<th></th>
+    	<th><input type="checkbox" id="maincheck" checked /></th>
     </tr>
  
 {% for type in workshop %}
@@ -116,13 +157,11 @@ $(document).ready(function() {
 {% else %}
 <tr BGCOLOR="#F2AE6B" id="row_{{type.id}}">
 {% endif %}
-	<td title="Створено користувачем {{type.user.username}}">
+	<td title="{{type.user.username}}" data-toggle="tooltip" data-html="true" data-placement="right">
 	{{forloop.counter}}
 	</td>  
-{#	<td title="Створено користувачем {{type.user.username}}">	{{type.id}}	</td> #}
-{#	<span title="Телефон: {{client_name.phone|phone2Str}} <br> E-mail: {{client_name.email}}"> #}
 	<td title="Телефон: {{type.client.phone|phone2Str}}">       
-	<a href="/client/result/search/?id={{type.client.id}}" title="Телефон: {{type.client.phone|phone2Str}}">
+	<a href="/client/result/search/?id={{type.client.id}}" title="Телефон: {{type.client.phone|phone2Str}}" data-toggle="tooltip" data-html="true" data-placement="right">
 	{{type.client.name}} {% if type.client.forumname %} ({{type.client.forumname}}) {% endif %}   
 	</a>
 	</td>
@@ -130,7 +169,10 @@ $(document).ready(function() {
 	{{type.date|date:'d-m-Y H:i' }}
 	</td>
 	<td>       
-	{{type.work_type}}
+	<span class="badge badge-success" title="Додати роботу <br> {{type.work_type}}" data-toggle="tooltip" data-html="true" data-placement="top"><a href="/workshop/add/{{ type.work_type.id }}/" >
+	<i class="material-icons">build</i>
+	</a></span>
+	{{type.work_type}} 	
 	</td>	
 	<td align='center'>       
 	{{type.price}}
@@ -149,10 +191,13 @@ $(document).ready(function() {
 	
 {% if user.is_authenticated %}
 	<td align='center'>
-	<a href="/workshop/edit/{{ type.id }}" title="Редагувати">
+	<a href="/workshop/edit/{{ type.id }}" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="left">
 		<i class="material-icons">create</i>
 	</a>
-	<span class="w_del" id_work={{type.id}} style="cursor: pointer;" title="Видалити">
+	<a href="/workshop/add/client/{{ type.client.id }}/" title="Додати роботу клієнту <br> {{type.client.name}}" data-toggle="tooltip" data-html="true" data-placement="left">
+	<i class="material-icons">build</i>
+	</a>
+	<span class="w_del" id_work={{type.id}} style="cursor: pointer;" title="Видалити" data-toggle="tooltip" data-html="true" data-placement="top">
 	    <i class="material-icons">delete_forever</i>
     </span>    
     </td>
@@ -160,12 +205,12 @@ $(document).ready(function() {
     
     <td align="center">
 {% if type.pay %}    
-   	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{type.price}}" onclick="resWorkshop()" name="checkbox_{{ type.id }}"/>
+   	<input type="checkbox" class="mc" id="model_workshop{{forloop.counter}}" value="{{type.price}}" onclick="res()" name="checkbox_{{ type.id }}"/>
 {% else %}
 	{% ifequal request.user.username type.user.username %} 
-   		<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{type.price}}" onclick="resWorkshop()" checked name="checkbox_{{ type.id }}"/>
+   		<input type="checkbox" class="mc" id="model_workshop{{forloop.counter}}" value="{{type.price}}" onclick="res()" checked name="checkbox_{{ type.id }}"/>
    	{% else %}
-   		<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{type.price}}" onclick="resWorkshop()" name="checkbox_{{ type.id }}"/>
+   		<input type="checkbox" class="mc" id="model_workshop{{forloop.counter}}" value="{{type.price}}" onclick="res()" name="checkbox_{{ type.id }}"/>
    	{% endifequal %}
 {% endif %}
     </td>
@@ -178,11 +223,11 @@ $(document).ready(function() {
     	<th></th>
     	<th></th>
     	<th>
-{% if request.user|has_group:"admin" %}    	
-Сума:    	{{summ}} грн.
-{% endif %}    	
     	</th>
-    	<th id="workshop_pay"></th>
+    	<th>{% if request.user|has_group:"admin" %}
+    	{{summ}} грн.
+    	{% endif %}    	
+    	</th>
     	<th>
     	<input type="submit" value="E-mail" name="send_check" id="send_check"> 
 <!--     	 onClick="return confirm('Створити і надіслати листа?')">   -->

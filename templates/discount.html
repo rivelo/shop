@@ -1,0 +1,250 @@
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<link rel="stylesheet" href="/media/css/datepicker.min.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+</head>
+
+<style>
+	
+  span.input-group-text {
+  background-color: #cccdce;
+  }
+  
+</style>
+
+<script type="text/javascript">
+jQuery(document).ready(function ($) {
+	
+$('[data-toggle="tooltip"]').tooltip();	
+	
+$('[data-toggle="datepicker"]').on('hide.datepicker', function (e) {
+	var seldate= $(this).datepicker('getDate', true)
+	console.log("Click datepicker - " + $(this).datepicker('getDate', true));
+	console.log("This = " + $(this).attr('point')); //.parents('td').parents('tr').attr('id') );
+	if ($(this).attr('point') == 'start') {
+		$("#id_date_start").val(seldate)
+	}
+	if ($(this).attr('point') == 'end') {
+		$("#id_date_end").val(seldate)
+	}
+	//update_enddate( $(this).parents('td').parents('tr').attr('id'), $(this).datepicker('getDate', true) )
+});
+
+
+function update_enddate(pk, date) {
+	$.ajax({
+	    type: "POST",
+	    url: "{% url 'cat_set_attr' %}",
+		{# url: '/catalog/edit/', #}
+	    data: {id:  pk, update_enddate: date},
+	    dataType : 'json',
+	    success:function(json){
+	    	if (json['status'] == true) {
+				console.log("Дату змінено");
+	    	}
+	   		else {
+	   			console.log('JSON = ' + json['error'] + ' STATUS = ' + json['status'] );
+	   		    alert("Помилка: " + json['error']);
+	   		}
+	    },
+	    error:function(){
+	     alert("При отправке возникли проблемы");
+	    }
+	 });
+};
+
+
+$('[data-toggle="datepicker"]').datepicker({
+    autoHide: true,
+    zIndex: 2048,
+    format: 'dd-mm-yyyy',
+    daysMin: ['Нд', 'По', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+    monthsShort: ['Січ', 'Лют', 'Бер', 'Кві', 'Тра', 'Чер', 'Лип', 'Сер', 'Вер', 'Жов', 'Лис', 'Гру'],
+    weekStart: 1,
+  });   
+
+
+$( "#s_manufacture" ).autocomplete({
+	source: function( request, response ) {
+    	$.ajax({
+            type: "POST",
+            url: "/manufacturer/lookup/",
+			data: { query: $("#s_manufacture").val() },
+            dataType: "json",
+            success: function( data ) {
+                    	response( $.map( data, function( item ) {
+                        return {
+                            label: item.pk + ": [" + item.fields.name + "] "+ item.fields.www,
+                            value: item.fields.name,
+                            idid: item.fields.sale,
+                            pk_id: item.pk                                
+							}
+                    	}));                                
+                        }
+        })
+    },
+    minLength: 3,
+    select: function( event, ui ) {
+    	$('#id_manufacture_id').val(ui.item.pk_id);
+    },
+    open: function() {
+    	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+    },
+    close: function() {
+    	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+    }
+});
+
+
+$( "#s_category" ).autocomplete({
+	source: function( request, response ) {
+    	$.ajax({
+            type: "POST",
+            url: "/category/lookup/",
+			data: { query: $("#s_category").val() },
+            dataType: "json",
+            success: function( data ) {
+                    	response( $.map( data, function( item ) {
+                        return {
+                            label: item.pk + ": " + item.fields.name + " / "+ item.fields.name_ukr,
+                            value: item.fields.name,
+                            idid: item.fields.sale,
+                            pk_id: item.pk                                
+							}
+                    	}));                                
+                        }
+        })
+    },
+    minLength: 3,
+    select: function( event, ui ) {
+    	$('#id_type_id').val(ui.item.pk_id);
+    },
+    open: function() {
+    	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+    },
+    close: function() {
+    	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+    }
+});
+
+
+$( "#id_name" ).autocomplete({
+	source: function( request, response ) {
+    	$.ajax({
+            type: "POST",
+            url: "/discount/lookup/",
+			data: { query: $("#id_name").val() },
+            dataType: "json",
+            success: function( data ) {
+                    	response( $.map( data, function( item ) {
+                        return {
+                            label: "" + item.fields.name + " - "+ item.fields.date_start +" / "+ item.fields.date_end,
+                            value: item.fields.name,
+                            start_date: item.fields.date_start,
+                            end_date:  item.fields.date_end                               
+							}
+                    	}));                                
+                        }
+        })
+    },
+    minLength: 3,
+    select: function( event, ui ) {
+    	$('#id_name').val(ui.item.pk_id);
+    	$('#id_date_start').val(ui.item.start_date);
+    	$('#id_date_end').val(ui.item.end_date);
+    },
+    open: function() {
+    	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+    },
+    close: function() {
+    	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+    }
+});
+
+$("#id_name").focus();
+
+
+});
+</script>
+
+{% load poll_extras %}
+
+<body>
+
+    <h1><span class="badge badge-secondary">Створити акційну пропозицію</span></h1>
+    <form action="" method="POST" enctype="multipart/form-data">
+    <div >
+        <ul class="list-group">
+<li>
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <span class="input-group-text" id="basic-addon1">Назва</span>
+  </div>
+  {{form.name|add_attr:"class:form-control"}}
+  {# <input type="text" id="s_name" class="form-control" placeholder="Назва акції" aria-label="Username" aria-describedby="basic-addon1"> #}
+</div>
+</li>
+        
+{#            {{ form.as_ul }} #}
+
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <span class="input-group-text" id="basic-addon1">Категорія</span>
+  </div>
+  {{ form.type_id }}
+  <input type="text" id="s_category" class="form-control" placeholder="Назва компанії" aria-label="Username" aria-describedby="basic-addon1">
+</div>
+
+
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+	<span class="input-group-text" id="basic-addon1">Виробник</span>
+  </div>
+  		{{ form.manufacture_id }}
+        <input type="text"  id="s_manufacture" class="form-control" placeholder="Назва компанії" aria-label="Username" aria-describedby="basic-addon1" />
+</div>
+
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+	<span class="input-group-text" id="basic-addon1">Знижка %</span>    
+  </div>
+  {{ form.sale|add_attr:"class:form-control" }}
+{#    <input type="text"  id="s_sale" class="form-control" placeholder="% знижки" aria-label="Username" aria-describedby="basic-addon1" /> #}
+  <div class="input-group-prepend">
+  {{ form.date_start }}
+	<span class="input-group-text modal-body" data-toggle="datepicker" point="start" >Дата початку</span>    
+  </div>
+  <div class="input-group-prepend">
+  {{ form.date_end }}
+	<span class="input-group-text modal-body" data-toggle="datepicker" point="end" >Дата завершення</span>    
+  </div>
+
+</div>
+
+<li>
+<div class="input-group">
+  <div class="input-group-prepend">
+    <span class="input-group-text">Опис</span>
+  </div>
+  {{form.description|add_attr:"class:form-control"}}
+{#  <textarea class="form-control" aria-label="With textarea" id="s_descr"></textarea> #}
+</div>
+</li>
+{% comment %}            
+		<li class="list-group-item"><span class="modal-body" data-toggle="datepicker" point="start">Дата початку</span> <span class="modal-body" data-toggle="datepicker" point="end">Дата завершення</span></li>
+
+{% endcomment %}
+        <li class="list-group-item"><input type="submit" value="Зберегти" class="w-100 btn btn-success"></li>        
+        </ul>
+         
+    </div>
+    </form>
+    
+</body>
+
+ 
+	<script src="/media/jquery-ui.min.js"></script> 
+	<script src="/media/js/datepicker.min.js"></script>

@@ -23,15 +23,16 @@ admin.autodiscover()
 
 
 urlpatterns = patterns('',
-    url(r'^search/$', 'catalog.accounting.views.search'), 
+    url(r'^search/$', 'catalog.accounting.views.search'), # old function
 #    url(r'^contact/thanks/$', direct_to_template, {'template': 'thanks.html'}),
 
     # Manufacturer operation
-    url(r'^manufacturer/search/$', 'catalog.accounting.views.search'), 
+    url(r'^manufacturer/search/$', 'catalog.accounting.views.search'), # old function 
     url(r'^manufacturer/view/$', 'catalog.accounting.views.manufaturer_list'), 
     url(r'^manufacturer/add/$', 'catalog.accounting.views.manufacturer_add'),
     url(r'^manufacturer/edit/(?P<id>\d+)/$', 'catalog.accounting.views.manufacturer_edit'),    
     url(r'^manufacturer/delete/(?P<id>\d+)/$', 'catalog.accounting.views.manufacturer_delete'),
+    url(r'^manufacturer/lookup/$', 'catalog.accounting.views.manufacturer_lookup'), # old function
 
     # Country operation
     url(r'^country/add/$', 'catalog.accounting.views.country_add'),
@@ -342,6 +343,7 @@ urlpatterns += patterns('',
     url(r'^worktype/view/$', 'catalog.accounting.views.worktype_list', name="worktypelist"),
     url(r'^worktype/delete/(?P<id>\d+)$', 'catalog.accounting.views.worktype_delete'),
     url(r'^worktype/price/$', 'catalog.accounting.views.worktype_ajax'),    
+    url(r'^worktype/lookup/$', 'catalog.accounting.views.worktype_lookup'),
     url(r'^work/depence/add/$', 'catalog.accounting.views.worktype_depence_add', name="add_work_depence"),
     url(r'^work/depence/delete/$', 'catalog.accounting.views.worktype_depence_delete', name="delete_work_depence"), 
     url(r'^work/depence/components/add/$', 'catalog.accounting.views.worktype_depence_component_add', name="add_work_component_depence"),
@@ -453,9 +455,9 @@ urlpatterns += patterns('',
     url(r'^photo/id/(?P<id>\d+)/delete/$', 'catalog.accounting.views.photo_url_delete'),
     url(r'^photo/field/delete/$', 'catalog.accounting.views.photo_del_field', name="photo_del_field"),
     url(r'^catalog/photo/delete/$', 'catalog.accounting.views.photo_url_delete'),
-#    url(r'^catalog/photo/list/$', 'catalog.accounting.views.photo_list'),
     url(r'^catalog/photo/list/(?P<show>\d+)/$', 'catalog.accounting.views.photo_list'),
-    
+    url(r'^catalog/photo/list/$', 'catalog.accounting.views.photo_list'),
+        
     url(r'^youtube/list/$', 'catalog.accounting.views.youtube_list', name='youtube_list'),    
     url(r'^youtube/(?P<id>\d+)/delete/$', 'catalog.accounting.views.youtube_delete'),
     url(r'^youtube/add/$', 'catalog.accounting.views.youtube_url_add', name='youtube_add'),
@@ -539,7 +541,10 @@ urlpatterns += patterns('',
     url(r'^check/workshop/add/$', 'catalog.accounting.views.workshop_sale_check_add'),
     url(r'^check/delete/(?P<id>\d+)/$', 'catalog.accounting.views.check_delete'),
     url(r'^workshop/playsound/$', 'catalog.accounting.views.send_workshop_sound'),
-    
+    url(r'^discount/add/$', 'catalog.accounting.views.discount_add'),
+    url(r'^discount/list/$', 'catalog.accounting.views.discount_list'),
+    url(r'^discount/delete/$', 'catalog.accounting.views.discount_delete'),
+    url(r'^discount/lookup/$', 'catalog.accounting.views.discount_lookup'),
 ) 
 
 #===============================================================================

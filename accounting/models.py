@@ -4,14 +4,20 @@ from django.forms import ModelForm
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Max
 from django.db.models.aggregates import Avg
-from datetime import datetime
+#from datetime import datetime
+import datetime
 from django.db.models import F
 
 from urlparse import urlparse,parse_qs,urlunparse
 from urllib import urlencode
 import httplib
+from compiler.ast import Discard
+import os.path
+import urllib2
+from django.conf import settings
+
 
 # Group Type = Group for Component category 
 class GroupType(models.Model):
@@ -42,6 +48,22 @@ class Type(models.Model):
     ico_status = models.BooleanField(default=False, verbose_name="Наявність іконки")
 #    icon = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
 #    icon_select = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
+
+    def get_discount(self):
+        max_sale = None
+        curdate = datetime.date.today()
+        dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, type_id = self.pk).order_by("-sale")
+        if dateDiscount.exists():
+            pass
+            #max_sale = dateDiscount.aggregate(msale = Max('sale'))
+            #max_sale = dateDiscount.annotate(max_s = Max('name'))
+            return dateDiscount
+        else:
+           return 0
+        #return (max_sale, dateDiscount.values('name', 'sale'))         
+        #return (max_sale, dateDiscount[0])
+
+
     
     def __unicode__(self):
         return u'%s / %s' % (self.name, self.name_ukr)
@@ -117,6 +139,36 @@ class Exchange(models.Model):
         ordering = ["date"]    
 
 
+class Discount(models.Model):
+    name = models.CharField(max_length=255)
+    manufacture_id = models.IntegerField(blank = True, null = True)
+    type_id = models.IntegerField(blank = True, null = True) 
+    date_start = models.DateField(auto_now_add = False)
+    date_end = models.DateField(auto_now_add = False)
+    sale = models.FloatField()
+    description = models.TextField(blank = True, null = True)
+            
+    def get_manufacture(self):
+        res = Manufacturer.objects.filter(pk = self.manufacture_id)
+        if res.exists():
+            return res[0]
+        else:
+            return None
+
+    def get_type(self):
+        res = Type.objects.filter(pk = self.type_id)
+        if res.exists():
+            return res[0]
+        else:
+            return None
+    
+    def __unicode__(self):
+        return u'%s [%s-%s]. Знижка - %s%s' % (self.name, self.date_start, self.date_end, int(self.sale), '%') 
+
+    class Meta:
+        ordering = ["name", "sale", "date_start", "date_end"]    
+
+
 # list of manufectures 
 class Manufacturer(models.Model):
     name = models.CharField(max_length=100)
@@ -124,6 +176,16 @@ class Manufacturer(models.Model):
     logo = models.ImageField(upload_to = 'upload/brandlogo/', blank=True, null=True)
     country = models.ForeignKey(Country, null=True)
     description = models.TextField(blank=True, null=True)    
+
+    def get_discount(self):
+        max_sale = None
+        curdate = datetime.date.today()
+        dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, manufacture_id = self.pk).order_by("-sale")
+        if dateDiscount.exists():
+            max_sale = dateDiscount.aggregate(Max('sale'))
+        else:
+           return 0
+        return (max_sale, dateDiscount[0])         
     
     def natural_key(self):
         return (self.id, self.name)
@@ -134,10 +196,6 @@ class Manufacturer(models.Model):
     class Meta:
         ordering = ["name"]    
 
-
-import os.path
-import urllib2
-from django.conf import settings
 
 class Photo(models.Model):
     url = models.CharField(max_length=255)
@@ -247,6 +305,18 @@ class Catalog(models.Model):
     youtube_url = models.ManyToManyField(YouTube, blank=True, null=True)
 #    наявність у постачальника
     date = models.DateField(null=True, blank=True) #Строк придатності
+
+    def get_discount(self):
+        curdate = datetime.date.today()
+        dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, type_id = self.type.pk)
+#        print "QUERY set = " + str(dateDiscount)
+        try:
+            pdiscount = dateDiscount[0].sale
+            percent_sale = (100-pdiscount)*0.01
+            price = self.price * percent_sale
+        except:
+            return 0
+        return price
 
     def get_saleprice(self):
         percent_sale = (100-self.sale)*0.01
@@ -1245,25 +1315,6 @@ class PreOrder(models.Model):
     class Meta:
         ordering = ["company", "manager", "date"]    
 
-
-class Discount(models.Model):
-    name = models.CharField(max_length=255)
-    manufacture_id = models.IntegerField()
-    type_id = models.IntegerField() 
-    date_start = models.DateField(auto_now_add=True)
-    date_end = models.DateField(auto_now_add=False)
-    sale = models.FloatField()
-    #received = models.BooleanField(default=False, verbose_name="Товар отримано?")
-    description = models.TextField(blank = True, null = True)
-            
-    def __unicode__(self):
-        return self.file 
-
-    class Meta:
-        ordering = ["name", "sale", "date_end"]    
-
-
-import datetime
 
 class Rent(models.Model):
     catalog = models.ForeignKey(Catalog)    

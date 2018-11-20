@@ -1,24 +1,52 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-    <link rel="stylesheet" type="text/css" href="/media/table.css">
-    <h1>Список виробників <a href="/manufacturer/add/">(Додати)</a></h1>
-    <h2>{{ request.path }}</h2>
+<style>
+.ilogo {
+    height: auto; 
+    width: auto; 
+    max-width: 300px; 
+    max-height: 300px;
+}
+</style>
 
-    <table>
+<script>
+jQuery(document).ready(function ($) {
+	
+	$('[data-toggle="tooltip"]').tooltip();	
+
+});
+</script>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="/media/table.css">
+
+</head>
+<body>
+
+    <h1><span class="badge badge-secondary">Список виробників</span> <a href="/manufacturer/add/" class="badge badge-success"><i class="material-icons">add_circle_outline</i></a></h1>
+    
+{#    <h2>{{ request.path }}</h2> #}
+
+
+
+    <table class="table table-striped table-hover " >
+<thead>    
 	<tr>
-    	<th>ID</th>
+    	<th>#</th> 
     	<th>Назва компанії</th>
     	<th>Адреса</th>
     	<th>Логотип</th>
     	<th>Країна</th>
     	<th>Дія</th>
     </tr>
-    
+</thead>
+
+<body>    
 {% for type in manufactures %}
 <tr>
-	<td>       
-	<a href="/manufacturer/edit/{{ type.id }}">{{type.id}}</a>
+	<td>
+	{{forloop.counter}}
 	</td>
 	<td>
 	<a href="/catalog/manufacture/{{ type.id }}/view/" title="Список продукції даного виробника" >
@@ -30,23 +58,29 @@
 	<a href="{{type.www}}" title="Перейти на домашню сторінку виробника">{{type.www}}</a>
 	</td>
 	<td>       
-	{{type.logo}}
+	{% if type.logo %}
+	<img src="/media/{{type.logo}}" class="ilogo">
+	{% else %}
+		<img src="/media/upload/manufecturer/nologo.jpg" class="ilogo">
+	{% endif %}
+{# 	{{type.logo}} #}
 	</td>
 	<td>       
 	{{type.country}}
 	</td>	
 	<td>
-    <a href="/manufacturer/delete/{{ type.id }}">delete</a>
+    <a href="/manufacturer/delete/{{ type.id }}"><i class="material-icons">delete_forever</i></a>
+	<a href="/manufacturer/edit/{{ type.id }}" title="Редагування" data-toggle="tooltip" data-placement="left"><i class="material-icons">edit</i></a>
     </td>
 </tr>
 {% endfor %}       
-    
+</body>    
 
     <table>
 
-<br><br>
-<a href="/manufacturer/add/">Додати нову компанію</a>
-<br>
-<a href="/">HOME</a> 
+
+</body>
+
+
 
 

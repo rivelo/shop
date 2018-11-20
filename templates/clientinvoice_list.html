@@ -21,8 +21,6 @@
 
 <script src="/media/jquery-ui.min.js"></script>
 {# <script src="/media/js/touchHover.js"></script> #}
-
-
  
 </head>
 
@@ -44,19 +42,6 @@ width: 150px;
 <body onLoad="res()">
 
 <script type="text/javascript">
-/*function res()
-{
-var p=0;
-var All=document.forms['formSum'];
-for(var i = 0; i < All.elements.length; ++i) {
-	if(All.elements[i].checked){
-	//p+=parseInt(All.elements[i].value);
-	p=p+parseFloat(All.elements[i].value);
-	}
-	document.getElementById('for_pay').innerHTML = p.toFixed(2)+" грн.";
-	//document.getElementById('debet').innerHTML = parseFloat(document.getElementById('for_pay').innerHTML)+parseFloat(document.getElementById('workshop_pay').innerHTML);
-}
-}*/
 
 function res() {
 	var sum = 0;
@@ -68,19 +53,6 @@ function res() {
     });
 
 	document.getElementById('for_pay').innerHTML = sum.toFixed(2)+" грн.";
-}
-
-function resWorkshop()
-{
-var p=0;
-var All=document.forms['formWorkshopSum'];
-for(var i = 0; i < All.elements.length; ++i) {
-	if(All.elements[i].checked){
-	p+=parseFloat(All.elements[i].value);
-	}
-	document.getElementById('workshop_pay').innerHTML = p.toFixed(2)+" грн.";
-	document.getElementById('debet').innerHTML = parseFloat(document.getElementById('for_pay').innerHTML)+parseFloat(document.getElementById('workshop_pay').innerHTML);
-}
 }
 
 
@@ -461,28 +433,6 @@ $.ajax({
 
 <form action="/payform/" method="post" name="formSum">
 
-{% comment %} 
-<div class="row">
-  <div class="col-8 p-2"> 
-<h1><span class="badge badge-dark">Список проданого товару</span> <span class="badge badge-info" id="show_date">{{sel_day}}/{{sel_month}}/{{sel_year}}</span> <span id="clear_basket"><img src="/media/images/Ecommerce Return.ico" title="видалити всі відмічені" width="32" height="32" data-toggle="tooltip" data-html="true" data-placement="right"> </span> </h1> 
-</div>
- 
- <div class="col-4">
-  <div class="input-group mb-3">
-  <div class="input-group-prepend">
-  	<span id="for_pay1" style="COLOR: red" class="input-group-text font-weight-bold" >2133</span>
-    <span class="input-group-text" id="basic-addon1">Грн.</span>
-  </div>
- <input type="submit" value="Оплата" type="button" class="btn btn-warning font-weight-bold">
-{# <input type="submit" value="E-mail" name="send_check"> #}
-</div>
-
- <h5 id="for_pay" class="font-weight-bold" style="COLOR: red" ></h5>
- <input type="submit" value="Оплата" type="button" class="btn btn-warning font-weight-bold">
- <input type="submit" value="E-mail" name="send_check">
- </div>    
-</div>
-{% endcomment %}
 
 <div class="d-flex">
    <div class="mr-auto">
@@ -605,7 +555,7 @@ $.ajax({
 	{{type.sale}}
 	</td>
 {#	<td class="tpay">       	{{type.pay}}	</td> #}	
-	<td class="operate_date">
+	<td class="operate_date" title="{{type.date|date}}" data-toggle="tooltip" data-html="true" data-placement="left">
 	<label class="op_datetime">{{type.date|date:'d.m.Y H:i' }}</label> 
 	{{type.date|date:'H:i' }}
 	</td>
@@ -635,8 +585,6 @@ $.ajax({
     </td>
     <td align="center">
     
-<!-- 	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{type.sum}}" onclick="resWorkshop()"/>
- -->	
 
 {% ifequal type.sum type.pay %}
 <input type="checkbox" id="model{{forloop.counter}}" class="mc" value="{{type.sum}}" onclick="res()" name="checkbox_{{ type.id }}"/>

@@ -265,6 +265,10 @@ $(document).ready(function() {
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
 			<a class="dropdown-item" href="/report/sales/user/report/">Продажі за місяць</a>
  			<a class="dropdown-item" href="/report/workshop/byuser/">Роботи за місяць</a>
+{# {% if request.user|has_group:"admin" %} #}	 			
+ 			<a class="dropdown-item" href="/discount/add/">Створити дисконт</a>
+ 			<a class="dropdown-item" href="/discount/list/">Дисконтні програми</a>
+{# endif #} 			
  			<a class="dropdown-item" href="/shop/sale/day/add/"><i class="material-icons">query_builder</i> Денна каса</a>
  			<a class="dropdown-item" href="/shop/sale/view/">Денна каса (за місяць)</a>
 		</div>	       		

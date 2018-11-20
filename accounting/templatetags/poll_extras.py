@@ -2,6 +2,8 @@
 from django import template
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
+register = template.Library()
+
 import datetime
 
 register = template.Library()
@@ -152,4 +154,28 @@ def date_left(date):
     except TypeError:
         return "don't update" 
     return res.days 
-    
+
+
+@register.filter(name='addcss')
+def addcss(value, arg):
+    css_classes = value.field.widget.attrs.get('class', '').split(' ')
+    if css_classes and arg not in css_classes:
+        css_classes = '%s %s' % (css_classes, arg)
+    return value.as_widget(attrs={'class': css_classes})    
+
+
+@register.filter(name='add_attr')
+def add_attr(field, css):
+    attrs = {}
+    definition = css.split(',')
+
+    for d in definition:
+        if ':' not in d:
+            attrs['class'] = d
+        else:
+            key, val = d.split(':')
+            attrs[key] = val
+
+    return field.as_widget(attrs=attrs)
+
+

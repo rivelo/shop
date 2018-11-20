@@ -26,8 +26,11 @@
 <tbody>
 {% for type in categories %}
 <tr class="text-center">
-	<td>      
-	{{forloop.counter}} 
+	<td title="{{type.get_discount.1}}" data-toggle="tooltip" data-placement="right">      
+	{{forloop.counter}}
+	{% if type.get_discount %}
+	<span class="badge badge-danger" >Знижка {{type.get_discount.0.sale__max|floatformat:"0"}}%</span>
+	{% endif %}
 	{#type.id#}
 	</td>
 	<td>       
@@ -60,3 +63,8 @@
 
 </body>
 
+<script>
+$(document).ready(function() {
+	$('[data-toggle="tooltip"]').tooltip();	
+})
+</script>
