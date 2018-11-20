@@ -34,6 +34,7 @@ class GroupType(models.Model):
     class Meta:
         ordering = ["name"]    
 
+from django.utils.text import slugify
 
 # Type = Component category 
 class Type(models.Model):
@@ -48,6 +49,13 @@ class Type(models.Model):
     ico_status = models.BooleanField(default=False, verbose_name="Наявність іконки")
 #    icon = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
 #    icon_select = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
+
+    def get_icon_name(self, status=True):
+        dirpath = settings.ICON_DIR
+        if status == True:
+            return (dirpath + slugify(self.name) + '-gr.png')
+        else:
+            return (dirpath + slugify(self.name) + '-bl.png')
 
     def get_discount(self):
         max_sale = None

@@ -83,7 +83,7 @@ $(".disount_del").click(function(){
 	{#sale.manufacture_id#}
 	{% if sale.get_manufacture %}
 	{% if sale.get_manufacture.logo %}
-		<img src="/media/{{sale.get_manufacture.logo}}" class="ilogo">
+		<img src="/media/{{sale.get_manufacture.logo}}" class="ilogo" alt="{{sale.get_manufacture.name}}" title="{{sale.get_manufacture.name}}" data-toggle="tooltip" data-placement="left">
 	{% else %}
 		{{sale.get_manufacture.name}}
 	{% endif %}
@@ -92,7 +92,9 @@ $(".disount_del").click(function(){
 	<td>	
 	{% if sale.get_type %}
 		{#sale.type_id#}
-		{{ sale.get_type.name }} / {{ sale.get_type.name_ukr }}
+{#		{{ sale.get_type.name }} / {{ sale.get_type.name_ukr }} #}
+{#		{{ sale.get_type.get_icon_name}} #}
+		<img src="{{ sale.get_type.get_icon_name}}" width="64px" alt="{{ sale.get_type.name }} / {{ sale.get_type.name_ukr }}" title="{{ sale.get_type.name }} / {{ sale.get_type.name_ukr }}" data-toggle="tooltip" data-placement="left">
 	{% endif %}
 	</td>
 	<td>	{{sale.date_start}} - {{sale.date_end}}	</td>

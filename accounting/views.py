@@ -62,10 +62,13 @@ def custom_proc(request):
 
     
 def auth_group(user, group):
-    print "USER = " + str(user.groups.all())
+#    print "****Group  = " + str(group)
+#    print "****USER  = " + str(user)
     if user.groups.filter(name=group).exists():
-        print "G = TRUE"
+#        print "****Group = " + str(user.groups.filter(name=group))
         return True
+#    print "****Group FALSE = " + str(user)
+    return False
     #return True if user.groups.filter(name=group) else False
 
 
@@ -4202,12 +4205,13 @@ def worktype_depence_delete(request):
 
 def worktype_depence_component_delete(request):
     d = {}
-    if (auth_group(request.user, 'seller')==False) or (auth_group(request.user, 'admin')==False):
-        d['status'] = False
-        d['msg'] = 'Ви не має достаттньо повноважень для даної функції'
-        response = JsonResponse(d)
-        return response                
     if request.is_ajax():
+        if (auth_group(request.user, 'seller')==False): # or (auth_group(request.user, 'admin')==False):
+            d['status'] = False
+            d['msg'] = 'Ви не має достаттньо повноважень для даної функції'
+            response = JsonResponse(d)
+            return response                
+        
         if request.method == 'POST': 
             if request.POST.has_key('id') and request.POST.has_key('del_component_id'):
                 id = request.POST['id']                

@@ -106,6 +106,7 @@ EMAIL_PORT = 587
 
 
 PROJECT_DIR = os.path.join(dirname, '')
+ICON_DIR = '/media/upload/icons/'
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
 #MEDIA_ROOT = 'd:/develop/catalog/media/'
