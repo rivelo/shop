@@ -559,9 +559,11 @@ class ClientInvoiceForm(forms.ModelForm):
         client = cleaned_data.get("client")
         cid = cleaned_data.get("catalog")
         #cat = Catalog.objects.get(id = cid)
-        cat = cid        
+        cat = cid
+        sprice = (100-sale)*0.01*cat.price
+        if (cat.get_discount() <= sprice) and (cat.get_discount() <> 0):
+            return         
         if ((sale > 100) or (sale > cat.sale+20)) and (auth_group(self.request.user, 'admin')==False):
-            # Only do something if both fields are valid so far.
             ssale = cat.sale + 20
             raise forms.ValidationError(u"Знижка не може бути більше 100% або більша за встановлену на товар " + str(int(ssale)) + "%")
     
@@ -819,7 +821,7 @@ class WorkDayForm(forms.ModelForm):
         
 class DiscountForm(forms.ModelForm):
     name = forms.CharField(max_length=255)
-    manufacture_id = forms.IntegerField(widget=forms.HiddenInput(), label="Виробник", required=False)
+    manufacture_id = forms.CharField(widget=forms.HiddenInput(), label="Виробник", required=False)
     type_id = forms.CharField(widget=forms.HiddenInput(), label="", required=False)
     date_start = forms.DateField( widget=forms.HiddenInput())
     date_end = forms.DateField( widget=forms.HiddenInput())

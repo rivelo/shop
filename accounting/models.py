@@ -326,6 +326,14 @@ class Catalog(models.Model):
             return 0
         return price
 
+    def get_discount_item(self):
+        curdate = datetime.date.today()
+        dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, type_id = self.type.pk)
+        if dateDiscount.exists():
+            return dateDiscount[0]
+        else:
+            return None
+
     def get_saleprice(self):
         percent_sale = (100-self.sale)*0.01
         price = self.price * percent_sale

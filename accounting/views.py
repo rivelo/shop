@@ -3350,7 +3350,10 @@ def client_invoice(request, cid=None, id=None):
         
     #clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'sale', 'client__name').annotate(num_inv=Count('client'))
     clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))
-    return render_to_response('index.html', {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'box_number': nbox, 'b_len': b_len}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+    cat_obj = cat.get_discount_item()
+    
+    return render_to_response('index.html', {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def client_invoice_edit(request, id):
@@ -7739,19 +7742,21 @@ def discount_add(request):
         
         if form.is_valid():
 #            print "POST = " + form.cleaned_data['name']
-            if POST.has_key('name'):
-                name = request.POST['name']
-            else:
-                name = form.cleaned_data['name']
+#            if POST.has_key('name'):
+#                name = request.POST['name']
+#            else:
+#            name = form.cleaned_data['name']
             ds = form.cleaned_data['date_start']
             de = form.cleaned_data['date_end']
+            type = form.cleaned_data['type_id']
             #conv_ds = datetime.datetime.strptime(ds, '%d-%m-%Y').date()
             #conv_de = datetime.datetime.strptime(de, '%d-%m-%Y').date()
             f = form.save(commit=False)
             f.date_start = ds
             f.date_end = de
+            f.type_id = int(type or 0)
             #f.name = "Black Friday"
-            f.name = name
+#            f.name = name
             f.save()
             
             return HttpResponseRedirect('/discount/list/')
