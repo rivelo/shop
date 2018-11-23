@@ -6731,7 +6731,6 @@ def photo_url_get(request, id=None):
 
 def change_photo_url(obj_photo):
     obj = obj_photo 
-#    Photo.objects.get(pk = id)
     bset = obj.bicycle_set.all()
     cat_set = obj.catalog_set.all()
     str_cat = ''
@@ -6745,12 +6744,12 @@ def change_photo_url(obj_photo):
         o_url = obj.url
     else:
         o_url = obj.www
-    print "oURL = " + o_url
+#    print "oURL = " + o_url
 
     file_path = settings.MEDIA_ROOT + 'download/'
     filetype = ".jpg"
     media = settings.MEDIA_URL + 'download/'
-    print "file_path = " + file_path
+#    print "file_path = " + file_path
     filename = ''
     dirname_glob = settings.PROJECT_DIR
 
@@ -6763,19 +6762,19 @@ def change_photo_url(obj_photo):
         filename = bset[0].id
         filename = slugify(unicode(str(filename), "utf-8"))
     if obj.local == None or obj.local == '':
-        print "Locale = None"
+#        print "Locale = None"
         save_photo_local(obj, o_url, media, file_path, filename + filetype)            
         return True
 
     if (obj.local <> '') and (os.path.isfile(dirname_glob[:-1] + obj.local)):
-        print "File Local exists = " + dirname_glob[:-1] + obj.local
+#        print "File Local exists = " + dirname_glob[:-1] + obj.local
         return True
 
     if ((obj.local <> '') and (not os.path.isfile(dirname_glob[:-1] + obj.local)) and (o_url <> '')):
-        print "Local var is False"
+#        print "Local var is False"
         save_photo_local(obj, o_url, media, file_path, filename + filetype)
 
-    print "LAST return"
+#    print "LAST return"
     return True
 
 
@@ -6830,7 +6829,7 @@ def photo_del_field(request):
 def photo_list(request, show=2, page=1, limit=50):
     list = None
     show = int(show)
-    print "PARAM id = " + str(show) + " Page = " + str(page)
+#    print "PARAM id = " + str(show) + " Page = " + str(page)
     limit = int(limit)
     page = int(page)
     lim_a = (page * limit) - limit
@@ -6872,7 +6871,7 @@ def photo_list(request, show=2, page=1, limit=50):
 #    list = Photo.objects.filter((Q(www = '') | Q (www = None)) & Q(catalog = None)).values('user', 'date', 'url', 'catalog__name', 'catalog__id', 'catalog__ids', 'user__username', 'id', 'bicycle__model', 'bicycle', 'local', 'www').order_by('-date')
     for iphoto in list:
         psts = change_photo_url(iphoto)
-        print "[" + str(iphoto.pk) + "] - "+ str(psts) 
+#        print "[" + str(iphoto.pk) + "] - "+ str(psts) 
             
     return render_to_response('index.html', {'weblink': 'photo_list.html', 'list': list, 'text': text, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -7774,14 +7773,14 @@ def discount_add(request):
             ds = form.cleaned_data['date_start']
             de = form.cleaned_data['date_end']
             type = form.cleaned_data['type_id']
-            type = form.cleaned_data['manufacture_id']
+            manufacture = form.cleaned_data['manufacture_id']
             #conv_ds = datetime.datetime.strptime(ds, '%d-%m-%Y').date()
             #conv_de = datetime.datetime.strptime(de, '%d-%m-%Y').date()
             f = form.save(commit=False)
             f.date_start = ds
             f.date_end = de
             f.type_id = int(type or 0)
-            f.manufacture_id = int(type or 0)
+            f.manufacture_id = int(manufacture or 0)
             #f.name = "Black Friday"
 #            f.name = name
             f.save()
