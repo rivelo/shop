@@ -455,8 +455,11 @@ urlpatterns += patterns('',
     url(r'^photo/id/(?P<id>\d+)/delete/$', 'catalog.accounting.views.photo_url_delete'),
     url(r'^photo/field/delete/$', 'catalog.accounting.views.photo_del_field', name="photo_del_field"),
     url(r'^catalog/photo/delete/$', 'catalog.accounting.views.photo_url_delete'),
+    url(r'^catalog/photo/list/(?P<show>\d+)/page/(?P<page>\d+)/limit/(?P<limit>\d+)/$', 'catalog.accounting.views.photo_list'),
+    url(r'^catalog/photo/list/(?P<show>\d+)/page/(?P<page>\d+)/limit/$', 'catalog.accounting.views.photo_list'),
     url(r'^catalog/photo/list/(?P<show>\d+)/$', 'catalog.accounting.views.photo_list'),
     url(r'^catalog/photo/list/$', 'catalog.accounting.views.photo_list'),
+        
         
     url(r'^youtube/list/$', 'catalog.accounting.views.youtube_list', name='youtube_list'),    
     url(r'^youtube/(?P<id>\d+)/delete/$', 'catalog.accounting.views.youtube_delete'),

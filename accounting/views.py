@@ -6827,29 +6827,54 @@ def photo_del_field(request):
 
 
 
-def photo_list(request, show=2):
+def photo_list(request, show=2, page=1, limit=50):
     list = None
     show = int(show)
-    print "PARAM id = " + str(show) + " type = " + str(type(show))     
+    print "PARAM id = " + str(show) + " Page = " + str(page)
+    limit = int(limit)
+    page = int(page)
+    lim_a = (page * limit) - limit
+    lim_b = page * limit 
+     
     if show == 0: # Show all
-        list = Photo.objects.exclude(catalog = None)
+        if page > 0:
+            list = Photo.objects.exclude(catalog = None)[lim_a:lim_b]
+        if page == 9999:
+            list = Photo.objects.exclude(catalog = None).order_by('-date')[:limit]
+        if page == 0:                
+            list = Photo.objects.exclude(catalog = None)
         #list = Photo.objects.filter(catalog = None)
+        text = "Show all record who join Catalog "
     if show == 1: # New record with Catalog connect
-        list = Photo.objects.exclude((Q(www = '') | Q (www = None)) & Q(catalog = None))
-    if show == 2: # New record with Catalog connect        
-        list = Photo.objects.exclude( (Q(www = '') | Q (www = None)) )
+        if page > 0:
+            list = Photo.objects.exclude((Q(www = '') | Q (www = None)) & Q(catalog = None))[lim_a:lim_b]
+        if page == 9999:
+            list = Photo.objects.exclude((Q(www = '') | Q (www = None)) & Q(catalog = None)).order_by('-date')[:limit]
+    if show == 2: # New record with Catalog connect
+        if page > 0:                
+            list = Photo.objects.exclude( (Q(www = '') | Q (www = None)) )[lim_a:lim_b]
+        if page == 9999:
+            list = Photo.objects.exclude( (Q(www = '') | Q (www = None)) ).order_by('-date')[:limit]
+        text = "New record with Catalog connect"
     if show == 3: # Show all who catalog in None
-        list = Photo.objects.filter(catalog = None)
+        if page > 0:
+            list = Photo.objects.filter(catalog = None)[lim_a:lim_b]
+        if page == 9999:
+            list = Photo.objects.filter(catalog = None).order_by('-date')[:limit]
+        text = "Show all who catalog in None"                                     
     if show == 4: # Show all who have URL field
-        list = Photo.objects.exclude( (Q(url = '') | Q (catalog = None)) )
-
+        if page > 0:        
+            list = Photo.objects.exclude( (Q(url = '') | Q (catalog = None)) )[lim_a:lim_b]
+        if page == 9999:
+            list = Photo.objects.exclude( (Q(url = '') | Q (catalog = None)) ).order_by('-date')[:limit]
+        text = "Show all who have URL field empty"
         
 #    list = Photo.objects.filter((Q(www = '') | Q (www = None)) & Q(catalog = None)).values('user', 'date', 'url', 'catalog__name', 'catalog__id', 'catalog__ids', 'user__username', 'id', 'bicycle__model', 'bicycle', 'local', 'www').order_by('-date')
     for iphoto in list:
         psts = change_photo_url(iphoto)
         print "[" + str(iphoto.pk) + "] - "+ str(psts) 
             
-    return render_to_response('index.html', {'weblink': 'photo_list.html', 'list': list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'weblink': 'photo_list.html', 'list': list, 'text': text, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def photo_url_delete(request, id=None):
@@ -7749,12 +7774,14 @@ def discount_add(request):
             ds = form.cleaned_data['date_start']
             de = form.cleaned_data['date_end']
             type = form.cleaned_data['type_id']
+            type = form.cleaned_data['manufacture_id']
             #conv_ds = datetime.datetime.strptime(ds, '%d-%m-%Y').date()
             #conv_de = datetime.datetime.strptime(de, '%d-%m-%Y').date()
             f = form.save(commit=False)
             f.date_start = ds
             f.date_end = de
             f.type_id = int(type or 0)
+            f.manufacture_id = int(type or 0)
             #f.name = "Black Friday"
 #            f.name = name
             f.save()
