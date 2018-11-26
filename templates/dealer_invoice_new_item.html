@@ -3,7 +3,7 @@
 
 {% load template_math %}
 
-<link rel="stylesheet" type="text/css" href="/media/css/table.css">
+{# <link rel="stylesheet" type="text/css" href="/media/css/table.css"> #}
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
 
 <script type="text/javascript" src="/media/jquery-ui.min.js"></script>
@@ -151,6 +151,8 @@ $(document).on("click", ".addprice", function(event) {
 });
 
 
+$('[data-toggle="tooltip"]').tooltip();
+
 });   
 </script>
 <br>    
@@ -166,7 +168,8 @@ $(document).on("click", ".addprice", function(event) {
 
 <div id="accordion" >
 
-<h3>EMPTY{{x.invoice.origin_id}}</h3> 
+{% comment %}
+<h3>EMPTY{{dinvoice_list.0.invoice.origin_id}}</h3>
 
 <div>
 <table id="iTable" class = "table table-bordered table-hover table-condensed table-sm">
@@ -179,25 +182,30 @@ $(document).on("click", ".addprice", function(event) {
    	<th>Наявна кількість</th>
    	<th>Користувач</th>
 </tr>
+{% endcomment %}
 
 {% for x in dinvoice_list %}
 {% ifchanged x.invoice %}
+{% if forloop.counter > 1 %}
 </table>
 </div>
-
-<h3>{{x.invoice.origin_id}}</h3> <div class="content"> 
-<table id="iTable" class = "table table-bordered table-hover table-condensed table-sm"> 
+{% endif %}
+<h3>{{x.invoice.origin_id}}</h3> 
+<div class="content">
+<table id="iTable" class = "table table-bordered table-hover table-condensed table-sm">
+<thead class="thead-dark text-center"> 
 <tr>
 	<th>#</th>
    	<th>[ID] - Назва </th>
-  	<th>Кількість</th>
-   	<th>Накладна</th>
+  	<th data-toggle="tooltip" data-html="true" data-placement="left" title="Кількість товару по накладній">Кількість</th>
+   	<th data-toggle="tooltip" data-html="true" data-placement="left" title="Номер накладної">#</th>
    	<th>Статус</th>
-   	<th style="width:80px">Наявна кількість</th>
+   	<th style="width:80px" data-toggle="tooltip" data-html="true" data-placement="left" title="Наявна кількість товару">Наявна кількість</th>
    	<th>Ціна</th>
-   	<th>Користувач</th>
-   	<th>Ящик</th>
+   	<th data-toggle="tooltip" data-html="true" data-placement="left" title="Користувач що прийняв товар">User</th>
+   	<th data-toggle="tooltip" data-html="true" data-placement="left" title="Номер ящика на складі">Ящик</th>
 </tr> 
+</thead>
 {% endifchanged %}
 {% if x.count == x.rcount %}
 <tr id=row{{x.id}}  bgcolor="#9fbb31">
@@ -210,7 +218,10 @@ $(document).on("click", ".addprice", function(event) {
 {% endif %}
 
 <td class="addprice" ids="{{x.catalog.id}}">{{forloop.counter}}</td>
-<td class="cat_name">{{x.catalog}} {% if x.catalog.dealer_code %} [{{x.catalog.dealer_code}}] {% endif %}</td>
+<td class="cat_name d-flex">
+	<div class="p-2">{{x.catalog}} {% if x.catalog.dealer_code %} [{{x.catalog.dealer_code}}] {% endif %}</div> 
+	<div class="ml-auto p-2"><a style="text-align: right;" href="{% url 'catalog_edit' x.catalog.id %}"><i class="material-icons">edit</i></a></div>
+</td>
 <td id="count{{x.id}}" align="center">{{x.count}} шт.</td>
 <td>{{x.invoice.origin_id}}</td>
 <td class="recived" align="center">
@@ -238,8 +249,13 @@ $(document).on("click", ".addprice", function(event) {
 
 {% endfor %}
 
+{% comment %}
 </table>
 </div>
+{% endcomment %}
+</table>
+
+
 
 </div>
 

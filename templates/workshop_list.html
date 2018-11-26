@@ -3,11 +3,6 @@
 <title>Майстерня</title>
 
 <link rel="stylesheet" type="text/css" href="/media/css/table.css"> 
-{# <link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" /> #} 
-
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-{# <script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script> #} 
 
 {% load poll_extras %}
 
@@ -52,27 +47,27 @@ $(document).ready(function() {
 
 	$('[data-toggle="tooltip"]').tooltip();
 	
- $(".w_del").click(function(){
+$(".w_del").click(function(){
 
  if (confirm("Ви дійсно бажаєте видалити запис?")) {
  	console.log($(this).parents("tr"));
- 	console.log("log = "+$(this).attr("id_work"));
-	$(this).parents("tr").remove();
+ var row = $(this).parents("tr"); //.remove();
 		$.ajax({
                 type: "POST",
                 url: "/workshop/delete/",
                 data: {id:  $(this).attr("id_work") },
                 dataType: "text",
                 success:function(data){
-                	console.log("ajax work");
+                	console.log("ajax done");
+                 	row.remove();
                 },
                 error:function(data){
-                    alert("Виникли проблеми з сервером" + data);
+                 	console.log("Ajax Error " + data.responseText);
+                    alert("Помилка: " + data.responseText);
                 }
-            });	
+        });	
  }
-	
- });
+});
  
 	$("#maincheck").click( function() {
     	if($('#maincheck').prop('checked')){
@@ -82,8 +77,7 @@ $(document).ready(function() {
             $('.mc').prop( "checked", false )
         }
     	res();
-     });
- 
+	});
  
 });
     
@@ -172,7 +166,26 @@ $(document).ready(function() {
 	<span class="badge badge-success" title="Додати роботу <br> {{type.work_type}}" data-toggle="tooltip" data-html="true" data-placement="top"><a href="/workshop/add/{{ type.work_type.id }}/" >
 	<i class="material-icons">build</i>
 	</a></span>
-	{{type.work_type}} 	
+	{{type.work_type}}
+{% if type.check_depence_category %}	 	
+<a data-toggle="collapse" href="#work-{{forloop.counter}}" {# data-target="#collapseExample" #} aria-expanded="false" aria-controls="collapseExample">
+	<i class="material-icons">expand_more</i>
+</a>
+	
+<div class="collapse" id="work-{{forloop.counter}}">
+  <div class="card card-body">
+<b>Категорії товарів:</b>
+<div class="row">
+ 	{% for type in type.work_type.component_type.all %}
+		<div class="col-auto mt-1 ml-0">
+			<a href="{% url 'category_id_list' type.id %}" ><img src="{{type.get_icon_name}}" style="width:64px" alt="{{type.name}}"></a> 
+		</div>
+ 	{% endfor %}
+ 	</div>
+  </div>
+</div>
+{% endif %}
+	
 	</td>	
 	<td align='center'>       
 	{{type.price}}

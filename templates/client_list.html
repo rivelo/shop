@@ -1,20 +1,20 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-<link type="text/css" rel="stylesheet" href="/media/paginator.css">
+{#<link type="text/css" rel="stylesheet" href="/media/paginator.css">#}
 
 
 <head>
     <title>Список клієнтів</title>
-    <link rel="stylesheet" type="text/css" href="/media/table.css">
+{#   <link rel="stylesheet" type="text/css" href="/media/table.css"> #}  
 </head>
 
-    <h1>Список Клієнтів <a href="/client/add/">(Додати)</a></h1>
+    <h1><span class="badge badge-secondary">Список клієнтів </span> <a href="/client/add/" class="badge badge-success"><i class="material-icons">add_circle_outline</i></a></h1>
 	
-    <table border="1">
-    <tr>
+    <table class="table table-striped table-hover table-sm align-content-center">
+<thead class="thead-dark">
+    <tr class="text-center">
     	<th>#</th>
-    	<th>ID</th>
     	<th>ПІБ</th>
     	<th>Нік на форумі</th>
     	<th>Країна</th>
@@ -26,15 +26,12 @@
     	<th>Опис</th>
     	<th>Дія</th>
     </tr>    
-
-
+</thead>
+<tbody>
 {% for type in clients.object_list  %}
-<tr>
+<tr class="text-center">
 	<td>{{forloop.counter}}</td>
-	<td>       
-	{{type.id}}
-	</td>
-	<td>       
+	<td class="text-left">       
 	<a href="/client/result/search/?id={{ type.id }}">{{type.name}}</a>
 	</td>
 	<td>       
@@ -43,13 +40,13 @@
 	<td>       
 	{{type.country}}
 	</td>
-	<td>       
+	<td class="text-center">       
 	{{type.city}}
 	</td>
-	<td>       
+	<td class="align-content-center">       
 	{{type.email}}
 	</td>
-	<td>       
+	<td class="align-content-center">       
 	{{type.phone}}
 	</td>
 	<td>       
@@ -62,49 +59,55 @@
 	{{type.description}}
 	</td>
 	<td>
-	<a href="/client/edit/{{ type.id }}">edit</a>            
-    <a href="/client/delete/{{ type.id }}" onclick="return confirm('Видалити клієнта?')">delete</a>
+	<a href="/client/edit/{{ type.id }}"><i class="material-icons">create</i></a>            
+    <a href="/client/delete/{{ type.id }}" onclick="return confirm('Видалити клієнта?')"><i class="material-icons md-36">delete_forever</i></a>
     </td>
 </tr>
 {% endfor %}           
-
+</tbody>
 </table>
 
-<div class="pagination">
-  <ul>
+<div class="row">
+<div class="col mt-3">
+<nav aria-label="Page navigation example">
+  <ul class="pagination">
   	{% if clients.has_previous %}
-        <li class="prev">
-            <a href="?page={{ clients.previous_page_number }}">&larr; Previous</a>
+        <li class="page-item">
+            <a href="?{{GET_params.urlencode}}&amp;page={{ clients.previous_page_number }}" class="page-link">&larr; Previous</a>
         </li>
     {% else %}
-    <li class="prev disabled">
-            <a href="?page={{ clients.number }}">&larr; Previous</a>
+    <li class="page-item disabled">
+            <a href="?{{GET_params.urlencode}}&amp;page={{ clients.number }}" class="page-link">&larr; Previous</a>
     </li>
     {% endif %}
-    
-<!--     <li class="disabled"><a href="">Page {{ clients.number }} of {{ clients.paginator.num_pages }}.</a></li>
- -->
+
     {% for i in clients.paginator.page_range %}
     {% ifequal i  clients.number%}
-    <li class="disabled"><a href="">{{ i }}.</a></li>
+    <li class="page-item disabled"><a href="" class="page-link">{{ i }}.</a></li>
     {% else %}
-    <li class="active"><a href="?page={{ i }}">{{ i }}.</a></li>
+    <li class="page-item active"><a href="?{{GET_params.urlencode}}&amp;page={{ i }}" class="page-link">{{ i }}.</a></li>
     {% endifequal %}
     {% endfor %}   
     
     {% if clients.has_next %}
-        <li class="next">
-            <a href="?page={{ clients.next_page_number }}">Next &rarr;</a>
-        </li>
+    <li class="page-item">
+	    <a href="?{{GET_params.urlencode}}&amp;page={{ clients.next_page_number }}" class="page-link">Next &rarr;</a>
+    </li>
     {% else %}
-    <li class="next disabled">
-            <a href="?page={{ clients.number }}">&larr; Previous</a>
+    <li class="page-item disabled">
+    	<a href="?{{GET_params.urlencode}}&amp;page={{ clients.number }}" class="page-link">&larr; Previous</a>
      </li>    
     {% endif %}
   </ul>
+</nav>
+</div>
 </div>
 
-<br><br>
-<a href="/client/search/">Повторний пошук клієнта</a>
-<br>
-<a href="/client/add/">Створити нового клієнта (Add)</a>       
+
+
+<div class="row">
+<h1>
+<span class="badge badge-secondary"><a href="/client/search/" class="badge ">Повторний пошук клієнта</a></span>
+<span class="badge badge-secondary"><a href="/client/add/" class="badge">Створити нового клієнта (Add)</a></span>       
+</h1>
+</div>

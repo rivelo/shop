@@ -47,6 +47,7 @@ class Type(models.Model):
     synonym = models.CharField(max_length=255, blank=True, null=True)
     synonym_ukr = models.CharField(max_length=255, blank=True, null=True)
     ico_status = models.BooleanField(default=False, verbose_name="Наявність іконки")
+#    ranking = models.FloatField()
 #    icon = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
 #    icon_select = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
 
@@ -434,7 +435,7 @@ class Catalog(models.Model):
         for photo in p_url:
             if photo.local:
                 photos_list.append(photo.local)
-            if photo.url:
+            if photo.url and not photo.local:
                 photos_list.append(photo.url)
         if photos_list:
             return photos_list
@@ -1182,6 +1183,12 @@ class WorkShop(models.Model):
     pay = models.BooleanField(default = False, verbose_name="Оплачено?")
     description = models.TextField(blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+
+    def check_depence_category(self):
+        if self.work_type.component_type.exists():
+            return True
+        else:
+            return False
     
     def __unicode__(self):
         return self.description

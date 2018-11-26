@@ -1,181 +1,40 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+ <html xmlns="http://www.w3.org/1999/xhtml">
  <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <title>Rivelo shop</title>
+  <title>Main page Rivelo</title>
+
   <style type="text/css">
-   body {
-    font: 11pt Arial, Helvetica, sans-serif; /* Рубленый шрифт текста */
-    margin: 0; /* Отступы на странице */
-   }
-   h1 {
-    font-size: 36px; /* Размер шрифта */
-    margin: 0; /* Убираем отступы */
-    color: #339900; /* Цвет текста */
-   }
-   h2 {
-    margin-top: 0; /* Убираем отступ сверху */
-   }
-   #header { /* Верхний блок */
-    /* background: #0080c0; /* Цвет фона */ */
-    padding: 20px; /* Поля вокруг текста */
-   }
-   #header1 { /* Верхний блок 1 */
-    /* background: #339900; /* Цвет фона */ */ 
-    padding: 10px; /* Поля вокруг текста */
-   }
-   #sidebar { /* Левая колонка */
-    float: left; /* Обтекание справа */
-    border: 1px solid #333; /* Параметры рамки вокруг */
-    width: 20%; /* Ширина колонки */
-    padding: 5px; /* Поля вокруг текста */
-    margin: 10px 10px 20px 5px; /* Значения отступов */
-   }
-   #content { /* Правая колонка */
-    margin: 10px 5px 20px 25%; /* Значения отступов */
-    padding: 5px; /* Поля вокруг текста */
-    border: 1px solid #333; /* Параметры рамки */
-   }
-   #footer { /* Нижний блок */
-    background: #333; /* Цвет фона */
-    padding: 5px; /* Поля вокруг текста */
-    color: #fff; /* Цвет текста */
-    clear: left; /* Отменяем действие float */
-   }
+.icon{
+    height: auto; 
+    width: auto; 
+    max-width: 130px; 
+    max-height: 130px;
+    margin-left: auto;
+    margin-right: auto;
+/*    background: none;
+    cursor: pointer; */
+} 
   </style>
+  
  </head>
+ 
  <body>
-<!--  <div id="header"> {% include "top.html" %} </div> --> 
-  <div id="header1"> <h1>{% include "top.html" %} {% include "menu.html" %} </h1> </div>
-  
-  <div id="sidebar">
-          <br> 
-        <h3>Виробники *** (Bike Company):</h3>
-        <a href="/manufacturer/add/">Додати компанію</a>
-        <br> 
-        <a href="/manufacturer/search/">Пошук виробника</a> 
-        <br>        
-        <a href="/manufacturer/view/">Список виробників (Company List)</a>        
-
-        <br> 
-        <h3>Типи запчастин (Type of Bike components list):</h3>
-        <a href="/category/add/">add Category</a>
-        <br>
-        <a href="/category/search/">search Category</a> 
-        <br>        
-        <a href="/category/view/">List</a>        
-
-        <br> 
-        <h3>Каталог запчастин (Bike components list):</h3>
-        <a href="/catalog/add/">Додати продукт</a>
-        <br>
-        <a href="/catalog/search/">search Category</a> 
-        <br>        
-        <a href="/catalog/view/">Список продукції</a>        
-
-        <br> 
-        <h3>Країни:</h3>
-        <a href="/country/add/">Додати країну</a>
-        <br>
-        <a href="/country/search/">search Country</a> 
-        <br>        
-        <a href="/country/view/">Список країн</a>        
-
-        <br> 
-        <h3>Валюта (Currency):</h3>
-        <a href="/curency/add/">add Category</a>
-        <br>
-        <a href="/curency/search/">search Category</a> 
-        <br>        
-        <a href="/curency/view/">List</a>        
-
-        <br> 
-        <h3>Курс обміну валюти (Exchange):</h3>
-        <a href="/exchange/add/">add Exchange</a>
-        <br>
-        <a href="/exchange/search/">search Category</a> 
-        <br>        
-        <a href="/exchange/view/">Exchange List</a>        
-
-        <br> 
-        <h3>Дилери (Dealer):</h3>
-        <a href="/dealer/add/">add Dealer</a>
-        <br>
-        <a href="/dealer/search/">search Dealer</a> 
-        <br>        
-        <a href="/dealer/view/">Dealer List</a>        
-
-        <br> 
-        <h3>Dealer Managers:</h3>
-        <a href="/dealer-manager/add/">add Dealer Manager</a>
-        <br>
-        <a href="/dealer-manager/search/">search Dealer Manager</a> 
-        <br>        
-        <a href="/dealer-manager/view/">Dealer Managers List</a>        
-
-        <br> 
-        <h3>Велосипед (Bicycle):</h3>
-        <a href="/bicycle/add/">Додати велосипед</a>
-        <br>
-        <a href="/bicycle/search/">search bikes model</a> 
-        <br>        
-        <a href="/bicycle/view/">Список велосипедів</a>        
-
-        <br> 
-        <h3>Типи велосипедів:</h3>
-        <a href="/bicycle-type/add/">Додати Тип</a>
-        <br>
-        <a href="/bicycle-type/search/">search Typer</a> 
-        <br>        
-        <a href="/bicycle-type/view/">Список типів велосипедів</a>        
-
-        <h3>Розміри велосипедних рам (Bicycle Frame Size):</h3>
-        <a href="/bicycle-framesize/add/">Створення нового розміру рами (Add bicycle frame size)</a>
-        <br>
-        <a href="/bicycle-framesize/search/">Пошук розміру</a> 
-        <br>        
-        <a href="/bicycle-framesize/view/">Список розмірів рам (List frame sizes)</a>        
-
-        <br> 
-        <h3>Прихід велосипедів в магазин:</h3>
-        <a href="/bicycle-store/add/">Додати велосипед до магазину</a>
-        <br>
-        <a href="/bicycle-store/search/">Пошук велосипеду</a> 
-        <br>        
-        <a href="/bicycle-store/view/">Список велосипедів</a>        
-
-        <br> 
-        <h3>Клієнти:</h3>
-        <a href="/client/add/">Додати клієнта</a>
-        <br>
-        <a href="/client/search/">Пошук клієнтів</a> 
-        <br>        
-        <a href="/client/view/">Список клієнтів</a>        
-
-        <br> 
-        <h3>Борги клієнтів:</h3>
-        <a href="/clientdebts/add/">Додати борг клієнту</a>
-        <br>
-        <a href="/clientdebts/search/">Пошук клієнтів</a> 
-        <br>        
-        <a href="/clientdebts/view/">Список клієнтських боргів</a>
-
-        <br> 
-        <h3>Кредет клієнтів:</h3>
-        <a href="/clientcredits/add/">Додати кредет клієнту</a>
-        <br>
-        <a href="/clientcredits/search/">Пошук клієнтів</a> 
-        <br>        
-        <a href="/clientcredits/view/">Список кредетів клієнтів</a>
-  
-  </div>
-  
-  
-  <div id="content">
-    {% include weblink %}
-  </div>
-  
-  <div id="footer">&copy; Rivelo shop </div>
+ 
+{% for cat in cat_list %}
+ 
+ <a href="{% url 'category_id_list' cat.id %}" title="{{cat.name_ukr}} / {{cat.name}}" data-toggle="tooltip" data-placement="top">
+ <img class="icon" src="{{cat.get_icon_name}}">
+ </a>
+ 
+{% endfor %}
+ 
  </body>
+ 
+<script>
+$(document).ready( function() {
+	$('[data-toggle="tooltip"]').tooltip();
+})
+</script>
+ 
+ 
 </html>

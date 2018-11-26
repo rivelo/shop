@@ -1844,13 +1844,9 @@ def invoice_new_item(request):
     date=datetime.date.today()
     start_date = datetime.date(date.year, 1, 1)
     end_date = datetime.date(date.year, 3, 31)    
-    
     di = DealerInvoice.objects.filter(received = False).values_list("id", flat=True)
-    
-#    list_comp = InvoiceComponentList.objects.filter(invoice__date__year = date.year, invoice__date__month = date.month, invoice__id__in = di) #(invoice = list[1].id)
-    nday = 10
+    nday = 14
     list_comp = InvoiceComponentList.objects.filter(invoice__date__gt = date - datetime.timedelta(days=int(nday)), invoice__id__in = di).order_by("invoice__id")    
-    #date__gt=now-datetime.timedelta(days=int(nday))
     return render_to_response('index.html', {'dinvoice_list': list_comp, 'weblink': 'dealer_invoice_new_item.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))  
 
 
@@ -2780,7 +2776,7 @@ def catalog_edit(request, id=None):
         form = CatalogForm(instance=a)
     #url=request.META['HTTP_REFERER']
 
-    return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'cat_pk': id, 'catalog_obj': a.photo_url.all(), 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'cat_pk': id, 'catalog_obj': a.get_photos(), 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def catalog_list(request, id=None):
@@ -3295,15 +3291,18 @@ def client_invoice(request, cid=None, id=None):
         return render_to_response('index.html', {'weblink': 'guestinvoice.html', 'cat': cat}, context_instance=RequestContext(request, processors=[custom_proc]))
         #return HttpResponseRedirect('/')
     now = datetime.datetime.now()
-    
+
     if (id):
         client = Client.objects.get(pk = id)
-        a = ClientInvoice(client = client, date=datetime.datetime.today(), price=cat.price, sum=Catalog.objects.get(id = cid).price, sale=int(Catalog.objects.get(id = cid).sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=Catalog.objects.get(id = cid))
+        a = ClientInvoice(client = client, date=datetime.datetime.today(), price=cat.price, sum=cat.price, sale=int(cat.sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=cat)
+        
     else:
-        a = ClientInvoice(date=datetime.datetime.today(), price=cat.price, sum=Catalog.objects.get(id = cid).price, sale=int(Catalog.objects.get(id = cid).sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=Catalog.objects.get(id = cid))
+        a = ClientInvoice(date=datetime.datetime.today(), price=cat.price, sum=cat.price, sale=int(Catalog.objects.get(id = cid).sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=cat)
+        
     if request.method == 'POST':
-        form = ClientInvoiceForm(request.POST, instance = a, catalog_id=cid, request = request)
+        form = ClientInvoiceForm(request.POST, instance = a, catalog_id = cid, request = request)
         if form.is_valid():
+#            form.save()            
             client = form.cleaned_data['client']
             catalog = form.cleaned_data['catalog']
             count = form.cleaned_data['count']
@@ -3321,12 +3320,11 @@ def client_invoice(request, cid=None, id=None):
                     cat.length = cat.length + clen
                 else:
                     cat.length = 0
-
             user = None #form.cleaned_data['user_id']            
             if request.user.is_authenticated():
                 user = request.user
-            
             ClientInvoice(client=client, catalog=catalog, count=count, sum=sum, price=price, currency=currency, sale=sale, pay=pay, date=date, description=description, user=user).save()
+            
             cat.count = cat.count - count
             cat.save()
             
@@ -3353,7 +3351,7 @@ def client_invoice(request, cid=None, id=None):
 
     cat_obj = cat.get_discount_item()
     
-    return render_to_response('index.html', {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def client_invoice_edit(request, id):
@@ -3423,7 +3421,7 @@ def client_invoice_edit(request, id):
         if a.description.find('length:')>=0:
             dlen = a.description.split('\n')[-1].split(':')[1]
     clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))        
-    return render_to_response('index.html', {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'box_number': nbox, 'b_len': b_len, 'desc_len':dlen, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'box_number': nbox, 'b_len': b_len, 'desc_len':dlen, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def client_invoice_set(request):
@@ -3872,7 +3870,7 @@ def client_search_result(request):
     if city:
         clients = Client.objects.filter(Q(city__icontains=city))
     if phone:
-        clients = Client.objects.filter(Q(phone__icontains=phone))
+        clients = Client.objects.filter(Q(phone__icontains=phone) | Q(phone1__icontains=phone))
     if username:
         clients = Client.objects.filter(Q(name__icontains=username) | Q(forumname__icontains=username))
     if cred:
@@ -3882,6 +3880,7 @@ def client_search_result(request):
 
     if clients.count() == 1:
         return HttpResponseRedirect("/client/result/search/?id=" + str(clients[0].id))
+
     paginator = Paginator(clients, 50)
     page = request.GET.get('page')
     if page == None:
@@ -3894,13 +3893,14 @@ def client_search_result(request):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         contacts = paginator.page(paginator.num_pages)
-    
+
     if cred:
         return render_to_response('index.html', {'clients': contacts, 'weblink': 'clientcredits_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))        
     if debt:
         return render_to_response('index.html', {'clients': contacts, 'weblink': 'clientdebts_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
-        
-    return render_to_response('index.html', {'clients':contacts, 'weblink': 'client_list.html', 'c_count': clients.count(), 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+    GET_params = request.GET.copy()  
+    return render_to_response('index.html', {'clients':contacts, 'weblink': 'client_list.html', 'c_count': clients.count(), 'GET_params':GET_params, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 
@@ -4543,10 +4543,13 @@ def workshop_add_formset(request):
 
 
 def workshop_edit(request, id):
+    if not request.user.is_authenticated():    
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
     now = datetime.datetime.now()
     a = WorkShop.objects.get(pk=id)
     work = a.work_type
     owner = a.user
+    old_p = a.price
     if request.method == 'POST':
         form = WorkShopForm(request.POST, instance=a)
         if form.is_valid():
@@ -4555,15 +4558,21 @@ def workshop_edit(request, id):
             work_type = form.cleaned_data['work_type']
             price = form.cleaned_data['price']
             description = form.cleaned_data['description']
-#            pay = form.cleaned_data['pay']
+            pay = a.pay #form.cleaned_data['pay']
             user = request.user 
-            if request.user.is_authenticated():
-                if (request.user == owner) or (auth_group(request.user, 'admin')==True):
-                    user = form.cleaned_data['user']
-                else:
-                    user = owner
-                    date = datetime.datetime.now() 
-            WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user).save()
+            if (request.user == owner) or (auth_group(request.user, 'admin')==True):
+                user = form.cleaned_data['user']
+            else:
+                user = owner
+                date = datetime.datetime.now()
+            if (pay == False) or (auth_group(request.user, 'admin') == True):
+                WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay = pay).save()
+            else:
+                a.price = old_p 
+                a.date = date
+                a.description = description
+                a.user = user
+                a.save()
             return HttpResponseRedirect('/workshop/view/')
     else:
         form = WorkShopForm(instance=a)
@@ -4605,9 +4614,13 @@ def workshop_delete(request, id=None):
     if wid:
         id = wid 
     obj = WorkShop.objects.get(id=id)
-    del_logging(obj)
-    obj.delete()
-    return HttpResponseRedirect('/workshop/view/')
+    if (auth_group(request.user, 'admin') == True) or ((request.user == obj.user) and (obj.pay == False)):
+        del_logging(obj)
+        obj.delete()
+        return HttpResponse("Роботу видалено", content_type="text/plain")
+    else:
+        return HttpResponse("Роботу не можливо видалити, можливо це не ваша робота, або ви не залогувались на портал", status=401)
+    #return HttpResponseRedirect('/workshop/view/')
 
 
 # lookup workshop price
@@ -6570,14 +6583,17 @@ def photo_url_add(request):
     if request.is_ajax():
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
-                return HttpResponse('Error: У вас не має прав для редагування')
+                return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain;charset=UTF-8")
             POST = request.POST  
             if POST.has_key('id') and POST.has_key('url'):
                 pid = request.POST.get('id')
                 p_url = request.POST.get('url')
-                
-                if Photo.objects.filter(url = p_url):
-                    return HttpResponse("Таке фото вже існує", content_type="text/plain")
+                photo_select = Photo.objects.filter(url = p_url)
+                if photo_select:
+                    c = Catalog.objects.get(id = pid)
+                    c.photo_url.add(photo_select[0])
+                    c.save()
+                    return HttpResponse("Таке фото вже існує / This photo is present", content_type="text/plain;charset=UTF-8")
                 
                 p1 = Photo(url = p_url, date = datetime.datetime.now(), user = request.user, description="")
                 p1.save()
@@ -6586,7 +6602,7 @@ def photo_url_add(request):
                 c.save()
 
     search = "ok"
-    return HttpResponse(search, content_type="text/plain")
+    return HttpResponse(search, content_type="text/plain;charset=UTF-8;")
 
 
 import StringIO, requests, os
@@ -6647,16 +6663,15 @@ def photo_url_get(request, id=None):
 #                return HttpResponse('Error: У вас не має прав для редагування')
             POST = request.POST  
             if POST.has_key('id'):
-                pid = request.POST.get('id')
-                #photo_list = Photo.objects.filter(catalog__id = pid).values_list('url', 'description', 'id')
-                photo_list = Photo.objects.filter(catalog__id = pid).values('url', 'www', 'local', 'description', 'id')
-                cat = Catalog.objects.get(id = pid)
+                cid = request.POST.get('id')
+                cat = Catalog.objects.get(id = cid)
+                photo_list = cat.get_photos()
                 c_name = "[" + cat.ids + "] - " + cat.name
                 try:
-                    json = simplejson.dumps({'aData': list(photo_list), 'id': pid, 'cname': c_name})
+                    #json = simplejson.dumps({'aData': list(photo_list), 'id': cid, 'cname': c_name})
+                    json = simplejson.dumps({'aData': photo_list, 'id': cid, 'cname': c_name})
                 except:
-                    json = simplejson.dumps({'aData': "None", 'id': pid, 'cname': c_name})
-
+                    json = simplejson.dumps({'aData': "None", 'id': cid, 'cname': c_name})
         return HttpResponse(json, content_type='application/json')
     else:
         #id = request.POST.get('id')
@@ -6680,15 +6695,15 @@ def photo_url_get(request, id=None):
             o_url = obj.url
         else:
             o_url = obj.www
-        print "oURL = " + o_url
-        print "oWwww = " + str(obj.www)
-        print "obj_url = " + obj.url
-        print "olocal = " + (str(obj.local) or "")
+#        print "oURL = " + o_url
+#        print "oWwww = " + str(obj.www)
+#        print "obj_url = " + obj.url
+#        print "olocal = " + (str(obj.local) or "")
 
         file_path = settings.MEDIA_ROOT + 'download/'
         filetype = ".jpg"
         media = settings.MEDIA_URL + 'download/'
-        print "file_path = " + file_path
+#        print "file_path = " + file_path
         filename = ''
         dirname_glob = settings.PROJECT_DIR
 
@@ -6700,30 +6715,30 @@ def photo_url_get(request, id=None):
         if (not status_cat) and (status_bike):            
             filename = bset[0].id
             filename = slugify(filename)
-        print "File name = " + filename + filetype
-        print "Local path = " + dirname_glob[:-1]
+#        print "File name = " + filename + filetype
+#        print "Local path = " + dirname_glob[:-1]
         
         if obj.local == None or obj.local == '':
-            print "Locale = None"
+#            print "Locale = None"
             save_photo_local(obj, o_url, media, file_path, filename + filetype)            
 #            return HttpResponse("Local NoneType")
             str_obj = "<img style='max-width:500px' src='" + str(o_url) + "'> <br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + obj.url + "<br>local = " + (str(obj.local) or "") + "  <br>  www = " + str(obj.www)
             return HttpResponse(str_obj)
         
-        print "Local path + obj = " + dirname_glob[:-1] + obj.local
+#        print "Local path + obj = " + dirname_glob[:-1] + obj.local
         if (obj.local <> '') and (os.path.isfile(dirname_glob[:-1] + obj.local)):
             #print "File LOCAL exists = " + str(settings.MEDIA_ROOT + obj.local)
-            print "File Local exists = " + dirname_glob[:-1] + obj.local
+ #           print "File Local exists = " + dirname_glob[:-1] + obj.local
             #obj.local = ''
             #obj.save()
             str_obj = "<img style='max-width:500px' src='" + (str(obj.local) or "") + "'> <br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + obj.url + "<br>local = " + (str(obj.local) or "") + "  <br>  www = " + str(obj.www)
             return HttpResponse(str_obj)
 
         if ((obj.local <> '') and (not os.path.isfile(dirname_glob[:-1] + obj.local)) and (o_url <> '')):
-            print "Local var is False"
+#            print "Local var is False"
             save_photo_local(obj, o_url, media, file_path, filename + filetype)
 
-        print "LAST return"
+ #       print "LAST return"
         str_obj = "<img style='max-width:500px' src='" + (str(obj.local) or "") + "'> <br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + obj.url + "<br>local = " + (str(obj.local) or "") + "  <br>  www = " + str(obj.www)
         #str_obj = "<img style='max-width:500px' src='"+ str(obj.local) or "" + "'><br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + str(obj.url) or "" + "<br>local = " + str(obj.local) or "" + "  <br>  www = " + str(obj.www) or ""  
         return HttpResponse(str_obj) 

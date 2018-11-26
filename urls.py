@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.conf.urls import patterns, include, url
 
-from catalog.views import current_datetime, main_page
+from catalog.views import main_page
 #from catalog.test import current_datetime as curdate
 #from django.views.generic.simple import direct_to_template
 #from django.views.generic import TemplateView
@@ -187,7 +187,7 @@ urlpatterns = patterns('',
     url(r'^invoice/category/view/$', 'catalog.accounting.views.invoicecomponent_list', {'focus': 2}),
     #url(r'^invoice/category/view/$', 'catalog.accounting.views.invoicecomponent_list_by_category'),
 #    url(r'^invoice/category/(?P<cid>\d+)/view/$', 'catalog.accounting.views.invoicecomponent_list_by_category'),
-    url(r'^invoice/category/(?P<cid>\d+)/view/$', 'catalog.accounting.views.invoicecomponent_list'),
+    url(r'^invoice/category/(?P<cid>\d+)/view/$', 'catalog.accounting.views.invoicecomponent_list', name="category_id_list"),
     url(r'^invoice/list/(?P<limit>\d+)/view/$', 'catalog.accounting.views.invoicecomponent_list'),
     url(r'^invoice/price/update/(?P<upday>\d+)/view/$', 'catalog.accounting.views.invoicecomponent_list'),
     url(r'^invoice/list/view/$', 'catalog.accounting.views.invoicecomponent_list'),
@@ -459,7 +459,6 @@ urlpatterns += patterns('',
     url(r'^catalog/photo/list/(?P<show>\d+)/page/(?P<page>\d+)/limit/$', 'catalog.accounting.views.photo_list'),
     url(r'^catalog/photo/list/(?P<show>\d+)/$', 'catalog.accounting.views.photo_list'),
     url(r'^catalog/photo/list/$', 'catalog.accounting.views.photo_list'),
-        
         
     url(r'^youtube/list/$', 'catalog.accounting.views.youtube_list', name='youtube_list'),    
     url(r'^youtube/(?P<id>\d+)/delete/$', 'catalog.accounting.views.youtube_delete'),

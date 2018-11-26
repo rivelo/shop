@@ -10,13 +10,14 @@
 	
 <style type="text/css">
   span:visited{ text-decoration:none; color:#293d6b; }
-  span:hover{ text-decoration:underline; color:#FFF; }
-  span {color:#293d6b; 
+/*  span:hover{ text-decoration:underline; color:#FFF; } */
+  span.client {color:#293d6b; 
   		cursor: pointer; 
   		border-radius: 5px;
   		color: #FFF;
   		background-color: #4A4A4A;
   		}
+  		
   span.one {background-color: #5cb85c;
   		}
   span.two {background-color: #FF6600;
@@ -29,10 +30,39 @@
   div.box_price {
   		border-radius: 5px;
   		   background-color: #8BCB45;
-  		   font-size:200%;
+  		   /*font-size:200%;*/
   		   margin: 5px 0px 0px;
   		   width: 100%
   }  		
+  .box_price {
+  		border-radius: 5px;
+  		   background-color: #8BCB45;
+  		   /*font-size:200%;
+  		   margin: 5px 0px 0px; */
+  		   width: 100%
+  }  		
+  
+  span.input-group-text {
+  		background-color: #cccdce;
+  }
+
+.carousel-indicators li {
+	cursor: pointer;
+    background-color: #5bb600;
+}
+
+.carousel-control-prev-icon { 
+	background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%235bb600' viewBox='0 0 8 8'%3E%3Cpath d='M5.25 0l-4 4 4 4 1.5-1.5-2.5-2.5 2.5-2.5-1.5-1.5z'/%3E%3C/svg%3E"); 
+}
+.carousel-control-next-icon {
+  	background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%235bb600' viewBox='0 0 8 8'%3E%3Cpath d='M2.75 0l-1.5 1.5 2.5 2.5-2.5 2.5 1.5 1.5 4-4-4-4z'/%3E%3C/svg%3E") !important;
+}  
+
+.label-green{
+	background-color: green;
+	color: #FFF;
+	border-radius: 5px;
+}
   		
 </style>	
 	
@@ -90,7 +120,7 @@ $( "input" ).change(function(){
   sum();
 });
 	
-	$('span').click(function(){
+	$('span.client').click(function(){
     	//$(this).hide();
     	$("#s_client").val($(this).attr('vname'));
     	$('#id_client').val($(this).attr('val'));
@@ -199,30 +229,222 @@ $('#id_sale').attr('sale', {{cat_sale.sale}} );
 $('#id_sale').val( {{cat_sale.sale}} );
 {% endif %}
 
+$('[data-toggle="tooltip"]').tooltip();	
+
 });
 
 </script>
 
 <body onload="document.getElementById('s_client').focus()">
 
+<!-- Modal PHOTO -->
+<div class="modal fade" id="photoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Фото: {{form.name.value}}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="m_content">
+
+{% if catalog_obj.get_photos %}
+{# begin ФОТО карусель #}
+<div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+  <ol class="carousel-indicators">
+{% for photo_url in catalog_obj.get_photos %}  
+    <li data-target="#carouselExampleIndicators" data-slide-to="{{forloop.counter0}}" class="{% if forloop.counter0 = 0 %} active {% endif %}"></li>
+{% endfor %}
+  </ol>
+  <div class="carousel-inner">
+{% for photo_url in catalog_obj.get_photos %}
+    <div class="carousel-item {% if forloop.counter = 1 %} active {% endif %} ">
+      <img class="d-block w-100" src="{{photo_url}}" alt="photo{{forloop.counter}}" >
+    </div>
+{% endfor %}
+  </div>
+  <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="sr-only">Previous</span>
+  </a>
+  <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="sr-only">Next</span>
+  </a>
+</div>  
+{# end ФОТО карусель #}
+{% endif %}
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal PHOTO end -->
+
 <div class="row">
 <div class="col-auto">
-<h1><span class="badge badge-secondary">Продаж товару</span></h1>
+<h1>
+<span class="badge badge-secondary">Продаж товару</span>
+{% if catalog_obj.get_photos %}
+<button type="button" class="btn btn-info ml-1" data-toggle="modal" data-target="#photoModal" id="show_photo">
+{#<span class="badge badge-info">#}
+<i class="material-icons">photo_size_select_actual</i></button>
+{% endif %}
+<span class="label label-green pl-2 pr-2 align-middle"><font size="4" class="align-middle">{{ catalog_obj }}</font></span>
+</h1>
 </div>
 </div>
 
-<div class="row">
+<div class="row mr-1">
+{% if form.non_field_errors %}
+<div class="col-12">
+    <div class="alert alert-danger" role="alert">
+      {% for error in form.non_field_errors %}
+        {{ error }}
+      {% endfor %}
+    </div>
+</div>
+{% endif %}
 
-<div class="col-auto">
+<div class="col-12 col-md-6">
     <form id="UserEnter" action="." method="POST">
         <table>
-        	<input id="s_client" style="width: 550px;" />
-            {{ form.as_ul }}
+<tr>
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold" id="basic-addon1">Клієнт</span>
+  </div>
+  {{ form.client }}
+  <input type="text" id="s_client" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="Прізвище, імя клієнта" aria-label="Username" aria-describedby="basic-addon1">
+<div class="invalid-feedback">
+	{{ form.client.errors }}
+</div>
+</tr>        
+
+<tr>
+<div class="input-group mb-3">
+
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold" title="Кількість" data-toggle="tooltip" data-placement="top">К-ть</span>
+  </div>
+	{{form.count|add_attr:"class:form-control"}}
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Знижка</span>
+  </div>
+{% if form.sale.errors %}   {{ form.sale|add_attr:"class:form-control is-invalid" }} {% else %} {{ form.sale|add_attr:"class:form-control" }} {% endif %}
+<div class="invalid-feedback">
+	{{ form.sale.errors }}1
+</div>
+
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">%</span>
+  </div>
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Ціна</span>
+  </div>
+{% if form.price.errors %}   {{ form.price|add_attr:"class:form-control is-invalid" }} {% else %} {{ form.price|add_attr:"class:form-control" }} {% endif %}
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Грн.</span>
+  </div>
+
+ <div class="invalid-feedback">
+	{{ form.price.errors }}
+ </div>
+</tr>            
+
+<tr>
+
+{% for field in form.visible_fields %}
+{% if field.errors %}
+	<div class="alert alert-danger" role="alert">{{ field.name }} {{ field.errors }}</div>
+{% endif %}
+{% endfor %}
+
+{% for hidden_field in form.hidden_fields %}
+{% if hidden_field.errors %}
+	<div class="alert alert-danger" role="alert">{{ hidden_field.name }} {{ hidden_field.errors }}</div>
+{% endif %}
+{% endfor %}
+
+
+{% comment %}
+<div class="alert alert-danger" role="alert">{{ form.sale.errors }}</div>
+<div class="alert alert-danger" role="alert">{{ form.price.errors }}</div>
+<div class="alert alert-danger" role="alert">{{ form.sum.errors }}</div>
+<div class="alert alert-danger" role="alert">{{ form.date.errors }}</div>
+<div class="alert alert-danger" role="alert">{{ form.currency.errors }}</div>
+<div class="alert alert-danger" role="alert">{{ form.pay.name }} {{ form.pay.errors }}</div>
+<div class="alert alert-danger" role="alert">{{ form.user.errors }}</div>
+{% endcomment %}
+
+</tr>
+
+<tr>
+<div class="input-group mb-3">
+
+  <div class="input-group-prepend"> 
+  <span class="input-group-text font-weight-bold">Сума</span>
+  </div>
+	{{form.sum|add_attr:"class:form-control"}}
+  <div class="input-group-prepend"> 
+  <span class="input-group-text font-weight-bold"></span>
+  </div>
+	{{form.currency|add_attr:"class:form-control"}}
+
+</div>
+</tr>      
+
+<tr>
+<div class="input-group">
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Опис</span>
+  </div>
+  {{ form.description |add_attr:"class:form-control" }}
+
+</div>
+</tr>   
+
+<tr>
+<div class="input-group mb-3 mt-3">
+
+  <div class="input-group-prepend"> 
+  <span class="input-group-text font-weight-bold">Дата</span>
+  </div>
+	{{form.date|add_attr:"class:form-control"}}
+
+  <div class="input-group-append">
+{#    <button class="btn btn-outline-secondary" type="button">Оплатити готівкою</button> #}
+    <button class="btn btn-outline-success" type="button" id="bpay" onclick="payed()" value="Оплатити">Оплатити готівкою</button>
+  </div>
+
+</div>
+</tr>      
+
+<tr>
+{{ form.catalog }}
+{{form.pay}}
+{{form.length}}
+</tr>
+
+<tr>
+<div class="input-group mb-3 mt-3">
+<button class="btn btn-outline-success w-100" type="submit" value="Save" id="but_submit">Зберегти</button>
+{# <button class="btn btn-outline-secondary" type="button" id="bpay" onclick="payed()" value="Оплатити">Оплатити готівкою</button> #}
+</div>
+</tr>
+
+            {# form.as_ul #}
+            
         </table>
-        <p><input type="submit" value="Save" id="but_submit"><input id="bpay" onclick="payed()" type="button" value="Оплатити"></p>
+        
     </form>
 </div>
 
+{% comment %}
 <div class="col-auto">
 <h3><span class="badge badge-info">
 Номер ящика:<br>
@@ -233,18 +455,28 @@ $('#id_sale').val( {{cat_sale.sale}} );
 {% endif %}
 </h3>
 </div>
+{% endcomment %}
 
-<div class="col-auto">
+<div class="col-12 col-md-6">
+<h3>
+<span class="badge badge-info w-100">
+Номер ящика: {{box_number}}
+</span><br>
+{% if cat_sale %}
+<span class="btn btn-outline-warning mt-3 w-100 font-weight-bold">{{cat_sale.name}}: <font size="3">{{ cat_sale.sale }}%</font></span>
+{% endif %}
+</h3>
+
 <div>
 {% for client in clients_list %}
 {% if client.num_inv >= 7 %}
-<span class="two" val='{{client.client__id}}' vname="{{client.client__name}}" sale="{{client.client__sale}}" style="font-size:200%;"> {{client.client__name}} ({{client.num_inv}}) </span>,
+<span class="two client ml-1 pl-1" val='{{client.client__id}}' vname="{{client.client__name}}" sale="{{client.client__sale}}" style="font-size:200%;"> {{client.client__name}} <span class="badge badge-secondary align-middle" style="background-color: #d4dcdf; color:black;">{{client.num_inv}}</span></span>
 {% endif %}
 {% if client.num_inv >= 3 and client.num_inv < 7 %}
-<span class="one" val='{{client.client__id}}' vname="{{client.client__name}}" sale="{{client.client__sale}}" style="font-size:150%;"> {{client.client__name}} ({{client.num_inv}}) </span>,
+<span class="one client ml-1 pl-1" val='{{client.client__id}}' vname="{{client.client__name}}" sale="{{client.client__sale}}" style="font-size:150%;"> {{client.client__name}} <span class="badge badge-secondary align-middle" style="background-color: #d4dcdf; color:black;">{{client.num_inv}}</span> </span>
 {% endif %}
 {% if client.num_inv < 3 %} 
-<span val='{{client.client__id}}' vname="{{client.client__name}}" sale="{{client.client__sale}}" style="font-size:100%;"> {{client.client__name}} ({{client.num_inv}}) </span>,
+<span val='{{client.client__id}}' class="client ml-1 pl-1" vname="{{client.client__name}}" sale="{{client.client__sale}}" style="font-size:100%;"> {{client.client__name}} <span class="badge badge-secondary align-middle" style="background-color: #d4dcdf; color:black;">{{client.num_inv}}</span> </span>
 {% endif %}
 {% endfor %}
 </div>
@@ -254,9 +486,11 @@ $('#id_sale').val( {{cat_sale.sale}} );
 
 
 <div class="row w-100">
-<div class="col box_price" >
-<p align="left" style="font-style: normal; font-weight: bold;">Ціна: 
-{{ form.price.value }} грн.</p>
+<div class="col" >
+<span class=" badge box_price"> 
+<h3 class="float-left">Ціна: 
+{{ form.price.value }} грн.</h3>
+</span>
 </div>
 </div>
 

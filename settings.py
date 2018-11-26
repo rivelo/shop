@@ -101,7 +101,7 @@ DEFAULT_FROM_EMAIL = 'user@domain.com'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'velorivne@gmail.com'
-EMAIL_HOST_PASSWORD = 'gvelovelo'
+EMAIL_HOST_PASSWORD = 'gvelovelog'
 EMAIL_PORT = 587
 
 

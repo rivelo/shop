@@ -535,13 +535,13 @@ class ClientInvoiceForm(forms.ModelForm):
     client = forms.ModelChoiceField(widget=forms.HiddenInput(), queryset = Client.objects.all(), empty_label="")
     #catalog = forms.ModelChoiceField(queryset = Catalog.objects.filter(manufacturer=36))
     count = forms.FloatField(min_value=0, initial = 1, label = "Кількість")
-    catalog = forms.ModelChoiceField(queryset = Catalog.objects.all(), label="Товар")    
+    catalog = forms.ModelChoiceField(queryset = Catalog.objects.all(), widget=forms.HiddenInput(), label="Товар")    
     
     price = forms.FloatField(initial=0, label="Ціна")
     sum = forms.FloatField(initial=0, label="Сума")
     currency = forms.ModelChoiceField(queryset = Currency.objects.all())
     sale = forms.IntegerField(min_value=0, initial = 0, label="Знижка (%)")
-    pay = forms.FloatField(initial=0, label="Оплачено")
+    pay = forms.FloatField(initial=0, widget=forms.HiddenInput(), label="Оплачено")
 #    date = forms.DateTimeField(initial = datetime.datetime.today(), label='Дата', input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))
     date = forms.DateTimeField(initial = datetime.datetime.now(), label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'))
     description = forms.CharField(label='Description', widget=forms.Textarea(), required=False)
@@ -558,14 +558,19 @@ class ClientInvoiceForm(forms.ModelForm):
         sale = cleaned_data.get("sale")
         client = cleaned_data.get("client")
         cid = cleaned_data.get("catalog")
-        #cat = Catalog.objects.get(id = cid)
+#        cat = Catalog.objects.get(id = cid)
         cat = cid
         sprice = (100-sale)*0.01*cat.price
-        if (cat.get_discount() <= sprice) and (cat.get_discount() <> 0):
-            return         
-        if ((sale > 100) or (sale > cat.sale+20)) and (auth_group(self.request.user, 'admin')==False):
+        discount = cat.get_discount()
+        print "GET Sprice = " + str(sprice) + "Discount = " + str(discount)
+        if (discount > sprice):
+            print "GET Sprice = " + str(sprice) + "Discount = " + str(discount)
+            raise forms.ValidationError(u"Знижка не може бути більше за встановлену на товар " + str(int(discount)) + u" грн.")
+#            return cleaned_data 
+        if ((sale > 100) or (sale > cat.sale+20)) and (auth_group(self.request.user, 'admin')==False) and (discount == 0):
             ssale = cat.sale + 20
             raise forms.ValidationError(u"Знижка не може бути більше 100% або більша за встановлену на товар " + str(int(ssale)) + "%")
+        return cleaned_data 
     
     class Meta:
         model = ClientInvoice
@@ -655,14 +660,8 @@ class WorkTypeForm(forms.ModelForm):
 
 
 class WorkShopForm(forms.ModelForm):
-#    client = forms.ModelChoiceField(widget=forms.HiddenInput(), queryset = Client.objects.none(), empty_label="Клієнт")
-#    work_type = forms.ModelChoiceField(widget=forms.HiddenInput(), queryset = WorkType.objects.none(), label="Робота")
-#    client = forms.ModelChoiceField(widget=forms.HiddenInput(), queryset = Client.objects.all(), empty_label="Клієнт")
-#    work_type = forms.ModelChoiceField(widget=forms.HiddenInput(), queryset = WorkType.objects.all(), label="Робота")
-    
     work_type = forms.CharField(widget=forms.HiddenInput(), label="Робота")
     client = forms.CharField(widget=forms.HiddenInput())
-    
     date = forms.DateTimeField(initial = datetime.datetime.now(), label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'), required=False)
     price = forms.FloatField(initial=0, label="Ціна" ,widget=forms.TextInput(attrs={'class': 'form-control'}) )
     #pay = forms.BooleanField(initial=False, required=False, label="Оплачено?")

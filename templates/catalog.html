@@ -1,7 +1,8 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<script type="text/javascript" src="/media/jquery-ui.min.js"></script>
 
 <style>
 
@@ -49,7 +50,6 @@ $(document).ready( function() {
 
             var st = JSON.stringify(data);
 			var p = jQuery.parseJSON(st);
-//			console.log("aData = " + data.aData.length);
 			$(".carousel-inner").empty();
 			$(".carousel-indicators").empty();
 			
@@ -58,36 +58,82 @@ $(document).ready( function() {
 				$("#exampleModalLongTitle").html("Фото - " + p.cname); //aData[0].id); 
 					$.each(p.aData,function(index, item){
 						if (index == 0){
-							str_photo = '<div class="carousel-item active"><img id="image_' + index + '" src="'+ item.www + '" class="d-block w-100"></div>'
+							str_photo = '<div class="carousel-item active"><img id="image_' + index + '" src="'+ item + '" class="d-block w-100"></div>'
 							str_indicator = '<li data-target="#carouselExampleIndicators" data-slide-to="' + index + '" class="active"></li>'
 						}
 						else {
-							str_photo = '<div class="carousel-item"><img id="image_' + index + '" src="'+ item.www + '" class="d-block w-100"></div>'
+							str_photo = '<div class="carousel-item"><img id="image_' + index + '" src="'+ item + '" class="d-block w-100"></div>'
 							str_indicator = '<li data-target="#carouselExampleIndicators" data-slide-to="' + index + '"></li>'
 						}
 						
-//						console.log("APPEND_INDICATOR = " + str_indicator);
-//						console.log("APPEND = " + str_photo);
 						$(".carousel-inner").append(str_photo);
 						$(".carousel-indicators").append(str_indicator);
 					})
-				}
-				else {
-			   		/* $("#photo_url").attr({'ids': p.id});
-			   		$("#dialog_photo_add").dialog({ title: p.cname });
-						$("#dialog_photo_add").dialog("open");
-						
-						$("#photo_url").select();*/
-				}   					
+			}
+			else {
+				$(".carousel-inner").empty();
+				$(".carousel-indicators").empty();
+			}   					
             },
             error:function(){
                 alert("При відправці виникли проблеми");
             }
         });		
 		
-		});	
-	
-})
+	});	
+
+	$('.photoAddbutton').on('click', function (e) {    
+		 $('#photoModal').modal('toggle'); 
+		 $("#dialog_photo_add").dialog("open");
+	 })
+
+	 
+	 $("#dialog_photo_add").dialog({
+			autoOpen: false,
+		      resizable: true,
+		      modal: true,
+		      //position: "center",
+		      width: '60%',
+		      buttons: {
+		        "Додати": function() {
+					$.ajax({
+		                type: "POST",
+		                url: "/photo/url/add/",
+		                data: {id:  $("#photo_url").attr("ids"), url: $('#photo_url').val()},
+		                dataType: "text",
+		                success:function(value){
+		                if (value != "ok") {
+		                	//alert(value);
+		                	$("#dialog_photo").dialog({title: value });
+		                	if ($("#img_url").attr('width') > 500) {
+		                		$("#img_url").attr({'src' : $('#photo_url').val()}, {'width': "500 px"});
+		                	}
+		                	else {
+		                		$("#img_url").attr({'src' : $('#photo_url').val()});
+		                	}
+		                	
+		                	$("#dialog_photo").dialog({ buttons: [ { text: "Ok", click: function() { $("#dialog_photo").dialog( "close" ); } }, {text: "Cancel", click: function() {$("#dialog_photo").dialog("close"); }} ] });
+							$("#dialog_photo").dialog("open");
+							$("#ui-id-2").attr({"color": '#fe011b'});
+							}
+							var photo_id = $("#photo_url").attr("ids"); 
+							$("#link_"+photo_id).attr("src", "/media/images/photo_ico_true.png");
+		                },
+		                error:function(){
+		                    alert("При отправке возникли проблемы");
+		                }
+		            });
+		        
+		          $( this ).dialog( "close" );
+		        },
+		        "Відмінити": function() {
+		          $( this ).dialog( "close" );
+		          
+		        }
+		      }
+		});	 
+	 
+});
 
 
 
@@ -96,11 +142,15 @@ $(document).ready( function() {
 
 <body onload="document.getElementById('id_ids').focus()">
 
-
+<!-- Dialog to add photo -->
+	<div id="dialog_photo_add" title="Add Photo">
+	<label for="photo_url">Посилання на фото:</label>
+	<input type="text" name="photoname" id="photo_url" value="" placeholder="Посилання повинно починатись з http:// або https://" ids="{{cat_pk}}" class="w-100">
+	</div>
 
  
 <!-- Button trigger modal -->
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#photoModal" id="show_photo">
+<button type="button" class="btn btn-primary ml-1" data-toggle="modal" data-target="#photoModal" id="show_photo">
   <i class="material-icons">insert_photo</i>
 </button>
 
@@ -119,16 +169,20 @@ $(document).ready( function() {
 {# begin ФОТО карусель #}
 <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
   <ol class="carousel-indicators">
+{% comment %}
 {% for photo_url in catalog_obj %}  
-    <li data-target="#carouselExampleIndicators" data-slide-to="{{forloop.counter0}}" class="{% if forloop.counter0 = 0 %} active {% endif %}"></li>
+    <li data-target="#carouselExampleIndicators" data-slide-to="{{forloop.counter0}}" class="{% if forloop.counter0 == 0 %} active {% endif %}"></li>
 {% endfor %}
+{% endcomment %}
   </ol>
   <div class="carousel-inner">
-{% for photo_url in catalog_obj %}
+{% comment %}  
+{% for url in catalog_obj %}
     <div class="carousel-item {% if forloop.counter = 1 %} active {% endif %} ">
-      <img class="d-block w-100" src="{{photo_url.www}}" alt="photo{{forloop.counter}}" >
+      <img class="d-block w-100" src="{{url}}" alt="photo{{forloop.counter}}" >
     </div>
 {% endfor %}
+{% endcomment %}
   </div>
   <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -143,7 +197,8 @@ $(document).ready( function() {
         
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+		<button type="button" class="btn btn-success photoAddbutton" title="Додати фото"  data-toggle="tooltip" data-placement="top"><i class="material-icons">add_photo_alternate</i></button>      
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрити</button>
       </div>
     </div>
   </div>
@@ -151,7 +206,6 @@ $(document).ready( function() {
 <!-- Modal PHOTO end -->
 
 <h1><span class="badge badge-secondary">Додати/Редагувати опис запчастини</span></h1>
-
     
     <form action="" method="POST" enctype="multipart/form-data">
     <input type="submit" value="Зберегти" type="button" class="btn btn-success w-100%" >
@@ -159,13 +213,10 @@ $(document).ready( function() {
             {{ form.as_table }}
         </table>
         <h3 id="result" style="color:red; background-color:#CCCCCC"}>Ціна зі знижкою грн.</h3>
-{#	<input type="submit" value="Зберегти" type="button" class="btn btn-success w-100%" > #}            
+	<input type="submit" value="Зберегти" type="button" class="btn btn-success w-100%" >             
     </form>
     <br>
     
-
-<span>{{ form.photo_url.value }}</span>
-<span>{{ form.name.value }}</span>
 
 </body>
 

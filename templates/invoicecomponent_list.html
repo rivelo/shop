@@ -494,8 +494,8 @@ $(document).ready(function() {
         weekStart: 1,
       });   
 
-    
-	$('.photoModalbutton').on('click', function (e) {
+    $(document).on("click", ".photoModalbutton", function(event) {    
+//	$('.photoModalbutton').on('click', function (e) {
 		$("#photo_url").attr("ids", $(this).attr('pk_catalog'));
 		$('#photoModal').modal('toggle');  
 		$.ajax({
@@ -515,7 +515,7 @@ $(document).ready(function() {
 					
 				$("#exampleModalLongTitle").html("Фото - " + p.cname); //aData[0].id); 
 					$.each(p.aData,function(index, item){
-						var item_url
+/*						var item_url
 						if (item.url != null) {
 							item_url = item.url
 							console.log("ITEM_URL = " + item_url);
@@ -525,30 +525,20 @@ $(document).ready(function() {
 							item_url = item.local
 							console.log("ITEM_URL_Local = " + item_url);
 						}
-						
+	*/					
 						
 						if (index == 0){
-							str_photo = '<div class="carousel-item active"><img id="image_' + index + '" src="'+ item_url + '" class="d-block w-100"></div>'
+							str_photo = '<div class="carousel-item active"><img id="image_' + index + '" src="'+ item + '" class="d-block w-100"></div>'
 							str_indicator = '<li data-target="#carouselExampleIndicators" data-slide-to="' + index + '" class="active"></li>'
 						}
 						else {
-							str_photo = '<div class="carousel-item"><img id="image_' + index + '" src="'+ item_url + '" class="d-block w-100"></div>'
+							str_photo = '<div class="carousel-item"><img id="image_' + index + '" src="'+ item + '" class="d-block w-100"></div>'
 							str_indicator = '<li data-target="#carouselExampleIndicators" data-slide-to="' + index + '"></li>'
 						}
-						
-//						console.log("APPEND_INDICATOR = " + str_indicator);
-//						console.log("APPEND = " + str_photo);
 						$(".carousel-inner").append(str_photo);
 						$(".carousel-indicators").append(str_indicator);
 					})
 				}
-				else {
-			   		/* $("#photo_url").attr({'ids': p.id});
-			   		$("#dialog_photo_add").dialog({ title: p.cname });
-						$("#dialog_photo_add").dialog("open");
-						
-						$("#photo_url").select();*/
-				}   					
             },
             error:function(){
                 alert("При відправці виникли проблеми");
@@ -1711,7 +1701,7 @@ var table = $('#iTable').DataTable();
 <!-- Dialog to add photo -->
 	<div id="dialog_photo_add" title="Add Photo">
 	<label for="photo_url">Посилання на фото:</label>
-	<input type="text" name="photoname" id="photo_url" value="http://" ids="" size="75">
+	<input type="text" name="photoname" id="photo_url" value="" placeholder="Посилання повинно починатись з http:// або https://" ids="" size="75">
 	</div>
 
 <!-- Dialog to view photo -->
