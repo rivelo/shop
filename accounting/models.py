@@ -489,11 +489,12 @@ class Dealer(models.Model):
     name = models.CharField(max_length=255)
     country = models.ForeignKey(Country)
     city = models.CharField(max_length=255)
-    street = models.CharField(max_length=255)
+    street = models.CharField(max_length=255, blank=True, null=True)
 #    brand = models.ManyToManyFields(Manufacturer)
     www = models.URLField(null=True, blank=True)
     description = models.TextField(blank=True, null=True)
     director = models.CharField(max_length=255, null=True, blank=True)
+    color = models.CharField(max_length=30, blank=True, null=True)
     
     def __unicode__(self):
         return u'%s' % self.name
@@ -505,9 +506,9 @@ class Dealer(models.Model):
 # postach Dealer manager (Ukraine)
 class DealerManager(models.Model):
     name = models.CharField(max_length=255)
-    email = models.CharField(max_length=100)
-    description = models.TextField()
-    phone = models.CharField(max_length=100)
+    email = models.CharField(max_length=100, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    phone = models.CharField(max_length=100, null=True, blank=True)
     company = models.ForeignKey(Dealer)
     
     def __unicode__(self):
@@ -516,6 +517,18 @@ class DealerManager(models.Model):
     class Meta:
         ordering = ["company", "name"]    
 
+
+
+class ListManager(models.Manager):
+#    def get_queryset(self):
+#        return super(MaleManager, self).get_queryset().filter(reg_event__sex=1).count()
+
+    def get_year_list(self):
+        #list = DealerInvoice.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
+        return super(ListManager, self).get_queryset().filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
+
+#    def get_male_byyear(self, year):
+#        return super(MaleManager, self).get_queryset().filter(reg_event__sex=1, reg_event__event__date__year = year).count()
 
 # Dealer invoice (Ukraine)
 class DealerInvoice(models.Model):
@@ -529,6 +542,18 @@ class DealerInvoice(models.Model):
     received = models.BooleanField(default=False, verbose_name="Товар отримано?")
     payment = models.BooleanField(default=False, verbose_name="Оплачено?")
     description = models.TextField(blank = True, null = True)
+    objects = models.Manager() # The default manager.
+    list_objects = ListManager() # The specific manager.
+    
+    def check_recived_invoice(self):
+        list = self.invoicecomponentlist_set.all()
+        return list
+
+    def get_year_list(self):
+#        list = DealerInvoice.objects.values('date__year').order_by('date__year').annotate(count=Count('date__year'))
+        list = DealerInvoice.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
+#         Order.objects.filter().extra({'month':"Extract(month from created)"}).values_list('month').annotate(Count('id'))
+        return list 
             
     def __unicode__(self):
         return "%s - %s - %s [%s %s]" % (self.origin_id, self.company, self.manager, self.price, self.currency) 

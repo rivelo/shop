@@ -9,6 +9,10 @@ import datetime
 register = template.Library()
 
 
+@register.filter(name='mul_round')
+def mul(value, arg):
+    return round(float(value) * float(arg), 2)
+
 @register.filter(name='mul')
 def mul(value, arg):
     return value * arg
@@ -179,3 +183,7 @@ def add_attr(field, css):
     return field.as_widget(attrs=attrs)
 
 
+@register.filter(name='mrange')
+def range(min, max):
+    r = xrange(min, max)
+    return r 

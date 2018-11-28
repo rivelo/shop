@@ -17,11 +17,12 @@ function myFocus(id){
 <body onload="document.getElementById('search_field').focus()">
 
   <h1>Пошук накладної</h1>
+  <div class="form-group">
   <form action="/dealer/invoice/search/result" method="GET">
     <label>Введіть номер накладної: </label>
-    <input type="text" name="number" id="search_field">
-    <input type="submit" value="Пошук">
+    <input type="text" name="number" id="search_field" class="form-control" aria-describedby="emailHelp" placeholder="Введіть номер накладної">
+    <input type="submit" value="Пошук" class="form-control mt-2 btn btn-success">
   </form>
-
+</div>
 
 

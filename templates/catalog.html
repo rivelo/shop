@@ -36,6 +36,8 @@ $(document).ready( function() {
   		sum();
 	});
 
+	$('[data-toggle="tooltip"]').tooltip();	
+	
 //	$('#id_photo_url').parent('tr').after($('#show_photo')); //.append(  );
 	($('#id_photo_url').parents('tr').find('th')).append($('#show_photo'));
 

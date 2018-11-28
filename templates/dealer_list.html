@@ -1,9 +1,31 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="stylesheet" type="text/css" href="/media/table.css">
 
-    <h1>Компанії дилери</h1>
+<style>
 
-    <table>
+table a{
+	color: #438056; 
+}
+
+.badge-success {
+	background-color: #56a06d;
+}
+
+
+a.badge-success:hover {
+	position: relative;
+	background-color: red;
+}
+
+
+</style>
+
+<body>
+
+    <h1><span class="badge badge-dark">Компанії дистрибютори/партнери</span> <a class="badge badge-success" href="/dealer/add/"><i class="material-icons">add_circle_outline</i></a></h1>
+
+    <table class="table table-bordered table-hover">
+    <thead>
     <tr>
     	<th>ID</th>
     	<th>Назва компанії</th>
@@ -15,14 +37,15 @@
     	<th>Опис</th>	    	
     	<th>Дія</th>
     </tr>    
-    
+    </thead>
+<tbody >    
 {% for type in dealers %}
-<tr>
+<tr style="background-color: {{type.color}};" {% if type.color %} class="text-white" {% endif %}> 
 	<td>       
-    <a href="/dealer/edit/{{ type.id }}">{{type.id}}</a>
+    {{forloop.counter}}
 	</td>
 	<td>       
-	{{type.name}}
+	<a href="/dealer/edit/{{ type.id }}">{{type.name}}</a>
 	</td>
 	<td>       
 	{{type.country}}
@@ -42,17 +65,13 @@
  	<td>
 	{{type.description}}
 	</td>
-	
 	<td>
-    <a href="/dealer/delete/{{ type.id }}">delete</a>
+    <a href="/dealer/delete/{{ type.id }}" onclick="return confirm('Видалити запис?');"><i class="material-icons">delete_outline</i></a>
     </td>
 </tr>
 {% endfor %}        
-    
+</tbody>    
     
     <table>
-
-<br><br>
-<a href="/">HOME</a>
-<br>
-<a href="/dealer/add/">Add</a>      
+      
+</body>

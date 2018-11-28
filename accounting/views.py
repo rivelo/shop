@@ -1542,7 +1542,7 @@ def dealer_add(request):
     else:
         form = DealerForm(instance = a)
     #return render_to_response('dealer.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'dealer.html'})
+    return render_to_response('index.html', {'form': form, 'weblink': 'dealer.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def dealer_edit(request, id):
@@ -1726,19 +1726,26 @@ def dealer_invoice_del(request, id):
     return HttpResponseRedirect('/dealer/invoice/view/')
  
  
-def dealer_invoice_list(request, id=False, pay='all'):
+def dealer_invoice_list(request, id=False, pay='all', year=None):
     if id == False:
-        list = DealerInvoice.objects.all()
+        if year :
+            list = DealerInvoice.objects.filter(date__year = year)
+        else:
+            list = DealerInvoice.objects.all()
     else:
-        list = DealerInvoice.objects.filter(company=id)
+        if year :
+            print "YEAR = " + str(year)
+            list = DealerInvoice.objects.filter(company=id, date__year = year)
+        else:
+            list = DealerInvoice.objects.filter(company=id)
         if pay == 'paid':
-            list = DealerInvoice.objects.filter(company=id, payment=True)
+            list = list.filter(company=id, payment=True)
         if pay == 'notpaid':
-            list = DealerInvoice.objects.filter(company=id, payment=False)
+            list = list.filter(company=id, payment=False)
         if pay == 'sending':
-            list = DealerInvoice.objects.filter(company=id, received=False)
+            list = list.filter(company=id, received=False)
         if pay == 'all':
-            list = DealerInvoice.objects.filter(company=id)   
+            list = list.filter(company=id)   
 
     now = datetime.datetime.now()
     year=now.year
@@ -1772,18 +1779,20 @@ def dealer_invoice_list(request, id=False, pay='all'):
          
         exchange_d = 0
         exchange_e = 0
-        
-    return render_to_response('index.html', {'dealer_invoice': list, 'sel_company': id, 'sel_year': year, 'exchange': exchange, 'exchange_d': exchange_d, 'exchange_e': exchange_e, 'summ': summ, 'summ_debt': summ_debt, 'weblink': 'dealer_invoice_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    company_list = list.values("company", "company__name", "company__color").distinct().order_by("company__pk")        
+    yearlist = DealerInvoice.list_objects.get_year_list()        
+    return render_to_response('index.html', {'dealer_invoice': list, 'sel_company': id, 'sel_year': year, 'exchange': exchange, 'year_list' :yearlist, 'company_list': company_list, 'exchange_d': exchange_d, 'exchange_e': exchange_e, 'summ': summ, 'summ_debt': summ_debt, 'weblink': 'dealer_invoice_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def dealer_invoice_list_month(request, year=False, month=False, pay='all'):
+#    now = None
+    list = None
+    now = datetime.datetime.now()
     if month == False:
-        now = datetime.datetime.now()
         month=now.month
     if year == False:
-        now = datetime.datetime.now()
+#        now = datetime.datetime.now()
         year=now.year
-    list = None
     if pay == 'paid':
             list = DealerInvoice.objects.filter(date__year=year, payment=True)
     if pay == 'notpaid':
@@ -1816,14 +1825,62 @@ def dealer_invoice_list_month(request, year=False, month=False, pay='all'):
                 
         
     except Exchange.DoesNotExist:
-        now = datetime.date.today()
-        html = "<html><body>Не має курсу валют. Введіть <a href=""/exchange/view/"" >курс валют на сьогодні</a> (%s) та спробуйте знову.</body></html>" % now
-        return HttpResponse(html)
-         
+        #now = datetime.date.today()
+        #html = "<html><body>Не має курсу валют. Введіть <a href=""/exchange/view/"" >курс валют на сьогодні</a> (%s) та спробуйте знову.</body></html>" % now
+        html = "Не має курсу валют. Введіть <a href=""/exchange/view/"" >курс валют на сьогодні</a> (%s) та спробуйте знову" % now.strftime('%d-%m-%Y %H:%m')
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': html, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        #return HttpResponse(html)
         exchange_d = 0
         exchange_e = 0
-    
-    return render_to_response('index.html', {'dealer_invoice': list, 'exchange': exchange, 'exchange_d': exchange_d, 'exchange_e': exchange_e, 'summ': summ, 'summ_debt': summ_debt, 'sel_month':month, 'sel_year':year, 'weblink': 'dealer_invoice_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    company_list = list.values("company", "company__name", "company__color").distinct().order_by("company__pk")        
+    yearlist = DealerInvoice.list_objects.get_year_list()
+    return render_to_response('index.html', {'dealer_invoice': list, 'exchange': exchange, 'exchange_d': exchange_d, 'year_list' :yearlist, 'company_list': company_list, 'exchange_e': exchange_e, 'summ': summ, 'summ_debt': summ_debt, 'sel_month':month, 'sel_year':year, 'weblink': 'dealer_invoice_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def dealer_invoice_list_year(request, year=False, pay='all'):
+    now = datetime.datetime.now()
+    if year == False:
+        year=now.year
+    list = None
+    if pay == 'paid':
+            list = DealerInvoice.objects.filter(date__year=year, payment=True)
+    if pay == 'notpaid':
+            list = DealerInvoice.objects.filter(date__year=year, payment=False)
+    if pay == 'sending':
+            list = DealerInvoice.objects.filter(date__year=year, received=False)
+    if pay == 'all':
+            list = DealerInvoice.objects.filter(date__year=year)                        
+    #list = DealerInvoice.objects.filter(date__year=year, date__month=month, payment=)
+    exchange = Exchange.objects.filter(date=datetime.date.today)
+    try:
+        exchange_d = Exchange.objects.get(date=datetime.date.today, currency=2)
+        exchange_e = Exchange.objects.get(date=datetime.date.today, currency=4)
+        summ = 0
+        summ_debt = 0
+        #DealerInvoice.objects.filter(date__year=year, date__month=month):
+        for e in list:
+            if e.currency.id == 2:
+                summ = summ + (float(e.price) * float(exchange_d.value))
+                if e.payment != True:
+                    summ_debt = summ_debt + (float(e.price) * float(exchange_d.value))
+            if e.currency.id == 4:
+                summ = summ + (float(e.price) * float(exchange_e.value))
+                if e.payment != True:
+                    summ_debt = summ_debt + (float(e.price) * float(exchange_e.value))
+            if e.currency.id == 3:
+                summ = summ + e.price
+                if e.payment != True:
+                    summ_debt = summ_debt + e.price
+                    
+    except Exchange.DoesNotExist:
+        html = "Не має курсу валют. Введіть <a href=""/exchange/view/"" >курс валют на сьогодні</a> (%s) та спробуйте знову" % now.strftime('%d-%m-%Y %H:%m')
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': html, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        #exchange_d = 0
+        #exchange_e = 0
+    company_list = list.values("company", "company__name", "company__color").distinct().order_by("company__pk")
+    yearlist = DealerInvoice.list_objects.get_year_list()
+    return render_to_response('index.html', {'dealer_invoice': list, 'exchange': exchange, 'exchange_d': exchange_d, 'year_list' :yearlist, 'company_list': company_list, 'exchange_e': exchange_e, 'summ': summ, 'summ_debt': summ_debt, 'sel_year':year, 'weblink': 'dealer_invoice_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
 
 
 def dealer_invoice_search(request):
@@ -1834,10 +1891,66 @@ def dealer_invoice_search(request):
 def dealer_invoice_search_result(request):
     list = None
     if 'number' in request.GET and request.GET['number']:
-        num = request.GET['number']
-        list = DealerInvoice.objects.filter(origin_id__icontains = num)
-    #list1 = DealerInvoice.objects.all()
-    return render_to_response('index.html', {'invoice_list': list, 'weblink': 'dealer_invoice_list_search.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+         num = request.GET['number']
+         list = DealerInvoice.objects.filter(origin_id__icontains = num)
+     #list1 = DealerInvoice.objects.all()
+    #return render_to_response('index.html', {'invoice_list': list, 'weblink': 'dealer_invoice_list_search.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    else:
+        pass
+    now = datetime.datetime.now()
+    exchange = Exchange.objects.filter(date=datetime.date.today)
+    try:
+        exchange_d = Exchange.objects.get(date=datetime.date.today, currency=2)
+        exchange_e = Exchange.objects.get(date=datetime.date.today, currency=4)
+        summ = 0
+        summ_debt = 0
+        #DealerInvoice.objects.filter(date__year=year, date__month=month):
+        for e in list:
+            if e.currency.id == 2:
+                summ = summ + (float(e.price) * float(exchange_d.value))
+                if e.payment != True:
+                    summ_debt = summ_debt + (float(e.price) * float(exchange_d.value))
+            if e.currency.id == 4:
+                summ = summ + (float(e.price) * float(exchange_e.value))
+                if e.payment != True:
+                    summ_debt = summ_debt + (float(e.price) * float(exchange_e.value))
+            if e.currency.id == 3:
+                summ = summ + e.price
+                if e.payment != True:
+                    summ_debt = summ_debt + e.price
+                    
+    except Exchange.DoesNotExist:
+        html = "Не має курсу валют. Введіть <a href=""/exchange/view/"" >курс валют на сьогодні</a> (%s) та спробуйте знову" % now.strftime('%d-%m-%Y %H:%m')
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': html, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    company_list = list.values("company", "company__name", "company__color").distinct().order_by("company__pk")
+    yearlist = DealerInvoice.list_objects.get_year_list()
+    return render_to_response('index.html', {'dealer_invoice': list, 'exchange': exchange, 'exchange_d': exchange_d, 'year_list' :yearlist, 'search_text': num, 'company_list': company_list, 'exchange_e': exchange_e, 'summ': summ, 'summ_debt': summ_debt, 'sel_year':now.year, 'weblink': 'dealer_invoice_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+
+
+
+def dealer_invoice_set(request):
+    if auth_group(request.user, 'admin')==False:
+        #return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain;charset=UTF-8")
+        return HttpResponse(simplejson.dumps({'msg': 'Error: У вас не має прав для редагування'}), content_type="application/json")
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('id'):        
+                id = request.POST.get('id')
+                di_obj = DealerInvoice.objects.get(pk = id)
+                di_obj.received = not (di_obj.received)
+                di_obj.save()
+                if di_obj.received:
+                    status_msg = "Отримано"
+                else:
+                    status_msg = "В дорозі"
+                #return HttpResponse('Ваш запит виконано', content_type="text/plain;charset=UTF-8")
+                return HttpResponse(simplejson.dumps({'status': di_obj.received, 'msg': status_msg}), content_type="application/json")
+    else:
+        #return HttpResponse('Ваш запит відхилено. Щось пішло не так', content_type="text/plain;charset=UTF-8", status=401)
+        return HttpResponse(simplejson.dumps({'msg':'Ваш запит відхилено. Щось пішло не так'}), content_type="application/json", status=401)
 
 
 def invoice_new_item(request):
@@ -2018,7 +2131,7 @@ def invoicecomponent_print(request):
 #        map_id = map(int, id_list)
         list = Catalog.objects.filter(id__in = id_list).values('name', 'ids', 'manufacturer__name', 'price', 'sale', 'count', 'type__name').order_by('manufacturer')
     else:
-        return HttpResponse("Не вибрано жодного товару")
+        return HttpResponse("Не вибрано жодного товару", content_type="text/plain;charset=UTF-8")
 
     response = HttpResponse()
     response.write(u"<table>")
@@ -2057,7 +2170,7 @@ def invoicecomponent_manufacturer_html(request, mid):
     w = render_to_response('component_list_by_manufacturer_html.html', {'componentlist': list, 'company_name': company_name, 'zcount': zcount})        
 #    return render_to_response('index.html', {'componentlist': list, 'company_name': company_name, 'zcount': zcount, 'weblink': 'component_list_by_manufacturer_html.html'})
     send_shop_mail(request, email, w, 'Наявний товар')
-    return HttpResponse('Ваш лист відправлено')
+    return HttpResponse('Ваш лист відправлено', content_type="text/plain;charset=UTF-8")
 
 # send Email all in shop by category
 def invoicecomponent_category_html(request, mid): 
@@ -2545,14 +2658,6 @@ def manufacturer_edit(request, id):
     if request.method == 'POST':
         form = ManufacturerForm(request.POST, request.FILES, instance=a)
         if form.is_valid():
-#            name = form.cleaned_data['name']
-#            description = form.cleaned_data['description']
-#            www = form.cleaned_data.get('www')
-#            country = form.cleaned_data.get('country')
-#            logo = form.cleaned_data.get('logo')
-#            upload_path = processUploadedImage(logo, 'manufecturer/') 
-            #a = Manufacturer(name=name, description=description, www=www, logo=upload_path, country=country)
-            #a.save()
             form.save()
             return HttpResponseRedirect('/manufacturer/view/')
     else:
@@ -6932,12 +7037,22 @@ def catalog_set_type(request):
 #        message = "Error"
     if auth_group(request.user, 'seller')==False:
         return HttpResponse('Error: У вас не має прав для редагування')
-    q = request.POST.get('value')
+    q = request.POST.get('category_id')
     cid = request.POST.get('id')
-
-    t_catalog = Catalog.objects.get(id = cid) #.values_list('type__name')
-    t_catalog.type = Type.objects.get(id=q) 
-    t_catalog.save()
+    POST = request.POST
+    if POST.has_key('ids'):
+        cids = request.POST.get('ids')
+        list_id = cids.split(',')
+        t_catalog = Catalog.objects.filter(id__in = list_id) #.values_list('type__name')
+        #t_catalog.type = Type.objects.get(id = q)
+        t_catalog.update(type = Type.objects.get(id = q))
+        return HttpResponse('ok')
+        #t_catalog.save()
+    if POST.has_key('id'):
+        cid = request.GET.get('id')                
+        t_catalog = Catalog.objects.get(id = cid) #.values_list('type__name')
+        t_catalog.type = Type.objects.get(id=q) 
+        t_catalog.save()
     
     cat = Catalog.objects.filter(id = cid).values('type__name', 'type__id')
     return HttpResponse(simplejson.dumps(list(cat)), content_type="application/json")

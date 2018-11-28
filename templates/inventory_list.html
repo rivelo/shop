@@ -9,7 +9,8 @@
 $(document).ready(function() {
 
  $(".inv_del").click(function(){
- if (confirm("Ви дійсно бажаєте видалити запис?")) {
+	 console.log($(this).parents("tr").find('td.cat_name').html());
+ if (confirm("Ви дійсно бажаєте видалити запис? \n" + $(this).parents("tr").find('td.cat_name').html() )) {
  	console.log($(this).parents("tr"));
  	var tr_del = $(this).parents("tr");
 	
@@ -86,6 +87,7 @@ function addZero(i) {
 		<th>Дата редагування</th>
 		<th>Статус виконання</th>
 		<th>Кількість в базі</th>
+		<th></th>
 	</tr>
 
 	{% for element in return_list %}
@@ -101,7 +103,7 @@ function addZero(i) {
 		
 		<td>{{ forloop.counter }}</td>
 		<td>{{ element.id }}</td>
-		<td>{{ element.catalog }}</td>
+		<td class="cat_name">{{ element.catalog }}</td>
 		<td align="center">{{ element.count }}</td>
 		<td>{{ element.description }}</td>
 		<td>{{ element.date|date:"l j/m/Y" }} - {{ element.date|time:"H:i" }}</td>
@@ -111,11 +113,11 @@ function addZero(i) {
 		<span class="inv_set" inv_id="{{element.id}}" style="cursor: pointer;">{{ element.check_all|yesno:"Повністю,Частково"}}</span>
 		</td>
 		<td align="center">{{ element.real_count }}</td>
-		{% if request.user|has_group:"admin" %}
+	{% if request.user|has_group:"seller" %}
 		<td align="center">
-		<span class="inv_del" inv_id="{{element.id}}" style="cursor: pointer;">Видалити</span>
+		<span class="inv_del" inv_id="{{element.id}}" style="cursor: pointer;"><i class="material-icons">delete_outline</i></span>
 		</td>
-		{% endif %}
+	{% endif %}
 	</tr>
 	{% endfor %}
 	<table>

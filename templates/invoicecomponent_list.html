@@ -466,7 +466,9 @@ $(document).ready(function() {
 	$("#iTable_length").append(' <a href="javascript:void(0);" id="c_join" class="badge badge-dark text-white" val="0">Обєднати товари</a>');
 	$("#iTable_length").append(' <a href="javascript:void(0);" id="sale_change" val="0" class="badge badge-dark text-white">Змінити знижку</a>');
 {% endif %}	
-	$("#iTable_length").append('  <a href="javascript:void(0);" id="print_phpbb" val="0" class="badge badge-dark text-white">Створити таблицю</a>');
+	$("#iTable_length").append('  <a href="javascript:void(0);" id="print_phpbb" val="0" class="badge badge-dark text-white">Таблиця phpbb</a>');
+	$("#iTable_length").append('  <a href="javascript:void(0);" id="change_type" val="0" class="badge badge-dark text-white">Змінити категорію</a>');
+	
 
  
     // Apply the search in add field
@@ -815,6 +817,54 @@ $("#dialog_catalog_join").dialog({
       } 
 });
 
+
+$("#dialog_change_type").dialog({
+	autoOpen: false,
+      resizable: false,
+      modal: true,
+      width: '80%',
+      open: function( event, ui ) {
+		$('#s_category').val(""); //очищення поля
+		$("#sel_c").empty();
+	  },
+      buttons: {
+        "Додати": function() {
+        	
+			$.ajax({
+                type: "POST",
+                url: "/catalog/set/type/",
+                data: {category_id:  $("#s_category").attr('type_id'), ids:  $("#sel_c").attr("ids") },
+                dataType: "text",
+                success:function(msg){
+                
+                $("#dialog_change_sale").dialog('widget').find("button:contains('Додати')").button("option", "disabled", true);
+                if (msg != 'ok'){
+                	alert("Помилка: " + msg);
+                	$("#dialog_change_sale").dialog('widget').find("button:contains('Додати')").button("option", "disabled", false);
+                }
+                if (msg == 'ok') {
+                	$("#dialog_change_type").dialog("close");
+                	$("#dialog_change_type").dialog('widget').find("button:contains('Додати')").button("option", "disabled", false);
+                	var table = $('#iTable').DataTable();
+                	var row_list = $("#sel_c").attr("index").split(',');
+                	//row_list.splice( $.inArray($("#sale_p").attr("index"), row_list), 1 );
+                	for (index = row_list.length-1; index >= 0; --index) {
+                		console.log("change cell ["+ index +"] = " +  table.cell(row_list[index],10).data() );
+                		table.cell(row_list[index],10).data($("#sel_c").val());
+                	} 
+                	//table.row(row_list).remove().draw();
+                }
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                },
+       })
+       },
+        "Відмінити": function() {
+          $( this ).dialog( "close" );
+        }
+      } 
+});
 
 $("#dialog_change_sale").dialog({
 	autoOpen: false,
@@ -1398,6 +1448,56 @@ $("body").on('click', '#print_phpbb', function() {
 });
 
 
+$("body").on('click', '#change_type', function() {
+    $("#dialog_change_type").dialog("open");
+	var table = $('#iTable').DataTable();
+    var ids = []
+    var index = []
+	table.rows({ selected: true }).eq( 0 ).each( function (idx) {
+		console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
+		ids.push( $(table.row( idx ).node()).attr('id') );
+		index.push( idx );
+		$("#sel_c").append("<br>[<mark class='mark_id' indx='"+idx+"'>" + $(table.row( idx ).node()).attr('id') +"</mark>]"+ table.cell( idx,5 ).data());
+	});
+	$("#sel_c").attr({"ids": ids});
+	$("#sel_c").attr({"index": index});
+	
+
+	$( "#s_category" ).autocomplete({
+		source: function( request, response ) {
+	    	$.ajax({
+	            type: "POST",
+	            url: "/category/lookup/",
+				data: { query: $("#s_category").val() },
+	            dataType: "json",
+	            success: function( data ) {
+	                    	response( $.map( data, function( item ) {
+	                        return {
+	                            label: item.pk + ": " + item.fields.name + " / "+ item.fields.name_ukr,
+	                            value: item.fields.name,
+	                            pk_id: item.pk                                
+								}
+	                    	}));                                
+	                        }
+	        })
+	    },
+	    minLength: 3,
+	    select: function( event, ui ) {
+	    	console.log("Type ID = " + ui.item.pk_id);
+	    	$('#s_category').attr('type_id', ui.item.pk_id);
+	    },
+	    open: function() {
+	    	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+	    },
+	    close: function() {
+	    	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+	    }
+	});
+	
+	
+});
+
+
 $("body").on('click', '#c_join', function() {
 	$("#jtext").html('<b>Обєднати товари:</b>');
     $("#dialog_catalog_join").dialog("open");
@@ -1683,6 +1783,12 @@ var table = $('#iTable').DataTable();
   	<input type="text" id="sale_p" name="value" value="">
 	</div>
 
+<!-- Dialog to change catalog type -->
+	<div id="dialog_change_type" title="Зміна категорії" >
+	<p id="sel_c">Змінити категорію для компонентів:</p>
+	<label for="spinner">Категорія:</label>
+  	<input type="text" id="s_category" name="value" value="" class="w-100">
+	</div>
 
 <!-- Dialog to add components to basket -->
 	<div id="dialog_b_buy" title="Продати товар">

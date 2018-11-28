@@ -36,7 +36,9 @@ body{
 
 {# <div id="error_div" class="error"> #}
 <div class="error">
+{% autoescape off %}
 {{ mtext }} 
+{% endautoescape %}
 </div>
 
 </body>

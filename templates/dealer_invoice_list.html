@@ -1,47 +1,118 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-{% load template_math %}
+{# load template_math #}
+{% load poll_extras %}
 
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+{# <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
 
 <body onLoad="res()">
 
+
+<style>
+ 
+.table .thead-light th {
+  color: white;
+  background-color: green;
+//  border-color: #792700;
+}
+ 
+table.invoice a {
+ color: black;
+}
+ 
+span,company {
+	cursor: pointer;
+}
+
+ 
+</style>
+
+
 <script type="text/javascript">
 
-function res()
-{
-var p=0;
-var All=document.forms['formSum'];
-for(var i = 0; i < All.elements.length; ++i) {
-	if(All.elements[i].checked){
-	//p+=parseInt(All.elements[i].value);
-	p=p+parseFloat(All.elements[i].value);
-	}
-	document.getElementById('for_pay').innerHTML = p.toFixed(2)+" грн.";
-	//document.getElementById('debet').innerHTML = parseFloat(document.getElementById('for_pay').innerHTML)+parseFloat(document.getElementById('workshop_pay').innerHTML);
+function check_invoice(element) {
+//	console.log("You click on " + element.html());
+	$.ajax({
+        type: "POST",
+        url: "/dealer/invoice/recived/set/",
+        data: {id:  element.attr('ids')},
+        dataType: "json",
+        success:function(data){
+            var st = JSON.stringify(data);
+			var p = jQuery.parseJSON(st);
+			if (p.status == true){
+				element.html(p.msg);
+				element.removeClass("badge-info");
+        		element.addClass("table-success");
+			}
+			else{
+				element.html(p.msg);
+				element.removeClass("table-success");
+				element.addClass("badge-info");
+			}
+            //alert("Повідомлення: " + p.msg);
+        },
+        error:function(data){
+            alert("Помилка: " + data);
+        }
+    });
+	
+};
+
+
+function res() {
+	var sum = 0;
+	var ar = $(".mc:input:checked:visible");
+	$(".mc:input:checked").each(function() {
+        sum = sum + parseFloat(this.value)
+//		console.log("PRINT P = " + this.value)
+    });
+
+	document.getElementById('for_pay').innerHTML = sum.toFixed(2)+" грн.";
 }
-}
+
     
-function resWorkshop()
-{
-var p=0;
-var All=document.forms['formWorkshopSum'];
-for(var i = 0; i < All.elements.length; ++i) {
-	if(All.elements[i].checked){
-	p+=parseFloat(All.elements[i].value);
+$(document).ready( function() {
+	$('[data-toggle="tooltip"]').tooltip();	
+	
+	$("table .col_file").hide();
+	//select all checkboxes
+	$("#select_all").change(function(){  //"select all" change 
+//	    $(".checkbox").prop('checked', $(this).prop("checked")); //change all ".checkbox" checked status
+	    $(".mc:input:visible").prop('checked', $(this).prop("checked")); //change all ".checkbox" checked status
+	    res();
+	});
+})
+
+
+//".checkbox" change 
+$('.checkbox').change(function(){ 
+	//uncheck "select all", if one of the listed checkbox item is unchecked
+    if(false == $(this).prop("checked")){ //if this item is unchecked
+        $("#select_all").prop('checked', false); //change "select all" checked status to false
+    }
+	//check "select all" if all checkbox items are checked
+	if ($('.checkbox:checked').length == $('.checkbox').length ){
+		$("#select_all").prop('checked', true);
 	}
-	document.getElementById('workshop_pay').innerHTML = p.toFixed(2)+" грн.";
-	document.getElementById('debet').innerHTML = parseFloat(document.getElementById('for_pay').innerHTML)+parseFloat(document.getElementById('workshop_pay').innerHTML);
-}
-}
-    
+});
+
 </script>
 
 
-    <h1>Рахунки за {{sel_month}} місяць {{sel_year}} року <a href="/dealer/invoice/add/">(Додати)</a> </h1>
-
-Курс валют на сьогодні:
-<table border="1">
+    <h1>
+    {% if search_text %}
+    <span class="badge badge-secondary">Пошук накладної </span> <span class="badge badge-info"> {{search_text}} </span>
+    {% else %}
+    <span class="badge badge-secondary">Рахунки за {{sel_month}} місяць {{sel_year}} року </span>
+    {% endif %} 
+    <a href="/dealer/invoice/add/" class="badge badge-success" title="Створити нову накладну" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">add_circle_outline</i></a>
+    </h1>
+<div class="row">
+<div class="col-auto">
+<h5><span class="badge badge-dark">Курс валют на сьогодні:</span></h5>
+<table class = "table table-bordered table-hover table-sm table-dark">
+<thead>
 	<tr>
     	<th>ID</th>
     	<th>Дата</th>
@@ -49,8 +120,8 @@ for(var i = 0; i < All.elements.length; ++i) {
 		<th>Курс</th>
     	<th>Дія</th>
     </tr>    
-    
-       
+</thead>    
+<tbody>       
 {% for type in exchange %}
 <tr>
 	<td>       
@@ -66,92 +137,114 @@ for(var i = 0; i < All.elements.length; ++i) {
 	{{type.value}}
 	</td>
 	<td>
-    <a href="/exchange/delete/{{ type.id }}">delete</a>
+    <a href="/exchange/delete/{{ type.id }}">
+    <i class="material-icons">delete_outline</i>
+    </a>
     </td>
 </tr>
 {% endfor %}             
-
+</tbody>
 </table>
-<br>
+</div>
+</div>
+
 <h2>
-    За рік: 
-    <a href="/dealer/invoice/year/2011/month/{{sel_month}}/view">2011,</a>
-	<a href="/dealer/invoice/year/2012/month/{{sel_month}}/view">2012,</a>
+    За рік:
+
+{% for item in year_list %}
+	<a href="/dealer/invoice/year/{{item.0}}/view" class="btn btn-outline-info"><h6>{{item.0}} <span class="badge badge-light">{{item.1}}</span></h6></a>
+{% endfor %}
+
+	</h2>
+	    
+<h2>
+    За місяць:
+{% with 1|mrange:13 as range %}    
+{% for i in range %}
+    <a class="badge badge-info" href="/dealer/invoice/year/{{sel_year}}/month/{{i}}/view">{{i}}</a>
+{% endfor %}     
+{% endwith %}
+</h2>    
+
+<div class="d-flex">
+<div class="mr-auto">
 {% if sel_year %}	
-	<a href="/dealer/invoice/year/{{sel_year}}/notpaid">Не оплачені,</a>
-	<a href="/dealer/invoice/year/{{sel_year}}/paid">Оплачені,</a>
-	<a href="/dealer/invoice/year/{{sel_year}}/sending">В дорозі</a>
+	<a class="badge badge-warning"  href="/dealer/invoice/year/{{sel_year}}/notpaid">Не оплачені,</a>
+	<a class="badge badge-success"  href="/dealer/invoice/year/{{sel_year}}/paid">Оплачені,</a>
+	<a class="badge badge-info"  href="/dealer/invoice/year/{{sel_year}}/sending">В дорозі</a>
 {% else %}
-	<a href="/dealer/invoice/company/{{sel_company}}/notpaid">Не оплачені,</a>
-	<a href="/dealer/invoice/company/{{sel_company}}/paid">Оплачені,</a>
-	<a href="/dealer/invoice/company/{{sel_company}}/sending">В дорозі</a>
+	<a class="badge badge-warning"  href="/dealer/invoice/company/{{sel_company}}/notpaid">Не оплачені,</a>
+	<a class="badge badge-success"  href="/dealer/invoice/company/{{sel_company}}/paid">Оплачені,</a>
+	<a class="badge badge-info"  href="/dealer/invoice/company/{{sel_company}}/sending">В дорозі</a>
 {% endif %}	
-	</h2>    
-<h2>
-    За місяць: 
-    <a href="/dealer/invoice/year/{{sel_year}}/month/1/view">01,</a>
-	<a href="/dealer/invoice/year/{{sel_year}}/month/2/view">02,</a>
-	<a href="/dealer/invoice/year/{{sel_year}}/month/3/view">03,</a>
-	<a href="/dealer/invoice/year/{{sel_year}}/month/4/view">04,</a>
-	<a href="/dealer/invoice/year/{{sel_year}}/month/5/view">05,</a>
-	<a href="/dealer/invoice/year/{{sel_year}}/month/6/view">06,</a>
-	<a href="/dealer/invoice/year/{{sel_year}}/month/7/view">07,</a>
-	<a href="/dealer/invoice/year/{{sel_year}}/month/8/view">08,</a>
-	<a href="/dealer/invoice/year/{{sel_year}}/month/9/view">09,</a>
-	<a href="/dealer/invoice/year/{{sel_year}}/month/10/view">10,</a>
-	<a href="/dealer/invoice/year/{{sel_year}}/month/11/view">11,</a>
-	<a href="/dealer/invoice/year/{{sel_year}}/month/12/view">12</a>
-	</h2>    
-<br>    
+</div>
+<div class="ml-auto">
+  <div class="input-group ">
+  <div class="input-group-prepend">
+  	<span id="for_pay" style="COLOR: red" class="input-group-text font-weight-bold" >2133</span>
+    <span class="input-group-text" id="basic-addon1">Грн.</span>
+  </div>
+ <input type="submit" value="Оплата" type="button" class="btn btn-warning font-weight-bold">
+</div>
+</div>
+</div>
+
+<h5>
+{% for company in company_list %}
+<span class="badge company badge-dark" style="background-color: {{ company.company__color }};" onclick="$('.icompany{{company.company}}').toggle()">{{ company.company__name }}</span>
+{% endfor %}    
+</h5>
 
 <form action="/payform/" method="post" name="formSum"> 
-    <table border="1">
+
+<table class="table table-bordered table-hover invoice">
+<thead class="thead-light text-center">
 	<tr>
-    	<th>ID</th>
-    	<th>Номери накладних</th>
+    	<th>#</th>
+    	<th onclick='$("table .col_file").toggle();'>Номери накладних</th>
     	<th>Дата</th>
     	<th>Компанія</th>
     	<th>Менеджер</th>
     	<th>Сума</th>
     	<th>Валюта</th>
-		<th>Файл</th>    
+		<th class="col_file">Файл</th>    
 		<th>Сума в гривнях</th>	
 		<th>Отримано</th>
 		<th>Оплата</th>
-    	<th>Опис</th>
-    	<th></th>
+    	<th>Опис </th>
+    	<th><input type="checkbox" id="select_all" onclick="res()"/></th>
     	<th>Дія</th>
     </tr>    
-    
+</thead>
+<tbody> 
 {% for type in dealer_invoice %}
 {% if type.payment %}
 	{% if type.received %}
-	<tr>
+	<tr
 	{% else %}
-	<tr BGCOLOR="#B9B9B6">
+	<tr style="background-color: #ffff99;"
 	{% endif %}
 {% else %}
-<tr BGCOLOR="#CCCC99">
+<tr BGCOLOR="#CCCC99"
 {% endif %}
 
+class="icompany{{type.company.id}}">
+
 	<td>       
-    <a href="/dealer/invoice/edit/{{ type.id }}">{{type.id}}</a>
+    {{forloop.counter}}
 	</td>
-	{% if type.received %}
-	
-	<td>
-	{% else %}
-	<td BGCOLOR="#B9B9B6">
-	{% endif %}
-	<a href="/invoice/id/{{ type.id }}/view/">{{type.origin_id}}</a>
-	       
+	<td >
+	<div class="d-flex">
+	<a href="/invoice/id/{{ type.id }}/view/" class="mr-auto">{{type.origin_id}}</a>
+	<a href="/dealer/invoice/edit/{{ type.id }}" class="ml-auto"><i class="material-icons">edit</i></a>
+	<i class="material-icons">view_list</i>
+	</div>
 	</td>
-	
 	<td>       
 	{{type.date|date:"D d M Y"}}
 	</td>
-	<td>       
-	<a href="/dealer/invoice/company/{{type.company.id}}/view/">
+	<td style="background-color: {{ type.company.color }};">       
+	<a href="/dealer/invoice/company/{{type.company.id}}/view/" {% if type.company.color %} style="color: white; font-weight: bold;" {% endif %}>
 	{{type.company.name}}
 	</a>
 	</td>
@@ -164,17 +257,17 @@ for(var i = 0; i < All.elements.length; ++i) {
 	<td>       
 	{{type.currency}}
 	</td>
-	<td>       
+	<td class="col_file">       
 	{{type.file}}
 	</td>
 	{% ifequal type.currency.id 2 %}
 	<td>       
- 	{{type.price|mul:exchange_d.value}} грн.
+ 	{{type.price|mul_round:exchange_d.value}} грн.
 	</td>
 	{% endifequal %}
 	{% ifequal type.currency.id 4 %}
 	<td>       
- 	{{type.price|mul:exchange_e.value}} грн.
+ 	{{type.price|mul_round:exchange_e.value}} грн.
 	</td>
 	{% endifequal %}
 	{% ifequal type.currency.id 3 %}
@@ -182,10 +275,10 @@ for(var i = 0; i < All.elements.length; ++i) {
  	{{type.price}} грн.
 	</td>
 	{% endifequal %}
-	<td>       
+	<td {% if not type.received %} class="badge-info" {% endif %} ids="{{type.id}}" onclick="check_invoice($(this))">       
 	{{type.received|yesno:"Отримано,В дорозі,Не забрано"}}
-	</td>
-	<td>       
+	</td >
+	<td {% if not type.payment %} class="badge-warning" {% endif %}>       
 	{{type.payment|yesno:"Оплачено,Не оплачено"}}
 	</td>
  	<td>
@@ -193,16 +286,17 @@ for(var i = 0; i < All.elements.length; ++i) {
 	</td>
 	<td>
 {% if type.payment %}
-<input type="checkbox" id="model{{forloop.counter}}" value="{{type.price}}" onclick="res()" name="checkbox_{{ type.id }}"/>
+<input class="checkbox mc" type="checkbox" id="model{{forloop.counter}}" value="{{type.price}}" onclick="res()" name="checkbox_{{ type.id }}"/>
 {% else %}
-<input type="checkbox" id="model{{forloop.counter}}" value="{{type.price}}" onclick="res()" checked name="checkbox_{{ type.id }}"/>
+<input class="checkbox mc" type="checkbox" id="model{{forloop.counter}}" value="{{type.price}}" onclick="res()" checked name="checkbox_{{ type.id }}"/>
 {% endif %}
 	</td>
 	<td>
-    <a href="/dealer/invoice/delete/{{ type.id }}" onclick="return confirm('Видалити накладну?')">delete</a>
+    <a href="/dealer/invoice/delete/{{ type.id }}" onclick="return confirm('Видалити накладну?')"><i class="material-icons">delete_outline</i></a>
     </td>
 </tr>
 {% endfor %}             
+</tbody>   
     
     	<tr>
     	<th></th>
@@ -211,24 +305,15 @@ for(var i = 0; i < All.elements.length; ++i) {
     	<th></th>
     	<th></th>
     	<th></th>
-    	<th></th>
+    	<th class="col_file"></th>
 		<th>Сума</th>
 		<th>{{summ}}</th>	
 		<th>Борг</th>
 		<th>{{summ_debt}}</th>
-    	<th><input type="submit" value="Оплата"><div id="for_pay" style="COLOR: red" BGCOLOR="#D5FFB4"></div></th>
+    	<th></th>
     	<th></th>
     	<th></th>
     </tr>    
    
     </table>
 </form>
-<br>    
-
-
-
-
-<br><br>
-<a href="/">HOME</a>
-<br>
-<a href="/dealer/invoice/add/">Add</a>      
