@@ -647,7 +647,7 @@ def bike_photo_url_add(request):
                     bike = Bicycle.objects.get(id = pid)
                     bike.photo_url.add(p)
                     bike.save()
-                    return HttpResponse("This photo is present. Таке фото вже існує", content_type="text/plain;charset=UTF-8")
+                    return HttpResponse("This photo is present. Таке фото вже існує", content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
                 
                 bp = Photo(url = p_url, date = datetime.datetime.now(), user = request.user, description="")
                 bp.save()
@@ -655,7 +655,7 @@ def bike_photo_url_add(request):
                 bike.photo_url.add(bp)
                 bike.save()
     search = "ok"
-    return HttpResponse(search, content_type="text/plain")
+    return HttpResponse(search, content_type="text/plain;charset=UTF-8;charset=UTF-8")
 
 
 def bicycle_list(request, year=None, brand=None, percent=None):
@@ -1066,12 +1066,12 @@ def bicycle_sale_service(request, id=None):
                     list.service = False
                     list.save()
                     
-                return HttpResponse(message, content_type="text/plain")
+                return HttpResponse(message, content_type="text/plain;charset=UTF-8;charset=UTF-8")
             
     else:
         message = "Error"
 
-#    return HttpResponse(message, content_type="text/plain")
+#    return HttpResponse(message, content_type="text/plain;charset=UTF-8;charset=UTF-8")
    
 #    list = Bicycle_Sale.objects.get(id=id)
     
@@ -1104,7 +1104,7 @@ def bicycle_sale_check_add(request, id):
                         page = urllib.urlopen(url).read()
                     except:
                         message = "Сервер" + settings.HTTP_MINI_SERVER_IP + " не відповідає"
-                        return HttpResponse(message, content_type="text/plain")
+                        return HttpResponse(message, content_type="text/plain;charset=UTF-8;charset=UTF-8")
 
                     res = Check.objects.aggregate(max_count=Max('check_num'))
                     chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
@@ -1160,7 +1160,7 @@ def bicycle_sale_check_add(request, id):
                     page = urllib.urlopen(url).read()
 
                     message = "Виконано"
-                return HttpResponse(message, content_type="text/plain")
+                return HttpResponse(message, content_type="text/plain;charset=UTF-8;charset=UTF-8")
     else:
         message = "Error"
 
@@ -1261,7 +1261,7 @@ def bicycle_sale_report_by_brand(request):
 
 def bicycle_order_add(request):
     if auth_group(request.user, 'seller') == False:
-        return HttpResponse('Для виконання дій авторизуйтесь', content_type="text/plain")
+        return HttpResponse('Для виконання дій авторизуйтесь', content_type="text/plain;charset=UTF-8;charset=UTF-8")
     a = Bicycle_Order(prepay=0, sale=0, currency=Currency.objects.get(id=3))
     if request.method == 'POST':
         form = BicycleOrderForm(request.POST, instance = a)
@@ -1330,12 +1330,12 @@ def bicycle_order_done(request, id=None):
                 obj.done = not obj.done
                 res = obj.done 
                 obj.save()
-                return HttpResponse(res, content_type="text/plain")
+                return HttpResponse(res, content_type="text/plain;charset=UTF-8;charset=UTF-8")
                 #search = Bicycle_Order.objects.filter(id=o_id).values('done', 'description')
                 #return HttpResponse(simplejson.dumps(list(search)), content_type="application/json")
 
     #            return HttpResponse(simplejson.dumps(list()), content_type="application/json")
-    return HttpResponse("Помилка скрипта", content_type="text/plain")
+    return HttpResponse("Помилка скрипта", content_type="text/plain;charset=UTF-8;charset=UTF-8")
     #return HttpResponseRedirect('/bicycle/order/view/')
 
 # lookup bicycle price
@@ -1932,7 +1932,7 @@ def dealer_invoice_search_result(request):
 
 def dealer_invoice_set(request):
     if auth_group(request.user, 'admin')==False:
-        #return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain;charset=UTF-8")
+        #return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
         return HttpResponse(simplejson.dumps({'msg': 'Error: У вас не має прав для редагування'}), content_type="application/json")
     if request.is_ajax():
         if request.method == 'POST':  
@@ -1946,10 +1946,10 @@ def dealer_invoice_set(request):
                     status_msg = "Отримано"
                 else:
                     status_msg = "В дорозі"
-                #return HttpResponse('Ваш запит виконано', content_type="text/plain;charset=UTF-8")
+                #return HttpResponse('Ваш запит виконано', content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
                 return HttpResponse(simplejson.dumps({'status': di_obj.received, 'msg': status_msg}), content_type="application/json")
     else:
-        #return HttpResponse('Ваш запит відхилено. Щось пішло не так', content_type="text/plain;charset=UTF-8", status=401)
+        #return HttpResponse('Ваш запит відхилено. Щось пішло не так', content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8", status=401)
         return HttpResponse(simplejson.dumps({'msg':'Ваш запит відхилено. Щось пішло не так'}), content_type="application/json", status=401)
 
 
@@ -2110,7 +2110,8 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
         #upd = Catalog.objects.get(pk = element['catalog'])
         #upd.count = element['balance'] 
         #upd.save()
-    vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'next': current_url(request)}
+    cur_year = datetime.date.today().year        
+    vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'cur_year': cur_year, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'next': current_url(request)}
 #    calendar = embeded_calendar()
 #    cat_discount = cat_name.get_discount()
 #    vars.update({'cat_discount': cat_discount})
@@ -2131,7 +2132,7 @@ def invoicecomponent_print(request):
 #        map_id = map(int, id_list)
         list = Catalog.objects.filter(id__in = id_list).values('name', 'ids', 'manufacturer__name', 'price', 'sale', 'count', 'type__name').order_by('manufacturer')
     else:
-        return HttpResponse("Не вибрано жодного товару", content_type="text/plain;charset=UTF-8")
+        return HttpResponse("Не вибрано жодного товару", content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
 
     response = HttpResponse()
     response.write(u"<table>")
@@ -2170,7 +2171,7 @@ def invoicecomponent_manufacturer_html(request, mid):
     w = render_to_response('component_list_by_manufacturer_html.html', {'componentlist': list, 'company_name': company_name, 'zcount': zcount})        
 #    return render_to_response('index.html', {'componentlist': list, 'company_name': company_name, 'zcount': zcount, 'weblink': 'component_list_by_manufacturer_html.html'})
     send_shop_mail(request, email, w, 'Наявний товар')
-    return HttpResponse('Ваш лист відправлено', content_type="text/plain;charset=UTF-8")
+    return HttpResponse('Ваш лист відправлено', content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
 
 # send Email all in shop by category
 def invoicecomponent_category_html(request, mid): 
@@ -2338,22 +2339,6 @@ def invoice_report(request):
 
 # товар в накладній
 def invoice_id_list(request, id=None, limit=0):
-#    query = "select id, count(*) as ccount, invoice_id as invoice, sum(price*count) as suma from accounting_invoicecomponentlist group by invoice_id;"
-    query = '''select accounting_invoicecomponentlist.id, count(*) as ccount, accounting_invoicecomponentlist.invoice_id as invoice, sum(accounting_invoicecomponentlist.price*accounting_invoicecomponentlist.count) as suma, accounting_dealerinvoice.origin_id
-    from accounting_invoicecomponentlist left join accounting_dealerinvoice on accounting_dealerinvoice.id=invoice_id  
-    group by accounting_invoicecomponentlist.invoice_id;'''
-    
-    company_list = None
-#===============================================================================
-#    try:
-#        cursor = connection.cursor()
-#        cursor.execute(query)
-#        company_list = dictfetchall(cursor)
-#        
-#    except TypeError:
-#        res = "Помилка"
-#===============================================================================
-
     list = None
     if limit == 0:
         list = InvoiceComponentList.objects.filter(invoice=id).order_by('-id')#.values('catalog__price', 'count', 'id', 'price', 'invoice__origin_id', 'invoice__company__name', 'invoice__manager__name', 'invoice__price', 'invoice__currency__ids_char' , 'catalog__ids', 'catalog__manufacturer', 'catalog__name', 'catalog__dealer_code', 'rcount', 'price', 'catalog__currency__name', 'date', 'description', 'user__username', 'currency__ids_char', 'catalog__id')
@@ -2364,15 +2349,11 @@ def invoice_id_list(request, id=None, limit=0):
     scount = 0
     uaoptsum = 0
     for item in list:
-        #psum = psum + (item['catalog__price'] * item['count'])
         psum = psum + (item.catalog.price * item.count)
-        #optsum = optsum + (item['count'] * item['price'])
         optsum = optsum + (item.price * item.count)
         uaoptsum = optsum + (item.get_uaprice() * item.count)
-        #scount = scount + item['count']
         scount = scount + item.count
     dinvoice = DealerInvoice.objects.get(id=id)    
-    
     #return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'company_list':company_list, 'allpricesum':psum, 'alloptsum':optsum, 'countsum': scount, 'weblink': 'invoice_component_report.html'})
     return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'allpricesum':psum, 'alloptsum':optsum, 'ua_optsum':uaoptsum, 'countsum': scount, 'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -2727,7 +2708,7 @@ def catalog_import(request):
             country = Country.objects.get(id=row[5])                                        
             Catalog(ids=row[0], name=row[1], manufacturer=m, type=t, year=2015, color=row[4], price=row[10], currency=c, sale=0, country=country, count = 0).save()          
             spamwriter.writerow([row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10]])
-        #return HttpResponse("Виконано", content_type="text/plain")
+        #return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;charset=UTF-8")
 
     list = Catalog.objects.filter(ids__in = ids_list)
     return render_to_response('index.html', {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -3557,9 +3538,9 @@ def client_invoice_set(request):
 #                    return HttpResponse('Error: У вас не має прав для редагування')
                 #ci.save()
                 result = 'Виконано'
-                return HttpResponse(result, content_type="text/plain")
+                return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8")
                 
-            return HttpResponse("Помилка", content_type="text/plain")
+            return HttpResponse("Помилка", content_type="text/plain;charset=UTF-8;charset=UTF-8")
 
 
 def client_invoice_delete(request, id=None):
@@ -3574,7 +3555,7 @@ def client_invoice_delete(request, id=None):
                 for ci in ci_list:
                     if ci.pay == ci.sum:
                         result = "Товар [" + str(ci.id) + "]" + str(ci.catalog) + "не можливо видалити. Його можливо тільки повернути!"
-                        return HttpResponse(result, content_type="text/plain")
+                        return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8")
                     else:
                         ci.delete()
                     
@@ -3582,10 +3563,10 @@ def client_invoice_delete(request, id=None):
 #                    return HttpResponse('Error: У вас не має прав для редагування')
                 #ci.save()
                 result = 'ok'
-                return HttpResponse(result, content_type="text/plain")
+                return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8")
         else:
             result = 'Помилка запиту'
-            return HttpResponse(result, content_type="text/plain")
+            return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8")
             
                 
         
@@ -3805,7 +3786,7 @@ def client_invioce_return_add(request, id):
                     ci.pay = res_count * ci.price
                     ci.save()
                             
-    return HttpResponse("ok", content_type="text/plain")
+    return HttpResponse("ok", content_type="text/plain;charset=UTF-8;charset=UTF-8")
  
 #    cr_list = ClientReturn.objects.all()
 #    return render_to_response('index.html', {'return_list': cr_list, 'weblink': 'ci_return_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))    
@@ -4722,7 +4703,7 @@ def workshop_delete(request, id=None):
     if (auth_group(request.user, 'admin') == True) or ((request.user == obj.user) and (obj.pay == False)):
         del_logging(obj)
         obj.delete()
-        return HttpResponse("Роботу видалено", content_type="text/plain")
+        return HttpResponse("Роботу видалено", content_type="text/plain;charset=UTF-8;charset=UTF-8")
     else:
         return HttpResponse("Роботу не можливо видалити, можливо це не ваша робота, або ви не залогувались на портал", status=401)
     #return HttpResponseRedirect('/workshop/view/')
@@ -5046,7 +5027,7 @@ def shop_price_print_add(request, id=None):
                     sp.dcount = 0
                     sp.user = request.user
                     sp.save()
-                return HttpResponse("Виконано", content_type="text/plain")
+                return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;charset=UTF-8")
 
     if request.method == 'POST':
         cat = Catalog.objects.get(id=id)
@@ -5112,7 +5093,7 @@ def shop_price_print_delete(request, id=None):
                 obj = ShopPrice.objects.get(id=q)
                 del_logging(obj)
                 obj.delete()
-                return HttpResponse("Виконано", content_type="text/plain")
+                return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;charset=UTF-8")
     else:
         obj = ShopPrice.objects.get(id=id)
         del_logging(obj)
@@ -5209,7 +5190,7 @@ def price_import(request):
         except: # Catalog.DoesNotExist:
                       
             spamwriter.writerow([row[0], row[1], row[2], row[3], row[4]])
-        #return HttpResponse("Виконано", content_type="text/plain")
+        #return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;charset=UTF-8")
     list = Catalog.objects.select_related('manufacturer', 'type', 'currency', 'country').filter(Q(ids__in = ids_list))
     return render_to_response('index.html', {'catalog': list, 'post':rec_price,  'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
     
@@ -5891,7 +5872,7 @@ def client_payform(request):
         except:
             if auth_group(request.user, 'admin') == False:
                 status = False
-                return HttpResponse("Включіть комп'ютер з касовим апаратом", content_type="text/plain;charset=UTF-8")
+                return HttpResponse("Включіть комп'ютер з касовим апаратом", content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
             else:
                 status = False
                 
@@ -5910,7 +5891,7 @@ def client_payform(request):
         if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
             if client.id == settings.CLIENT_UNKNOWN:
                 if (float(request.POST['pay']) + float(request.POST['pay_terminal']) < sum):
-                #return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8");
+                #return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8");
                     return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': "Невідомий клієнт не може мати борг"}, context_instance=RequestContext(request, processors=[custom_proc]))
         
         if 'pay' in request.POST and request.POST['pay']:
@@ -5937,7 +5918,7 @@ def client_payform(request):
     if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
         if client.id == settings.CLIENT_UNKNOWN:
             if (float(request.POST['pay']) + float(request.POST['pay_terminal']) < sum):
-                return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8");
+                return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8");
         base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
         data =  {"cmd": "get_status"}
         url = base + urllib.urlencode(data)
@@ -5946,7 +5927,7 @@ def client_payform(request):
             page = urllib.urlopen(url).read()
         except:
             message = "Сервер не відповідає"
-            return HttpResponse(message, content_type="text/plain;charset=UTF-8")
+            return HttpResponse(message, content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
         
         data =  {"cmd": "open"}
         url = base + urllib.urlencode(data)
@@ -5954,7 +5935,7 @@ def client_payform(request):
     
     if (float(request.POST['pay']) == 0) and (float(request.POST['pay_terminal']) == 0):
         if client.id == settings.CLIENT_UNKNOWN:
-            return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8");
+            return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8");
         cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
         cdeb.save()
 #===============================================================================
@@ -6386,7 +6367,7 @@ def ajax_search1(request):
             matches = ""
             for result in results:
                 matches = matches + "%s\n" % (result.name)
-            return HttpResponse(matches, content_type="text/plain")
+            return HttpResponse(matches, content_type="text/plain;charset=UTF-8;charset=UTF-8")
 
 # search client in autocomplete field
 def ajax_search(request):
@@ -6621,7 +6602,7 @@ def xhr_test(request):
         message = "Hello"
 #    if 'TextStory' in request.POST and request.POST['TextStory']:
 #        TheStory = request.POST['TextStory']
-    #return HttpResponse(message, content_type="text/plain")
+    #return HttpResponse(message, content_type="text/plain;charset=UTF-8;charset=UTF-8")
     return HttpResponse(simplejson.dumps({'response': message, 'result': 'success', 'param1':'Ти таки', 'param2':'натиснув його!'}), content_type='application/json')
 
 
@@ -6642,7 +6623,7 @@ def ajax_test(request):
     #return HttpResponse(simplejson.dumps(response), content_type="application/json")#    return HttpResponse(simplejson.dumps(list(search)), content_type='application/json')
     return HttpResponse(simplejson.dumps(list(search)), content_type="application/json")
     #return HttpResponse(serialized_queryset, content_type='application/json')
-#    return HttpResponse(message, content_type="text/plain")
+#    return HttpResponse(message, content_type="text/plain;charset=UTF-8;charset=UTF-8")
 
 
 def ajax_price_print(request):
@@ -6659,7 +6640,7 @@ def ajax_price_print(request):
     search = "ok"
     #search = Catalog.objects.filter(id=q).values('price', 'sale', 'name')
     #return HttpResponse(simplejson.dumps(list(search)), content_type="application/json")
-    return HttpResponse(search, content_type="text/plain")
+    return HttpResponse(search, content_type="text/plain;charset=UTF-8;charset=UTF-8")
 
 
 def invoice_new_edit(request):
@@ -6677,7 +6658,7 @@ def invoice_new_edit(request):
                 obj.save()
 
                 c = InvoiceComponentList.objects.filter(id = id).values('rcount', 'user__username', 'id')
-                #return HttpResponse(c, content_type='text/plain')
+                #return HttpResponse(c, content_type='text/plain;charset=UTF-8;charset=UTF-8')
             
     results = {'value': c[0]['rcount'], 'user': c[0]['user__username'], 'id':c[0]['id']}
     json = simplejson.dumps(results)
@@ -6688,7 +6669,7 @@ def photo_url_add(request):
     if request.is_ajax():
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
-                return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain;charset=UTF-8")
+                return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
             POST = request.POST  
             if POST.has_key('id') and POST.has_key('url'):
                 pid = request.POST.get('id')
@@ -6698,7 +6679,7 @@ def photo_url_add(request):
                     c = Catalog.objects.get(id = pid)
                     c.photo_url.add(photo_select[0])
                     c.save()
-                    return HttpResponse("Таке фото вже існує / This photo is present", content_type="text/plain;charset=UTF-8")
+                    return HttpResponse("Таке фото вже існує / This photo is present", content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
                 
                 p1 = Photo(url = p_url, date = datetime.datetime.now(), user = request.user, description="")
                 p1.save()
@@ -6707,7 +6688,7 @@ def photo_url_add(request):
                 c.save()
 
     search = "ok"
-    return HttpResponse(search, content_type="text/plain;charset=UTF-8;")
+    return HttpResponse(search, content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8;")
 
 
 import StringIO, requests, os
@@ -7006,7 +6987,7 @@ def photo_url_delete(request, id=None):
             obj = Photo.objects.get(pk = id)
             obj.delete()
         except:
-            return HttpResponse("Дане фото вже видалене спробуйте інший ID")#, content_type="text/plain")
+            return HttpResponse("Дане фото вже видалене спробуйте інший ID")#, content_type="text/plain;charset=UTF-8;charset=UTF-8")
                          
     try:
         if request.is_ajax():
@@ -7017,7 +6998,7 @@ def photo_url_delete(request, id=None):
             obj = Photo.objects.get(id = wid)
             del_logging(obj)
             obj.delete()
-            return HttpResponse("Виконано", content_type="text/plain")
+            return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;charset=UTF-8")
         else: 
             obj = Photo.objects.get(id = id)
     except:
@@ -7057,7 +7038,7 @@ def catalog_set_type(request):
     cat = Catalog.objects.filter(id = cid).values('type__name', 'type__id')
     return HttpResponse(simplejson.dumps(list(cat)), content_type="application/json")
 
-#    return HttpResponse(cat[0][0], content_type="text/plain")
+#    return HttpResponse(cat[0][0], content_type="text/plain;charset=UTF-8;charset=UTF-8")
 
 def bicycle_price_set(request):
     if request.is_ajax():
@@ -7110,7 +7091,7 @@ def storage_box_delete(request, id=None):
     obj = Catalog.objects.get(id=id)
     obj.locality = ''
     obj.save()
-    return HttpResponse("Виконано", content_type="text/plain")
+    return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;charset=UTF-8")
     #return HttpResponseRedirect('/workshop/view/')
 
 
@@ -7124,7 +7105,7 @@ def storage_box_rename(request):
                 obj = Catalog.objects.filter(locality = box_name).update(locality=new_name)
 #                obj.locality = ''
 #                obj.save()
-    return HttpResponse("Виконано", content_type="text/plain")
+    return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;charset=UTF-8")
 
 
 def storage_boxes(request):
@@ -7133,31 +7114,48 @@ def storage_boxes(request):
 
 
 def inventory_list(request, year=None, month=None, day=None):
-#    if (year != None and month != None and day != None):
-    if (year == None) and (month == None) and (day == None):
-        day = datetime.datetime.now().day
-        month = datetime.datetime.now().month
+    pyear = year
+    list = None
+    day_list = None
+    if (year == None):
         year = datetime.datetime.now().year
     else:
-        day = day
-        month = month
         year = year
-        
-    list = InventoryList.objects.filter(date__year = year, date__month = month, date__day = day)
-    return render_to_response("index.html", {"weblink": 'inventory_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
+    list = InventoryList.objects.filter(date__year = year)
+    if (month != None):
+        list = list.filter(date__month = month)
+        day_list = InventoryList.objects.filter(date__year = year, date__month = month).extra({'day':"Extract(day from date)"}).values_list('day').annotate(Count('id')).order_by('day')        
+    if (day != None):
+        list = list.filter(date__day = day)
+    if (pyear == None) and (month == None) and (day == None):
+         month = datetime.datetime.now().month
+         day = datetime.datetime.now().day        
+         list = list.filter(date__month = month, date__day = day)
+    #list = InventoryList.objects.filter(date__year = year, date__month = month, date__day = day)
+    #list = InventoryList.objects.filter(date__year = year, date__month = month)
+    year_list = InventoryList.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
+    month_list = InventoryList.objects.filter(date__year = year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')
+
+    return render_to_response("index.html", {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def inventory_mistake(request, year=None, month=None, day=None):
     #im = InventoryList.objects.filter(check_all = True).annotate(dcount=Max('date')).order_by('date')
     year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
     #im = InventoryList.objects.filter(check_all = True, date__gt = year_ago).annotate(mdate=Max('date', distinct=True)).order_by('catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')
-    im = InventoryList.objects.filter(Q(date__gt = year_ago), ( (Q(real_count = F('count')) & Q(check_all = False)) | (Q(real_count__gt = F('count')) & Q(check_all = True)) | (Q(real_count__lt = F('count')) & Q(check_all = True)) )).annotate(mdate=Max('date', distinct=True)).order_by('-check_all', 'catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')    
+#    im = InventoryList.objects.filter(Q(date__gt = year_ago), ( (Q(real_count = F('count')) & Q(check_all = False)) | (Q(real_count__gt = F('count')) & Q(check_all = True)) | (Q(real_count__lt = F('count')) & Q(check_all = True)) )).annotate(mdate=Max('date', distinct=True)).order_by('-check_all', 'catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')
+    im = InventoryList.objects.filter(Q(date__gt = year_ago), ( (Q(real_count = F('count')) & Q(check_all = False)) | (Q(real_count__gt = F('count')) & Q(check_all = True)) | (Q(real_count__lt = F('count')) & Q(check_all = True)) )).order_by('-check_all', 'catalog__manufacturer', 'catalog__id')
     #list = im.filter(Q(real_count__lt = F('count')) | Q(real_count__gt = F('count')))#.values('id', 'catalog', )
     #list = im.exclude( Q(real_count = F('count')) & Q(check_all = True) ) 
     #list = im.exclude( check_all = True, real_count__gt = F('count'), real_count__lt = F('count'))
     list = im 
     #list = InventoryList.objects.filter(check_all = True, real_count__lt = F('count'))
-    return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
+    #return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
+    year = datetime.date.today().year
+    day_list = []
+    year_list = InventoryList.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
+    month_list = InventoryList.objects.filter(date__year = year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')
+    return render_to_response("index.html", {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def inventory_autocheck(request, year=None, month=None, day=None, update=False):
@@ -7178,6 +7176,95 @@ def inventory_mistake_not_all(request, year=None, month=None, day=None):
     #list = im 
     #list = InventoryList.objects.filter(check_all = True, real_count__lt = F('count'))
     return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def inventory_fix_catalog(request, cat_id=None, inv_id=None, update=False):
+    cur_year = datetime.date.today().year
+#    year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+    cfix = Catalog.objects.get(id = cat_id)
+    realCount = cfix.get_realshop_count()
+    ifix = InventoryList.objects.filter(catalog = cfix, date__year = cur_year)
+    isum = ifix.filter(check_all = False, real_count = realCount).aggregate(csum = Sum('count'))
+    maxDate = ifix.filter(check_all = False, real_count = realCount).aggregate(mdate = Max('date'))
+    gt_max = None
+    if maxDate['mdate']:
+        gt_max = ifix.filter(date__gt = maxDate['mdate'])
+        print "FILTER MAX = " + str(gt_max.exists())
+        if gt_max.exists():
+            print "Існує новий запис після підрахунку"
+        if (gt_max.exists() == False and realCount == isum['csum']):
+            print "REsult = Create new inventory record. Count = " + str(realCount)
+            desc = 'AutoCreate_' + str(cur_year)
+            new_inv = InventoryList(catalog = cfix, count = realCount, description = desc, user = request.user, real_count = realCount, check_all = True).save()
+            return HttpResponse('Товар: ' + str(cfix) + '\nЗакрито повністю. Кількість - ' + str(realCount) + ' штук', content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8" )            
+    #isum = ifix.aggregate(Count('pk'), csum = Sum('count'))
+    print "Max date = " + str(maxDate['mdate'])
+    print "REAL count = " + str(realCount)
+    for i in ifix:
+        print "inventory = " + str(i) + " status = " + str(i.check_all) + " PORTAL = " + str(i.real_count)
+    print "Isum = " + str(isum['csum'])
+    
+    if realCount != isum['csum']:
+        print "Real count not equal COUNT"
+    return HttpResponse('Fix element = ' + str(cfix), content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8" )
+
+
+def inventory_fix_catalog1(request, cat_id=None, inv_id=None, type_id=None, update=False):
+    cur_year = datetime.date.today().year
+    year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+    exc_list =  InventoryList.objects.filter( Q(date__year = cur_year), (Q(real_count = F('count')) & Q(check_all = True)) )
+    im = InventoryList.objects.filter(Q(date__year = cur_year), ( (Q(real_count__gt = F('count')) & Q(check_all = False)) | (Q(real_count__lt = F('count')) & Q(check_all = False)) )).annotate(mdate=Max('date', distinct=True)).order_by('-check_all', 'catalog__manufacturer', 'catalog__id')    
+    list = im.exclude(catalog__id__in=[term.catalog.id for term in exc_list])
+#    year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+
+#    list = list.values('id', 'catalog__name', 'catalog__ids', 'catalog__id', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'edit_date')
+#    return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list[:100]}, context_instance=RequestContext(request, processors=[custom_proc]))
+    cfix_list = None
+    if type_id:
+        seltype = Type.objects.get(id = type_id)
+        cfix_list = Catalog.objects.filter(id__in = list.values('catalog__id'), type = seltype)#[:100]
+    else:
+        cfix_list = Catalog.objects.filter(id__in = list.values('catalog__id'))#[:100]
+    fixed_list = []
+    fixed_ilist = []
+    for cfix in cfix_list:
+        realCount = cfix.get_realshop_count()
+        ifix = InventoryList.objects.filter(catalog = cfix, date__year = cur_year)
+        isum = ifix.filter(check_all = False, real_count = realCount).aggregate(csum = Sum('count'))
+        maxDate = ifix.filter(check_all = False, real_count = realCount).aggregate(mdate = Max('date'))
+        gt_max = None
+        if maxDate['mdate']:
+            gt_max = ifix.filter(date__gt = maxDate['mdate'])
+            print "FILTER MAX = " + str(gt_max.exists())
+            if gt_max.exists():
+                print "Skip this item. Have old record"
+            if (gt_max.exists() == False and realCount == isum['csum']):
+                print "REsult = Create new inventory record. Count = " + str(realCount)
+                desc = 'AutoCreate_' + str(cur_year)
+                new_inv = InventoryList(catalog = cfix, count = realCount, description = desc, user = request.user, real_count = realCount, check_all = True).save()
+                fixed_list.append(cfix)
+                fixed_ilist.append(new_inv)
+#                return HttpResponse('Товар: ' + str(cfix) + '\nЗакрито повністю. Кількість - ' + str(realCount) + ' штук', content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8" )            
+        if realCount != isum['csum']:
+            print "Real count not equal COUNT"
+
+    return HttpResponse('Fixed elements = ' + str(fixed_list) + "\n Inventory save = " + str(fixed_ilist), content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8" )
+
+
+def inventory_fix(request, year=None, month=None, day=None, update=False):
+    year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+    im = InventoryList.objects.filter( Q(date__gt = year_ago), (((Q(real_count__gt = F('count')) | Q(real_count__lt = F('count'))) & Q(check_all = True))) ).annotate(mdate=Max('date', distinct=True)).order_by('catalog__id')
+    if update == True:
+        im.update(check_all=True)
+    list = im
+    year = datetime.date.today().year
+    day_list = []
+    year_list = InventoryList.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
+    month_list = InventoryList.objects.filter(date__year = year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')
+   
+#    list = im.values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'edit_date')
+#    return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response("index.html", {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def inventory_add(request):
@@ -7202,7 +7289,7 @@ def inventory_add(request):
                     #search = "Введіть текст опису"
                     jsonDict = {"status": "error", "message": "Вевведіть текст повідомлення!"}
                     return HttpResponse(simplejson.dumps(jsonDict), content_type="aplication/json")
-                    #return HttpResponse(search, content_type="text/plain")
+                    #return HttpResponse(search, content_type="text/plain;charset=UTF-8;charset=UTF-8")
                 c = Catalog.objects.get(id = pid)
                 
                 try:
@@ -7224,28 +7311,26 @@ def inventory_add(request):
     jsonDict = {"status": "done", "message": "", "id": inv.id, "count": inv.count, "description": inv.description, "user__username": inv.user.username, "date": inv.date.strftime("%d/%m/%Y [%H:%M]"), "check_all":inv.check_all, "real_count":inv.real_count}
     return HttpResponse(simplejson.dumps(jsonDict), content_type="aplication/json")
     #search = "ok"
-    #return HttpResponse(search, content_type="text/plain")
+    #return HttpResponse(search, content_type="text/plain;charset=UTF-8;charset=UTF-8")
 
 
 def inventory_get(request):
     if request.is_ajax():
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
-                return HttpResponse('Error: У вас не має прав для перегляду')
+                return HttpResponse('Error: У вас не має прав для перегляду', content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
             POST = request.POST  
             if POST.has_key('catalog_id'):
                 cid = request.POST['catalog_id']
-                i_list = InventoryList.objects.filter(catalog = cid).values('id', 'count', 'description', 'user', 'user__username', 'date', 'check_all', 'real_count')
-
+                i_list = InventoryList.objects.filter(catalog = cid).values('id', 'count', 'description', 'user', 'user__username', 'date', 'check_all', 'real_count', 'catalog__name', 'catalog__ids')
                 json = list(i_list)
-                for x in json:  
+                for x in json:
+                    x['date_year'] = x['date'].strftime("%Y")  
                     x['date'] = x['date'].strftime("%d/%m/%Y [%H:%M]")
-                
                 #json = serializers.serialize('json', p_cred_month, fields=('id', 'date', 'price', 'description', 'user', 'user_username'))
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
 
     return HttpResponse(data_c, content_type='application/json')        
-
 
 
 def inventory_get_listid(request):
@@ -7253,48 +7338,58 @@ def inventory_get_listid(request):
     if request.is_ajax():
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
-                message = 'Error: У вас не має прав для перегляду' #, content_type="text/plain")
+                message = 'Error: У вас не має прав для перегляду' #, content_type="text/plain;charset=UTF-8;charset=UTF-8")
                 return HttpResponse(message)
             POST = request.POST  
             if POST.has_key('catalog_ids'):
                 cid = request.POST['catalog_ids']
                 cid1 = simplejson.loads(cid)
                 i_list = InventoryList.objects.filter(catalog__in = cid1, date__gt = date_before, check_all = True).values('id', 'catalog__id', 'count', 'description', 'user', 'user__username', 'date', 'real_count')
-
                 json = list(i_list)
                 for x in json:  
                     x['date'] = x['date'].strftime("%d/%m/%Y [%H:%M]")
-                
                 #json = serializers.serialize('json', p_cred_month, fields=('id', 'date', 'price', 'description', 'user', 'user_username'))
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
-    
     return HttpResponse(i_list, content_type='application/json')        
+
+
+def inventory_get_count(request):
+    sel_id = None
+    if request.method == 'POST':
+        sel_id = request.POST.get('sel_id')
+    list = InventoryList.objects.get(id=sel_id)
+    if (list.user != request.user):
+        if (auth_group(request.user, 'admin') == False):
+            return HttpResponse('Error: У вас не достатньо повноважень для редагування', content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
+    return HttpResponse(unicode(list.count), content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
 
 
 def inventory_set(request):
     if request.is_ajax():
-        if request.method == 'POST':  
+        if request.method == 'POST':
+            result = ''  
             if auth_group(request.user, 'seller')==False:
-                return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain")
+                return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain;charset=UTF-8;charset=UTF-8")
             POST = request.POST  
             if POST.has_key('id'):
-                
                 id = request.POST['id']
                 i_list = InventoryList.objects.get(id = id)
-                i_list.check_all = not(i_list.check_all)
-                i_list.edit_date = datetime.datetime.now()
-                if request.user != i_list.user :
+                if POST.has_key('status'):
+                    i_list.check_all = not(i_list.check_all)
+                    i_list.edit_date = datetime.datetime.now()
+                    if i_list.check_all: 
+                        result = "Повністю" 
+                    else:
+                        result = "Частково"
+                if POST.has_key('count'):
+                    i_list.count = request.POST['count']
+                    result = i_list.count 
+                if (request.user != i_list.user):
                     if auth_group(request.user, 'admin')==False:
-                        return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain")
+                        return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain;charset=UTF-8;charset=UTF-8")
                 i_list.save()
-                result = ''
-                if i_list.check_all: 
-                    result = "Повністю" 
-                else:
-                    result = "Частково"
-                return HttpResponse(result, content_type="text/plain")
-                
-    return HttpResponse("Виконано", content_type="text/plain")
+                return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8")
+    return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;charset=UTF-8")
     #return HttpResponse(data_c, content_type='application/json')        
 
     
@@ -7311,13 +7406,13 @@ def inventory_delete(request, id=None):
             obj = InventoryList.objects.get(id = wid)
             del_logging(obj)
             obj.delete()
-            return HttpResponse("Виконано", content_type="text/plain")
+            return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8;charset=UTF-8")
         else: 
             obj = InventoryList.objects.get(id = id)
     except:
         pass
-    del_logging(obj)
-    obj.delete()
+#    del_logging(obj)
+#    bj.delete()
     return HttpResponseRedirect('/inventory/list/')
 
 
@@ -7339,7 +7434,7 @@ def catalog_join(request,id1=None, id2=None, ids=None):
                 id1 = request.POST['id']
             else:
                 result = "Введіть ID товару для обєднання"
-                return HttpResponse(result, content_type="text/plain")
+                return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
             if POST.has_key('id2'):
                 id2 = request.POST['id2']
             if POST.has_key('ids'):
@@ -7348,7 +7443,7 @@ def catalog_join(request,id1=None, id2=None, ids=None):
                     ids.remove(id1)
                 except:
                     result = "Введіть правильний ID товару для обєднання"
-                    return HttpResponse(result, content_type="text/plain")
+                    return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
 
             for i in ids:
                 inv = InventoryList.objects.filter(catalog = i).update(catalog=id1)
@@ -7363,7 +7458,7 @@ def catalog_join(request,id1=None, id2=None, ids=None):
                 
 #                result = ''
             result = "ok"
-            return HttpResponse(result, content_type="text/plain")
+            return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
     
     c1 = Catalog.objects.get(id=id1)
     c2 = Catalog.objects.get(id=id2)
@@ -7390,9 +7485,9 @@ def catalog_sale_edit(request, ids=None):
                 s = request.POST.get('sale')
             if s == '':
                 result = "невірні параметри"
-                return HttpResponse(result, content_type="text/plain")
+                return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
 #                result = "Введіть правильний ID товару для обєднання"
-#                return HttpResponse(result, content_type="text/plain")
+#                return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
 
             for i in ids:
                 obj = Catalog.objects.get(id = i)                                
@@ -7405,7 +7500,7 @@ def catalog_sale_edit(request, ids=None):
                 #obj_del.delete()
                 
             result = "ok"
-            return HttpResponse(result, content_type="text/plain")
+            return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
 
 
 def client_invoice_add(request, ids=None):
@@ -7420,16 +7515,16 @@ def client_invoice_add(request, ids=None):
                 count = request.POST.get('count')
             if count == '':
                 result = "невірні параметри"
-                return HttpResponse(result, content_type="text/plain")
+                return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
 #                result = "Введіть правильний ID товару для обєднання"
-#                return HttpResponse(result, content_type="text/plain")
+#                return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
             client = Client.objects.get(id=138)
             for i in ids:
                 c_obj = Catalog.objects.get(id = i)
                 ClientInvoice(client=client, catalog = c_obj, count=count, price=c_obj.price, sum=c_obj.price*int(count), currency=c_obj.currency, sale=c_obj.sale, pay=0, user=request.user, date=datetime.datetime.now()).save()
                 
             result = "ok"
-            return HttpResponse(result, content_type="text/plain")
+            return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
 
 
 def check_list(request, year=None, month=None, day=None, all=False):
@@ -7536,7 +7631,7 @@ def shop_sale_check_add(request):
                         page = urllib.urlopen(url).read()
                     except:
                         message = "Сервер "+settings.HTTP_MINI_SERVER_IP+" не відповідає"
-                        return HttpResponse(message, content_type="text/plain")
+                        return HttpResponse(message, content_type="text/plain;charset=UTF-8;charset=UTF-8")
 
                     res = Check.objects.aggregate(max_count=Max('check_num'))
                     chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
@@ -7607,10 +7702,10 @@ def shop_sale_check_add(request):
                     page = urllib.urlopen(url).read()
 
                 message = "Виконано"
-                return HttpResponse(message, content_type="text/plain")
+                return HttpResponse(message, content_type="text/plain;charset=UTF-8;charset=UTF-8")
     else:
         message = "Error"
-        return HttpResponse(message, content_type="text/plain")
+        return HttpResponse(message, content_type="text/plain;charset=UTF-8;charset=UTF-8")
 
 
 def workshop_sale_check_add(request):
@@ -7637,7 +7732,7 @@ def workshop_sale_check_add(request):
                         page = urllib.urlopen(url).read()
                     except:
                         message = "Сервер не відповідає"
-                        return HttpResponse(message, content_type="text/plain")
+                        return HttpResponse(message, content_type="text/plain;charset=UTF-8;charset=UTF-8")
 
                     res = Check.objects.aggregate(max_count=Max('check_num'))
                     chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
@@ -7712,10 +7807,10 @@ def workshop_sale_check_add(request):
                     page = urllib.urlopen(url).read()
 
                 message = "Виконано"
-                return HttpResponse(message, content_type="text/plain")
+                return HttpResponse(message, content_type="text/plain;charset=UTF-8;charset=UTF-8")
     else:
         message = "Error"
-        return HttpResponse(message, content_type="text/plain")
+        return HttpResponse(message, content_type="text/plain;charset=UTF-8;charset=UTF-8")
 
 
 

@@ -150,12 +150,11 @@ $('.checkbox').change(function(){
 
 <h2>
     За рік:
-
 {% for item in year_list %}
 	<a href="/dealer/invoice/year/{{item.0}}/view" class="btn btn-outline-info"><h6>{{item.0}} <span class="badge badge-light">{{item.1}}</span></h6></a>
 {% endfor %}
 
-	</h2>
+</h2>
 	    
 <h2>
     За місяць:

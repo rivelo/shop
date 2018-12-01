@@ -579,7 +579,6 @@ class InventoryList(models.Model):
         cur_date = datetime.datetime.now()
         if (self.check_all == True) and ( self.date > cur_date-datetime.timedelta(days=int(nday)) ):
              return True
-
         return False 
             
     def __unicode__(self):

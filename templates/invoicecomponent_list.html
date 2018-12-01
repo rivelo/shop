@@ -14,7 +14,7 @@
 <link rel="stylesheet" type="text/css" href="/media/css/table.css">
 <link rel="stylesheet" href="/media/css/mainstyle.css">
 
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">  	
+{# <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> #}  	
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">  	
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/typicons/2.0.7/typicons.min.css" />
 
@@ -37,6 +37,10 @@
 </head>
 
 <style>
+
+.table-yellow{
+	background-color: #feff81;
+}
 
 .photoModalbutton{
 	cursor: pointer;
@@ -1007,8 +1011,9 @@ $("#dialog_inventory").dialog({
 	autoOpen: false,
       resizable: false,
       modal: true,
-      width: 540,
-      maxWidth: 540,
+      width: 600,
+      maxWidth: 700,
+//      minWidth: 500,
       //position: "center",
       buttons: {
         "Додати": function() {
@@ -1037,17 +1042,14 @@ $("#dialog_inventory").dialog({
 					var cdesc = p.description;
 					var tr_cls = "";
 					if (p.check_all) {
-						tr_cls = '<table><tr class="tr_true" cid="">';
+						tr_cls = '<tr class="table-success" cid="">';
 					}
 					else {
-						tr_cls = '<table><tr class="tr_false" cid="">';
+						tr_cls = '<tr class="table-info" cid="">';
 					}
-					var count = '<td style="background-color:#c0c5ce"><abbr title="' + p.edit_date + '">' + p.count + 'шт.</abbr>';
-                	$('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ p.check_all +'</td><td>' + p.real_count +' шт.</td></tr></table>');				
-				
-   					$( ".container" ).append( "<p>Підрахунок додано!</p>" );
-//					console.log("Status: " + p.status);
-//					on_off_button(true);
+					var count = '<td style="background-color:#c0c5ce">' + p.count + 'шт.';
+                	$('#table_body').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ p.check_all +'</td><td>' + p.real_count +' шт.</td></tr>');				
+   					$( "#table_body" ).append( "<tr class='table-info'><td>Підрахунок додано!</td></tr>");
 					$("#dialog_inventory").dialog('widget').find("button:contains('Додати')").button("option", "disabled", false);				
 					
 				}
@@ -1312,7 +1314,7 @@ $(document).on("click", ".inv_td", function(event) {
     	$("#inv_spinner").focus();
     	$("#inv_desc").val("");
     	document.getElementById("chk_all").checked = false;
-    	$('.container').empty()
+    	$('#table_body').empty()
 //    	on_off_button(false);
 		$("#dialog_inventory").dialog("open");
 		
@@ -1324,30 +1326,43 @@ $(document).on("click", ".inv_td", function(event) {
                 dataType: "json",
                 success:function(msg){
                 	$.each(msg,function(index,item){
-						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
-						var cdesc = item['description'];
-						var tr_cls = "";
-						if (item['check_all']) {
-							tr_cls = '<table><tr class="tr_true" cid="' + item['id'] + '">';
-						}
-						else {
-							tr_cls = '<table><tr class="tr_false" cid="' + item['id'] + '">';
-						}
-						var count = '<td style="background-color:#c0c5ce"><abbr title="' + item['edit_date'] + '">' + item['count'] + 'шт.</abbr>';
-	{% if request.user|has_group:"admin" %}						
-                	    $('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ item['check_all'] +'</td><td>'+item['real_count']+' шт.</td><td><span class="inv_del" inv_id="'+item['id']+'" style="cursor: pointer;">Видалити</span></td><td class="inv_set" style="cursor: pointer;">Статус</td></tr></table>');
-	{% else %}                	    
-                	    $('.container').append(tr_cls+ '<td>'+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ item['check_all'] +'</td><td>'+item['real_count']+' шт.</td></tr></table>');
+    					var fcol = ' data-toggle="tooltip" data-html="true" data-placement="left" title="' + item['user__username'] + '">' + item['date'];
+    					var cdesc = item['description'];
+    					var tr_cls = "";
+    					if (item['check_all']) {
+    						var class_str = 'class="table-success"'
+    							if (item['count'] > item['real_count']) {
+    								class_str = 'class="table-yellow"'	
+    							} 
+    							if (item['count'] < item['real_count']) {
+    								class_str = 'class="table-warning"'	
+    							} 
+    						tr_cls = '<tr ' + class_str +  ' cid="' + item['id'] + '" ' +' iyear="'+ item['date_year'] +'">';
+    					}
+    					else {
+    						tr_cls = '<tr class="" cid="' + item['id'] + '" ' +' iyear="'+ item['date_year'] +'">';
+    					} 
+    					var count = '<td style="font-weight: bold; text-align: center;"><abbr title="' + item['edit_date'] + '">' + item['count'] + 'шт.</abbr>';
+    					var status = ''
+        					if (item['check_all']){
+            						status = "Повністю"	
+            					}
+            					else{
+            						status = "Частково"
+            					}
+    					
+    {% if request.user|has_group:"admin" %}						
+                	    $('#table_body').append(tr_cls+ '<td '+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td class="inv_set" style="cursor: pointer;">'+ status +'</td><td>'+item['real_count']+' шт.</td><td data-toggle="tooltip" data-html="true" data-placement="top" title="Видалити"><span class="inv_del" inv_id="'+item['id']+'" style="cursor: pointer;"><i class="material-icons">delete_outline</i></span></td>></tr>');
+    {% else %}                	    
+                	    $('#table_body').append(tr_cls+ '<td '+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ status +'</td><td>'+item['real_count']+' шт.</td></tr>');
     {% endif %}
                     });
-
-                },
+                	$( "#table_body").find( "tr:not([iyear*='{{cur_year}}'])" ).hide();			
+                },                
                 error:function(msg){
                     alert(msg.responseText);
                 }
             });      
-		
-			
 });
 
 
@@ -1383,7 +1398,7 @@ $("body").on('click', '.inv_set', function() {
 			$.ajax({
 	                type: "POST",
 	                url: "/inventory/set/",
-	                data: {id:  $(this).parents("tr").attr("cid") },
+	                data: {id:  $(this).parents("tr").attr("cid"), status: true },
 	                dataType: "text",
 	                success:function(data){
 	     //           	console.log("ajax work = " + tr_set.html());
@@ -1635,7 +1650,6 @@ var table = $('#iTable').DataTable();
 	table.rows().eq( 0 ).each( function (idx) {
 		ids.push( $(table.row( idx ).node()).attr('id') );
 	});
-
             $.ajax({
                 type: "POST",
                 url: "/inventory/get/listid/",
@@ -1656,8 +1670,12 @@ var table = $('#iTable').DataTable();
 	}
 });
 
-
-
+function show_tr_year(obj){
+	$( "#table_body").find( "tr:not([iyear*='{{cur_year}}'])" ).toggle();
+//	$(obj).removeClass('badge-warning').addClass('badge-dark');
+	$(obj).toggleClass( 'badge-warning' );
+//	$(obj).toggleClass( 'badge-primary' );
+	}
 
 </script>
 
@@ -1732,6 +1750,7 @@ var table = $('#iTable').DataTable();
      <span id="b_buy"><img src="/media/images/Ecommerce Buy.ico" width="32" height="32" title="Додати до кошика вибрані позиції" data-toggle="tooltip" data-placement="bottom"> </span>
 {% if request.user|has_group:"admin" %}     
      <span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="42" height="42" title="Відправити вибірку на Email" data-toggle="tooltip" data-placement="bottom"></span>
+     <a href="/inventory/type/{{category_id}}/autofix/" title="Звести порахований товар" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">playlist_add_check</i> </a>
 {% endif %}
      {# url 'invoice_year_manufacture' 2018 componentlist.0.manufacturer__id #}
      {% for yy in years_range %}
@@ -1816,6 +1835,7 @@ var table = $('#iTable').DataTable();
 
 <!-- Dialog to view inventory -->
 	<div id="dialog_inventory" title="Inventory">
+{% comment %}
 	<label for="inv_spinner">Кількість:</label>
   	<input id="inv_spinner" name="value" value="1">
   	<label for="inv_chkbox">Загальна кількість?:</label>
@@ -1824,8 +1844,47 @@ var table = $('#iTable').DataTable();
   	<br>
   	<label for="photo_url">Опис:</label>
 	<input type="text" name="inv_description" id="inv_desc" value="" ids="" size="55">
-  	<h3>Список перевірок:</h3>
-  	<div class="container">
+{% endcomment %}
+
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <span class="input-group-text" id="basic-addon1">Кількість</span>
+  </div>
+  <input type="text" class="form-control" aria-label="Имя пользователя" aria-describedby="basic-addon1" id="inv_spinner" name="value" value="1">
+  <div class="input-group-prepend">
+    <span class="input-group-text" id="basic-addon1">User: <b> {{user|upper}} </b></span>
+  </div>
+</div>
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <div class="input-group-text">
+      <input type="checkbox" aria-label="Checkbox for following text input"  name="chk_all" id="chk_all" value="" ids="">
+    </div>
+  </div>
+  <input type="text" class="form-control" aria-label="Text input with checkbox" placeholder="Опис" id="inv_desc" value="" ids="">
+</div>	
+	
+  	<h3 class="w-100">Список перевірок: <span class="badge badge-ligth float-right" onclick="show_tr_year(this);" style="cursor: pointer;"> 
+  	<i class="material-icons">view_list</i></span> 
+  	</h3>
+  	<div class="container w-100">
+  	<table class="table table-bordered table-hover table-condensed table-sm" >
+<thead class="table-dark text-center">
+  <tr>
+    <th>Дата</th>
+    <th>Опис</th>
+    <th>Кількість</th>
+    <th>Статус</th>
+    <th>Кількість в базі</th>
+{% if request.user|has_group:"admin" %}	    
+    <th>Дія</th>
+{% endif %}    
+  </tr>
+</thead>
+  <tbody id="table_body">
+  
+  </tbody>  	
+  	</table>
 	</div>
 	</div>
 
@@ -1993,7 +2052,9 @@ var table = $('#iTable').DataTable();
 {% if type.catalog__price = type.catalog__last_price %}
 {{type.catalog__price}} грн.
 {% endif %}
+{% if type.get_discount %}
 <h5><span class="badge badge-danger">{{type.get_discount|floatformat:"0"}}</span></h5>
+{% endif %}
 </td>
 {% else %}
 <td align="center" BGCOLOR="#FF6600" class="price_edit" id_price={{type.catalog}}>

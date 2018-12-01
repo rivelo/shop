@@ -21,9 +21,10 @@ TD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
 	font-size: 10pt;
 }
 
+
 a:hover {text-decoration: none}
 
-.jQtooltip {color: #963}
+/*.jQtooltip {color: #963}
 
 .jQtooltip {
 	position: relative;
@@ -64,7 +65,7 @@ a:hover {text-decoration: none}
 	background: #FFF6BD;
 	-moz-border-radius: 2px;
 	border-radius: 2px;
-}
+}*/
 
 .tr_true {
 background-color: #fff;

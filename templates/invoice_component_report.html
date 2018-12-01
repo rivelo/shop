@@ -2,16 +2,15 @@
 <html lang="en">
 <head>
     <title>Список товару</title>
-    <link rel="stylesheet" type="text/css" href="/media/css/table.css">
+{#    <link rel="stylesheet" type="text/css" href="/media/css/table.css"> #}
 </head>
 <body>
-<br>
 
 {% load poll_extras %}
 {% load template_math %}    
 
 {% if dinvoice.origin_id %}
-    <h1>Список наявного товару по накладній № {{dinvoice.origin_id}} ({{dinvoice.company}})</h1>
+    <h1><span class="badge badge-success">Список наявного товару по накладній: </span> <span class="badge badge-info">{{dinvoice.origin_id}} ({{dinvoice.company}})</span></h1>
 {% else %}
 	<h1>Надходження товару: <br> [{{list.0.catalog.ids}} / {{list.0.catalog.dealer_code}}] {{list.0.catalog.name}} </h1>
 {% endif %}
@@ -20,7 +19,8 @@
     
 {% if perms.accounting.add_preorder %}  
 
-    <table id="iTable" class = "table table-bordered table-hover table-condensed table-sm">
+    <table id="iTable" class = "table table-bordered table-hover table-condensed">
+    <thead class="thead-dark">
 	<tr>
     	<th>#</th>	
     	<th>ID</th>
@@ -38,10 +38,16 @@
     	<th>Опис</th>
     	<th>Дія</th>
     </tr>
-    
-    
+    </thead>
+<tbody>    
 {% for type in list %}
+{% if type.count > type.rcount %}
+<tr class="table-warning">
+{% elif type.count < type.rcount %}
+<tr class="table-success">
+{% else %}
 <tr>
+{% endif %}
 	<td>
 	{{forloop.counter}}
 	</td>
@@ -85,7 +91,7 @@
 	</td>
 	<td>
 {% if request.user|has_group:"admin" %}
-    <a href="/invoice/delete/{{type.id}}">delete</a>
+    <a href="/invoice/delete/{{type.id}}"><i class="material-icons">delete_outline</i></a>
 {% endif %}
     </td>
 </tr>
@@ -107,11 +113,13 @@
     	<th></th>
     	<th></th>
     </tr>
-    <table>
+</tbody>    
+    </table>
 
 {% else %}
 
-    <table border="1">
+    <table class = "table table-bordered table-hover table-condensed">
+    <thead class="thead-dark">
 	<tr>
     	<th>#</th>	
     	<th>ID</th>
@@ -125,9 +133,10 @@
     	<th>Дата</th>
     	<th>Опис</th>
     </tr>
+    </thead>
     
-{% load template_math %}    
-    
+
+<tbody>    
 {% for type in list %}
 <tr>
 	<td>
@@ -179,7 +188,8 @@
     	<th></th>    	
     	<th></th>
     </tr>
-    <table>
+	</tbody>    
+    </table>
 
 {% endif %}
 

@@ -70,6 +70,7 @@ function addZero(i) {
  });
 
 
+
 });
 </script> 
 
@@ -111,7 +112,10 @@ function addZero(i) {
 		
 		<td title="{{ element.id }}" data-toggle="tooltip" data-placement="left">{{ forloop.counter }}</td>
 		<td>{{ element.catalog__manufacturer__name }}</td>
-		<td><a href="/invoice/search/result/?name=&id={{element.catalog__ids}}" title="Перейти до товару" data-toggle="tooltip" data-placement="left"><span><i class="material-icons">forward</i></span></a> [{{element.catalog__ids}}] {{ element.catalog__name }}</td>
+		<td>
+		<a href="/invoice/search/result/?name=&id={{element.catalog__ids}}" title="Перейти до товару" data-toggle="tooltip" data-placement="left"><span><i class="material-icons">forward</i></span></a> [{{element.catalog__ids}}] {{ element.catalog__name }}
+		<a href = "{% url 'fix_inventory' element.catalog__id %}" class="badge badge-pill badge-danger"> Inventory </a>
+		</td>
 		<td align="center">{{ element.count }}</td>
 		<td align="center">{{ element.real_count }}</td>
 		<td>{{ element.description }}</td>
@@ -151,7 +155,10 @@ function addZero(i) {
 		<td title="{{ element.id }}" data-toggle="tooltip" data-placement="left">{{ forloop.counter }}</td>
 		
 		<td>{{ element.catalog__manufacturer__name }}</td>
-		<td><span title="Перейти до товару" data-toggle="tooltip" data-placement="left"><i class="material-icons">forward</i></span> [{{element.catalog__ids}}] {{ element.catalog__name }} </td>
+		<td>
+		<span title="Перейти до товару" data-toggle="tooltip" data-placement="left"><i class="material-icons">forward</i></span> [{{element.catalog__ids}}] {{ element.catalog__name }}
+		<a href = "{% url 'fix_inventory' element.catalog__id %}" class="badge badge-pill badge-danger"> Inventory </a> 
+		</td>
 		<td align="center">{{ element.count }}</td>
 		<td align="center">{{ element.real_count }}</td>
 		<td>{{ element.description }}</td>

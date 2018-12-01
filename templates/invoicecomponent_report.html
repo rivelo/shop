@@ -1,15 +1,19 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <html lang="en">
-<link type="text/css" rel="stylesheet" href="/media/paginator.css">
+
 <head>
     <title>Список товару</title>
     <link rel="stylesheet" type="text/css" href="/media/table.css">
+{#    <link type="text/css" rel="stylesheet" href="/media/paginator.css"> #}
 </head>
 <body>
 
-    <h1>Звіт по наявному товару</h1>
+    <h1><span class="badge badge-success">Звіт по наявному товару</span></h1>
 
-    <table border="1">
+{% load template_math %}
+
+    <table class = "table table-bordered table-hover table-condensed">
+    <thead>
 	<tr>
     	<th>#</th>	
     	<th>ID</th>
@@ -19,8 +23,9 @@
     	<th>Валюта</th>
     	<th>Сума</th>    	
     </tr>
+    </thead>
+<tbody>    
     
-{% load template_math %}    
 {% for item in catalog %}
 <tr>
 	<td>
@@ -57,42 +62,49 @@
     	<th></th>
     	<th>{{allpricesum}} грн.</th>    	
     </tr>
-    
-    <table>
+    </tbody>
+    </table>
 
-<br>
-<div class="pagination">
-  <ul>
+
+<div class="row">
+<div class="col">
+
+<nav aria-label="pages" class="table-responsive mb-2">
+  <ul class="pagination mb-0">
   	{% if catalog.has_previous %}
-        <li class="prev">
-            <a href="?page={{ catalog.previous_page_number }}">&larr; Previous</a>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ catalog.previous_page_number }}">&larr; Previous</a>
         </li>
     {% else %}
-    <li class="prev disabled">
-            <a href="?page={{ catalog.number }}">&larr; Previous</a>
+    <li class="page-item disabled">
+            <a class="page-link" href="?page={{ catalog.number }}">&larr; Previous</a>
     </li>
     {% endif %}
     
     {% for i in catalog.paginator.page_range %}
     {% ifequal i  catalog.number%}
-    <li class="disabled"><a href="">{{ i }}.</a></li>
+    <li class="page-item disabled">
+    <a class="page-link" href="">{{ i }}.</a>
+    </li>
     {% else %}
-    <li class="active"><a href="?page={{ i }}">{{ i }}.</a></li>
+    <li class="page-item active"><a class="page-link" href="?page={{ i }}">{{ i }}.</a></li>
     {% endifequal %}
     {% endfor %}   
     
     {% if catalog.has_next %}
-        <li class="next">
-            <a href="?page={{ catalog.next_page_number }}">Next &rarr;</a>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ catalog.next_page_number }}">Next &rarr;</a>
         </li>
     {% else %}
-    <li class="next disabled">
-            <a href="?page={{ catalog.number }}">Next &rarr;</a>
+    <li class="page-item disabled">
+            <a class="page-link" href="?page={{ catalog.number }}">Next &rarr;</a>
      </li>    
     {% endif %}
   </ul>
-</div>
+</nav>
       
+</div>      
+</div>
 
 </body>
 </html>
