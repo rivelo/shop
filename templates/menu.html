@@ -5,6 +5,7 @@
 <script language="javascript" src="/media/menu.js" type="text/javascript"></script>
 
 <style type="text/css">
+
 /*
     .navbar .dropdown-menu > .active > a,
     .dropdown-menu > .active > a:hover,
@@ -71,8 +72,8 @@ $(document).ready(function() {
 {% load poll_extras %}
 
 {# if user.is_authenticated #}
-{# <nav class="navbar navbar-expand-lg navbar-dark bg-primary"> #}
-<nav class="navbar-dark navbar-expand-lg navbar-dark bg-primary" data-toggle="sticky-onscroll" id="portal_menu">
+ <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top py-0 py-md-0" data-toggle="sticky-onscroll" id="portal_menu"> 
+{#<nav class="navbar navbar-dark bg-dark navbar-expand-md" data-toggle="sticky-onscroll" id="portal_menu"> #}
   <a class="navbar-brand d-md-none" href="#">Меню</a> 
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -224,7 +225,9 @@ $(document).ready(function() {
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
 			<a class="dropdown-item" href="/storage/boxes/list/">Список ящиків</a>
        		<a class="dropdown-item" href="/catalog/search/locality/">Назва ящика</a>
+{% if request.user|has_group:"admin" %}       		
        		<a class="dropdown-item" href="/storage/boxes/">Список товарів по ящиках</a>
+{% endif %}       		
        		<a class="dropdown-item" href="/inventory/list/"><i class="material-icons">assignment</i> Інвентеризація</a>
        		<a class="dropdown-item" href="/inventory/mistake/list/">Помилки</a>
        		<a class="dropdown-item" href="/inventory/mistake/not/all/list/">Не закриті</a>

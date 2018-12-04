@@ -19,6 +19,27 @@
 }
 
 
+.modal-dialog {
+      max-width: 800px;
+      margin: 30px auto;
+  }
+
+.modal-body {
+  position:relative;
+  padding:0px;
+}
+
+.close {
+  position:absolute;
+  right:-30px;
+  top:0;
+  z-index:999;
+  font-size:2rem;
+  font-weight: normal;
+  color:#fff;
+  opacity:1;
+}
+
 </style>
 
 
@@ -138,7 +159,35 @@ $(document).ready( function() {
 });
 
 
+$(document).ready(function() {
 
+	// Gets the video src from the data-src on each button
+
+	var $videoSrc;  
+	$('.video-btn').click(function() {
+	    $videoSrc = $(this).data( "src" );
+	});
+	console.log($videoSrc);
+
+	  
+	  
+	// when the modal is opened autoplay it  
+	$('#myModal').on('shown.bs.modal', function (e) {
+	    
+	// set the video src to autoplay and not to show related video. Youtube related video is like a box of chocolates... you never know what you're gonna get
+	$("#video").attr('src',$videoSrc + "?rel=0&amp;showinfo=0&amp;modestbranding=1&amp;autoplay=1" ); 
+	})
+	  
+	  
+	// stop playing the youtube video when I close the modal
+	$('#myModal').on('hide.bs.modal', function (e) {
+	    // a poor man's stop video
+	    $("#video").attr('src',$videoSrc); 
+	}) 
+	    
+
+	// document ready  
+	});
 
 </script>
 
@@ -207,7 +256,73 @@ $(document).ready( function() {
 </div>
 <!-- Modal PHOTO end -->
 
-<h1><span class="badge badge-secondary">Додати/Редагувати опис запчастини</span></h1>
+
+<!-- Modal youTube -->
+<div class="modal fade" id="youtubeModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Відео YouTube</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+{% for youtube in youtube_list %}
+	<iframe width="100%" height="300px" src="https://www.youtube.com/embed/{{youtube.youtube_hash}}" frameborder="0" allow="encrypted-media" allowfullscreen></iframe>
+{% endfor %}      
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      
+      <div class="modal-body">
+       <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>        
+        <!-- 16:9 aspect ratio -->
+<div class="embed-responsive embed-responsive-16by9">
+  <iframe class="embed-responsive-item" src="" id="video"  allowscriptaccess="always">></iframe>
+</div>
+      </div>
+
+    </div>
+  </div>
+</div> 
+  
+  
+  
+
+
+
+
+
+<h1>
+<span class="badge badge-secondary">Додати/Редагувати опис запчастини</span>
+{% if youtube_list.exists %}
+<button type="button" class="btn btn-light pl-1 pr-1 pt-0 pb-0" data-toggle="modal" data-target="#youtubeModalCenter">
+	<img class="c_youtube" id="link_{{type.catalog}}" url="" ids="{{type.catalog}}" src="/media/images/youtube-48.png" height="42">
+</button>
+{% endif %}
+
+{% for youtube in youtube_list %}
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary video-btn" data-toggle="modal" data-src="https://www.youtube.com/embed/{{youtube.youtube_hash}}" data-target="#myModal">
+<i class="material-icons">ondemand_video</i>
+</button>
+{% endfor %}
+</h1>
+
     
     <form action="" method="POST" enctype="multipart/form-data">
     <input type="submit" value="Зберегти" type="button" class="btn btn-success w-100%" >
@@ -218,7 +333,10 @@ $(document).ready( function() {
 	<input type="submit" value="Зберегти" type="button" class="btn btn-success w-100%" >             
     </form>
     <br>
+
+
     
+
 
 </body>
 

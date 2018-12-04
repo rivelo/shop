@@ -2862,7 +2862,7 @@ def catalog_edit(request, id=None):
         form = CatalogForm(instance=a)
     #url=request.META['HTTP_REFERER']
 
-    return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'cat_pk': id, 'catalog_obj': a.get_photos(), 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'cat_pk': id, 'catalog_obj': a.get_photos(), 'youtube_list': a.youtube_url.all(), 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def catalog_list(request, id=None):
@@ -7073,11 +7073,13 @@ def storage_box_list(request, boxname=None, pprint=False):
     if boxname:
         list = Catalog.objects.filter(locality = boxname)
     else:
-        list = Catalog.objects.exclude(locality__isnull=True).exclude(locality__exact='').order_by('locality')
+        #list = Catalog.objects.exclude(locality__isnull=True).exclude(locality__exact='').order_by('locality')
+        list = Catalog.objects.exclude(locality__isnull=True).exclude(locality__exact='').values('locality').annotate(icount = Count('locality')).order_by('locality')
+        #boxlist = Catalog.objects.exclude(locality__isnull=True).exclude(locality__exact='').values('locality').annotate(icount=Count('locality')).order_by('locality')
     if pprint:
         return render_to_response('storage_box.html', {'boxes': list, 'pprint': True}, context_instance=RequestContext(request, processors=[custom_proc]))
-
-    return render_to_response("index.html", {"weblink": 'storage_box.html', "boxes": list, 'pprint': False}, context_instance=RequestContext(request, processors=[custom_proc]))
+    cur_year = datetime.date.today().year
+    return render_to_response("index.html", {"weblink": 'storage_box.html', "boxes": list, 'pprint': False, 'cur_year': cur_year}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def storage_box_delete(request, id=None):
@@ -7164,7 +7166,7 @@ def inventory_autocheck(request, year=None, month=None, day=None, update=False):
     if update == True:
         im.update(check_all=True)
          
-    list = im.values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'edit_date')
+    list = im.values('id', 'catalog__name', 'catalog__ids', 'catalog__id', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'edit_date')
     return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -7179,6 +7181,9 @@ def inventory_mistake_not_all(request, year=None, month=None, day=None):
 
 
 def inventory_fix_catalog(request, cat_id=None, inv_id=None, update=False):
+    if not request.user :
+        print "User = " + str(request.user)
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))    
     cur_year = datetime.date.today().year
 #    year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
     cfix = Catalog.objects.get(id = cat_id)
@@ -7206,7 +7211,9 @@ def inventory_fix_catalog(request, cat_id=None, inv_id=None, update=False):
     
     if realCount != isum['csum']:
         print "Real count not equal COUNT"
-    return HttpResponse('Fix element = ' + str(cfix), content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8" )
+    res_str = 'Товар: ' + str(cfix) + '<br>Помилка закриття. Перевірте цей товар вручну.'        
+    return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': res_str}, context_instance=RequestContext(request, processors=[custom_proc]))        
+    #return HttpResponse('Fix element = ' + str(cfix) + '\nПомилка закриття. Перевірте цей товар вручну.', content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8" )
 
 
 def inventory_fix_catalog1(request, cat_id=None, inv_id=None, type_id=None, update=False):
@@ -7216,7 +7223,6 @@ def inventory_fix_catalog1(request, cat_id=None, inv_id=None, type_id=None, upda
     im = InventoryList.objects.filter(Q(date__year = cur_year), ( (Q(real_count__gt = F('count')) & Q(check_all = False)) | (Q(real_count__lt = F('count')) & Q(check_all = False)) )).annotate(mdate=Max('date', distinct=True)).order_by('-check_all', 'catalog__manufacturer', 'catalog__id')    
     list = im.exclude(catalog__id__in=[term.catalog.id for term in exc_list])
 #    year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-
 #    list = list.values('id', 'catalog__name', 'catalog__ids', 'catalog__id', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'edit_date')
 #    return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list[:100]}, context_instance=RequestContext(request, processors=[custom_proc]))
     cfix_list = None
@@ -7247,7 +7253,6 @@ def inventory_fix_catalog1(request, cat_id=None, inv_id=None, type_id=None, upda
 #                return HttpResponse('Товар: ' + str(cfix) + '\nЗакрито повністю. Кількість - ' + str(realCount) + ' штук', content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8" )            
         if realCount != isum['csum']:
             print "Real count not equal COUNT"
-
     return HttpResponse('Fixed elements = ' + str(fixed_list) + "\n Inventory save = " + str(fixed_ilist), content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8" )
 
 
@@ -7865,6 +7870,39 @@ def check_delete(request, id):
     obj.delete()
     return HttpResponseRedirect('/check/list/now/')
 
+
+def youtube_url_get(request):
+    json = None
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('youtube_id'):
+                youtube_id = request.POST.get('youtube_id')
+                obj = YouTube.objects.get(id = youtube_id)
+                obj = obj.youtube_hash()
+                try:
+                    #json = simplejson.dumps({'aData': list(photo_list), 'id': cid, 'cname': c_name})
+                    json = simplejson.dumps({'yData': obj, 'id': 'cid'})
+                except:
+                    error = 'Сталась помилка. Такого відео не знайдено'
+                    json = simplejson.dumps({'yData': "None", 'error': error})
+
+            if POST.has_key('catalog_id'):
+                youtube_id = request.POST.get('catalog_id')
+                obj = Catalog.objects.get(id = catalog_id)
+                obj.youtube_url.all()
+#                obj = obj.youtube_hash()
+                try:
+                    #json = simplejson.dumps({'aData': list(photo_list), 'id': cid, 'cname': c_name})
+                    json = simplejson.dumps({'yData': obj, 'id': 'cid'})
+                except:
+                    error = 'Сталась помилка. Такого відео не знайдено'
+                    json = simplejson.dumps({'yData': "None", 'error': error})
+
+
+                    
+    return HttpResponse(json, content_type='application/json')
+    
 
 def youtube_list(request):
     tube = None
