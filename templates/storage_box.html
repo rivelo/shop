@@ -109,7 +109,7 @@ $(document).ready(function() {
                 success:function(data){
                 	//console.log("ajax work");
 //                	console.log($(list_item).parents("a").html());
-                	$(list_item).parents("a").remove();
+                	$(list_item).parents("li").remove();
                 },
                 error:function(data){
                     alert("Виникли проблеми з сервером" + data);

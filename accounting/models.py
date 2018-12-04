@@ -911,7 +911,7 @@ class Bicycle(models.Model):
     warranty = models.PositiveIntegerField(default = 12, blank=True)
     warranty_frame = models.PositiveIntegerField(default = 12)
     geometry = models.ImageField(upload_to = 'upload/bicycle/geometry/', max_length=255, blank=True, null=True)
-    internet = models.BooleanField(default=False,)
+    internet = models.BooleanField(default=False)
     youtube_url = models.ManyToManyField(YouTube, blank=True)
     bikeparts = models.ManyToManyField(Bicycle_Parts, blank=True)# name, catalog, part_type, order_num,  )
     rating = models.IntegerField(default = 0)
