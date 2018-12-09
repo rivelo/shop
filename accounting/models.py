@@ -935,6 +935,11 @@ class Bicycle(models.Model):
             #return qs #self.youtube_url.split('/') #[3]
         except:
             return 'test None'
+
+    def get_saleprice(self):
+        percent_sale = (100-self.sale)*0.01
+        price = self.price * percent_sale
+        return price
         
     @property
     def photo_count(self):

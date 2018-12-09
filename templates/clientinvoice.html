@@ -206,7 +206,7 @@ function id2name(){
 
 function sum() {
 	sale = 1 - ((parseFloat(document.getElementById('id_sale').value)||0)/100)
-    res = document.getElementById('result').innerHTML = parseFloat(document.getElementById("id_count").value||0) * (parseFloat(document.getElementById('id_price').value)||0) * sale
+    res = document.getElementById('result').innerHTML = (parseFloat(document.getElementById("id_count").value||0) * (parseFloat(document.getElementById('id_price').value)||0) * sale).toFixed(2)
     document.getElementById('result').innerHTML = "Сума: " + document.getElementById('result').innerHTML + " грн."
     document.getElementById('id_sum').value = res 
 }

@@ -731,19 +731,35 @@ class WorkStatusForm(forms.ModelForm):
 
 
 class WorkTicketForm(forms.ModelForm):
-    client = forms.ModelChoiceField(queryset = Client.objects.all())
+#    client = forms.ModelChoiceField(queryset = Client.objects.all())
+    client = forms.CharField(widget=forms.HiddenInput())
     #date = forms.DateTimeField(initial=datetime.date.today)
     date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), label="Дата")    
     #end_date = forms.DateTimeField(initial=datetime.date.today)
     end_date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))
     status = forms.ModelChoiceField(queryset = WorkStatus.objects.all(), label='Статус')
-    description = forms.CharField(label='Опис', widget=forms.Textarea())
+    description = forms.CharField(label='Опис', widget=forms.Textarea(attrs={'class': 'form-control'}))
+
+    def clean_client(self):
+        data = self.cleaned_data['client']
+        res = Client.objects.filter(pk = data)
+        if not res:
+            raise forms.ValidationError("Клієнт з таким ПІБ або номером телефону не існує!")
+        return res[0]
+
+    def clean_description(self):
+        desc = self.cleaned_data['description']
+        #res = desc.replace('\n', '<br>').strip()
+        res = desc.strip()
+        if not res:
+            raise forms.ValidationError("Клієнт з таким ПІБ або номером телефону не існує!")
+        return res
+
     
     class Meta:
         model = WorkTicket
         fields = '__all__'
         exclude = ['phone_date', 'phone_user', 'phone_status', 'user']
-        
 
 
 class PhoneStatusForm(forms.ModelForm):

@@ -67,6 +67,7 @@ function id2name(){
 
 
 $(document).ready(function() {
+	
 	$("#s_client").val($("#id_client").val());
 	
 	if ($("#s_client").val() != '') {
@@ -75,22 +76,84 @@ $(document).ready(function() {
 	
 	$("#id_client").parents('tr').hide();
 	
+	//$("textarea").addClass("w-100");
+	
 });
 </script>
 
+{% load poll_extras %}
 
 <body onload="document.getElementById('s_client').focus()">
 
-    <h1>Заявка на ремонт</h1>
+<h1><span class="badge badge-secondary">Заявка на ремонт</span></h1>
+
+<div class="container mw-100">
+  <div class="row justify-content-between">
+
+<div class="col-md-12 col-lg-8">    
     <form action="./" method="POST" enctype="multipart/form-data">
         <table>
-        <label>Клієнт: </label>
-        <input id="s_client" style="width: 550px;" /> <span class="badge badge-pill badge-light" style="font-size: 16px"> <a href="/client/add/"> Створити клієнта </a> </span>
-            {{ form.as_table }}
-        </table>
-        <p><input type="submit" value="Save"></p>
-    </form>
-    <br>
-<a href="/">HOME</a>
+<tr>        
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold" id="basic-addon1">Клієнт</span>
+  </div>
+  {{ form.client }}
+  <input type="text" id="s_client" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="Прізвище, імя клієнта" aria-label="Username" aria-describedby="basic-addon1">
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold" id="basic-addon1"><a href="/client/add/"> Створити клієнта </a></span>
+  </div>
+<div class="invalid-feedback">
+	{{ form.client.errors }}
+</div>
 
+</div>
+</tr>
+{#        <label>Клієнт: </label>        <input id="s_client" style="width: 550px;" /> <span class="badge badge-pill badge-light" style="font-size: 16px"> <a href="/client/add/"> Створити клієнта </a> </span> #}
+        
+            {# form.as_table #}
+
+<tr>
+<div class="input-group">
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Опис</span>
+  </div>
+  {{ form.description |add_attr:"class:form-control" }}
+{#  <textarea class="form-control" aria-label="With textarea" id="id_description"></textarea> #}
+</div>
+</tr>            
+
+<tr>
+<div class="input-group mt-2 mb-2">
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Статус</span>
+  </div>
+  {{ form.status |add_attr:"class:form-control" }}
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Дата</span>
+  </div>
+  {{ form.date |add_attr:"class:form-control" }}
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Дата закінчення</span>
+  </div>
+  {{ form.end_date |add_attr:"class:form-control" }}
+</div>
+</tr>        
+
+        </table>
+<div class="row">
+<div class="col">
+	<input type="submit" value="Створити" class="btn btn-success w-100">        
+</div>
+</div>
+
+        
+    </form>
+</div>
+</div>    
+
+</div>    
+<br>    
+    
+</body>
 

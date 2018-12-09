@@ -4501,12 +4501,12 @@ def workticket_edit(request, id=None):
             date = form.cleaned_data['date']
             end_date = form.cleaned_data['end_date']
             status = form.cleaned_data['status']
-            phone_status = form.cleaned_data['phone_status']
+#            phone_status = form.cleaned_data['phone_status']
             description = form.cleaned_data['description']
-            user = form.cleaned_data['user']
+#            user = form.cleaned_data['user']
             if request.user.is_authenticated():
                 user = request.user
-            WorkTicket(id = id, client=client, date=date, end_date=end_date, status=status, phone_status=phone_status, description=description, user=user).save()
+            WorkTicket(id = id, client=client, date=date, end_date=end_date, status=status, description=description, user=user).save()
             return HttpResponseRedirect('/workticket/view/')
     else:
         form = WorkTicketForm(instance=a)
@@ -4650,12 +4650,12 @@ def workshop_edit(request, id):
                 user = form.cleaned_data['user']
             else:
                 user = owner
-                date = datetime.datetime.now()
+                cur_date = datetime.datetime.now()
             if (pay == False) or (auth_group(request.user, 'admin') == True):
                 WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay = pay).save()
             else:
                 a.price = old_p 
-                a.date = date
+                a.date = cur_date
                 a.description = description
                 a.user = user
                 a.save()
@@ -7871,6 +7871,28 @@ def check_delete(request, id):
     return HttpResponseRedirect('/check/list/now/')
 
 
+def youtube_set(request):
+    json = None
+    error = None
+    obj = None
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('youtube_id'):
+                youtube_id = request.POST.get('youtube_id')
+                obj = YouTube.objects.get(id = youtube_id)
+
+                if POST.has_key('desc'):
+                    desc = request.POST.get('desc')
+                    obj.description = desc
+                    obj.save()
+                else:
+                    error = "Сталась помилка"
+    json = simplejson.dumps({'youtube': obj.description, 'error': error})
+
+    return HttpResponse(json, content_type='application/json')
+    
+
 def youtube_url_get(request):
     json = None
     if request.is_ajax():
@@ -7899,8 +7921,6 @@ def youtube_url_get(request):
                     error = 'Сталась помилка. Такого відео не знайдено'
                     json = simplejson.dumps({'yData': "None", 'error': error})
 
-
-                    
     return HttpResponse(json, content_type='application/json')
     
 

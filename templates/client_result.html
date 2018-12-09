@@ -47,6 +47,24 @@ table#balance a{
 .tooltip.warning.right > .tooltip-arrow  { border-right-color:  #ec971f; }
 .tooltip.warning.bottom > .tooltip-arrow { border-bottom-color: #ec971f; }
 .tooltip.warning.left > .tooltip-arrow   { border-left-color:   #ec971f; } 
+
+
+a.edit_row_user > i {
+	color: green;
+}
+
+a.delete_row_user > i{
+	color: green;
+}
+
+a.edit_row_user :HOVER {
+	color: red;
+}
+
+a.delete_row_user :HOVER{
+	color: red;
+}
+
     
 </style>
 {% comment %}
@@ -578,7 +596,7 @@ $('.phone').editable('/workticket/edit/', {
 <img style="display: none;" id="img_repair" src="http://thumb10.shutterstock.com/thumb_small/295516/103760093/stock-photo-bicycle-repair-sign-on-a-white-background-part-of-a-series-103760093.jpg" height="64px" >
 -->
 
-<img style="display: True; opacity: 0.2" id="img_repair" src="/media/images/bicycle-repair.jpg" height="56px" title="Майстерня" data-toggle="modal" data-target="#exampleModalCenter" >
+<img style="display: True; opacity: 0.2" id="img_repair" src="/media/images/bicycle-repair.jpg" height="56px" title="Майстерня" data-toggle="modal" data-target="#exampleModalCenter">
 {% if status_msg %}
 <img style="display: True; opacity: 1" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення" data-toggle="tooltip" data-placement="bottom">
 {% else %}
@@ -588,7 +606,7 @@ $('.phone').editable('/workticket/edit/', {
 <img style="display: True;" id="img_bike" src="/media/images/green-bicycle_ico.png" height="50px" title="Придбані велосипеди" data-toggle="tooltip" data-placement="bottom">
 {% endif %}
 
-<img style="display: None;" id="img_attention" src="/media/images/system-attention-icon.png" height="50px" title="Непроведені операції/роботи">
+<img style="display: None;" id="img_attention" src="/media/images/system-attention-icon.png" height="50px" title="Непроведені операції/роботи" data-toggle="tooltip" data-placement="bottom">
 
 {% if status_order %}
 <img style="display: True;" id="img_order" src="/media/images/components_order.png" height="50px" title="Замовлення компонентів">
@@ -603,68 +621,6 @@ $('.phone').editable('/workticket/edit/', {
 {% endif %}
 
 <span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="56px" height="56px" title="Відправити картку клієнта на Email" data-toggle="tooltip" data-placement="left"></span>
-
-{% comment %}     
-<div id="dialog_r" title="Заявки на ремонт:">
-<table id="t_workticket" class = "table table-bordered table-hover table-condensed iTable" width="100%">
-  <script>
-	$( "#img_repair" ).click(function() {
-		window.location.href = "/workticket/add/client/"+ {{client_name.id}} +"/";	
-//    	console.log("/workticket/add/client/"+ {{client_name.id}} +"/");
-  	});
-  </script>
-
-
-{% for ticket in workshopTicket  %}
-{% if ticket.status__name = 'Прийнято' %}
-  <tr bgcolor="#CCFF99" > 
-  <script>
-  $( "#img_repair" ).unbind(); 
-  $( "#img_repair" ).click(function() {
-  $("#dialog_r").append($("#t_workticket"));
-  $( "#dialog_r" ).dialog({
-      buttons: {
-        "Створити": function() {
-        	$( this ).dialog( "close" );
-        	window.location.href = "/workticket/add/client/"+ {{client_name.id}} +"/";	
-        },
-        "Відмінити": function() {
-        	$( this ).dialog( "close" );	
-        },
-        
-        }
-  });
-  });
-
-//  $('#img_repair').show();
-  $('#img_repair').css("opacity", 1);
-
-  </script>
-  
-{% else %}
-  <tr bgcolor="#FFFFFF">
-{% endif %}  
-  <td>{{ticket.date}}</td><td>{{ticket.description}}</td><td class="edit_workstatus" id_workticket={{ticket.id}}>{{ticket.status__name}}</td>
-<td class="phone" id_workticket="{{ticket.id}}">       
-	{{ticket.phone_status__name}}
-</td>
-	{% if ticket.phone_user.username %}
-		<td title={{ticket.phone_user__username}} align="center">
-	{% else %}
-		<td align="center" title="{{ticket.phone_user__username}}">
-	{% endif %}       
-	{{ticket.phone_date|date:'d-m-Y H:i'}} 
-	</td>
-	
-  </tr>
-{% endfor %}
-
-
-
-
-</table>
-</div>
-{% endcomment %}
 
 {% endif %}
 
@@ -719,7 +675,10 @@ $('.phone').editable('/workticket/edit/', {
 {% else %}
   <tr bgcolor="#FFFFFF">
 {% endif %}  
-  <td>{{ticket.date}}</td><td>{{ticket.description}}</td><td class="edit_workstatus" id_workticket={{ticket.id}}>{{ticket.status__name}}</td>
+  <td>{{ticket.date}}</td><td>{{ticket.description}}</td>
+  <td class="edit_workstatus" id_workticket={{ticket.id}}>
+  {{ticket.status__name}}
+  </td>
 <td class="phone" id_workticket="{{ticket.id}}">       
 	{{ticket.phone_status__name}}
 </td>
@@ -766,13 +725,17 @@ $('.phone').editable('/workticket/edit/', {
 	</div>
 
 	
-	
-<table id="balance" >
-	<tr><th>Дата</th>
+<div class="row">
+<div class="col-sm-12 col-xs-12 col-md-10 col-lg-8">	
+<table id="balance" class="table table-bordered table-sm">
+<thead>
+	<tr>
+	<th>Дата</th>
 	<th>Опис</th>
 	<th>Сума (грн)</th>
 	</tr>
-	
+</thead>
+<tbody>	
 	<tr BGCOLOR="#29AE48"  class="in_cred">
 	<td>
 	Оплати
@@ -791,8 +754,6 @@ $('.phone').editable('/workticket/edit/', {
 	<td>
 	</td>
 	</tr>
-	
-	
 	{% for credit in credit_list %}
 	<tr class="tr_cred">
 	<td>
@@ -801,13 +762,17 @@ $('.phone').editable('/workticket/edit/', {
 	</abbr>
 	</td>
 	<td>
-	{{credit.description}} 
+	<div class="d-flex">
+  <div class="p-2">	{{credit.description}}</div>
+  <div class="ml-auto p-2">
 	{% if perms.accounting.delete_clientcredits %}
-	<a href="/clientcredits/edit/{{ credit.id }}">edit</a>	 
-	<a href="/clientcredits/delete/{{ credit.id }}" onclick="return confirm('Видалити запис?')">delete</a>
+	<a href="/clientcredits/edit/{{ credit.id }}" class="edit_row_user"><i class="material-icons">edit</i></a>
+	<a href="/clientcredits/delete/{{ credit.id }}" onclick="return confirm('Видалити запис?')" class="delete_row_user"><i class="material-icons">delete</i></a>	
 	{% endif %}
+  </div>
+	</div>
 	</td>
-	<td class="cred_price" tcash_id="{{credit.cash_type.id}}" id_cred={{credit.id}} value="{{credit.price}}">
+	<td class="cred_price text-right" tcash_id="{{credit.cash_type.id}}" id_cred={{credit.id}} value="{{credit.price}}">
 	<abbr title="{{credit.cash_type.name}}">
 	{{credit.price}}
 	</abbr>
@@ -831,7 +796,7 @@ $('.phone').editable('/workticket/edit/', {
 	{% endif %}
 	</h3>	
 	</td>
-	<td id="debet">
+	<td id="debet" title="Сума непроведенних товарів/послуг"  data-toggle="tooltip" data-placement="right">
 	</td>
 	</tr>
 
@@ -843,21 +808,29 @@ $('.phone').editable('/workticket/edit/', {
 	</abbr>
 	</td>
 	<td>
-	{{debt.description}}
+	<div class="d-flex">
+  <div class="p-2">{{debt.description}}</div>
+  <div class="ml-auto p-2">
 	{% if perms.accounting.delete_preorder %}
-    <a href="/clientdebts/edit/{{ debt.id }}" >edit</a>	
-    <a href="/clientdebts/delete/{{ debt.id }}" onclick="return confirm('Видалити запис?')">delete</a>	
+    <a href="/clientdebts/edit/{{ debt.id }}" class="edit_row_user"><i class="material-icons" >edit</i></a>	
+    <a href="/clientdebts/delete/{{ debt.id }}" onclick="return confirm('Видалити запис?')" class="delete_row_user"><i class="material-icons">delete</i></a>	
 	{% endif %}
+  </div>
+	</div>
+	
 	</td>
-	<td>
+	<td class="text-right">
 	<abbr title="{{debt.cash|yesno:"Каса,Віртуальні"}}">
 	{{debt.price}}
 	</abbr>
 	</td>
 	{% endfor %}
 	</tr>
-	
+</tbody>	
 	</table>
+</div>
+</div>
+
 
 <div id="tabs">
   <ul>

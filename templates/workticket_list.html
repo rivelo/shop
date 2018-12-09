@@ -2,15 +2,15 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Майстерня/Заявки</title>
 
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{# <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> #}
 
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
 <link rel="stylesheet" href="/media/css/table.css">
 
-<script src="/media/jquery-ui.min.js"></script>
+{#<script src="/media/jquery-ui.min.js"></script>#}
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 
-<link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" />
+{# <link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" /> #}
 {#<script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script>#}
 
 <style>
@@ -38,20 +38,7 @@ $(document).ready(function() {
 
 	 $('[data-toggle="tooltip"]').tooltip();
 	
-/*	$('[title!=""]').qtip({
-	    position: {
-	        at: 'top left'
-	    }
-	}); */
-	
-/*	
-	$(document).tooltip({
-		content: function () {
-        return $(this).prop('title');
-        }
-    });
- */
- 
+
 $('.editable').editable('/workticket/edit/', { 
      loadurl : '/workstatus/view/',
      type   : 'select',
@@ -227,7 +214,7 @@ $('.phone').editable('/workticket/edit/', {
 	{{type.end_date|date}}
 	</td>	
 	<td>
-	<span class="editable" id="{{type.status.id}}" style="display: inline" id_workticket="{{type.id}}" >       
+	<span class="editable" id="{{type.status.id}}" id_workticket="{{type.id}}" >       
 	{{type.status}}
 	</span>
 	</td>
@@ -243,7 +230,7 @@ $('.phone').editable('/workticket/edit/', {
 	</td>
 	
 	<td class="w_desc" id_workticket="{{type.id}}">       
-	{{type.description}}
+	{{type.description|linebreaks}}
 	</td>
 	<td>
     <a href="/workticket/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')"><i class="material-icons">delete_forever</i></a>

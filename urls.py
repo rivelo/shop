@@ -467,6 +467,7 @@ urlpatterns += patterns('',
     url(r'^youtube/(?P<id>\d+)/delete/$', 'catalog.accounting.views.youtube_delete'),
     url(r'^youtube/add/$', 'catalog.accounting.views.youtube_url_add', name='youtube_add'),
     url(r'^youtube/url/get/$', 'catalog.accounting.views.youtube_url_get'),
+    url(r'^youtube/set/$', 'catalog.accounting.views.youtube_set'),
     
     url(r'^workday/user/all/report/$', 'catalog.accounting.views.workday_list'),
     url(r'^workday/alluser/report/$', 'catalog.accounting.views.workday_ajax'),
