@@ -5,10 +5,16 @@
 
 <link rel="stylesheet" type="text/css" href="/media/table.css">
 
+<body>
 
-<h1>Список Банків <a href="/bank/add/">(Додати)</a></h1>
+<h1>
+<span class="badge badge-dark">Список Банків </span> <a href="/bank/add/" class="badge badge-success"><i class="material-icons">add_circle_outline</i> </a>
+</h1>
 
-<table>
+
+<div class="row">
+<div class="col-auto">
+<table class = "table table-bordered table-hover table-condensed">
 	<tr>
 		<th>#</th>
 		<th>Назва</th>
@@ -20,11 +26,15 @@
 		<td><a href="/bank/edit/{{ element.id }}">{{ element }}</a></td>
 		<td>
 {% if user.is_authenticated %}		
-		<a href="/bank/delete/{{ element.id }}" onclick="return confirm('Видалити запис - {{element.name}}?')">delete</a>
+		<a href="/bank/delete/{{ element.id }}" onclick="return confirm('Видалити запис - {{element.name}}?')"><i class="material-icons">delete_outline</i></a>
 		</td>		
 {% endif %}
 	</tr>
 	{% endfor %}
-	<table>
+</table>
+</div>
+</div>
 
-	<br>
+
+
+</body>

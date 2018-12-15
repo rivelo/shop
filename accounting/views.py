@@ -31,6 +31,11 @@ import datetime
 import calendar
 import codecs
 import csv
+import re
+
+import StringIO, requests, os
+from PIL import Image
+from django.utils.text import slugify
 
 from django.db.models import Sum, Count, Max, Avg
 
@@ -6691,10 +6696,6 @@ def photo_url_add(request):
     return HttpResponse(search, content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8;")
 
 
-import StringIO, requests, os
-from PIL import Image
-from django.utils.text import slugify
-
 def retrieve_image(url):
     response = requests.get(url)
     return StringIO.StringIO(response.content)
@@ -6703,25 +6704,25 @@ def save_photo_local(obj, url, d_url, file_path, filename):
     try:
         ri = retrieve_image(url)
         image = Image.open(ri)
-        print "Django FileName = " + d_url + filename
+#        print "Django FileName = " + d_url + filename
         #obj.local = filename
-        print "FileName = " + filename
+#        print "FileName = " + filename
         if os.path.isfile(file_path + filename):
-            print "isFile = True"
+#            print "isFile = True"
             obj.local = d_url + filename
             obj.save()
             tempfile = file_path + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:]
-            print "Image OBJ = " + tempfile
+#            print "Image OBJ = " + tempfile
             im1 = Image.open(file_path + filename)
             image.save(file_path + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:], 'JPEG')
             #image.save('c:\svn\catalog\catalog\media/download/398292-305.jpg', 'JPEG')
             im2 = Image.open(tempfile)
-            print "image file = " + file_path + filename
+#            print "image file = " + file_path + filename
             if im1 == im2: 
-                print "File is SAME/equal"
+#                print "File is SAME/equal"
                 os.remove(tempfile)
             else:
-                print "Save another file..."+ file_path + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:]
+#                print "Save another file..."+ file_path + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:]
                 image.save(file_path + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:], 'JPEG')
                 obj.local = d_url + filename[:-4]+ "-"+ str(obj.pk) +filename[-4:]
                 obj.save()
@@ -6732,11 +6733,11 @@ def save_photo_local(obj, url, d_url, file_path, filename):
             obj.local = d_url + filename  
             obj.www = url
             obj.save()
-            print "File save = " + file_path +  filename
+#            print "File save = " + file_path +  filename
             return obj
         
     except:
-        print "EXCEPT save_photo_local"
+#        print "EXCEPT save_photo_local"
         pass
 
     return obj
@@ -7493,19 +7494,80 @@ def catalog_sale_edit(request, ids=None):
                 return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
 #                result = "Введіть правильний ID товару для обєднання"
 #                return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
-
             for i in ids:
                 obj = Catalog.objects.get(id = i)                                
                 obj.sale = s
                 obj.last_update = datetime.datetime.now()
                 obj.user_update = request.user
                 obj.save() 
-                
-                
                 #obj_del.delete()
-                
             result = "ok"
             return HttpResponse(result, content_type="text/plain;charset=UTF-8;charset=UTF-8;charset=UTF-8")
+
+
+def catalog_upload_photos(request):
+    #directory = 'd:/velo/portal_photo/upload'
+    directory = settings.MEDIA_ROOT + 'upload/photo/'
+    #directory_done = 'd:/velo/portal_photo/done'
+    directory_done = settings.MEDIA_ROOT + 'download/'    
+    files = os.listdir(directory)
+    f_list = []
+    file_names = []
+    file_not_exists = []
+    d_f = []
+    double_f = []
+    
+    for f in files:
+        sp = []
+        double_f = re.split(r'\(\s*\d+\s*\)', f)
+        if len(double_f) > 1:
+            sp = double_f
+        d_f = re.split(r'_+\.', f)
+        if len(d_f) > 1:
+            sp = d_f 
+        if sp == []:
+            sp = f.split('.')
+#        print "File name = " + str(f)
+#        print "SP = " + str(sp)
+        exe = sp[1]
+        filename = sp[0]
+        catalog = Catalog.objects.filter( Q(dealer_code = filename) | Q(ids = filename) )
+#        print filename + " - Catalog = " + str(catalog)
+        if catalog.exists():
+            f_list.append({"filename": f, "exe": exe})
+            file_names.append(filename)
+            #old_file = directory + '/' + f
+            old_file = directory  + f
+            s_name = catalog[0].manufacturer.name
+            new_folder = s_name.strip().replace(' ', '-').lower()
+            if not os.path.exists(directory_done + new_folder):
+                os.makedirs(directory_done + new_folder)
+            #new_file = directory_done + new_folder + '/' + filename.lower() + '.' + exe                
+            new_file = directory_done + new_folder + '/' + f.lower()
+#            print "new file = " + new_file
+            try:
+                os.rename( old_file, new_file )
+                media_dir = new_file.replace(settings.MEDIA_ROOT, '/media/')
+                addphoto = Photo(local = media_dir, date = datetime.datetime.now(), user = request.user, description="")
+                addphoto.save()
+                catalog[0].photo_url.add(addphoto)
+            except:
+                im1 = Image.open(old_file)
+                im2 = Image.open(new_file)
+                if im1 == im2:
+                    os.remove(old_file)
+                im1.close()
+                im2.close()
+        else:
+            file_not_exists.append({"filename": filename, "exe": exe})
+            
+    cat_list1 = Catalog.objects.filter(Q(ids__in = file_names))
+    cat_list2 = Catalog.objects.filter(Q(dealer_code__in = file_names))
+    cat_list = cat_list1 
+#    print "COUNT1 = " + str(cat_list1.count())
+#    print "COUNT2 = " + str(cat_list2.count())
+#    print "COUNT = " + str(cat_list.count())
+    return render_to_response("index.html", {"weblink": 'catalog_file_upload_photos.html', 'file_list': f_list, 'cat_list': cat_list, 'not_found_files': file_not_exists}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
 def client_invoice_add(request, ids=None):

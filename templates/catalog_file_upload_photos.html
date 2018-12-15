@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Список файлів</title>
+
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<body>
+
+<h1>
+<span class="badge badge-dark">Список файлів </span>
+</h1>
+
+
+<div class="row">
+<div class="col-auto">
+
+<h2>
+<span class="badge badge-dark">Додані файли до товарів</span>
+</h2>
+
+<table class = "table table-bordered table-hover table-condensed">
+	<tr>
+		<th>#</th>
+		<th>Назва</th>
+	</tr>
+	{% for element in cat_list %}
+	<tr>
+		<td>{{ forloop.counter }}</td>
+		<td><a href="{% url 'catalog_edit' element.id %}">{{ element }}</a></td>
+	</tr>
+	{% endfor %}
+</table>
+</div>
+</div>
+
+
+<div class="row">
+<div class="col-auto">
+<h2>
+<span class="badge badge-dark">Додані фото</span>
+</h2>
+<table class = "table table-bordered table-hover table-condensed">
+	<tr>
+		<th>#</th>
+		<th>Назва</th>
+	</tr>
+	{% for element in file_list %}
+	<tr>
+		<td>{{ forloop.counter }}</td>
+		<td>{{ element.filename }}</td>
+	</tr>
+	{% endfor %}
+</table>
+</div>
+</div>
+
+
+<div class="row">
+<div class="col-auto">
+<table class = "table table-bordered table-hover table-condensed">
+	<tr>
+		<th>#</th>
+		<th>Назва</th>
+	</tr>
+	{% for element in not_found_files %}
+	<tr>
+		<td>{{ forloop.counter }}</td>
+		<td><a href="/media/upload/photo/{{ element.filename }}.{{ element.exe }}">{{ element.filename }}</a> .{{element.exe}}</td>
+	</tr>
+	{% endfor %}
+</table>
+</div>
+</div>
+
+
+
+</body>

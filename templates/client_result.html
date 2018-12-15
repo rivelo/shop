@@ -1,4 +1,3 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Виписка по клієнту: {{client_name.name}}</title>
 
@@ -76,16 +75,8 @@ a.delete_row_user :HOVER{
 <script language="JavaScript">
 $(document).ready(function() {
 
-/*	$(document).tooltip({
-		content: function () {
-        return $(this).prop('title');
-        }
-    });
-	*/
-	
-
 	$('[data-toggle="tooltip"]').tooltip();
-		$('[data-toggle="tooltip"]').show();
+	$('[data-toggle="tooltip"]').show();
 
 	
 	$("#dialog").hide();
@@ -556,6 +547,7 @@ $('.phone').editable('/workticket/edit/', {
     }
 }); 
 
+
 });
 </script>
 
@@ -606,8 +598,8 @@ $('.phone').editable('/workticket/edit/', {
 <img style="display: True;" id="img_bike" src="/media/images/green-bicycle_ico.png" height="50px" title="Придбані велосипеди" data-toggle="tooltip" data-placement="bottom">
 {% endif %}
 
-<img style="display: None;" id="img_attention" src="/media/images/system-attention-icon.png" height="50px" title="Непроведені операції/роботи" data-toggle="tooltip" data-placement="bottom">
-
+ <img style="display: None;" id="img_attention" src="/media/images/system-attention-icon.png" height="50px" title="Непроведені операції/роботи"> {# data-toggle="tooltip" data-placement="bottom"> #}
+	
 {% if status_order %}
 <img style="display: True;" id="img_order" src="/media/images/components_order.png" height="50px" title="Замовлення компонентів">
 {% else %}
@@ -896,7 +888,7 @@ $('.phone').editable('/workticket/edit/', {
 	<input type="checkbox" id="model{{forloop.counter}}" value="{{inv.sum}}" onclick="res()" class="chk_inv" checked name="checkbox_{{ inv.id }}"/>
 	</td>
 	<script>
-	$("#img_attention").show();
+			$("#img_attention").show(); 
 	</script>
 {% endifequal %}
 	</tr>
@@ -966,7 +958,7 @@ $('.phone').editable('/workticket/edit/', {
 	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{inv.price}}" onclick="resWorkshop()" checked name="checkbox_{{ inv.id }}"/>
 	</td>
 	<script>
-	$("#img_attention").show();
+	 $("#img_attention").show(); 
 	</script>
 {% endif %}
 	</tr>
@@ -1007,6 +999,7 @@ $('.phone').editable('/workticket/edit/', {
 {% orm_debug %}
 {% endif %}
  
+ </body>
 	<script src="/media/jquery-ui.min.js"></script>	
 	<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 

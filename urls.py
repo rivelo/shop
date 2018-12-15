@@ -560,6 +560,8 @@ urlpatterns += patterns('',
     url(r'^discount/list/$', 'catalog.accounting.views.discount_list'),
     url(r'^discount/delete/$', 'catalog.accounting.views.discount_delete'),
     url(r'^discount/lookup/$', 'catalog.accounting.views.discount_lookup'),
+    
+    url(r'^catalog/file/photo/list/$', 'catalog.accounting.views.catalog_upload_photos'),
 ) 
 
 #===============================================================================
