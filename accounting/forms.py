@@ -367,6 +367,7 @@ class ImportPriceForm(forms.Form):
     recomended = forms.BooleanField(label='Ціна товару', required=False)
     description = forms.BooleanField(label='Опис', required=False)
     photo = forms.BooleanField(label='Фото', required=False)
+    name = forms.BooleanField(label='Оновити назву товару', required=False)
     currency = forms.BooleanField(label='Курс валюти', required=False)
     
 
@@ -450,9 +451,17 @@ class CatalogForm(forms.ModelForm):
     description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255, required=False)
     date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y') , required=False)    
 
+    def clean_ids(self):
+        data = self.cleaned_data['ids']
+        res = Catalog.objects.filter( Q(ids__icontains = data) | Q(dealer_code__icontains=data))
+        if res:
+            raise forms.ValidationError("Товар з таким кодом вже існує!")
+        return data.strip()
+
     class Meta:
         model = Catalog
         fields = '__all__'
+
 
 # ---------- Client -------------
 class ClientForm(forms.ModelForm):

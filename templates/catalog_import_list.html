@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Список оновлених/доданих товарів</title>
+
+
+<link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<body>
+
+<h1>
+<span class="badge badge-dark">Список оновлених/доданих товарів</span>
+</h1>
+
+
+<div class="row">
+<div class="col-auto">
+
+<h2>
+<span class="badge badge-dark">Додані товари</span>
+<a href="/media/csv/miss_content.csv" download type="button" class="btn btn-primary"><i class="material-icons">save</i></a>
+</h2>
+
+<table class = "table table-bordered table-hover table-condensed">
+	<tr>
+		<th>#</th>
+		<th>id</th>
+		<th>Назва</th>
+		<th>Фото</th>
+		<th>Опис</th>
+	</tr>
+	{% for element in add_list %}
+	<tr>
+		<td>{{ forloop.counter }}</td>
+		<td>{{ element.id }} [{{ element.code }}]</td>
+		<td>{{ element.name }}</td>
+		<td>{{ element.photo }}</td>
+		<td>{{ element.desc|linebreaks }}</td>
+	</tr>
+	{% endfor %}
+</table>
+</div>
+</div>
+
+
+<div class="row">
+<div class="col-auto">
+<h2>
+<span class="badge badge-dark">товари з бази</span>
+</h2>
+<table class = "table table-bordered table-hover table-condensed">
+	<tr>
+		<th>#</th>
+		<th>Назва</th>
+		<th>Photo</th>
+	</tr>
+	{% for element in ids_list %}
+	<tr>
+		<td>{{ forloop.counter }}</td>
+		<td>{{ element }}</td>
+		<td {% if element.photo_is == 'File not Found' %} style="color:red;" {% endif %}>{{ element.photo }}</td>
+	</tr>
+	{% endfor %}
+</table>
+</div>
+</div>
+
+
+<div class="row">
+<div class="col-auto">
+<h2>
+<span class="badge badge-dark">Оновлені товари</span>
+</h2>
+<table class = "table table-bordered table-hover table-condensed">
+	<tr>
+		<th>#</th>
+		<th>Назва</th>
+	</tr>
+	{% for element in update_list %}
+	<tr>
+		<td>{{ forloop.counter }}</td>
+		<td>{{ element }}</td>
+	</tr>
+	{% endfor %}
+</table>
+</div>
+</div>
+
+
+
+
+</body>

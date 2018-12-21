@@ -314,6 +314,7 @@ class Catalog(models.Model):
     youtube_url = models.ManyToManyField(YouTube, blank=True, null=True)
 #    наявність у постачальника
     date = models.DateField(null=True, blank=True) #Строк придатності
+    #url_web_site = models.CharField()  
 
     def get_discount(self):
         curdate = datetime.date.today()

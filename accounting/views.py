@@ -2678,10 +2678,12 @@ def manufacturer_lookup(request):
     return HttpResponse(data)    
 
 
-def catalog_import(request):
-# id / company / type / name / color / country / price / currency / 
-# id / name / company / type / color / country / count/ price / currency / invoice_id / rrp_price / currency /
+def catalog_import_form(request):
+    form = ImportPriceForm()
+    return render_to_response('index.html', {'form': form, 'weblink': 'catalog_import.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
+
+def catalog_import(request):
     ids_list = []
 #    if 'name' in request.GET and request.GET['name']:
 #        name = request.GET['name']
@@ -2717,6 +2719,148 @@ def catalog_import(request):
 
     list = Catalog.objects.filter(ids__in = ids_list)
     return render_to_response('index.html', {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def catalog_import_content(request):
+    if auth_group(request.user, 'seller')==False:
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    directory = settings.MEDIA_ROOT + 'upload/photo/content/'
+    csv_file_reader = None
+    ids_list = []
+    add_list = []
+    update_list = []
+    rec_price = False
+    photo = None
+    description = None
+    name = None
+    if request.method == 'POST':
+        form = ImportPriceForm(request.POST, request.FILES)
+        if form.is_valid():
+            photo = form.cleaned_data['photo']
+            rec_price = form.cleaned_data['recomended']
+            description = form.cleaned_data['description']
+            name = form.cleaned_data['name']
+            if photo == True:
+                print "PHOTO is True!!!"
+#    if request.POST and request.FILES:
+        csvfile = request.FILES['csv_file']
+        dialect = csv.Sniffer().sniff(codecs.EncodedFile(csvfile, "utf-8").read(1024))
+        csvfile.open()
+        csv_file_reader = csv.reader(codecs.EncodedFile(csvfile, "utf-8"), delimiter=';', dialect=dialect)
+        #rec_price = request.POST.get('recomended')
+#        print "Recomended = " + str(rec_price)
+    else:
+        form = ImportPriceForm()
+        return render_to_response('index.html', {'form': form, 'weblink': 'catalog_import.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    
+    w_file = open(settings.MEDIA_ROOT + 'csv/miss_content.csv', 'wb')
+    log_writer = csv.writer(w_file, delimiter=';', quotechar='|') #, quoting=csv.QUOTE_MINIMAL)
+    #reader = list(csv_file_reader)
+#    lenCol = len(next(csv_file_reader))
+#    print "Column = " + str(lenCol)
+#    csvfile.seek(0)
+    for row in csv_file_reader:
+#        print "Column = " + str(len(row))
+        id = None
+        code = None
+        cat = None
+        if row[0] and row[0] <> '0':
+            id = row[0]
+        if row[1] and row[1] <> '0':            
+            code = row[1]
+        try:
+            price = row[3]
+            #if ((code <> '0') or (code <> '')) and ((id <> '0') or (id <> '')):
+            if (not id is None and not code is None):
+                cat = Catalog.objects.filter(Q(ids = id) | Q(dealer_code = id) | Q(ids = code) | Q(dealer_code = code)).first()
+#                print "*** ids = " + str(id) + " | code = " + str(code)
+#                print "Catalog code id==code = " + str(cat)
+            #if (id <> '0') and ((code == '0') or (code == '')):
+            if (not id is None) and (code is None):
+                try:
+                    cat = Catalog.objects.get(Q(ids = id) | Q(dealer_code = id))
+#                    print "Catalog Id = " + str(cat)
+                except:
+#                    print "--PASS--"
+                    pass
+            #if (code <> '0') and ((id == '0') or (id == '')):
+            if (not code is None) and (id is None):                
+#                try:
+                cat = Catalog.objects.filter(Q(ids = code) | Q(dealer_code = code)).first()
+#                print "Catalog code = " + str(cat)
+#                print "cat_ids = " + str( Catalog.objects.filter(Q(ids = code)) )
+#                print "cat_code = " + str( Catalog.objects.filter(Q(dealer_code = code)) )
+#                print "CODE = " + str(code) + " / ID = " + str(ids) 
+ #               except:
+ #                   pass
+#            print "Catalog = " + str(cat)
+            if (price <> '0') and (rec_price == True): 
+                cat.last_price = cat.price
+                cat.price = row[3]
+                cat.currency = Currency.objects.get(id = row[4])
+                cat.last_update = datetime.datetime.now()
+                cat.user_update = User.objects.get(username='import')
+                #cat.save()
+            if photo:
+                try:
+                    old_file = directory  + row[6]
+                    directory_done = settings.MEDIA_ROOT + 'download/'
+                    s_name = cat.manufacturer.name
+                    new_folder = s_name.strip().replace(' ', '-').lower()
+                    new_file = directory_done + new_folder +'/'+ row[6]
+                    media_dir = new_file.replace(settings.MEDIA_ROOT, '/media/')
+                    if os.path.isfile(old_file):
+#                        print "File found = " + old_file
+                        ids_list.append({'cat_id': cat.ids, 'id': id, 'code': code, 'photo': row[6], 'photo_is': old_file})
+                        if not os.path.exists(directory_done + new_folder):
+                            os.makedirs(directory_done + new_folder)
+                        os.rename( old_file, new_file )
+                        chk_photo = Photo.objects.filter(local = media_dir)
+                        if chk_photo:
+                            cat.photo_url.add(chk_photo.first())
+                        else:
+                            addphoto = Photo(local = media_dir, date = datetime.datetime.now(), user = request.user, description="")
+                            addphoto.save()
+                            cat.photo_url.add(addphoto)
+                    else: 
+                        if not os.path.isfile(new_file):
+#                            print "File "+ new_file +" not exists"
+                            ids_list.append({'cat_id': cat.ids, 'id': id, 'code': code, 'photo': row[6], 'photo_is': 'File not Found'})
+                        else:   
+#                            print '*** file found in Download Folder - ' +  new_file
+                            chk_photo = Photo.objects.filter(local = media_dir)
+                            if chk_photo:
+                                cat.photo_url.add(chk_photo.first())
+                            else:
+                                addphoto = Photo(local = media_dir, date = datetime.datetime.now(), user = request.user, description="")
+                                addphoto.save()
+                                cat.photo_url.add(addphoto)
+                            ids_list.append({'cat_id': cat.ids, 'id': id, 'code': code, 'photo': row[6], 'photo_is': new_file})
+                    cat.save()
+                except:
+                        im1 = Image.open(old_file)
+                        im2 = Image.open(new_file)
+                        if im1 == im2:
+                            os.remove(old_file)
+                        im1.close()
+                        im2.close()
+                #cat.photo = row[6]
+                pass
+            if description:
+                cat.full_description = row[5]
+            if name:
+                cat.name = row[2]
+            cat.save()
+            update_list.append(row)                
+        except: # Catalog.DoesNotExist:
+            #add_list.append(row)
+            add_list.append({'id': id, 'code': code, 'photo': row[6], 'name': row[2], 'desc': row[5]});
+            log_writer.writerow([row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]])
+#        print " ---------- END -------------"            
+        
+    #list = Catalog.objects.select_related('manufacturer', 'type', 'currency', 'country').filter(Q(ids__in = ids_list))
+    return render_to_response('index.html', {'update_list': update_list, 'add_list': add_list, 'ids_list': ids_list, 'weblink': 'catalog_import_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+ 
 
 
 def catalog_add(request):
@@ -2877,6 +3021,25 @@ def catalog_list(request, id=None):
     else:
         list = Catalog.objects.filter(id=id)
     #return render_to_response('catalog_list.html', {'catalog': list.values_list()})
+    return render_to_response('index.html', {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def catalog_same_list(request):
+    list_ids = Catalog.objects.all().values_list('ids', 'dealer_code').order_by("-ids")
+    space_list = []
+    cat_ids = []
+    for cat in list_ids:
+         res = re.findall(r"\s\Z", cat[0])
+         if res != []:
+             space_list.append(cat[0].strip())
+             c = Catalog.objects.get(ids = cat[0])
+             c.ids = cat[0].strip()
+             c.save()
+             #cat_ids.append( Catalog.objects.filter(ids__icontains = cat[0].strip()).values_list('ids') )
+             #cat_ids.append( Catalog.objects.filter(dealer_code__icontains = cat[0].strip()).values_list('ids') )
+             
+#    list = Catalog.objects.filter(ids__in = space_list)
+    list = Catalog.objects.filter(ids__in = cat_ids)
     return render_to_response('index.html', {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -5112,7 +5275,6 @@ def price_import_form(request):
 
 
 def price_import(request):
-    
     pricereader = None
     ids_list = []
     now = datetime.datetime.now()
@@ -5159,8 +5321,6 @@ def price_import(request):
                     print ('ID = '+cat.ids)
                 #    cat = Catalog.objects.get(dealer_code = id)
                 #print('Catalog =  [' +id+ ']['+code+']# '+cat.ids+'|'+price)
-
-
                 # заміна старого коду на новий
                 #cat.dealer_code = id
                 #cat.ids = code
@@ -5174,11 +5334,8 @@ def price_import(request):
                 except:
                     #cat = Catalog.objects.get(ids = code)
                     print('CODE = ' + cat.ids)
-
 #            if code != u'0':
                 #cat.dealer_code = code
-            
-                
             if (price <> '0') and (rec_price == 'on'): 
                 #print('Catalog =  [' +id+ ']['+code+']# '+cat.ids+'|'+price)
                 cat.last_price = cat.price
@@ -7506,6 +7663,8 @@ def catalog_sale_edit(request, ids=None):
 
 
 def catalog_upload_photos(request):
+    if auth_group(request.user, 'admin')==False:
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
     #directory = 'd:/velo/portal_photo/upload'
     directory = settings.MEDIA_ROOT + 'upload/photo/'
     #directory_done = 'd:/velo/portal_photo/done'
@@ -7547,10 +7706,11 @@ def catalog_upload_photos(request):
 #            print "new file = " + new_file
             try:
                 os.rename( old_file, new_file )
-                media_dir = new_file.replace(settings.MEDIA_ROOT, '/media/')
-                addphoto = Photo(local = media_dir, date = datetime.datetime.now(), user = request.user, description="")
-                addphoto.save()
-                catalog[0].photo_url.add(addphoto)
+                if os.path.isfile(new_file):
+                    media_dir = new_file.replace(settings.MEDIA_ROOT, '/media/')
+                    addphoto = Photo(local = media_dir, date = datetime.datetime.now(), user = request.user, description="")
+                    addphoto.save()
+                    catalog[0].photo_url.add(addphoto)
             except:
                 im1 = Image.open(old_file)
                 im2 = Image.open(new_file)
