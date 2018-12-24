@@ -463,6 +463,7 @@ urlpatterns += patterns('',
     url(r'^catalog/photo/list/(?P<show>\d+)/page/(?P<page>\d+)/limit/(?P<limit>\d+)/$', 'catalog.accounting.views.photo_list'),
     url(r'^catalog/photo/list/(?P<show>\d+)/page/(?P<page>\d+)/limit/$', 'catalog.accounting.views.photo_list'),
     url(r'^catalog/photo/list/(?P<show>\d+)/$', 'catalog.accounting.views.photo_list'),
+    url(r'^catalog/(?P<cat_id>\d+)/photo/list/(?P<show>\d+)/$', 'catalog.accounting.views.photo_list'),
     url(r'^catalog/photo/list/$', 'catalog.accounting.views.photo_list'),
     url(r'^catalog/same/list/$', 'catalog.accounting.views.catalog_same_list'),
         

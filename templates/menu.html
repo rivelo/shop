@@ -232,9 +232,11 @@ $(document).ready(function() {
        		<a class="dropdown-item" href="/storage/boxes/">Список товарів по ящиках</a>
 {% endif %}       		
        		<a class="dropdown-item" href="/inventory/list/"><i class="material-icons">assignment</i> Інвентеризація</a>
-       		<a class="dropdown-item" href="/inventory/mistake/list/">Помилки</a>
+{% if request.user|has_group:"admin" %}       		
+       		<a class="dropdown-item" href="/inventory/mistake/list/">Помилки закритих + незакриті</a>
+{% endif %}       		
        		<a class="dropdown-item" href="/inventory/mistake/not/all/list/">Не закриті</a>
-       		<a class="dropdown-item" href="/inventory/fix/list/">Помилки1</a>
+       		<a class="dropdown-item" href="/inventory/fix/list/">Помилки закритих товарів</a>
 {% if request.user|has_group:"admin" %}
        		<a class="dropdown-item" href="/inventory/autocheck/list/">Автовідмітка</a>
 {% endif %}       		

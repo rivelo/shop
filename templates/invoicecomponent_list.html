@@ -564,7 +564,13 @@ $(document).ready(function() {
 	 $("#dialog_photo_add").dialog("open");
  })
 
-    
+
+ $('.CatalogPhotoList').on('click', function (e) {    
+	 var ids = $("#photo_url").attr("ids")
+	 window.location.href='/catalog/'+ ids +'/photo/list/5/'
+ })
+
+ 
  $("body").on('click', '#sel_all', function() {
 	var status = $('#sel_all').attr('val')
 	if ( status == 1) {
@@ -698,7 +704,8 @@ $("body").on("click",".locality_edit",function(e){
 $("body").on("click",".edit_type",function(e){ 	
 //$('.edit_type').each(function() {
 	$(this).editable('/catalog/set/type/', {
-     loadurl : '/category/get/list/',
+     name: 'category_id',
+	 loadurl : '/category/get/list/',
 	 loaddata : function(value, settings) {
        return {sel: $(this).attr('cat_id')};
    	 },
@@ -712,11 +719,11 @@ $("body").on("click",".edit_type",function(e){
       	return {id : $(this).attr('id_type')};
     	 },
      callback : function(value, settings) {
-         console.log(this);
-         console.log(typeof(value));
-         console.log(settings);
+//         console.log(this);
+//         console.log(typeof(value));
+//         console.log(settings);
          var obj = jQuery.parseJSON(value);
-         console.log(obj);
+//         console.log(obj);
          $(this).attr('cat_id', obj[0]['type__id']);
          str1 = '<a href="/invoice/category/' + obj[0]['type__id'];
          str2 = '/view">' + obj[0]['type__name'] + "</a>";
@@ -1739,7 +1746,10 @@ function show_tr_year(obj){
 {# end ФОТО карусель #}
         
       </div>
-      <div class="modal-footer">  
+      <div class="modal-footer">
+{% if request.user|has_group:"admin" %}        
+      	<button type="button" class="btn btn-info CatalogPhotoList" title="Переглянути привязані фото"  data-toggle="tooltip" data-placement="top"><i class="material-icons">photo_library</i></button>
+{% endif %}      	
       	<button type="button" class="btn btn-success photoAddbutton" title="Додати фото"  data-toggle="tooltip" data-placement="top"><i class="material-icons">add_photo_alternate</i></button>
         <button type="button" class="btn btn-secondary" data-dismiss="modal" title="Закрити вікно"  data-toggle="tooltip" data-placement="top">Close</button>
       </div>

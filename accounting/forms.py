@@ -453,10 +453,16 @@ class CatalogForm(forms.ModelForm):
 
     def clean_ids(self):
         data = self.cleaned_data['ids']
-        res = Catalog.objects.filter( Q(ids__icontains = data) | Q(dealer_code__icontains=data))
+        #res = Catalog.objects.filter( Q(ids__icontains = data) | Q(dealer_code__icontains=data))
+        res = Catalog.objects.filter( Q(dealer_code = data) )
         if res:
             raise forms.ValidationError("Товар з таким кодом вже існує!")
         return data.strip()
+
+    def clean_dealer_code(self):
+        data = self.cleaned_data['dealer_code']
+        return data.strip()
+
 
     class Meta:
         model = Catalog

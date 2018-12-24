@@ -3,6 +3,7 @@
 <title>Інвентеризація товару</title>
 
 <link rel="stylesheet" type="text/css" href="/media/table.css">
+{# <link type="text/css" rel="stylesheet" href="/media/paginator.css"> #}
 
 {# <link rel="stylesheet" href="/media/jquery-ui.min.css"> #} 
 {# <script type="text/javascript" src="/media/jquery-ui.min.js"></script> #} 
@@ -13,13 +14,73 @@
 
 <style>
 
-.table-yellow{
+.table-yellow 
+{
 	background-color: #feff81;
 }
 
-table a{
+table a 
+{
 	color: black;
 	font-weight: bold;
+}
+
+
+#parent_paging {
+	flex-wrap: wrap;
+	flex-direction: row;
+//	justify-content: space-between;
+//	display: flex;
+//	border: 1px solid #696989;
+/*	height: 200px;
+	width: 330px;*/
+	margin: auto;
+}
+
+.pagination > li > a
+{
+    background-color: white;
+//    color: blue !important;
+}
+
+.pagination > li 
+{
+    background-color: white;
+    color: blue !important;
+}
+
+
+.pagination > li > a:focus,
+.pagination > li > a:hover,
+.pagination > li > span:focus,
+.pagination > li > span:hover
+{
+    color: purple;
+    background-color: #eee;
+    border-color: #ddd;
+}
+
+.pagination > .active > a
+{
+    color: white;
+    background-color: purple;
+    border: solid 1px purple;
+}
+
+.pagination > .active > a:hover
+{
+    background-color: purple;
+    border: solid 1px purple;
+}
+
+.pagination>li.active > a {
+  background-color: white !important;
+}
+
+.pagination > li.disabled > a {
+    background-color: #325D88 !important;
+    color: white !important;
+    border: solid 1px purple;
 }
 
 </style>
@@ -38,7 +99,8 @@ $(document).ready(function() {
  
  $(".inv_del").click(function(){
 //	 console.log($(this).parents("tr").find('td.cat_name').html());
- //if (confirm("Ви дійсно бажаєте видалити запис? \n" + $(this).parents("tr").find('td.cat_name').html() )) {
+//if (confirm("Ви дійсно бажаєте видалити запис? \n" + $(this).parents("tr").find('td.cat_name').html() )) {
+if (confirm("Ви дійсно бажаєте видалити запис? \n" + $(this).parents("tr").find('td.cat_name').text() )) {
 // 	console.log($(this).parents("tr"));
  	var tr_del = $(this).parents("tr");
 	
@@ -51,12 +113,34 @@ $(document).ready(function() {
                 	tr_del.remove();
                 },
                 error:function(data){
-                    alert("Виникли проблеми з сервером" + data);
+                    alert("Виникли проблеми з сервером. " + data.responseText);
+                    console.log( data );
                 }
             });	
- //}
+ }
  });
 
+/*
+ $(document).on("click", ".inv_del", function(event) {
+	 if (confirm("Ви дійсно бажаєте видалити запис?")) {
+	 	var tr_del = $(this).parents("tr");
+			$.ajax({
+	                type: "POST",
+	                url: "/inventory/delete/",
+	                data: {id:  $(this).attr("inv_id") },
+	                dataType: "text",
+	                success:function(data){
+	                	tr_del.remove();
+	                },
+	                error:function(data){
+	                    alert("Виникли проблеми з сервером" + data);
+	                }
+	            });	
+	 }
+	 });
+ */
+ 
+ 
 function addZero(i) {
     if (i < 10) {
         i = "0" + i;
@@ -66,7 +150,7 @@ function addZero(i) {
 
  $(".inv_set").click(function(){
  if (confirm("Ви дійсно бажаєте змінити статус?")) {
- 	console.log($(this).parents("tr"));
+// 	console.log($(this).parents("tr"));
  	var tr_set = $(this).parents("tr");
  	var td_set = $(this)
 	
@@ -76,7 +160,7 @@ function addZero(i) {
                 data: {id:  $(this).attr("inv_id"), status: true},
                 dataType: "text",
                 success:function(data){
-                	console.log("ajax work");
+//                	console.log("ajax work");
                 	tr_set.attr("bgColor", "#4A4A4A");
                 	 
                 	var now = new Date(); 
@@ -92,6 +176,31 @@ function addZero(i) {
             });	
  }
  });
+
+ /*
+	$("body").on('click', '.inv_set', function() {
+		if (confirm("Ви дійсно бажаєте змінити статус?")) {
+		 	var tr_set = $(this).parents("tr");
+		 	var td_set = $(this);
+			
+				$.ajax({
+		                type: "POST",
+		                url: "/inventory/set/",
+		                data: {id:  $(this).parents("tr").attr("cid"), status: true },
+		                dataType: "text",
+		                success:function(data){
+		                	tr_set.css('background-color','#7be58a'); 
+		  					td_set.html('Змінено = ' + data); 
+		  					td_set.css('background-color','#7be58a'); 
+		                },
+		                error:function(data){
+		                    alert("Виникли проблеми з сервером" + data);
+		                }
+		            });	
+		 }
+	}); 
+*/
+	
 
 $("body").on("click",".count_edit",function(e){ 	   
 	console.log("Click this = " + $(this).parent('tr').attr('inv_id'));
@@ -161,50 +270,8 @@ $(document).on("click", ".inv_show", function(event) {
 		
 });
 
-$(document).on("click", ".inv_del", function(event) {
-	 if (confirm("Ви дійсно бажаєте видалити запис?")) {
-//	 	console.log($(this).parents("tr"));
-	 	var tr_del = $(this).parents("tr");
-		
-			$.ajax({
-	                type: "POST",
-	                url: "/inventory/delete/",
-	                data: {id:  $(this).attr("inv_id") },
-	                dataType: "text",
-	                success:function(data){
-	                	//console.log("ajax work");
-	                	tr_del.remove();
-	                	//console.log($(this).parents("tr"));
-	                },
-	                error:function(data){
-	                    alert("Виникли проблеми з сервером" + data);
-	                }
-	            });	
-	 }
-	 });
 	 
-	$("body").on('click', '.inv_set', function() {
-		if (confirm("Ви дійсно бажаєте змінити статус?")) {
-		 	var tr_set = $(this).parents("tr");
-		 	var td_set = $(this);
-			
-				$.ajax({
-		                type: "POST",
-		                url: "/inventory/set/",
-		                data: {id:  $(this).parents("tr").attr("cid"), status: true },
-		                dataType: "text",
-		                success:function(data){
-		                	tr_set.css('background-color','#7be58a'); /*.attr("background", "#7be58a");*/
-		  					td_set.html('Змінено = ' + data); 
-		  					td_set.css('background-color','#7be58a'); /*closest("td").prev().html(datetime);*/
-		                },
-		                error:function(data){
-		                    alert("Виникли проблеми з сервером" + data);
-		                }
-		            });	
-		 }
-	}); 
-	
+
 
 });	
 </script> 
@@ -304,6 +371,7 @@ $(document).on("click", ".inv_del", function(event) {
 		<th>Статус виконання</th>
 		<th>Кількість в базі</th>
 		<th></th>
+		<th></th>
 	</tr>
 	{% for element in return_list %}
 	<tr inv_id="{{element.id}}" 
@@ -330,7 +398,7 @@ $(document).on("click", ".inv_del", function(event) {
 		<a href = "{% url 'fix_inventory' element.catalog.id %}" class="badge badge-pill badge-danger"> Inventory </a>
 		</td>
 		<td align="center" class="count_edit">
-		<a href="/client/invoice/catalog/{{element.catalog.id}}/add/"> {{ element.count }} </a>
+		<a href="/client/invoice/catalog/{{element.catalog.id}}/add/" title="Списати товар" data-toggle="tooltip" data-placement="left"> {{ element.count }} </a>
 		</td>
 		<td>{{ element.description }}</td>
 		<td>{{ element.date|date:"l j/m/Y" }} - {{ element.date|time:"H:i" }}</td>
@@ -340,7 +408,24 @@ $(document).on("click", ".inv_del", function(event) {
 		<span class="inv_set" inv_id="{{element.id}}" style="cursor: pointer;">{{ element.check_all|yesno:"Повністю,Частково"}}</span>
 		</td>
 		<td align="center">
-		<a href="/invoice/catalog/{{element.catalog.id}}/add/">{{ element.real_count }}</a>
+		<a href="/invoice/catalog/{{element.catalog.id}}/add/" title="Додати товар" data-toggle="tooltip" data-placement="left">{{ element.real_count }}</a>
+		</td>
+		<td align="center">
+		{% if element.count < element.real_count %}
+		<h5>
+		<a href="/invoice/catalog/{{element.catalog.id}}/add/" title="Додати товар" data-toggle="tooltip" data-placement="left">
+			<span class="badge badge-success">+{{element.real_count|sub:element.count}}</span>
+		</a>
+		</h5>
+		{% endif %}
+		{% if element.count > element.real_count %}
+		<h5>
+		<a href="/client/invoice/catalog/{{element.catalog.id}}/add/" title="Списати товар" data-toggle="tooltip" data-placement="left"> 
+			<span class="badge badge-warning">-{{element.count|sub:element.real_count}}</span>
+		</a>
+		</h5>
+		{% endif %}
+		
 		</td>
 	{% if request.user|has_group:"seller" %}
 		<td align="center">
@@ -350,6 +435,44 @@ $(document).on("click", ".inv_del", function(event) {
 	</tr>
 	{% endfor %}
 	<table>
+
+
+<div class="row">
+<div class="col-auto mb-1">
+<nav aria-label="Page navigation example">
+  <ul class="pagination pagination-sm pg-blue w-100" id="parent_paging">
+  	{% if return_list.has_previous %}
+        <li class="page-item">
+            <a href="?{{GET_params.urlencode}}&amp;page={{ return_list.previous_page_number }}" class="page-link">&larr; Previous</a>
+        </li>
+    {% else %}
+    <li class="page-item disabled">
+            <a href="?{{GET_params.urlencode}}&amp;page={{ return_list.number }}" class="page-link">&larr; Previous</a>
+    </li>
+    {% endif %}
+
+    {% for i in return_list.paginator.page_range %}
+    {% ifequal i  return_list.number%}
+    <li class="page-item disabled"><a href="" class="page-link">{{ i }}.</a></li>
+    {% else %}
+    <li class="page-item active"><a href="?{{GET_params.urlencode}}&amp;page={{ i }}" class="page-link">{{ i }}.</a></li>
+    {% endifequal %}
+    {% endfor %}   
+    
+    {% if return_list.has_next %}
+    <li class="page-item">
+	    <a href="?{{GET_params.urlencode}}&amp;page={{ return_list.next_page_number }}" class="page-link">Next &rarr;</a>
+    </li>
+    {% else %}
+    <li class="page-item disabled">
+    	<a href="?{{GET_params.urlencode}}&amp;page={{ return_list.number }}" class="page-link">&larr; Previous</a>
+     </li>    
+    {% endif %}
+  </ul>
+</nav>
+</div>
+</div>
+
 
 </body>	
 	
