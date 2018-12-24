@@ -411,17 +411,17 @@ $(document).on("click", ".inv_show", function(event) {
 		<a href="/invoice/catalog/{{element.catalog.id}}/add/" title="Додати товар" data-toggle="tooltip" data-placement="left">{{ element.real_count }}</a>
 		</td>
 		<td align="center">
-		{% if element.count < element.real_count %}
+		{% if element.count > element.real_count %}
 		<h5>
 		<a href="/invoice/catalog/{{element.catalog.id}}/add/" title="Додати товар" data-toggle="tooltip" data-placement="left">
-			<span class="badge badge-success">+{{element.real_count|sub:element.count}}</span>
+			<span class="badge badge-success">+{{element.count|sub:element.real_count}}</span>
 		</a>
 		</h5>
 		{% endif %}
-		{% if element.count > element.real_count %}
+		{% if element.count < element.real_count %}
 		<h5>
 		<a href="/client/invoice/catalog/{{element.catalog.id}}/add/" title="Списати товар" data-toggle="tooltip" data-placement="left"> 
-			<span class="badge badge-warning">-{{element.count|sub:element.real_count}}</span>
+			<span class="badge badge-warning">{{element.count|sub:element.real_count}}</span>
 		</a>
 		</h5>
 		{% endif %}

@@ -159,9 +159,9 @@ $("#dialog_photo_add").dialog({
 	{{type.description}}
 	</td>
  -->
-		<td><a href="/bicycle/edit/{{ type.id }}">edit</a></td>
+		<td><a href="/bicycle/edit/{{ type.id }}"><i class="material-icons">create</i></a></td>
 
-		<td><a href="/bicycle/delete/{{ type.id }}" onclick="return confirm('Видалити запис - {{ type.model|escapejs }}?')">delete</a></td>
+		<td><a href="/bicycle/delete/{{ type.id }}" onclick="return confirm('Видалити запис - {{ type.model|escapejs }}?')"><i class="material-icons">delete_outline</i></a></td>
 	</tr>
 	{% endfor %}
 
