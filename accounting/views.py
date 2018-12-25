@@ -7571,11 +7571,12 @@ def inventory_set(request):
     
 def inventory_delete(request, id=None):
     obj = None
-    if auth_group(request.user, 'admin')==False:
-        if request.is_ajax():
-            return HttpResponse('У вас не вистачає повноважень', status=401, content_type="text/plain;charset=UTF-8;")
+    wid = None
+#    if auth_group(request.user, 'admin') == False:
+#        if request.is_ajax():
+#            return HttpResponse('У вас не вистачає повноважень', status=401, content_type="text/plain;charset=UTF-8;")
             #return HttpResponse("У вас не вистачає повноважень", content_type="text/plain;charset=UTF-8;;charset=UTF-8;charset=UTF-8")
-        return HttpResponseRedirect('/inventory/list/')
+#        return HttpResponseRedirect('/inventory/list/')
     try:
         if request.is_ajax():
             if request.method == 'POST':  
@@ -7583,6 +7584,10 @@ def inventory_delete(request, id=None):
                 if POST.has_key('id'):
                     wid = request.POST.get( 'id' )
             obj = InventoryList.objects.get(id = wid)
+            print "User = " + str(obj.user) + " - " + str(request.user == obj.user) + " / " + str(auth_group(request.user, 'admin') == False)
+            if (request.user != obj.user):
+                if (auth_group(request.user, 'admin') == False):
+                    return HttpResponse('У вас не вистачає повноважень', status=401, content_type="text/plain;charset=UTF-8;")
             del_logging(obj)
             obj.delete()
             return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;")
