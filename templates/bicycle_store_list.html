@@ -268,7 +268,11 @@ $("body").on("click", ".change_sale", function(e){
  		<td align="center">{{type.realization}}</td>
 
 		{% ifequal type.count 1 %}
-			<td align="center">
+			<td align="center" 
+			{% if type.realization %}
+				style="background-color: yellow;"
+			{% endif %}
+			>
 			<abbr title="Продати велосипед">
 			<a href="/bicycle/sale/add/{{type.id}}">{{type.count}}</a>
 			</abbr>
