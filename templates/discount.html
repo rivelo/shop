@@ -164,6 +164,8 @@ $( "#id_name" ).autocomplete({
     }
 });
 
+
+$('#id_sale').val(parseInt($('#id_sale').val()));
 $("#id_name").focus();
 
 
@@ -176,7 +178,24 @@ $("#id_name").focus();
 
     <h1><span class="badge badge-secondary">Створити акційну пропозицію</span></h1>
     <form action="" method="POST" enctype="multipart/form-data">
-    <div >
+    <div>
+
+
+{% for error in field.errors %}
+                <li>{{ error }}</li>
+{% endfor %}
+
+    {% for field in form.visible_fields %}
+          {% if field.errors %}
+            <ul>
+              {% for error in field.errors %}
+                <li> {{ field.label_tag }} <font size="3" color="red"> {{ error }} </font></li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+    {% endfor %}
+
+    
         <ul class="list-group">
 <li>
 <div class="input-group mb-3">

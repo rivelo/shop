@@ -147,7 +147,7 @@ var sum=0;
 	}
 	});
 document.getElementById('for_pay').innerHTML = sum + " грн.";
-document.getElementById('debet').innerHTML = parseFloat(document.getElementById('for_pay').innerHTML)+parseFloat(document.getElementById('workshop_pay').innerHTML);
+document.getElementById('debet').innerHTML = ( parseFloat(document.getElementById('for_pay').innerHTML) + parseFloat(document.getElementById('workshop_pay').innerHTML) ).toFixed(2);
 document.getElementById('row_count').innerHTML = "Row = " + document.getElementById("product").rows.length;
 }
     
@@ -160,7 +160,7 @@ for(var i = 0; i < All.elements.length; ++i) {
 	p+=parseFloat(All.elements[i].value);
 	}
 	document.getElementById('workshop_pay').innerHTML = p.toFixed(2)+" грн.";
-	document.getElementById('debet').innerHTML = parseFloat(document.getElementById('for_pay').innerHTML)+parseFloat(document.getElementById('workshop_pay').innerHTML);
+	document.getElementById('debet').innerHTML = ( parseFloat(document.getElementById('for_pay').innerHTML) + parseFloat(document.getElementById('workshop_pay').innerHTML) ).toFixed(2);
 }
 }
 

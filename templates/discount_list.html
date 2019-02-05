@@ -74,7 +74,7 @@ $(".disount_del").click(function(){
 	{% for sale in list %}
 	<tr ids={{sale.id}}>
 	<td>
-	<a href="{% url 'photo_get' sale.id %}" >{{forloop.counter}}</a>
+	<a href="{% url 'discount_edit' sale.id %}" >{{forloop.counter}}</a>
 	</td>
 	<td>
 	{{sale.name}}

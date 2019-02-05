@@ -73,7 +73,7 @@ TIME_INPUT_FORMATS = (
 
 DEFAULT_CHARSET = 'utf-8'
 
-HTTP_MINI_SERVER_IP = '10.1.1.184' # work server
+HTTP_MINI_SERVER_IP = '10.9.8.22' # work server
 #HTTP_MINI_SERVER_IP = '10.0.0.1' # work server
 #HTTP_MINI_SERVER_IP = '10.1.1.180' # work server
 HTTP_MINI_SERVER_PORT = '8123'

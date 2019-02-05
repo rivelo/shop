@@ -561,10 +561,12 @@ urlpatterns += patterns('',
     url(r'^check/delete/(?P<id>\d+)/$', 'catalog.accounting.views.check_delete'),
     url(r'^workshop/playsound/$', 'catalog.accounting.views.send_workshop_sound'),
     url(r'^discount/add/$', 'catalog.accounting.views.discount_add'),
+    url(r'^discount/(?P<id>\d+)/edit/$', 'catalog.accounting.views.discount_edit', name="discount_edit"),
     url(r'^discount/list/$', 'catalog.accounting.views.discount_list'),
     url(r'^discount/delete/$', 'catalog.accounting.views.discount_delete'),
     url(r'^discount/lookup/$', 'catalog.accounting.views.discount_lookup'),
     
+    url(r'^qrscanner/$', 'catalog.accounting.views.qrscanner'),
     url(r'^catalog/file/photo/list/$', 'catalog.accounting.views.catalog_upload_photos'),
 ) 
 

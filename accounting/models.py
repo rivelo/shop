@@ -17,6 +17,8 @@ from compiler.ast import Discard
 import os.path
 import urllib2
 from django.conf import settings
+from _mysql import NULL
+from django.db.models import Q
 
 
 # Group Type = Group for Component category 
@@ -191,10 +193,22 @@ class Manufacturer(models.Model):
         curdate = datetime.date.today()
         dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, manufacture_id = self.pk).order_by("-sale")
         if dateDiscount.exists():
-            max_sale = dateDiscount.aggregate(Max('sale'))
+            pass
+            return dateDiscount
         else:
            return 0
-        return (max_sale, dateDiscount[0])         
+
+    #===========================================================================
+    # def get_discount(self):
+    #     max_sale = None
+    #     curdate = datetime.date.today()
+    #     dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, manufacture_id = self.pk).order_by("-sale")
+    #     if dateDiscount.exists():
+    #         max_sale = dateDiscount.aggregate(Max('sale'))
+    #     else:
+    #        return 0
+    #     return (max_sale, dateDiscount[0])         
+    #===========================================================================
     
     def natural_key(self):
         return (self.id, self.name)
@@ -318,7 +332,10 @@ class Catalog(models.Model):
 
     def get_discount(self):
         curdate = datetime.date.today()
-        dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, type_id = self.type.pk)
+#        dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, type_id = self.type.pk)
+        #dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, manufacture_id = self.manufacturer.pk)
+        dateDiscount = Discount.objects.filter( date_start__lte = curdate, date_end__gte = curdate )
+        dateDiscount = dateDiscount.filter( Q(manufacture_id = self.manufacturer.pk) | Q(type_id = self.type.pk) )
 #        print "QUERY set = " + str(dateDiscount)
         try:
             pdiscount = dateDiscount[0].sale
@@ -326,11 +343,12 @@ class Catalog(models.Model):
             price = self.price * percent_sale
         except:
             return 0
-        return price
+        return (price, pdiscount, dateDiscount[0].name)
 
     def get_discount_item(self):
         curdate = datetime.date.today()
-        dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, type_id = self.type.pk)
+#        dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, type_id = self.type.pk)
+        dateDiscount = Discount.objects.filter(date_start__lte = curdate, date_end__gte = curdate, manufacture_id = self.manufacturer.pk)
         if dateDiscount.exists():
             return dateDiscount[0]
         else:
@@ -378,9 +396,11 @@ class Catalog(models.Model):
         sum = 0
         for item in cc:
             sum = sum + item.get_uaprice() * item.count
+            print "ITEM UA ["+ str(item.catalog) +"] = " + str(item.get_uaprice())
             ic_count = ic_count + item.count
         if ic_count != 0:
             ua = sum / ic_count
+            print "UA ["+ str(item.catalog) +"] = " + str(item.get_uaprice())
         if (self.currency.ids_char == 'UAH'):
             percent_sale = (100-self.sale)*0.01
             profit = self.price * percent_sale - ua 
@@ -996,13 +1016,37 @@ class Bicycle_Store(models.Model):
             ua = self.price * 1
         return ua
 
-#    def get_photos(self):
-#        return self.model.photo_set.all()
-
     def get_saleprice(self):
         percent_sale = (100-self.model.sale)*0.01
         price = self.model.price * percent_sale
         return price
+
+    def get_pb_chast3(self):
+        chast = 0
+        uaprice = self.get_uaprice()
+        if self.model.sale == 0:
+            chast = self.model.price / 3.0
+        if self.model.sale > 0:
+            pb_commission = self.get_saleprice() * (0.955 - 0.05)
+            if pb_commission > uaprice:
+                chast = self.get_saleprice() / 3.0
+        return chast 
+
+    def get_pb_chast4(self):
+        chast = 0
+        commission = 0
+        uaprice = self.get_uaprice()
+        if self.model.sale == 0:
+            chast = self.model.price / 4.0
+        if self.model.sale > 0:
+            pb_commission = self.get_saleprice() * (0.935 - 0.05)
+            if pb_commission > uaprice:
+                chast = self.get_saleprice() / 4.0
+        commission = self.get_saleprice() * (0.065)                 
+        return (chast, commission) 
+
+#    def get_photos(self):
+#        return self.model.photo_set.all()
 
     def get_client(self):
         bsale = self.bicycle_sale_set.all()

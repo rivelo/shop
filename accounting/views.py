@@ -2109,6 +2109,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
             element['new_arrival'] = cat_obj.new_arrival()
             element['get_realshop_count'] = cat_obj.get_realshop_count()
             element['get_discount'] = cat_obj.get_discount()
+            element['invoice_price'] = cat_obj.invoice_price()
 #            element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
     
 # update count field in catalog table            
@@ -8315,6 +8316,38 @@ def discount_add(request):
     else:
         form = DiscountForm(instance = a)
     return render_to_response('index.html', {'form': form, 'weblink': 'discount.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def discount_edit(request, id):
+    if auth_group(request.user, 'seller')==True:
+    #if request.user.is_authenticated():
+        user = request.user
+    else:
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+    a = Discount.objects.get(pk=id)
+    name = ''
+
+    if request.method == 'POST':
+        form = DiscountForm(request.POST, instance = a)
+        POST = request.POST
+        
+        if form.is_valid():
+            ds = form.cleaned_data['date_start']
+            de = form.cleaned_data['date_end']
+            type = form.cleaned_data['type_id']
+            manufacture = form.cleaned_data['manufacture_id']
+            f = form.save(commit=False)
+            f.date_start = ds
+            f.date_end = de
+            f.type_id = int(type or 0)
+            f.manufacture_id = int(manufacture or 0)
+            f.save()
+            
+            return HttpResponseRedirect('/discount/list/')
+    else:
+        form = DiscountForm(instance = a)
+    return render_to_response('index.html', {'form': form, 'weblink': 'discount.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
     
 
 def discount_list(request):
@@ -8373,5 +8406,14 @@ def send_workshop_sound(request):
     url = base + urllib.urlencode(data)
     page = urllib.urlopen(url).read()
     return HttpResponse("Повідомлення на склад відправлено")
+
+
+def qrscanner(request):
+    #current_url = request.get_full_path()
+    #list = Country.objects.all()
+    #return render_to_response('country_list.html', {'countries': list})
+    return render_to_response('index.html', {'weblink': 'scanner_qr.html', 'next': current_url}, context_instance=RequestContext(request, processors=[custom_proc]))
+    #return render_to_response('scanner_qr.html', {}, context_instance=RequestContext(request, processors=[custom_proc]))
+
     
     

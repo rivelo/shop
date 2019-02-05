@@ -235,8 +235,8 @@ class="icompany{{type.company.id}}">
 	<td >
 	<div class="d-flex">
 	<a href="/invoice/id/{{ type.id }}/view/" class="mr-auto">{{type.origin_id}}</a>
-	<a href="/dealer/invoice/edit/{{ type.id }}" class="ml-auto"><i class="material-icons">edit</i></a>
-	<i class="material-icons">view_list</i>
+	<a href="/dealer/invoice/edit/{{ type.id }}" class="ml-auto" title="Редагувати накладну"><i class="material-icons">edit</i></a>
+	<a href="/invoice/id/{{ type.id }}/view/" title="Показати товар в накладній" data-toggle="tooltip" data-placement="bottom" data-html="true"><i class="material-icons">view_list</i></a>
 	</div>
 	</td>
 	<td>       
@@ -283,15 +283,15 @@ class="icompany{{type.company.id}}">
  	<td>
 	{{type.description}}
 	</td>
-	<td>
+	<td align="center">
 {% if type.payment %}
 <input class="checkbox mc" type="checkbox" id="model{{forloop.counter}}" value="{{type.price}}" onclick="res()" name="checkbox_{{ type.id }}"/>
 {% else %}
 <input class="checkbox mc" type="checkbox" id="model{{forloop.counter}}" value="{{type.price}}" onclick="res()" checked name="checkbox_{{ type.id }}"/>
 {% endif %}
 	</td>
-	<td>
-    <a href="/dealer/invoice/delete/{{ type.id }}" onclick="return confirm('Видалити накладну?')"><i class="material-icons">delete_outline</i></a>
+	<td align="center">
+    <a href="/dealer/invoice/delete/{{ type.id }}" onclick="return confirm('Видалити накладну?')" title="Видалити накладну" data-toggle="tooltip" data-placement="left"><i class="material-icons">delete_outline</i></a>
     </td>
 </tr>
 {% endfor %}             
