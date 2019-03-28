@@ -34,6 +34,29 @@ function check_invoice(element) {
 	
 };
 
+
+function add_to_print_invoice_price(element) {
+//	console.log("You click on " + element.html());
+//	console.log("You click on " + element.find('span').attr('ids'));
+	$.ajax({
+        type: "POST",
+        url: "/shop/price/print/add/invoice/",
+        data: {id:  element.find('span').attr('ids')},
+        dataType: "json",
+        success:function(msg){
+        	var st = JSON.stringify(msg);
+ 			var p = jQuery.parseJSON(st);
+            alert("Статус: " + msg.msg);
+        },
+        error:function(msg){
+            alert("Помилка: " + msg);
+        }
+    });
+	
+};
+
+
+
 $(function() {
 //    $( "#accordion" ).accordion({
 //    	heightStyle: "content",
@@ -199,12 +222,17 @@ $('[data-toggle="tooltip"]').tooltip();
 {% endif %}
 <h3 class="cat_name d-flex">
 	<div class="p-2">{{x.invoice.origin_id}}</div> 
+
+	<div class=" p-2" onclick="add_to_print_invoice_price($(this))">
+	<span style="text-align: right;"  ids="{{x.invoice.id}}" data-toggle="tooltip" data-placement="left" title="Додати цінники в чергу для друку" data-html="true"><i class="material-icons">print</i>	</span>
+	</div>
+
 	<div class="ml-auto p-2" onclick="check_invoice($(this))">
-	<span style="text-align: right;"  ids="{{x.invoice.id}}">
+	<span  style="text-align: right;"  ids="{{x.invoice.id}}" data-toggle="tooltip" data-placement="left" title="Отримано та перевірено" data-html="true">
 	{% if request.user|has_group:"admin" %} <i class="material-icons">done_outline</i> {% endif %}
 	</span>
 	</div>
- </h3>
+</h3>
   
 <div class="content">
 <table id="iTable" class = "table table-bordered table-hover table-condensed table-sm">

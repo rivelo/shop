@@ -519,7 +519,7 @@ class ClientEditForm(forms.ModelForm):
 class ClientDebtsForm(forms.ModelForm):
     client = forms.ModelChoiceField(queryset = Client.objects.all(), label="Клієнт")
 #    date = forms.DateTimeField(initial=datetime.date.today)
-    date = forms.DateTimeField(initial = datetime.datetime.now(), label='Дата', input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'))
+    date = forms.DateTimeField(initial = datetime.datetime.now, label='Дата', input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'))
     price = forms.FloatField(label='Сума')
     description = forms.CharField(label='Опис', widget=forms.Textarea(), max_length=255)
     cash = forms.BooleanField(initial=False, label="Каса?", required=False)    
@@ -531,7 +531,7 @@ class ClientDebtsForm(forms.ModelForm):
 
 class ClientCreditsForm(forms.ModelForm):
     client = forms.ModelChoiceField(queryset = Client.objects.all())
-    date = forms.DateTimeField(initial = datetime.datetime.now(), label='Дата', input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'))
+    date = forms.DateTimeField(initial = datetime.datetime.now, label='Дата', input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'))
     price = forms.FloatField()
     cash_type = forms.ModelChoiceField(queryset = CashType.objects.all())
     description = forms.CharField(label='DescripCred', widget=forms.Textarea(), max_length=255)    
@@ -558,7 +558,7 @@ class ClientInvoiceForm(forms.ModelForm):
     sale = forms.IntegerField(min_value=0, initial = 0, label="Знижка (%)")
     pay = forms.FloatField(initial=0, widget=forms.HiddenInput(), label="Оплачено")
 #    date = forms.DateTimeField(initial = datetime.datetime.today(), label='Дата', input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))
-    date = forms.DateTimeField(initial = datetime.datetime.now(), label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'))
+    date = forms.DateTimeField(initial = datetime.datetime.now, label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'))
     description = forms.CharField(label='Description', widget=forms.Textarea(), required=False)
     length = forms.FloatField(initial=0, label="Довжина", widget=forms.HiddenInput())
 
@@ -607,7 +607,7 @@ class ClientOrderForm(forms.ModelForm):
     currency = forms.ModelChoiceField(queryset = Currency.objects.all(), label='Валюта')
     pay = forms.FloatField(initial=0, label='Передоплата')
     cash_type = forms.ModelChoiceField(queryset = CashType.objects.all(), initial=CashType.objects.get(name="Готівка"))
-    date = forms.DateTimeField(initial = datetime.datetime.now(), label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'))
+    date = forms.DateTimeField(initial = datetime.datetime.now, label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'))
     status = forms.BooleanField(initial = False, required=False)
 
     class Meta:
@@ -677,7 +677,9 @@ class WorkTypeForm(forms.ModelForm):
 class WorkShopForm(forms.ModelForm):
     work_type = forms.CharField(widget=forms.HiddenInput(), label="Робота")
     client = forms.CharField(widget=forms.HiddenInput())
-    date = forms.DateTimeField(initial = datetime.datetime.now(), label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'), required=False)
+    #date = forms.DateTimeField(initial = datetime.datetime.now, label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'), required=False)
+    #date = forms.DateTimeField(initial = datetime.datetime.now, label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'), required=False)
+    date = forms.DateTimeField(initial = datetime.datetime.now, label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'), required=False)
     price = forms.FloatField(initial=0, label="Ціна" ,widget=forms.TextInput(attrs={'class': 'form-control'}) )
     #pay = forms.BooleanField(initial=False, required=False, label="Оплачено?")
     description = forms.CharField(label='Опис', widget=forms.Textarea(), max_length=255, required=False)

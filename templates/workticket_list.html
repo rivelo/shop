@@ -4,7 +4,7 @@
 
 {# <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> #}
 
-<link rel="stylesheet" href="/media/jquery-ui.min.css">
+{#<link rel="stylesheet" href="/media/jquery-ui.min.css">#}
 <link rel="stylesheet" href="/media/css/table.css">
 
 {#<script src="/media/jquery-ui.min.js"></script>#}
@@ -39,9 +39,10 @@ $(document).ready(function() {
 	 $('[data-toggle="tooltip"]').tooltip();
 	
 
-$('.editable').editable('/workticket/edit/', { 
+$('.wt_editable').editable('/workticket/edit/', { 
      loadurl : '/workstatus/view/',
      type   : 'select',
+     event : "click",
      submit : 'OK',
      submitdata : function() {
       	 	return {id_w : $(this).attr('id_workticket')};
@@ -214,7 +215,7 @@ $('.phone').editable('/workticket/edit/', {
 	{{type.end_date|date}}
 	</td>	
 	<td>
-	<span class="editable" id="{{type.status.id}}" id_workticket="{{type.id}}" >       
+	<span class="wt_editable" id="{{type.status.id}}" id_workticket="{{type.id}}" >       
 	{{type.status}}
 	</span>
 	</td>

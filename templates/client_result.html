@@ -23,6 +23,10 @@ table#balance a{
   
 }
 
+.price_error {
+	border: 5px solid red !important;
+}
+
 .bs-tooltip-top .arrow::before, .bs-tooltip-auto[x-placement^="top"] .arrow::before {
   border-top-color: #73AD21 !important;
 }
@@ -76,7 +80,7 @@ a.delete_row_user :HOVER{
 $(document).ready(function() {
 
 	$('[data-toggle="tooltip"]').tooltip();
-	$('[data-toggle="tooltip"]').show();
+//	$('[data-toggle="tooltip"]').show();
 
 	
 	$("#dialog").hide();
@@ -142,13 +146,13 @@ function res() {
 var sum=0;
 	$('.chk_inv').each(function() {
 	if(this.checked){
-		console.log("THIS = "+ this.value);
+//		console.log("THIS = "+ this.value);
 		sum = sum + parseFloat(this.value);
 	}
 	});
 document.getElementById('for_pay').innerHTML = sum + " грн.";
 document.getElementById('debet').innerHTML = ( parseFloat(document.getElementById('for_pay').innerHTML) + parseFloat(document.getElementById('workshop_pay').innerHTML) ).toFixed(2);
-document.getElementById('row_count').innerHTML = "Row = " + document.getElementById("product").rows.length;
+//document.getElementById('row_count').innerHTML = "Row = " + document.getElementById("product").rows.length;
 }
     
 function resWorkshop()
@@ -194,12 +198,15 @@ $(function() {
 //                		var cdesc = item.fields.description + " <a href='/clientcredits/delete/" + item.pk + "'>delete</a>";
 //                		var price = '<td class="cred_price" tcash_id="'+item.fields.cash_type+'" id_cred="' + item.pk + '" value="'+ item.fields.price+'"><abbr title="' + item.fields.cash_type.name + '">' + item.fields.price + '</abbr>';
 //                	    $('.in_cred').after('<tr class="tr_cred"><td>'+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</tr>');
-						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
-						var ed = '<a href="/clientcredits/edit/'+item['id']+'">edit</a>';
-						var cdesc = item['description'] + ed + " <a href='/clientcredits/delete/" + item['id'] + "'" + "onclick='return confirm(&#039Видалити борг?&#039)'>delete</a>";
-						var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'"><abbr title="' + item['cash_type__name'] + '">' + item['price'] + '</abbr>';
-                	    $('.in_cred').after('<tr class="tr_cred"><td>'+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
+//						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
+						var fcol = 'title="' + item['user__username'] + '"' + ' data-toggle="tooltip" data-placement="right">' + item['date'];
+						var ed = '<a href="/clientcredits/edit/'+item['id']+'"><i class="material-icons" >edit</i></a>';
+						var cdesc = item['description'] + ed + " <a href='/clientcredits/delete/" + item['id'] + "'" + "onclick='return confirm(&#039Видалити борг?&#039)'><i class='material-icons'>delete</i></a>";
+//						var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'"><abbr title="' + item['cash_type__name'] + '">' + item['price'] + '</abbr>';
+						var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'" title="' + item['cash_type__name'] + '"' + 'data-toggle="tooltip" data-placement="right">' + item['price'];
+                	    $('.in_cred').after('<tr class="tr_cred"><td '+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
                     });
+                $('[data-toggle="tooltip"]').tooltip();	
 				$( "#dialog_ajax_load" ).dialog("close");
 				reload_price();
                 },
@@ -226,13 +233,14 @@ $(function() {
 //                		var fcol = '<abbr title="' + item.fields.date.split(" ")[1] + ' - [user]">' + tdate + '</abbr>';
 //                		var cdesc = item.fields.description + " <a href='/clientdebts/delete/" + item.pk + "'>delete</a>";
 //                	    $('.in_debt').after('<tr class="tr_debt"><td>'+ fcol +'</td><td>'+ cdesc +'</td><td>' + item.fields.price+'</td></tr>');
-						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
-						var ed = '<a href="/clientdebts/edit/'+item['id']+'">edit</a>';
-						var cdesc = item['description'] + ed + " <a href='/clientdebts/delete/" + item['id'] + "'" + "onclick='return confirm(&#039Видалити борг?&#039)'>delete</a>";
+						var fcol = 'title="' + item['user__username'] + '" data-toggle="tooltip" data-placement="right">' + item['date'];
+						var ed = '<a href="/clientdebts/edit/'+item['id']+'"><i class="material-icons" >edit</i></a>';
+						var cdesc = item['description'] + ed + " <a href='/clientdebts/delete/" + item['id'] + "'" + "onclick='return confirm(&#039Видалити борг?&#039)'><i class='material-icons'>delete</i></a>";
 						var price = '<td>' + item['price'];
-                	    $('.in_debt').after('<tr class="tr_debt"><td>'+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
+                	    $('.in_debt').after('<tr class="tr_debt"><td '+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
                 	    
                     });
+                $('[data-toggle="tooltip"]').tooltip();                	
 				$( "#dialog_ajax_load" ).dialog("close");                    
                 },
                 error:function(){
@@ -748,8 +756,8 @@ $('.phone').editable('/workticket/edit/', {
 	</tr>
 	{% for credit in credit_list %}
 	<tr class="tr_cred">
-	<td>
-		<abbr title="{{credit.date|time:"H:i"}} - [{{credit.user.username}}]">
+	<td title='{{credit.date|time:"H:i"}} - [{{credit.user.username}}]'  data-toggle="tooltip" data-placement="right">
+		
 	{{credit.date|date}}
 	</abbr>
 	</td>
@@ -764,11 +772,13 @@ $('.phone').editable('/workticket/edit/', {
   </div>
 	</div>
 	</td>
-	<td class="cred_price text-right" tcash_id="{{credit.cash_type.id}}" id_cred={{credit.id}} value="{{credit.price}}">
-	<abbr title="{{credit.cash_type.name}}">
-	{{credit.price}}
-	</abbr>
+	{% if credit.cash_type.name == "Помилкова"  %}
+	<td class="cred_price text-right price_error" tcash_id="{{credit.cash_type.id}}" id_cred={{credit.id}} value="{{credit.price}}" title="{{credit.cash_type.name}}"  data-toggle="tooltip" data-placement="right">
+	{% else %}
+	<td class="cred_price text-right" tcash_id="{{credit.cash_type.id}}" id_cred={{credit.id}} value="{{credit.price}}" title="{{credit.cash_type.name}}"  data-toggle="tooltip" data-placement="right">
+	{% endif %}
 	
+	{{credit.price}}
 	</td>
 	{% endfor %}
 	</tr>
@@ -788,16 +798,15 @@ $('.phone').editable('/workticket/edit/', {
 	{% endif %}
 	</h3>	
 	</td>
-	<td id="debet" title="Сума непроведенних товарів/послуг"  data-toggle="tooltip" data-placement="right">
+	<td  title="Сума непроведенних товарів/послуг"  data-toggle="tooltip" data-placement="right" align="center" >
+	<h3><span id="debet" class="badge badge-light"> </span></h3>
 	</td>
 	</tr>
 
 	{% for debt in debt_list %}
 	<tr class="tr_debt">
-	<td>
-	<abbr title="{{debt.date|time:"H:i"}} - [{{debt.user.username}}]">
+	<td title='{{debt.date|time:"H:i"}} - [{{debt.user.username}}]'  data-toggle="tooltip" data-placement="right">
 	{{debt.date|date}}
-	</abbr>
 	</td>
 	<td>
 	<div class="d-flex">
@@ -811,10 +820,8 @@ $('.phone').editable('/workticket/edit/', {
 	</div>
 	
 	</td>
-	<td class="text-right">
-	<abbr title="{{debt.cash|yesno:"Каса,Віртуальні"}}">
+	<td class="text-right" title="{{debt.cash|yesno:"Каса,Віртуальні"}}" data-toggle="tooltip" data-placement="right" >
 	{{debt.price}}
-	</abbr>
 	</td>
 	{% endfor %}
 	</tr>
@@ -851,11 +858,24 @@ $('.phone').editable('/workticket/edit/', {
 	
 	{% for inv in invoice %}
 	<tr class="tr_inv">
-	<td>
+	<td title="{{inv.user}} - {{inv.date|time:"H:i"}}" data-toggle="tooltip" data-placement="top">
 	{{inv.date}}
 	</td>
 	<td>
-	{{inv.catalog}}
+	<div class="d-flex">
+	<div class="p-2">	{{inv.catalog}}</div>
+  	<div class="ml-auto p-2">
+
+	{% if inv.pay != inv.sum %}
+	<a href="{% url 'client_invoice_edit' inv.pk %}" title="Редагувати" data-toggle="tooltip" data-placement="right"><i class="material-icons" >edit</i></a>
+	{% endif %}
+	
+	{% if inv.pay == inv.sum %}
+	{% if request.user|has_group:"admin" %} <a href="{% url 'client_invoice_edit' inv.pk %}" title="Редагувати" data-toggle="tooltip" data-placement="right"><i class="material-icons" >edit</i></a> {% endif %}
+	{% endif %}
+	
+	</div>
+	</div>	
 	</td>
 	<td>
 	{{inv.count}}
@@ -931,7 +951,7 @@ $('.phone').editable('/workticket/edit/', {
 	
 	{% for inv in workshop %}
 	<tr>
-	<td>
+	<td title="{{inv.date|time:"H:i"}} - {{inv.user}}" data-toggle="tooltip" data-html="true" data-placement="left">
 	{{inv.date}}
 	</td>
 	<td>

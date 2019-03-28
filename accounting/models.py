@@ -450,7 +450,7 @@ class Catalog(models.Model):
     def get_photos(self):
         photos_list = []
         if self.photo:
-            photos_list.append(self.photo)
+            photos_list.append("/media/" + str(self.photo))
         if self.photo_url:
             p_url = self.photo_url.all()
         for photo in p_url:

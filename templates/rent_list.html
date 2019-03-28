@@ -6,34 +6,11 @@
 <script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script>    
 
 <script type="text/javascript">
+
 $(document).ready(function() {
 
-/* $('span.jQtooltip').each(function() {
-  var el = $(this);
-  var title = el.attr('title');
-  if (title && title != '') {
-    el.attr('title', '').append('<div>' + title + '</div>');
-    var width = el.find('div').width();
-    var height = el.find('div').height();
-    el.hover(
-      function() {
-        el.find('div')
-          .clearQueue()
-          .delay(200)
-          .animate({width: width + 20, height: height + 20}, 200).show(200)
-          .animate({width: width, height: height}, 200);
-      },
-      function() {
-        el.find('div')
-          .animate({width: width + 20, height: height + 20}, 150)
-          .animate({width: 'hide', height: 'hide'}, 150);
-      }
-    ).mouseleave(function() {
-      if (el.children().is(':hidden')) el.find('div').clearQueue();
-    });
-  }
-}) */
-
+	$('[data-toggle="tooltip"]').tooltip();
+	
 })
 
 
@@ -70,7 +47,9 @@ function true_false(obj){
     
 {% load poll_extras %}
     
-    <h1>Прокат за останні 360 днів <a href="/rent/add/">(Додати)</a></h1>
+    <h1><span class="badge badge-secondary">Прокат за останні 360 днів</span> 
+    <a href="/rent/add/" title="Створити" data-toggle="tooltip" data-placement="right"><i class="material-icons">add_circle</i></a>
+    </h1>
 
     <table id="iTable" class = "table table-bordered table-hover table-condensed">
 	<tr>
@@ -137,8 +116,8 @@ function true_false(obj){
 	</td>	
 {% if request.user|has_group:"admin" %}  	
 	<td>
-    <a href="/rent/edit/{{ type.id }}">edit</a>
-    <a href="/rent/delete/{{ type.id }}">delete</a>
+    <a href="/rent/edit/{{ type.id }}"><i class="material-icons">edit</i></a>
+    <a href="/rent/delete/{{ type.id }}"><i class="material-icons">delete</i></a>
     </td>
 {% endif %}        
 </tr>

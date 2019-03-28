@@ -1,13 +1,19 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Денний звіт</title>
 
+    <link rel="stylesheet" type="text/css" href="/media/css/table.css">
+
 	<link rel="stylesheet" href="/media/jquery-ui.min.css">
 	<script src="/media/jquery-ui.min.js"></script>	
-
 	<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+	
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">	
 
 <script language="JavaScript">
 $(document).ready(function() {
+
+	$('[data-toggle="tooltip"]').tooltip();
+	
  $('.cred_price').each(function() {
  $(this).editable('/clientcredits/set/', {
 	 loadurl : '/cashtype/list/',
@@ -20,7 +26,8 @@ $(document).ready(function() {
       	return {id : $(this).attr('id_cred')};
     	 },
      type   : 'select',
-     event: 'dblclick',
+//     event: 'dblclick',
+     event: 'click',
      style   : 'inherit',
      callback : function(value, settings) {
          var obj = jQuery.parseJSON(value);
@@ -39,9 +46,15 @@ $(document).ready(function() {
 
 {% load poll_extras %}
 
-<h1 style="display:inline;">Оборот коштів на {{date}} року </h1> <h2 style="display:inline; color: red;" >Каса: {{casa}} грн.</h2>
+<div class="d-flex">
+<div class="mr-auto">
+	<h1> <span class="badge badge-secondary">Оборот коштів на {{date}} року </span>  <span style="color: red; font-size: x-large;" >Каса: {{casa}} грн.</span> </h1>
+</div>
+</div>
 
-	<table border=1>
+
+	<table class = "table table-bordered table-hover table-condensed">
+<thead class="thead-dark" align="center">	
 	<tr>
 	<th>id</th>
 	<th>Дата</th>
@@ -50,17 +63,18 @@ $(document).ready(function() {
 	<th>Опис</th>
 	<th>Тип оплати</th>
 	</tr>
+</thead>
 
-<h2>Оплати</h2>	
+<h2>
+<span class="badge badge-success">Оплати</span>
+</h2>
+	
 {% for cred in Ccred %}
 	<tr>
 	<td>
 	<a href="/clientcredits/edit/{{cred.id}}">{{cred.id}}</a>
 	</td>
-	<td>
-	{% comment %}
-	{{cred.date|time:"H:i"}}
-	{% endcomment %}
+	<td data-toggle="tooltip" data-placement="right" title="[{{cred.user.username}}]" data-html="false">
 		<abbr title="[{{cred.user.username}}]">
 		{{cred.date|time:"H:i"}}
 		</abbr>	
@@ -76,13 +90,12 @@ $(document).ready(function() {
 	<td>
 	{{cred.description}}
 {% if request.user|has_group:"admin" %}
-	<a href="/clientcredits/delete/{{cred.id}}" onclick="return confirm('Видалити оплату?')">Видалити</a>
+	<a href="/clientcredits/delete/{{cred.id}}" onclick="return confirm('Видалити оплату?')"><i class="material-icons" data-toggle="tooltip" data-placement="right" title="Видалити" data-html="true">delete</i></a>
 {% endif %}	
 	</td>
-	<td class="cred_price" tcash_id="{{cred.cash_type.id}}" id_cred={{cred.id}} value="{{cred.price}}">
-	<abbr title="{{cred.cash_type.name}}">
+	<td class="cred_price" tcash_id="{{cred.cash_type.id}}" id_cred={{cred.id}} value="{{cred.price}}" > 
+{#	data-toggle="tooltip" data-placement="right" title="{{cred.cash_type}}" data-html="false"> #}
 	{{cred.cash_type}}
-	</abbr>
 	</td>
 <!-- 
 	<td>
@@ -110,8 +123,12 @@ $(document).ready(function() {
 	</td>
 	</tr>	
 	</table>
+
+<h2><span class="badge badge-danger">Продажі</span></h2>
 	
-	<table border=1>
+	<table class = "table table-bordered table-hover table-condensed">
+
+<thead class="thead-dark" align="center">	
 	<tr>
 	<th>id</th>	
 	<th>Дата</th>
@@ -120,8 +137,8 @@ $(document).ready(function() {
 	<th>Опис</th>
 	<th>Тип оплати</th>
 	</tr>
+</thead>
 
-<h2>Продажі</h2>	
 {% for deb in Cdeb %}
 	<tr>
 	<td>
@@ -138,7 +155,9 @@ $(document).ready(function() {
 		</abbr>	
 	</td>
 	<td>
+	<a href="/client/result/search/?id={{deb.client.id}}">
 	{{deb.client}}
+	</a>
 	</td>
 	<td>
 	{{deb.price}}
@@ -146,18 +165,17 @@ $(document).ready(function() {
 	<td>
 	{{deb.description}}
 {% if request.user|has_group:"admin" %}
-	<a href="/clientdebts/delete/{{deb.id}}" onclick="return confirm('Видалити продаж?')">Видалити</a>
+	<a href="/clientdebts/delete/{{deb.id}}" onclick="return confirm('Видалити продаж?')">
+	<i class="material-icons" data-toggle="tooltip" data-placement="right" title="Видалити" data-html="true">delete</i>
+	</a>
 {% endif %}	
 	</td>
 	
 	{% if deb.cash %}
 	<td style="background-color: #b0c4de;">
 	{% else %}
-	<td >
+	<td data-toggle="tooltip" data-placement="right" title="{{deb.cash}}" data-html="true">
 	{% endif %}
-	<abbr title="">
-	{{deb.cash}}
-	</abbr>
 	</td>
 
 {% endfor %}

@@ -1933,8 +1933,6 @@ def dealer_invoice_search_result(request):
 
 
 
-
-
 def dealer_invoice_set(request):
     if auth_group(request.user, 'admin')==False:
         #return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain;charset=UTF-8;charset=UTF-8")
@@ -3614,6 +3612,10 @@ def client_invoice_edit(request, id):
     cat = Catalog.objects.get(id = a.catalog.id)
     if not request.user.is_authenticated():
         return render_to_response('index.html', {'weblink': 'guestinvoice.html', 'cat': cat}, context_instance=RequestContext(request, processors=[custom_proc]))
+    if (a.pay == a.sum) and ( auth_group(request.user, "admin") == False ):
+        #return HttpResponse("Даний товар вже продано і ви не можете його редагувати", content_type="text/plain;charset=UTF-8;")
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Даний товар вже продано і ви не можете його редагувати', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    
     now = datetime.datetime.now()
     old_count = a.count
 #    print "OLD count = " + str(old_count)
@@ -4805,6 +4807,9 @@ def workshop_edit(request, id):
     work = a.work_type
     owner = a.user
     old_p = a.price
+    if (request.user <> owner) and (auth_group(request.user, 'admin') == False):
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не є влаником даної роботи або не залогувались на порталі. Робота створена користувачем - <b>' + str(owner)+ '</b>'}, context_instance=RequestContext(request, processors=[custom_proc]))             
+    
     if request.method == 'POST':
         form = WorkShopForm(request.POST, instance=a)
         if form.is_valid():
@@ -4814,24 +4819,28 @@ def workshop_edit(request, id):
             price = form.cleaned_data['price']
             description = form.cleaned_data['description']
             pay = a.pay #form.cleaned_data['pay']
-            user = request.user 
-            if (request.user == owner) or (auth_group(request.user, 'admin')==True):
-                user = form.cleaned_data['user']
-            else:
-                user = owner
-                cur_date = datetime.datetime.now()
-            if (pay == False) or (auth_group(request.user, 'admin') == True):
-                WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay = pay).save()
-            else:
-                a.price = old_p 
-                a.date = cur_date
-                a.description = description
-                a.user = user
-                a.save()
+            #user = request.user 
+            user = form.cleaned_data['user']
+#            if (request.user == owner) or (auth_group(request.user, 'admin')==True):
+#                user = form.cleaned_data['user']
+#            else:
+#                user = owner
+#                cur_date_renew = datetime.datetime.now()
+            WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay = pay).save()                 
+            #===================================================================
+            # if (pay == False) or (auth_group(request.user, 'admin') == True):
+            #     #WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay = pay).save()
+            #     WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay = pay).save()
+            # else:
+            #     a.price = old_p 
+            #     a.date = cur_date_renew
+            #     a.description = description
+            #     a.user = user
+            #     a.save()
+            #===================================================================
             return HttpResponseRedirect('/workshop/view/')
     else:
         form = WorkShopForm(instance=a)
-
     nday = 7
     clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))        
     return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'client_name': a.client, 'work': work}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -5210,6 +5219,34 @@ def shop_price_print_add(request, id=None):
     return HttpResponseRedirect('/shop/price/print/view/')
 #    list = ShopPrice.objects.all().order_by("-id")
 #    return render_to_response('manual_price_list.html', {'price_list': list})    
+
+
+def shop_price_print_add_invoice(request):
+    if auth_group(request.user, 'seller')==False:
+        return HttpResponse(simplejson.dumps({'msg': 'Error: У вас не має прав для редагування'}), content_type="application/json")
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('id'):        
+                id = request.POST.get('id')
+                di_obj = DealerInvoice.objects.get(pk = id)
+                cat_list = di_obj.invoicecomponentlist_set.all()
+                print "Invoice list:"
+                for obj in cat_list:
+                    print "Cat = " + str(obj.catalog)
+                    sp = ShopPrice()
+                    sp.catalog = obj.catalog
+                    sp.scount = 1 # count of price
+                    sp.dcount = 0
+                    sp.user = request.user
+                    sp.save()
+                    
+                status_msg = "Цінники з накладної #" + str(di_obj.origin_id) + " додані"
+                #return HttpResponse('Ваш запит виконано', content_type="text/plain;charset=UTF-8;charset=UTF-8")
+                return HttpResponse(simplejson.dumps({'status': di_obj.received, 'msg': status_msg}), content_type="application/json")
+    else:
+        return HttpResponse(simplejson.dumps({'msg':'Ваш запит відхилено. Щось пішло не так'}), content_type="application/json", status=401)
+
 
 
 #def shop_price_print_view(request):
@@ -6429,6 +6466,11 @@ def all_user_salary_report(request, month=None, year=None, day=None, user_id=Non
 
 
 def rent_add(request):
+    user = None
+    if request.user.is_authenticated():
+        user = request.user
+    else:
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
     a = Rent()
     if request.method == 'POST':
         form = RentForm(request.POST, instance = a)
@@ -6747,12 +6789,14 @@ def client_history_invoice(request):
     return HttpResponse()#result, content_type='application/json')
 
 
-def insertstory(request):
-    if 'TextStory' in request.POST and request.POST['TextStory']:
-        TheStory = request.POST['TextStory']
-    #return render_to_response('news_list.html')
-    search = Client.objects.filter(forumname__icontains = TheStory).values_list('name', flat=True)    
-    return HttpResponse(simplejson.dumps(list(search)))
+#===============================================================================
+# def insertstory(request):
+#     if 'TextStory' in request.POST and request.POST['TextStory']:
+#         TheStory = request.POST['TextStory']
+#     #return render_to_response('news_list.html')
+#     search = Client.objects.filter(forumname__icontains = TheStory).values_list('name', flat=True)    
+#     return HttpResponse(simplejson.dumps(list(search)))
+#===============================================================================
 
 
 def xhr_test(request):
@@ -6766,7 +6810,7 @@ def xhr_test(request):
     #return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
     return HttpResponse(simplejson.dumps({'response': message, 'result': 'success', 'param1':'Ти таки', 'param2':'натиснув його!'}), content_type='application/json')
 
-
+# Rent function to get price of goods
 def ajax_test(request):
     search = None
     message = ""
@@ -6854,6 +6898,8 @@ def photo_url_add(request):
 
 def retrieve_image(url):
     response = requests.get(url)
+    if response.status_code != 200:
+        print "Error - " + response.status_code
     return StringIO.StringIO(response.content)
 
 def save_photo_local(obj, url, d_url, file_path, filename):
@@ -6893,7 +6939,7 @@ def save_photo_local(obj, url, d_url, file_path, filename):
             return obj
         
     except:
-#        print "EXCEPT save_photo_local"
+        print "EXCEPT save_photo_local - " + filename
         pass
 
     return obj
@@ -7007,7 +7053,7 @@ def change_photo_url(obj_photo):
     file_path = settings.MEDIA_ROOT + 'download/'
     filetype = ".jpg"
     media = settings.MEDIA_URL + 'download/'
-#    print "file_path = " + file_path
+    #print "file_path = " + file_path
     filename = ''
     dirname_glob = settings.PROJECT_DIR
 
@@ -7020,7 +7066,7 @@ def change_photo_url(obj_photo):
         filename = bset[0].id
         filename = slugify(unicode(str(filename), "utf-8"))
     if obj.local == None or obj.local == '':
-#        print "Locale = None"
+        print "Locale = None - [" + filename + filetype + ']' 
         save_photo_local(obj, o_url, media, file_path, filename + filetype)            
         return True
 
