@@ -106,7 +106,8 @@ def sale_url(value,host):
     host="rivelo.com.ua/component"
     #return "%s/%s/" % (host, value)
     str_url = "%s/%s/" % (host, value)
-    return google_url_shorten(str_url)
+    #return google_url_shorten(str_url)
+    return str_url
 
 
 @register.filter
@@ -119,7 +120,8 @@ def bike_url(value,host):
     host="rivelo.com.ua/bicycles"
     #return "%s/%s/" % (host, value)
     str_url = "%s/%s/model/" % (host, value)
-    return google_url_shorten(str_url)
+    #return google_url_shorten(str_url)
+    return str_url
 
 
 @register.filter

@@ -2014,7 +2014,7 @@ def invoicecomponent_add(request, mid=None, cid=None):
 #    return render_to_response('index.html', {'form': form, 'weblink': 'invoicecomponent.html', 'company_list': company_list, 'price_ua': price, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None):
+def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None, all=False):
     #company_list = Manufacturer.objects.none()
     company_list = Manufacturer.objects.all().only('id', 'name')
     #type_list = Type.objects.none() 
@@ -2033,10 +2033,16 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
         id = request.GET['id']
         list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
     if mid:
-        list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        if all == True:
+            list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        else:
+            list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)
         company_name = Manufacturer.objects.get(id=mid)
     if cid:
-        list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        if all == True:        
+            list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        else:
+            list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)
         cat_name = type_list.get(id=cid)
     if isale == True:
         list = InvoiceComponentList.objects.filter(catalog__sale__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
@@ -2109,11 +2115,15 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
             element['get_discount'] = cat_obj.get_discount()
             element['invoice_price'] = cat_obj.invoice_price()
 #            element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
+        if element['balance'] == 0:
+            print "Element = " + str(element)
+
     
 # update count field in catalog table            
         #upd = Catalog.objects.get(pk = element['catalog'])
         #upd.count = element['balance'] 
         #upd.save()
+
     cur_year = datetime.date.today().year        
     vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'cur_year': cur_year, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'next': current_url(request)}
 #    calendar = embeded_calendar()
@@ -5254,13 +5264,25 @@ def shop_price_print_add_invoice(request):
 #    return render_to_response('manual_price_list.html', {'price_list': list, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
+def remove_duplicated_ShopPrice_records(request):
+    duplicates = ShopPrice.objects.values('catalog').annotate(catalog_count=Count('catalog'), cat_max_id = Max('pk')).filter(catalog_count__gt=1)
+    for item in duplicates:
+#        print "[" + str(item) + "] catalog - " + str(item['catalog']) 
+        delitem = ShopPrice.objects.filter(catalog = item['catalog']).exclude(pk = item['cat_max_id'])
+        delitem.delete()
+    #list = ShopPrice.objects.all().order_by("-catalog__sale", "catalog", "user", "date", "catalog__manufacturer")
+    #return render_to_response('index.html', {'weblink': 'mtable_pricelist.html', 'price_list': list}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return shop_price_print_list(request)
+
+
 def shop_price_qrcode_print_view(request):
     list = ShopPrice.objects.all().order_by("user")
     return render_to_response('manual_qrcode_price_list.html', {'price_list': list, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
 def shop_price_print_list(request, pprint=False):
-    list = ShopPrice.objects.all().order_by("-catalog__sale", "user", "date", "catalog__manufacturer")
+    list = ShopPrice.objects.all().order_by("-catalog__sale", "catalog", "user", "date", "catalog__manufacturer")
+    
     plist = None
     paginator = Paginator(list, 330)
     page = request.GET.get('page')

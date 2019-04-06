@@ -76,7 +76,11 @@ $(document).ready(function() {
 {% load poll_extras %}
 
 <h1>Черга цінників для друку <a href="/shop/price/print/view/?page={{ price_list.number }}">(Попередній перегляд)</a> <a href="/shop/price/print/empty/" style="font-size: 14pt; text-decoration: underline;">(Очистити список)</a></h1>  
-<a href="/shop/price/qr/print/view/">(Попередній перегляд QR-Code)</a> 
+<a href="/shop/price/qr/print/view/">(Попередній перегляд QR-Code)</a>
+
+{% if request.user|has_group:"admin" %}
+<span class="badge badge-danger"> <a href="{% url 'shopprice_duplicate_delete' %}">Видалити дублікати</a> </span> 
+{% endif %}
 
 <br>
 
