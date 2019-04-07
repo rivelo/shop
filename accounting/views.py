@@ -4669,7 +4669,10 @@ def workticket_edit(request, id=None):
                 id = request.POST.get('desc_w')
                 desc = request.POST.get('value')
                 obj = WorkTicket.objects.get(pk = id)
-                obj.description = desc 
+                desc = desc.replace('<br>', '\n')
+                desc = desc.lstrip()
+                desc = desc.rstrip()
+                obj.description = re.sub('<[^<]+?>', '', desc) 
                 obj.save() 
                 c = WorkTicket.objects.filter(pk = id).values_list('description', flat=True)
                 return HttpResponse(c)
@@ -5779,6 +5782,9 @@ def payform(request):
         if client!=inv.client:
             error_msg = "Вибрані позиції різних клієнтів"
             return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        if inv.check_pay() and ('send_check' not in request.POST):
+            error_msg = "Вибрані позиції вже оплачені"
+            return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
         
         client = inv.client
         #inv.pay = inv.sum
@@ -5786,6 +5792,10 @@ def payform(request):
         sum = sum + inv.sum
     #-------- показ і відправка чеку на електронку ------
     if 'send_check' in request.POST:
+        if inv.check_pay() == False:
+            error_msg = "Вибрані позиції ще не оплачені і на них не можна друкувати фіскальний чек"
+            return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        
         text = pytils_ua.numeral.in_words(int(sum))
         month = pytils_ua.dt.ru_strftime(u"%d %B %Y", ci[0].date, inflected=True)
         request.session['invoice_id'] = list_id
@@ -6095,6 +6105,11 @@ def client_payform(request):
             list_id.append( int(id.replace('checkbox_', '')) )
         ci = ClientInvoice.objects.filter(id__in=list_id)
         client = ci[0].client
+        for inv in ci:
+            if inv.check_pay() :
+                error_msg = "Вибрані позиції вже оплачені"
+                return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
        
 #--------- Begin section to send data to CASA ---------
         try: 
@@ -6113,6 +6128,7 @@ def client_payform(request):
             desc = desc + inv.catalog.name + "; "
             sum = sum + inv.sum
             inv.save()
+            
             
     else:
         return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext':'Не вибрано жодного товару', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))

@@ -15,8 +15,8 @@
 <link rel="stylesheet" href="/media/css/mainstyle.css">
 
 {# <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> #}  	
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">  	
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/typicons/2.0.7/typicons.min.css" />
+{# <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"> #} 	
+{# <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/typicons/2.0.7/typicons.min.css" /> #}
 
   	 
 <script type="text/javascript" src="/media/jquery-ui.min.js"></script>
@@ -562,6 +562,7 @@ $(document).ready(function() {
  $('.photoAddbutton').on('click', function (e) {    
 	 $('#photoModal').modal('toggle'); 
 	 $("#dialog_photo_add").dialog("open");
+	 //$("#photo_url").value = "";
  })
 
 
@@ -1878,7 +1879,8 @@ function show_tr_year(obj){
 <!-- Dialog to add photo -->
 	<div id="dialog_photo_add" title="Add Photo">
 	<label for="photo_url">Посилання на фото:</label>
-	<input type="text" name="photoname" id="photo_url" value="" placeholder="Посилання повинно починатись з http:// або https://" ids="" size="75">
+	<input type="text" name="photoname" id="photo_url" value="" onfocus="this.value=''" placeholder="Посилання повинно починатись з http:// або https://" ids="" size="75"> 
+
 	</div>
 
 <!-- Dialog to view photo -->

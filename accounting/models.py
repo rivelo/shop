@@ -746,6 +746,13 @@ class ClientInvoice(models.Model):
             
         return True
 
+    def check_pay(self):
+        sum = self.price * self.count * (100 - self.sale)*0.01
+        if self.pay == sum :
+            return True
+        else:
+            return False
+
     def get_profit(self):
         profit = 0
         dn = self.date

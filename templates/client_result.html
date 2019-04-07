@@ -675,7 +675,10 @@ $('.phone').editable('/workticket/edit/', {
 {% else %}
   <tr bgcolor="#FFFFFF">
 {% endif %}  
-  <td>{{ticket.date}}</td><td>{{ticket.description}}</td>
+  <td>{{ticket.date}}</td>
+  <td>{{ticket.description}}
+  <a style="text-align: right;" href="{% url 'workticket_edit' ticket.id %}" title="Редагувати заявку"  data-toggle="tooltip" data-placement="right"><i class="material-icons">edit</i></a>
+  </td>
   <td class="edit_workstatus" id_workticket={{ticket.id}}>
   {{ticket.status__name}}
   </td>

@@ -205,9 +205,18 @@ $('#pay').change();
 {% endif %}
 
 <div style="float:left;">
-	<h2><font color="#fe6037" id="cl_balance" value="{{balance}}"> Ваш рахунок: {{balance}} грн. </font></h2>
-    <h2 id="to_pay" value="{{summ}}" onclick="PaySum()">До сплати: {{summ}} грн. </h2>
-    <h2 onclick="AllSum()"> <font color="#006699" id="AllSum" value="{{summ|sub:balance}}"> Загальна сума: {{summ|sub:balance}} грн.</font></h2>
+	<h2><font color="#fe6037" id="cl_balance" value="{{balance}}"> Ваш рахунок:
+	{% if balance >= 0 %} 
+	<span class="badge badge-success">{{balance}} грн.</span> 
+	{% else %}
+	<span class="badge badge-danger">{{balance}} грн.</span>
+	{% endif %}
+	</font>
+	</h2>
+    <h1>
+    <span class="badge badge-dark" id="to_pay" value="{{summ}}" onclick="PaySum()">До сплати: {{summ}} грн.</span>
+    </h1>
+    <h2 onclick="AllSum()"> <font color="#006699" id="AllSum" value="{{summ|sub:balance}}"> Загальна сума: {{summ|sub:balance}} грн. </font></h2>
 </div>
 
 <div style="float:left;">

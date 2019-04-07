@@ -69,18 +69,32 @@ $('.wt_editable').editable('/workticket/edit/', {
  
 $(".w_desc").each(function() {
 	$(".w_desc").editable('/workticket/edit/', {
-		id : 'desc_w',
+		 id : 'desc_w',
          submitdata : function() {
       	 	return {desc_w : $(this).attr('id_workticket')};
     	 },         
          type      : 'textarea',
+         lineBreaks : true, 
          cancel    : 'Cancel',
          submit    : 'OK',
          indicator : 'Saving',
-         tooltip   : 'dbClick to edit...',
+         tooltip   : 'Клацніть двічі щоб редагувати',
          style : "inherit",
          height: 100,
-		 event : "dblclick",         
+		 event : "dblclick",
+		 callback : function( data ) {
+			 //console.log("DAta = " + data)
+		        // Callback that will be called once the editor is blurred
+		        if( data.content ) {
+		            // Content has changed...
+		        }
+		        if( data.fontSize ) {
+		            // the font size has changed
+		        }
+
+		        // data.$el gives you a reference to the element that was edited
+		        //data.$el.effect('blink');
+		    }
      });
 });
  
