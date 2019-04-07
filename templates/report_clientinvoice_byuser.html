@@ -3,7 +3,7 @@
 <link type="text/css" rel="stylesheet" href="/media/paginator.css">
 <head>
     <title>Список проданого товару</title>
-    <link rel="stylesheet" type="text/css" href="/media/table.css">
+{#    <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
 </head>
 <body onLoad="res()">
 
@@ -39,29 +39,22 @@ for(var i = 0; i < All.elements.length; ++i) {
     
 </script>
 
+{% load poll_extras %}
 
-<br>
 {% if view %}
-<h2>
+
+<h2 class="p-2">
     За місяць: 
-    <a href="/report/sales/user/year/{{sel_year}}/month/1/report">01,</a>
-	<a href="/report/sales/user/year/{{sel_year}}/month/2/report">02,</a>
-	<a href="/report/sales/user/year/{{sel_year}}/month/3/report">03,</a>
-	<a href="/report/sales/user/year/{{sel_year}}/month/4/report">04,</a>
-	<a href="/report/sales/user/year/{{sel_year}}/month/5/report">05,</a>
-	<a href="/report/sales/user/year/{{sel_year}}/month/6/report">06,</a>
-	<a href="/report/sales/user/year/{{sel_year}}/month/7/report">07,</a>
-	<a href="/report/sales/user/year/{{sel_year}}/month/8/report">08,</a>
-	<a href="/report/sales/user/year/{{sel_year}}/month/9/report">09,</a>
-	<a href="/report/sales/user/year/{{sel_year}}/month/10/report">10,</a>
-	<a href="/report/sales/user/year/{{sel_year}}/month/11/report">11,</a>
-	<a href="/report/sales/user/year/{{sel_year}}/month/12/report">12</a>
+    {% for month in 1|mrange:13 %}
+    <a href="/report/sales/user/{{sel_user.id}}/year/{{sel_year}}/month/{{month}}/report" class="badge badge-success">{{month}}</a>
+    {% endfor %}
 </h2>    
 
-<h2>
+
+<h2 class="p-2">
 	За день:
 	{% for day in month_days %}		 
-    <a href="/report/sales/user/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/report">{{day}},</a>
+    <a href="/report/sales/user/{{sel_user.id}}/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/report" class="badge badge-success">{{day}}</a>
     {% endfor %}
 </h2>    
 {% endif %}
@@ -70,7 +63,7 @@ for(var i = 0; i < All.elements.length; ++i) {
     
 <form action="/payform/" method="post" name="formSum">   
 
-    <table border="1">
+    <table class="table table-striped table-hover table-sm ">
 	<tr>
     	<th>#</th>	
     	<th>ID</th>
@@ -140,7 +133,7 @@ for(var i = 0; i < All.elements.length; ++i) {
 	{{type.description}}
 	</td>
 	<td>
-    <a href="/client/invoice/{{type.id}}/delete/" onclick="return confirm('Видалити запис?')">delete</a>
+    <a href="/client/invoice/{{type.id}}/delete/" onclick="return confirm('Видалити запис?')"><i class="material-icons">delete_forever</i></a>
     </td>
     <td align="center">
 <!-- 	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{type.sum}}" onclick="resWorkshop()"/>

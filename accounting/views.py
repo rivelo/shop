@@ -3713,11 +3713,13 @@ def client_invoice_set(request):
                         ci.sum = ci.price * int(count) * (1-ci.sale/100.0)
                     if client:
                         ci.client = Client.objects.get(id = client)
+                        ci.update_sale()
                     ci.save()
                     
 #                if request.user != ci_list.user:
 #                    return HttpResponse('Error: У вас не має прав для редагування')
                 #ci.save()
+                
                 result = 'Виконано'
                 return HttpResponse(result, content_type="text/plain;charset=UTF-8;")
                 
@@ -5272,7 +5274,17 @@ def remove_duplicated_ShopPrice_records(request):
         delitem.delete()
     #list = ShopPrice.objects.all().order_by("-catalog__sale", "catalog", "user", "date", "catalog__manufacturer")
     #return render_to_response('index.html', {'weblink': 'mtable_pricelist.html', 'price_list': list}, context_instance=RequestContext(request, processors=[custom_proc]))
-    return shop_price_print_list(request)
+    return HttpResponseRedirect('/shop/price/print/list/')
+
+
+def remove_zero_ShopPrice_records(request):
+    list = ShopPrice.objects.all().order_by("user")
+    for item in list:
+        if item.catalog.get_realshop_count() == 0:
+#            print 'REAL count = ' + str(item.catalog.get_realshop_count()) + " || Catalog - " + str(item.catalog)
+            item.delete()
+    #return shop_price_print_list(request)
+    return HttpResponseRedirect('/shop/price/print/list/')
 
 
 def shop_price_qrcode_print_view(request):
@@ -6357,7 +6369,7 @@ def user_invoice_report(request, month=None, year=None, day=None, user_id=None):
         scount = scount + item.count
     days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
     
-    paginator = Paginator(list, 15)
+    paginator = Paginator(list, 25)
     page = request.GET.get('page')
     if page == None:
         page = 1
@@ -6401,7 +6413,7 @@ def user_workshop_report(request, month=None, year=None, day=None, user_id=None)
         scount = scount + 1
     days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
     
-    paginator = Paginator(list, 15)
+    paginator = Paginator(list, 25)
     page = request.GET.get('page')
     if page == None:
         page = 1

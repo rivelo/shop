@@ -19,6 +19,7 @@ import urllib2
 from django.conf import settings
 from _mysql import NULL
 from django.db.models import Q
+from django.utils.translation.trans_real import catalog
 
 
 # Group Type = Group for Component category 
@@ -733,6 +734,18 @@ class ClientInvoice(models.Model):
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     chk_del = models.BooleanField(default=False, verbose_name="Мітка на видалення")    
 
+    def update_sale(self):
+        if (self.catalog.sale == 0) and (self.client.sale > self.catalog.sale):
+            self.sale = self.client.sale
+            self.sum = self.count * ((1-(self.client.sale/100.0)) * self.price)
+            self.save()
+        if (self.catalog.sale <> 0):
+            self.sale = self.catalog.sale
+            self.sum = self.count * ((1-(self.catalog.sale/100.0)) * self.price)
+            self.save()
+            
+        return True
+
     def get_profit(self):
         profit = 0
         dn = self.date
@@ -1440,6 +1453,13 @@ class ShopPrice(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     
+    def del_zero(self):
+        print "DELETE zero " + catalog.get_realshop_count()
+        if catalog.get_realshop_count == 0:
+            print "Catalog delete = " + str(catalog)
+            #self.delete()    
+        return True
+
     def __unicode__(self):
         return self.count
 

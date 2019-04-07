@@ -1777,13 +1777,16 @@ function show_tr_year(obj){
 </div>
 
 <div style="clear:left;">
-     <h1><span class="badge badge-secondary">Список наявного товару</span> <span class="badge badge-info" id="c_c">{{company_name|capfirst}}{{category_name|capfirst}}     </span>
+     <h1><span class="badge badge-secondary">Список наявного товару</span> <span class="badge badge-info" id="c_c">{{company_name|capfirst}}{{category_name|capfirst}}</span>
 {% if category_name %}     
+	 <a href="{% url 'category_id_list' category_id %}" title="Показати наявні записи" data-toggle="tooltip" data-placement="top">
      <img src="{{category_name.get_icon_name}}" alt="{{company_name|capfirst}}" width="64px">
+     </a>
      <a href="{% url 'category_id_list_all' category_id %}" >
      <span id="all_record_show" class="badge badge-success" title="Показати всі записи" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">more_horiz</i></span>
      </a>
-{% else %}
+{% endif %}     
+{% if company_id %}
      <a href="{% url 'manufacture_id_list_all' company_id %}" >
      <span id="all_record_show" class="badge badge-success" title="Показати всі записи" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">more_horiz</i></span>
      </a>
