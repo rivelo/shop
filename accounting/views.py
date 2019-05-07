@@ -2863,6 +2863,12 @@ def catalog_import_content(request):
             update_list.append(row)                
         except: # Catalog.DoesNotExist:
             #add_list.append(row)
+            m = Manufacturer.objects.get(id=row[8])
+            t = Type.objects.get(id=row[7])
+            c = Currency.objects.get(id = row[4])
+            country = Country.objects.get(id=row[9])                                        
+            Catalog(ids=row[0], dealer_code=row[1], name=row[2], manufacturer=m, type=t, year=datetime.datetime.now().year, color='', price=row[3], currency=c, sale=0, country=country, count = 0).save()          
+
             add_list.append({'id': id, 'code': code, 'photo': row[6], 'name': row[2], 'desc': row[5]});
             log_writer.writerow([row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]])
 #        print " ---------- END -------------"            
