@@ -576,10 +576,18 @@ class ClientInvoiceForm(forms.ModelForm):
 #        cat = Catalog.objects.get(id = cid)
         cat = cid
         sprice = (100-sale)*0.01*cat.price
+        cat_sale = (100-cat.sale)*0.01*cat.price
         discount = cat.get_discount()
-        print "GET Sprice = " + str(sprice) + "Discount = " + str(discount)
+#        print "GET Sprice = " + str(sprice) + " --- Discount = " + str(discount)
+        try:
+            discount = discount[0]
+        except: 
+            discount = discount
+#        print "CAT sale = " + str(cat_sale) + " --- Discount = " + str(discount)            
+        if discount > cat_sale:
+            discount = cat_sale
         if (discount > sprice):
-            print "GET Sprice = " + str(sprice) + "Discount = " + str(discount)
+#            print "IF discount > sale /// Sprice = " + str(sprice) + " --- Discount = " + str(discount)
             raise forms.ValidationError(u"Знижка не може бути більше за встановлену на товар " + str(int(discount)) + u" грн.")
 #            return cleaned_data 
         if ((sale > 100) or (sale > cat.sale+20)) and (auth_group(self.request.user, 'admin')==False) and (discount == 0):
