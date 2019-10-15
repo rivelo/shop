@@ -8,6 +8,8 @@
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
 <link rel="stylesheet" href="/media/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="/media/css/dataTables.jqueryui.css">
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
  
 <script type="text/javascript" src="/media/jquery-ui.min.js"></script>
 <script type="text/javascript" language="javascript" src="/media/jquery.dataTables.min.js"></script>
@@ -34,6 +36,7 @@
 <script type="text/javascript">
 
 $(document).ready(function() {
+	$('[data-toggle="tooltip"]').tooltip();
     // DataTable
     var table = $('#iTable').DataTable({
         "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
@@ -114,8 +117,8 @@ $("body").on('click', 'span.ref_done', function() {
 		<th>Дата</th>
 		<th>Статус</th>
 		<!--    	<th>Опис</th> -->
-		<th>Edit</th>
-		<th>Дія</th>
+		<th></th>
+		<th></th>
 	</tr>
 </thead>
 <tbody>
@@ -127,8 +130,11 @@ $("body").on('click', 'span.ref_done', function() {
 	{% endif %}
 	
 		<td>{{forloop.counter}}</td>
-		<td><a href="/bicycle-store/add/{{type.model__id}}">{{type.id}}</a></td>
-		<td><a href="/bicycle/photo/{{type.model__id}}">Велосипед {{type.model__brand__name}}. Модель {{type.model__model}}</a></td>
+		<td data-toggle="tooltip" data-placement="right" title="Створено користувачем <br> {{type.user}}" data-html="true"><a href="/bicycle-store/add/{{type.model__id}}">{{type.id}}</a>
+		</td>
+		<td><h5><span class="badge badge-light"><a href="/bicycle/photo/{{type.model__id}}">Велосипед {{type.model__brand__name}}. Модель {{type.model__model}}</a></span></h5>
+		{{type.description}}
+		</td>
 		<td><a href="/client/result/search/?id={{type.client__id}}">{{type.client__name}}</a></td>
 		<td>{{type.model__type__type}}</td>
 {#		<td>{{type.model__brand__name}}</td> #}
@@ -144,9 +150,9 @@ $("body").on('click', 'span.ref_done', function() {
 		<td>{{type.date}}</td>
 		<td><span class="ref_done" id_order="{{type.id}}">{{type.done}}</span></td>
  
-		<td><a href="/bicycle/order/edit/{{ type.id }}">edit</a></td>
+		<td><a href="/bicycle/order/edit/{{ type.id }}"><i class="material-icons">edit</i></a></td>
 
-		<td><a href="/bicycle/order/{{ type.id }}/delete">delete</a></td>
+		<td><a href="/bicycle/order/{{ type.id }}/delete"><i class="material-icons">delete_forever</i></a></td>
 	</tr>
 	{% endfor %}
 </tbody>

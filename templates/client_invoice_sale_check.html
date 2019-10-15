@@ -158,7 +158,8 @@ $('#m_spinner').spinner({
 
 <tr>
 <td style="text-align:left;" valign="bottom">
-<p>Продавець: ПП. Панчук Ігор Олексійович (ІПН 3084020932)</p>
+<!--  <p>Продавець: ПП. Панчук Ігор Олексійович (ІПН 3084020932)</p>  -->
+<p>Продавець: ПП Міщанюк Андрій Юрійович (ІПН 3285112819) IBAN UA213348510000000002600583618</p>
 <p> Покупець: <a href="/client/result/search/?id={{client.id}}">{{client.name}}</a></p>
 </td>
 <td id="tdchecklogo" ALIGN="right">
@@ -238,13 +239,15 @@ $('#m_spinner').spinner({
 </p>
 <p>
 <br>
-Підпис ___________________   Панчук Ігор Олексійович
+<!-- Підпис ___________________   Панчук Ігор Олексійович  -->
+Підпис ___________________   Міщанюк Андрій Юрійович
 
 </p>
 
 {% if is_workshop %}
 
-{% if print %}
+
+{% if print == "True" %}
 <a href="/client/workshop/check/">Версія для друку</a>
 <a href="/client/workshop/check/email/">Відправити на Email</a>
 <h3 id="print_chk">Фіскальний чек</h3>

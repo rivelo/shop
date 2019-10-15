@@ -1302,7 +1302,7 @@ def bicycle_order_add(request):
 
 def bicycle_order_list(request):
     #list = Bicycle_Order.objects.all().order_by("-date")
-    list = Bicycle_Order.objects.all().order_by("-date").values('model__id', 'model__model', 'model__brand__name', 'model__year', 'model__color', 'model__type__type', 'client__id', 'client__name', 'client__forumname', 'size', 'price', 'prepay', 'sale', 'date', 'done', 'id', 'currency__name')
+    list = Bicycle_Order.objects.all().order_by("-date").values('model__id', 'model__model', 'model__brand__name', 'model__year', 'model__color', 'model__type__type', 'client__id', 'client__name', 'client__forumname', 'size', 'price', 'prepay', 'sale', 'date', 'done', 'id', 'currency__name', 'description', 'user')
     return render_to_response('index.html', {'order': list, 'weblink': 'bicycle_order_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
     
 
@@ -3619,7 +3619,7 @@ def client_invoice(request, cid=None, id=None):
     clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))
 
     cat_obj = cat.get_discount_item()
-    
+
     return render_to_response('index.html', {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
@@ -3693,8 +3693,9 @@ def client_invoice_edit(request, id):
         b_len = True
         if a.description.find('length:')>=0:
             dlen = a.description.split('\n')[-1].split(':')[1]
-    clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))        
-    return render_to_response('index.html', {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'box_number': nbox, 'b_len': b_len, 'desc_len':dlen, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))
+    cat_obj = cat.get_discount_item()        
+    return render_to_response('index.html', {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len, 'desc_len':dlen, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def client_invoice_set(request):
@@ -3917,7 +3918,7 @@ def client_workshop_check(request, param=None):
     text = pytils_ua.numeral.in_words(int(sum))
     month = pytils_ua.dt.ru_strftime(u"%d %B %Y", wk[0].date, inflected=True)
 
-    w = render_to_response('client_invoice_sale_check.html', {'check_invoice': wk, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'print':'True', 'is_workshop': 'True', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    w = render_to_response('client_invoice_sale_check.html', {'check_invoice': wk, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'print':param, 'is_workshop': 'True', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 #    w = render_to_response('client_invoice_sale_check.html', {'check_invoice': ci, 'month':month, 'sum': sum, 'client': client, 'str_number':text})
     if param == 'print':
         return w
@@ -5789,8 +5790,9 @@ def payform(request):
             error_msg = "Вибрані позиції різних клієнтів"
             return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
         if inv.check_pay() and ('send_check' not in request.POST):
-            error_msg = "Вибрані позиції вже оплачені"
-            return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+            if (auth_group(request.user, 'admin') == False):
+                error_msg = "Вибрані позиції вже оплачені"
+                return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
         
         client = inv.client
         #inv.pay = inv.sum
@@ -5799,8 +5801,9 @@ def payform(request):
     #-------- показ і відправка чеку на електронку ------
     if 'send_check' in request.POST:
         if inv.check_pay() == False:
-            error_msg = "Вибрані позиції ще не оплачені і на них не можна друкувати фіскальний чек"
-            return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+            if (auth_group(request.user, 'admin') == False):
+                error_msg = "Вибрані позиції ще не оплачені і на них не можна друкувати фіскальний чек"
+                return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
         
         text = pytils_ua.numeral.in_words(int(sum))
         month = pytils_ua.dt.ru_strftime(u"%d %B %Y", ci[0].date, inflected=True)
@@ -6112,10 +6115,10 @@ def client_payform(request):
         ci = ClientInvoice.objects.filter(id__in=list_id)
         client = ci[0].client
         for inv in ci:
-            if inv.check_pay() :
-                error_msg = "Вибрані позиції вже оплачені"
-                return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
-
+            if inv.check_pay():
+                if (auth_group(request.user, 'admin') == False):
+                    error_msg = "Вибрані позиції вже оплачені!"
+                    return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
        
 #--------- Begin section to send data to CASA ---------
         try: 
@@ -6129,6 +6132,11 @@ def client_payform(request):
                 return HttpResponse("Включіть комп'ютер з касовим апаратом", content_type="text/plain;charset=UTF-8;")
             else:
                 status = False
+
+        if (float(request.POST['pay']) == 0) and (float(request.POST['pay_terminal']) == 0):
+            if (client.id == settings.CLIENT_UNKNOWN):
+                return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': "Невідомий клієнт не може мати борг"}, context_instance=RequestContext(request, processors=[custom_proc]))
+
         for inv in ci:
             inv.pay = inv.sum
             desc = desc + inv.catalog.name + "; "
@@ -6143,7 +6151,8 @@ def client_payform(request):
     print_check = request.POST.get("print_check", False)
     if print_check == False:
         if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
-            if client.id == settings.CLIENT_UNKNOWN:
+            if (client.id == settings.CLIENT_UNKNOWN):
+                print "CLIENT id = " + str(client.id) + " -- SUM = " + str(sum)
                 if (float(request.POST['pay']) + float(request.POST['pay_terminal']) < sum):
                 #return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8;;charset=UTF-8");
                     return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': "Невідомий клієнт не може мати борг"}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -6160,6 +6169,13 @@ def client_payform(request):
             if float(request.POST['pay_terminal']) != 0:
                 ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
                 ccred.save()
+
+        #=======================================================================
+        # if (float(request.POST['pay']) == 0) and (float(request.POST['pay_terminal']) == 0):
+        #     if (client.id == settings.CLIENT_UNKNOWN):
+        #         print "CLIENT id = " + str(client.id) + " -- SUM = " + str(sum)
+        #         return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': "Невідомий клієнт не може мати борг"}, context_instance=RequestContext(request, processors=[custom_proc]))
+        #=======================================================================
     
         cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
         cdeb.save()
@@ -6324,7 +6340,7 @@ def client_payform(request):
 #                data =  {"id":inv.catalog.pk, "cname":inv.catalog.name[:40].encode('utf8')}
 #                url = base + urllib.urlencode(data)
 #                page = urllib.urlopen(url).read()
-        
+    print "Finish Pay - Save!"    
     cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
     cdeb.save()
     if client.id == settings.CLIENT_UNKNOWN:

@@ -224,9 +224,13 @@ $(document).ready(function() {
 	$("#id_price").attr("readonly", "true");
 {% endif %}
 
-{% if cat_sale %}
+{% if cat_sale.sale > catalog_obj.sale %}
+console.log("IF cat.sale = {{catalog_obj.sale}} ");
 $('#id_sale').attr('sale', {{cat_sale.sale}} );
 $('#id_sale').val( {{cat_sale.sale}} );
+{% else %}
+$('#id_sale').attr('sale', {{catalog_obj.sale}} );
+$('#id_sale').val( {{catalog_obj.sale}} );
 {% endif %}
 
 $('[data-toggle="tooltip"]').tooltip();	

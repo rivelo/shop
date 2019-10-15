@@ -586,7 +586,7 @@ class ClientInvoiceForm(forms.ModelForm):
 #        print "CAT sale = " + str(cat_sale) + " --- Discount = " + str(discount)            
         if discount > cat_sale:
             discount = cat_sale
-        if (discount > sprice):
+        if (discount > sprice) and (auth_group(self.request.user, 'admin')==False):
 #            print "IF discount > sale /// Sprice = " + str(sprice) + " --- Discount = " + str(discount)
             raise forms.ValidationError(u"Знижка не може бути більше за встановлену на товар " + str(int(discount)) + u" грн.")
 #            return cleaned_data 
