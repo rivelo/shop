@@ -7083,7 +7083,7 @@ def photo_url_get(request, id=None):
 #            print "Locale = None"
             save_photo_local(obj, o_url, media, file_path, filename + filetype)            
 #            return HttpResponse("Local NoneType")
-            str_obj = "<img style='max-width:500px' src='" + str(o_url) + "'> <br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + obj.url + "<br>local = " + (str(obj.local) or "") + "  <br>  www = " + str(obj.www)
+            str_obj = "<img style='max-width:500px' src='" + str(o_url) + "'> <br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + obj.url + "<br>local = " + (str(obj.local) or "") + "  <br>  www = " + str(obj.www) + "<br> User = " + str(obj.user)
             return HttpResponse(str_obj)
         
 #        print "Local path + obj = " + dirname_glob[:-1] + obj.local
@@ -7092,7 +7092,7 @@ def photo_url_get(request, id=None):
  #           print "File Local exists = " + dirname_glob[:-1] + obj.local
             #obj.local = ''
             #obj.save()
-            str_obj = "<img style='max-width:500px' src='" + (str(obj.local) or "") + "'> <br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + obj.url + "<br>local = " + (str(obj.local) or "") + "  <br>  www = " + str(obj.www)
+            str_obj = "<img style='max-width:500px' src='" + (str(obj.local) or "") + "'> <br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + obj.url + "<br>local = " + (str(obj.local) or "") + "  <br>  www = " + str(obj.www) + "<br> User = " + str(obj.user)
             return HttpResponse(str_obj)
 
         if ((obj.local <> '') and (not os.path.isfile(dirname_glob[:-1] + obj.local)) and (o_url <> '')):
@@ -7100,7 +7100,7 @@ def photo_url_get(request, id=None):
             save_photo_local(obj, o_url, media, file_path, filename + filetype)
 
  #       print "LAST return"
-        str_obj = "<img style='max-width:500px' src='" + (str(obj.local) or "") + "'> <br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + obj.url + "<br>local = " + (str(obj.local) or "") + "  <br>  www = " + str(obj.www)
+        str_obj = "<img style='max-width:500px' src='" + (str(obj.local) or "") + "'> <br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + obj.url + "<br>local = " + (str(obj.local) or "") + "  <br>  www = " + str(obj.www) + "<br> User = " + str(obj.user)
         #str_obj = "<img style='max-width:500px' src='"+ str(obj.local) or "" + "'><br>Photo = ["+ str(obj.date) +"] " + "<br>cat_id - " + str_cat + "<br> bike_id - " + str_bike + "<br>" + "url = " + str(obj.url) or "" + "<br>local = " + str(obj.local) or "" + "  <br>  www = " + str(obj.www) or ""  
         return HttpResponse(str_obj) 
 
@@ -8468,10 +8468,12 @@ def discount_edit(request, id):
     return render_to_response('index.html', {'form': form, 'weblink': 'discount.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
     
 
-def discount_list(request):
+def discount_list(request, year = None):
     list = None
-    list = Discount.objects.all()#exclude( (Q(url = '') | Q (catalog = None)) )
-#    list = Photo.objects.filter((Q(www = '') | Q (www = None)) & Q(catalog = None)).values('user', 'date', 'url', 'catalog__name', 'catalog__id', 'catalog__ids', 'user__username', 'id', 'bicycle__model', 'bicycle', 'local', 'www').order_by('-date')
+    if year == None:
+        year = datetime.datetime.now().year
+#    list = Discount.objects.all()#exclude( (Q(url = '') | Q (catalog = None)) )
+    list = Discount.objects.filter(date_start__year = year).all()#exclude( (Q(url = '') | Q (catalog = None)) )
     return render_to_response('index.html', {'weblink': 'discount_list.html', 'list': list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 

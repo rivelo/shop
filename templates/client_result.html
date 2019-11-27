@@ -87,6 +87,7 @@ $(document).ready(function() {
 	$("#dialog_r").hide();
 	$("#dialog_msg").hide();
 	$("#dialog_ajax_load").hide();
+	$("#dialog_return").hide();
 	
   	$( "#img_bike" ).click(function() {
   		$( "#dialog" ).dialog();
@@ -153,6 +154,8 @@ var sum=0;
 document.getElementById('for_pay').innerHTML = sum + " грн.";
 document.getElementById('debet').innerHTML = ( parseFloat(document.getElementById('for_pay').innerHTML) + parseFloat(document.getElementById('workshop_pay').innerHTML) ).toFixed(2);
 //document.getElementById('row_count').innerHTML = "Row = " + document.getElementById("product").rows.length;
+
+
 }
     
 function resWorkshop()
@@ -426,7 +429,10 @@ $(this).editable('/clientcredits/set/', {
 }
 
 $(document).ready(function() {
-//	$('div.read').on("click", function(){
+
+	$(".profit").hide();
+	
+	//	$('div.read').on("click", function(){
 	//$("body").on("click", "div.read", function(){	
 	
 	$("div").on("click", ".read", function(){
@@ -495,7 +501,80 @@ if (confirm('Ви впевненні що хочете відправити ли
   	})	
 }
 }); 
-    
+
+
+$( "#dialog_return" ).dialog({
+	modal: true,
+	closeOnEscape: true,
+	autoOpen: false,
+	width: 'auto',
+	height: 'auto',
+	maxWidth: 500,
+	open: function( event, ui ) {
+		$('.context-menu').remove(); //видалення меню
+		$("#sp_count").spinner({
+		min: 1,
+		max: $("#sp_count").attr('max'),
+		change: function( event, ui ) {
+			calc_sum();
+		},
+		stop: function( event, ui ) {
+			//var dsum = $("#sp_count").val() * $("#dialog_return").attr("price");  
+			//$("#print_sum").html("Сума: " + dsum);
+			calc_sum();
+		}
+		});
+		
+	},
+    buttons: {
+    "Створити": function() {
+    if ($("#msg_return").val() != "") {
+    var cash = true;
+	if ($("#sp_cash").is(':checked')) {
+		cash = true;
+	}
+	else {
+		cash = false;
+	}
+
+	$.ajax({
+       type: "POST",
+       	url: "/client/invoice/return/"+$('#dialog_return').attr('id_target')+"/add/",
+       	data: {msg: $("#msg_return").val(), count: $("#sp_count").val(), cash: cash},
+       	dataType: "text",
+       success:function(msg){
+        var td_count = $("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"'] td.tcount"); 
+        var td_sum = $("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"'] td.tsum");
+        var td_pay = $("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"'] td.tpay");
+        var rcount = td_count.html() - $("#sp_count").val();
+        td_sum.html(td_sum.html() / td_count.html() * rcount);
+        td_pay.html(td_sum.html());
+        td_count.html(rcount);
+        $("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"']").css("background-color","#99FF33");
+       	if (td_count.html() == 0) { 
+       		$("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"']").hide();
+       	}
+      	
+       },
+       error:function(){
+         alert("При отправке возникли проблемы");
+       }
+    });
+                
+      	$( this ).dialog( "close" );
+	}
+	else {
+	alert("Введіть причину обміну/повернення");
+	}
+		
+    },
+    "Відмінити": function() {
+       	$( this ).dialog( "close" );	
+    },
+       
+    }
+});
+
 $('.edit_workstatus').editable('/workticket/edit/', { 
      loadurl : '/workstatus/view/',
      type   : 'select',
@@ -556,7 +635,27 @@ $('.phone').editable('/workticket/edit/', {
 }); 
 
 
+{% if request.user|has_group:"admin" %}
+$("#show_profit").click(function(){
+	$(".profit").toggle();
 });
+{% endif %}
+
+});
+
+function show_ret(ciid, item) {
+	//iid = $(this).attr("tvalue");
+	iid = ciid
+	console.log("Catalog = " + $(item).parents('tr').find('td.cat_name > div > div.p-2').html()) // + $(item).parents('tr').find('td.cat_name').html())// > td.cat_name').html() );
+	console.log("this = " + item)
+	$("#dialog_return").attr("id_target", iid);
+	$("#dialog_return").dialog("open");
+	//$("ui-id-2").attr("html", "New title");
+	//document.getElementById("ui-id-2").innerHTML = "Повернення: " + ""
+	$("#ui-id-6").html("Повернення: " + $(item).parents('tr').find('td.cat_name > div > div.p-2').html().substr(0, 35));
+}
+
+
 </script>
 
 <body onLoad="res(); resWorkshop()">
@@ -591,6 +690,19 @@ $('.phone').editable('/workticket/edit/', {
 {% endif %}
 {% endfor %}  
 </div>	
+
+
+<div id="dialog_return" title="Повернення/Обмін" id_target="">
+<label>Введіть причину відмови/повернення</label><br>
+<textarea  name="dreturn" id="msg_return" value="" wrap="soft" cols="42" rows="7"></textarea>
+<br>
+<label>Введіть кількість</label>
+<input id="sp_count" value="1" max="5">
+<br>
+<label>Готівка</label>
+<input type="checkbox" id="sp_cash" >
+<label id="print_sum" class="ressum">Сума:</label>
+</div>
 
 <!-- repair bike  
 <img style="display: none;" id="img_repair" src="http://thumb10.shutterstock.com/thumb_small/295516/103760093/stock-photo-bicycle-repair-sign-on-a-white-background-part-of-a-series-103760093.jpg" height="64px" >
@@ -817,7 +929,7 @@ $('.phone').editable('/workticket/edit/', {
   <div class="ml-auto p-2">
 	{% if perms.accounting.delete_preorder %}
     <a href="/clientdebts/edit/{{ debt.id }}" class="edit_row_user"><i class="material-icons" >edit</i></a>	
-    <a href="/clientdebts/delete/{{ debt.id }}" onclick="return confirm('Видалити запис?')" class="delete_row_user"><i class="material-icons">delete</i></a>	
+    <a href="/clientdebts/delete/{{ debt.id }}" onclick="return confirm('Видалити запис?')" class="delete_row_user"><i class="material-icons">delete</i></a>
 	{% endif %}
   </div>
 	</div>
@@ -853,18 +965,19 @@ $('.phone').editable('/workticket/edit/', {
 	<th>Товар <a href="javascript:" id="last_invoice" day="{{ tdelta|add:tdelta }}">  >>> [+ {{tdelta}} днів] </a></th>
 	<th>Кількість</th>
 	<th>Прайс</th>
-	<th>Сума</th>
+	<th id="show_profit">Сума</th>
+	<th class="profit">Profit</th>
 	<th>Оплата</th>
 	<th>Валюта</th>
 	<th>Оплата</th>
 	</tr>
 	
 	{% for inv in invoice %}
-	<tr class="tr_inv">
+	<tr class="tr_inv" ci_id="{{inv.id}}" count="{{inv.count}}" cat_id={{inv.catalog.pk}} cat_name="{{inv.catalog}}">
 	<td title="{{inv.user}} - {{inv.date|time:"H:i"}}" data-toggle="tooltip" data-placement="top">
 	{{inv.date}}
 	</td>
-	<td>
+	<td class="cat_name">
 	<div class="d-flex">
 	<div class="p-2">	{{inv.catalog}}</div>
   	<div class="ml-auto p-2">
@@ -872,8 +985,16 @@ $('.phone').editable('/workticket/edit/', {
 	{% if inv.pay != inv.sum %}
 	<a href="{% url 'client_invoice_edit' inv.pk %}" title="Редагувати" data-toggle="tooltip" data-placement="right"><i class="material-icons" >edit</i></a>
 	{% endif %}
+
+	{% if request.user|has_group:"admin" %}
+	{% if inv.pay != inv.sum %}
+	<a href="{% url 'client_invoice_delete' inv.pk %}" onclick="return confirm('Видалити товар {{inv.catalog}}?')" title="Видалити" data-toggle="tooltip" data-placement="right"><i class="material-icons" >delete</i></a>
+	{% endif %}
+	{% endif %}
 	
 	{% if inv.pay == inv.sum %}
+	<a href="#" onclick="show_ret(ciid={{inv.id}}, this);return false" title="Обмін/Повернення" data-toggle="tooltip" data-placement="right"><i class="material-icons" >undo</i></a> 
+{#	<a href="#" onclick="show_ret();return false" title="Обмін/Повернення" data-toggle="tooltip" data-placement="right"><i class="material-icons" >undo</i></a> #}
 	{% if request.user|has_group:"admin" %} <a href="{% url 'client_invoice_edit' inv.pk %}" title="Редагувати" data-toggle="tooltip" data-placement="right"><i class="material-icons" >edit</i></a> {% endif %}
 	{% endif %}
 	
@@ -888,6 +1009,20 @@ $('.phone').editable('/workticket/edit/', {
 	</td>
 	<td>
 	{{inv.sum}}
+	</td>
+	<td class="profit">
+	{% if perms.accounting.add_preorder %} 
+	{{inv.get_profit.0|floatformat:"2"}}  
+	{% if 0 < inv.get_profit.1 %}
+	<h5 style="background-color: #086120; color: white; text-align: center;">
+	{{inv.get_profit.1|floatformat:"0"}}
+	</h5>
+	{% else %}
+	<h5 style="background-color: red; color: bisque; text-align: center;">
+	{{inv.get_profit.1|floatformat:"0"}}
+	</h5>
+	{% endif %}
+    {% endif %}
 	</td>
 	
 {% ifequal inv.sum inv.pay %}
@@ -923,6 +1058,7 @@ $('.phone').editable('/workticket/edit/', {
 	<th></th>
 	<th>Загальна сума</th>
 	<th>{{client_invoice_sum}} грн.</th>
+	<th class="profit">Profit</th>
 	<th><p><input type="submit" value="Оплата" name="pay"></p>
 	<input type="submit" value="E-mail" name="send_check"></th>
 	{% if perms.accounting.delete_clientcredits %}
