@@ -3563,13 +3563,15 @@ def client_invoice(request, cid=None, id=None):
 
     if (id):
         client = Client.objects.get(pk = id)
-        a = ClientInvoice(client = client, date=datetime.datetime.today(), price=cat.price, sum=cat.price, sale=int(cat.sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=cat)
+        a = ClientInvoice(client = client, date=datetime.datetime.today(), price=cat.price, sum=cat.price, sale=int(cat.sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=cat, user = request.user)
         
     else:
-        a = ClientInvoice(date=datetime.datetime.today(), price=cat.price, sum=cat.price, sale=int(Catalog.objects.get(id = cid).sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=cat)
+        a = ClientInvoice(date=datetime.datetime.today(), price=cat.price, sum=cat.price, sale=int(Catalog.objects.get(id = cid).sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=cat, user = request.user)
         
     if request.method == 'POST':
-        form = ClientInvoiceForm(request.POST, instance = a, catalog_id = cid, request = request)
+        #form = ClientInvoiceForm(request.POST, initial = { instance = a, catalog_id = cid, request = request, 'user': request.user} )
+        #form = ClientInvoiceForm(initial = { 'instance' : a, 'catalog_id' : cid } )
+        form = ClientInvoiceForm(request.POST, instance = a, catalog_id=cid, request = request)
         if form.is_valid():
 #            form.save()            
             client = form.cleaned_data['client']
@@ -3589,9 +3591,11 @@ def client_invoice(request, cid=None, id=None):
                     cat.length = cat.length + clen
                 else:
                     cat.length = 0
-            user = None #form.cleaned_data['user_id']            
+            #user = None #form.cleaned_data['user_id']            
+            user_id = form.cleaned_data['user']
             if request.user.is_authenticated():
-                user = request.user
+                #user = request.user
+                user = user_id
             ClientInvoice(client=client, catalog=catalog, count=count, sum=sum, price=price, currency=currency, sale=sale, pay=pay, date=date, description=description, user=user).save()
             
             cat.count = cat.count - count
@@ -3609,6 +3613,7 @@ def client_invoice(request, cid=None, id=None):
             return HttpResponseRedirect('/client/invoice/view/')
     else:
         form = ClientInvoiceForm(instance = a, catalog_id=cid, request = request)
+        #form = ClientInvoiceForm(initial = { 'instance' : a, 'catalog_id' : cid, 'user': request.user})
     nday = 3
     nbox = cat.locality
     b_len = False
@@ -4980,7 +4985,8 @@ def shopdailysales_add(request):
         except ClientCredits.DoesNotExist:
             cashCred = 0
         try:
-            TcashCred = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price")).get(cash_type=2)['suma']
+            #TcashCred = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price")).get(cash_type=2)['suma'] # PRIVAT
+            TcashCred = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price")).get(cash_type=9)['suma'] # PUMB
         except ClientCredits.DoesNotExist:
             TcashCred = 0
         try:
@@ -5924,7 +5930,7 @@ def client_ws_payform(request):
                 ccred.save()
         if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
             pay = request.POST['pay_terminal']
-            cash_type = CashType.objects.get(id = 2) # термінал
+            cash_type = CashType.objects.get(id = 9) # термінал приват = 2; ПУМБ = 9
             if float(request.POST['pay_terminal']) != 0:
                 ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
                 ccred.save()
@@ -6032,7 +6038,7 @@ def client_ws_payform(request):
             
     if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
         pay = request.POST['pay_terminal']
-        cash_type = CashType.objects.get(id = 2) # термінал
+        cash_type = CashType.objects.get(id = 9) # термінал приват = 2 / ПУМБ = 9
         if float(request.POST['pay_terminal']) != 0:
             ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
@@ -6049,7 +6055,7 @@ def client_ws_payform(request):
                 check.count = 1
                 check.discount = 0
                 check.price = inv.price
-                check.cash_type = CashType.objects.get(id = 2)
+                check.cash_type = CashType.objects.get(id = 9)
                 check.print_status = False
                 check.user = user
                 check.save()
@@ -6165,7 +6171,7 @@ def client_payform(request):
                 ccred.save()
         if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
             pay = request.POST['pay_terminal']
-            cash_type = CashType.objects.get(id = 2) # термінал
+            cash_type = CashType.objects.get(id = 9) # термінал
             if float(request.POST['pay_terminal']) != 0:
                 ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
                 ccred.save()
@@ -6284,7 +6290,7 @@ def client_payform(request):
 
     if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
         pay = request.POST['pay_terminal']
-        cash_type = CashType.objects.get(id = 2) # термінал
+        cash_type = CashType.objects.get(id = 9) # термінал
         if float(request.POST['pay_terminal']) != 0:
             ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
@@ -6307,7 +6313,7 @@ def client_payform(request):
                 check.count = inv.count
                 check.discount = inv.sale
                 check.price = inv.price
-                check.cash_type = CashType.objects.get(id = 2)
+                check.cash_type = CashType.objects.get(id = 9)
                 check.print_status = False
                 check.user = user
                 check.save()
@@ -8521,8 +8527,8 @@ def discount_lookup(request):
 
 
 def send_workshop_sound(request):
-    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-    data =  {"cmd": "playsound"} #, "id":'77', "cname":bike_s, "price":price, "count": count, "discount": discount}
+    base = "http://"+settings.HTTP_WORKSHOP_SERVER_IP+":"+settings.HTTP_WORKSHOP_SERVER_PORT+"/?"
+    data =  {"cmd": "play_sound"} #, "id":'77', "cname":bike_s, "price":price, "count": count, "discount": discount}
     url = base + urllib.urlencode(data)
     page = urllib.urlopen(url).read()
     return HttpResponse("Повідомлення на склад відправлено")
@@ -8535,5 +8541,163 @@ def qrscanner(request):
     return render_to_response('index.html', {'weblink': 'scanner_qr.html', 'next': current_url}, context_instance=RequestContext(request, processors=[custom_proc]))
     #return render_to_response('scanner_qr.html', {}, context_instance=RequestContext(request, processors=[custom_proc]))
 
+### ---------- RRO Casa Function --------------  
     
+def casa_checkout(request, id):
+    URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
+    #cmd = 'play_sound'
+    cmd = 'open_port;1;115200;'
+    #cmd = 'close_port;'
+    #cmd = 'get_soft_version;'
+    #cmd = 'indicate;Hello World'
+    #cmd = 'get_date_time;'
+    #cmd = 'get_header;'
+    #cmd = 'get_plu_info;1858;'
+    #cmd = 'get_plu_info;7247;' # 3 параметр - Штучный/весовой товар (0/1)
+    #cmd = 'get_cashbox_sum;';
+    #cmd = 'put_logo;logo_rivelo_black.bmp';
+    #cmd = 'activate_logo;312;142;';
+    #cmd = 'print_receipt_copy;'
+    #cmd = 'print_empty_receipt;'
+    #cmd = 'set_time;18;29;00'
+    #cmd = 'in_out;0;0;0;0;'+str(0.0)+';;;'
+    #cmd = 'open_receipt;0' # відкрити чек
+    #cmd = 'open_receipt;1' # відкрити чек повернення
+    hash = 'rivelo2020casa4kavkazkaSt.'
+    user = 'ygrik'
+    # defining a params dict for the parameters to be sent to the API 
+    PARAMS = {'address':URL,
+              'cmd': cmd, 
+              'hash': hash, 
+              'user': user,
+             } 
+    resp = None
+    # sending post request and saving response as response object 
+    try:
+        resp_open = requests.post(url = URL, data = PARAMS)
+        #PARAMS['cmd'] = 'cashier_registration;1;0;'
+        #resp_cashier_reg = requests.post(url = URL, data = PARAMS)
+        #PARAMS['cmd'] = 'get_cashbox_sum;'
+        #PARAMS['cmd'] = 'in_out;0;0;0;0;'+str(0.0)+';;;' # внесення готівки
+        #PARAMS['cmd'] = 'in_out;0;0;0;1;'+str(0.0)+';;;' #Вилучення готівки
+        PARAMS['cmd'] = u'get_plu_info;7247;' # 3 параметр - Штучный/весовой товар (0/1)
+        #PARAMS['cmd'] = u'add_plu;7247;0;0;0;1;1;1;203.00;0;[BRL-80-99] Tektro - Гальмівні ручки Tektro RS36;0.00;'.encode('cp1251')
+        #PARAMS['cmd'] = 'execute_Z_report;12321;'
+        resp = requests.post(url = URL, data = PARAMS)
+        print "Result = " + str(resp)
+        #print dir(resp) #TEXT/HTML
+        print (resp.status_code, resp.reason) #HTTP
+    except:
+        print  "Error - Connection failed!"
+        return HttpResponse("Connection failed! Перевірте зєднання з комп'ютером")
+    
+    print "Content:" + str(resp.content)
+    print "Text:" + str(resp.request.body)    
+    #print "JSON:" + str(resp.json)
+
+    PARAMS['cmd'] = 'close_port;'
+    resp_close = requests.post(url = URL, data = PARAMS)
+
+    return HttpResponse("Status - " + str(resp.reason) + " <br><<< Result >>>" + str(resp.text))
+
+
+def casa_getstatus(request, id):
+    URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
+    #hash = 'rivelo2020casa4kavkazkaSt.'
+    #user = 'ygrik'
+    cmd = 'open_port;1;115200;'
+    # defining a params dict for the parameters to be sent to the API 
+    PARAMS = {'address':URL,
+              'cmd': cmd, 
+              'hash': settings.MINI_HASH_1, 
+              'user': request.user.username,
+              }
+ 
+    resp = None
+    # sending post request and saving response as response object 
+    try:
+        resp_open = requests.post(url = URL, data = PARAMS)
+        PARAMS['cmd'] = 'get_status;'
+        resp = requests.post(url = URL, data = PARAMS)
+        print "Result = " + str(resp)
+        print (resp.status_code, resp.reason) #HTTP
+    except:
+        return HttpResponse("Connection failed! Перевірте зєднання з комп'ютером")
+    
+    response = HttpResponse()
+    if resp.status_code == 200:
+        response.write("Status: <br>")
+        res_list = str(resp.reason).split(';') 
+        response.write("Касир № <b>" + res_list[1] + "</b><br>")
+        response.write("Зміна № <b>" + res_list[2] + "</b><br>")
+        response.write("Стан чеку - <b>" + res_list[3] + "</b><br>")
+        response.write("Тривалість зміни (0 - менше 23 годин / 1 - більше 23 годин) - <b>" + res_list[9] + "</b><br>")
+        response.write("Тривалість зміни (0 - менше 24 годин / 1 - більше 24 годин) - <b>" + res_list[10] + "</b><br>")
+        response.write("Дата початку зміни - <b>" + res_list[11] + "</b><br>")
+        response.write("Час початку зміни - <b>" + res_list[12] + "</b><br>")
+        response.write("Номер закритого чеку в даній зміні - <b>" + res_list[15] + "</b><br>")
+        response.write("Номер закритого чеку в попередній зміні - <b>" + res_list[16] + "</b><br>")
+        response.write("Кількість касирів - <b>" + res_list[19] + "</b><br>")
+        response.write("Блокування при не передачі даних протягом 72 годин - <b>" + res_list[22] + "</b><br>")
+        response.write("Точка блокування 72 години (дата)  - <b>" + res_list[23] + "</b><br>")
+        response.write("Точка блокування 72 години (час)  - <b>" + res_list[24] + "</b><br>")
+
+    PARAMS['cmd'] = 'close_port;'
+    resp_close = requests.post(url = URL, data = PARAMS)
+    response.write("<br><<< Result >>> <br>" +str(resp.reason) + "<br><<< Result >>><br>" +  str(resp.text))
+    return response
+
+
+def casa_z_report(request, id):
+    URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
+    cmd = 'open_port;1;115200;'
+    PARAMS = {'address':URL, 'cmd': cmd, 
+              'hash': settings.MINI_HASH_1, 
+              'user': request.user.username,
+              }
+ 
+    resp = None
+    # sending post request and saving response as response object 
+    try:
+        resp_open = requests.post(url = URL, data = PARAMS)
+        PARAMS['cmd'] = 'get_cashbox_sum;'
+        resp = requests.post(url = URL, data = PARAMS)
+        print "Result = " + str(resp)
+        print (resp.status_code, resp.reason) #HTTP
+    except:
+        return HttpResponse("Connection failed! Перевірте зєднання з комп'ютером")
+    
+    response = HttpResponse()
+    if resp.status_code == 200:
+        response.write("Status: <br>")
+        res_list = str(resp.reason).split(';') 
+        response.write("Готівка: <b>" + res_list[1] + " грн.</b><br>")
+        response.write("Чек: <b>" + res_list[2] + " грн.</b><br>")
+        response.write("Кредитна карта: <b>" + res_list[3] + "</b><br>")
+        response.write("інший тип 1: <b>" + res_list[4] + "</b><br>")
+        response.write("інший тип 2: <b>" + res_list[5] + "</b><br>")
+        response.write("інший тип 3: <b>" + res_list[6] + "</b><br>")
+        response.write("інший тип 4: - <b>" + res_list[7] + "</b><br>")
+        PARAMS['cmd'] = 'cashier_registration;1;0;'
+        resp_cashier_reg = requests.post(url = URL, data = PARAMS)
+        print "Sum =  " + str(float(res_list[1]))
+        #PARAMS['cmd'] = 'in_out;0;0;0;1;'+res_list[1]+';;;' #Вилучення готівки
+        #resp_cashier_reg = requests.post(url = URL, data = PARAMS)
+        PARAMS['cmd'] = 'get_cashbox_sum;'
+        resp = requests.post(url = URL, data = PARAMS)
+        res_list = str(resp.reason).split(';')
+        cash = float(res_list[1])
+        term_cash = float(res_list[1])
+        print "CASH = " +  str(cash)
+        if cash == 0.0:
+            response.write("<br>Готівка в касі = <b>" + str(cash) + " грн</b><br>")
+            response.write("Термінал = <b>" + str(term_cash) + " грн</b><br>")
+            PARAMS['cmd'] = 'execute_Z_report;12321;'
+#            resp = requests.post(url = URL, data = PARAMS)
+
+    PARAMS['cmd'] = 'close_port;'
+    resp_close = requests.post(url = URL, data = PARAMS)
+    response.write("<br><<< Result >>> <br>" +str(resp.reason) + "<br><<< Result >>><br>" +  str(resp.text))
+    return response
+
     

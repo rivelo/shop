@@ -306,6 +306,10 @@ urlpatterns = patterns('',
     url(r'^catalog/saleform/$', 'catalog.accounting.views.catalog_saleform'),    
     url(r'^client/payform/$', 'catalog.accounting.views.client_payform'),
     url(r'^client/workshop/payform/$', 'catalog.accounting.views.client_ws_payform'),
+    
+    url(r'^casa/(?P<id>\d+)/view/$', 'catalog.accounting.views.casa_checkout'),
+    url(r'^casa/(?P<id>\d+)/status/$', 'catalog.accounting.views.casa_getstatus'),
+    url(r'^casa/(?P<id>\d+)/zreport/$', 'catalog.accounting.views.casa_z_report'),
     # Example:
     # url(r'^catalog/', include('catalog.foo.urls')),
 #    url(r'^sendmail/$', 'catalog.accounting.views.sendemail'),

@@ -73,10 +73,24 @@ TIME_INPUT_FORMATS = (
 
 DEFAULT_CHARSET = 'utf-8'
 
+MINI_HASH_1 = 'rivelo2020casa4kavkazkaSt.'
+MINI_HASH_2 = 'rivelo2020casa4MickevuchSt.'
+
 HTTP_MINI_SERVER_IP = '10.9.8.22' # work server
 #HTTP_MINI_SERVER_IP = '10.0.0.1' # work server
-#HTTP_MINI_SERVER_IP = '10.1.1.180' # work server
+#HTTP_MINI_SERVER_IP = '192.168.88.245' # test server
+HTTP_MINI_SERVER_IP_2 = '192.168.88.245' # test server
+
 HTTP_MINI_SERVER_PORT = '8123'
+HTTP_MINI_SERVER_PORT_2 = '8123'
+
+HTTP_WORKSHOP_SERVER_IP = '10.9.8.22' # workshop server
+#HTTP_WORKSHOP_SERVER_IP = '192.168.88.245' # workshop server
+HTTP_WORKSHOP_SERVER_PORT = '8008'
+
+HTTP_WORKSHOP_SERVER_IP_2 = '192.168.88.239' # workshop server
+HTTP_WORKSHOP_SERVER_PORT_2 = '8008'
+
 
 CLIENT_UNKNOWN = 138 # ID of unknown user
 

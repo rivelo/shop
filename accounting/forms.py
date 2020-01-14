@@ -561,6 +561,7 @@ class ClientInvoiceForm(forms.ModelForm):
     date = forms.DateTimeField(initial = datetime.datetime.now, label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'))
     description = forms.CharField(label='Description', widget=forms.Textarea(), required=False)
     length = forms.FloatField(initial=0, label="Довжина", widget=forms.HiddenInput())
+    user = forms.ModelChoiceField(queryset = User.objects.all(), required=True, label='Користувач')
 
     def __init__(self, *args, **kwargs):
         cid = kwargs.pop('catalog_id', None)
@@ -598,7 +599,7 @@ class ClientInvoiceForm(forms.ModelForm):
     class Meta:
         model = ClientInvoice
         fields = '__all__'
-        exclude = ['chk_del', 'user']         
+        exclude = ['chk_del'] #, 'user']         
 
 
 class ClientOrderForm(forms.ModelForm):
