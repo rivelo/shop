@@ -8578,8 +8578,46 @@ def qrscanner(request):
     #return render_to_response('scanner_qr.html', {}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 ### ---------- RRO Casa Function --------------  
-    
+
 def casa_checkout(request, id):
+    URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
+    cmd = 'open_port;1;115200;'
+    PARAMS = {'address':URL, 'cmd': cmd, 
+              'hash': settings.MINI_HASH_1, 
+              'user': request.user.username,
+              }
+ 
+    resp = None
+    # sending post request and saving response as response object 
+    try:
+        resp_open = requests.post(url = URL, data = PARAMS)
+        PARAMS['cmd'] = 'get_cashbox_sum;'
+        resp = requests.post(url = URL, data = PARAMS)
+        print "Result = " + str(resp)
+        print (resp.status_code, resp.reason) #HTTP
+    except:
+        return HttpResponse("Connection failed! Перевірте зєднання з комп'ютером")
+    
+    response = HttpResponse()
+    if resp.status_code == 200:
+        response.write("Status: <br>")
+        res_list = str(resp.reason).split(';') 
+        response.write("Готівка: <b>" + res_list[1] + " грн.</b><br>")
+        response.write("Чек: <b>" + res_list[2] + " грн.</b><br>")
+        response.write("Кредитна карта: <b>" + res_list[3] + "</b><br>")
+        response.write("інший тип 1: <b>" + res_list[4] + "</b><br>")
+        response.write("інший тип 2: <b>" + res_list[5] + "</b><br>")
+        response.write("інший тип 3: <b>" + res_list[6] + "</b><br>")
+        response.write("інший тип 4: - <b>" + res_list[7] + "</b><br>")
+
+    PARAMS['cmd'] = 'close_port;'
+    resp_close = requests.post(url = URL, data = PARAMS)
+    response.write("<br><<< Result >>> <br>" +str(resp.reason) + "<br><<< Result >>><br>" +  str(resp.text))
+    return response
+
+
+    
+def casa_command(request, id):
     URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
     #cmd = 'play_sound'
     cmd = 'open_port;1;115200;'
@@ -8699,8 +8737,8 @@ def casa_z_report(request, id):
         resp_open = requests.post(url = URL, data = PARAMS)
         PARAMS['cmd'] = 'get_cashbox_sum;'
         resp = requests.post(url = URL, data = PARAMS)
-        print "Result = " + str(resp)
-        print (resp.status_code, resp.reason) #HTTP
+        #print "Result = " + str(resp)
+        #print (resp.status_code, resp.reason) #HTTP
     except:
         return HttpResponse("Connection failed! Перевірте зєднання з комп'ютером")
     
@@ -8717,15 +8755,15 @@ def casa_z_report(request, id):
         response.write("інший тип 4: - <b>" + res_list[7] + "</b><br>")
         PARAMS['cmd'] = 'cashier_registration;1;0;'
         resp_cashier_reg = requests.post(url = URL, data = PARAMS)
-        print "Sum =  " + str(float(res_list[1]))
-        #PARAMS['cmd'] = 'in_out;0;0;0;1;'+res_list[1]+';;;' #Вилучення готівки
-        #resp_cashier_reg = requests.post(url = URL, data = PARAMS)
+        #print "Sum =  " + str(float(res_list[1]))
+        PARAMS['cmd'] = 'in_out;0;0;0;1;'+res_list[1]+';;;' #Вилучення готівки
+        resp_cashier_reg = requests.post(url = URL, data = PARAMS)
         PARAMS['cmd'] = 'get_cashbox_sum;'
         resp = requests.post(url = URL, data = PARAMS)
         res_list = str(resp.reason).split(';')
         cash = float(res_list[1])
         term_cash = float(res_list[1])
-        print "CASH = " +  str(cash)
+        #print "CASH = " +  str(cash)
         if cash == 0.0:
             response.write("<br>Готівка в касі = <b>" + str(cash) + " грн</b><br>")
             response.write("Термінал = <b>" + str(term_cash) + " грн</b><br>")
