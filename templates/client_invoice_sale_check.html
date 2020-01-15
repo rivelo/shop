@@ -47,6 +47,7 @@ $(document).ready(function() {
 	        	$('#msg_text').text("Невірна сума");
         	}
         	else {
+        		$('.ui-dialog-buttonset > button:contains(Додати)').hide();        		
 			$.ajax({
                 type: "POST",
                 

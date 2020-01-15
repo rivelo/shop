@@ -8117,7 +8117,7 @@ def workshop_sale_check_add(request):
 
                     except:
                         message = "Сервер не відповідає"
-                        #return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
+                        return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
 
                     res = Check.objects.aggregate(max_count=Max('check_num'))
                     chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
@@ -8137,7 +8137,7 @@ def workshop_sale_check_add(request):
                         if m_val >= t_val:
                             t = 1
                         else: 
-                            t = 2
+                            t = 9 # PUMB
 
                         check.cash_type = CashType.objects.get(id = t)
                         check.print_status = False
@@ -8150,6 +8150,9 @@ def workshop_sale_check_add(request):
 #                        data =  {"cmd": "add_plu", "id":'99'+str(inv.work_type.pk), "cname":inv.work_type.name[:40].encode('utf8'), "price":price, "count": count, "discount": 0}
                         PARAMS['cmd'] = 'add_plu;'+'99'+str(inv.work_type.pk)+";0;0;0;1;1;1;"+price+";0;"+inv.work_type.name[:40].encode('cp1251')+";"+count+";"
                         resp = requests.post(url = URL, data = PARAMS)
+                        PARAMS['cmd'] = 'sale_plu;0;0;0;'+count+";"+'99'+str(inv.work_type.pk)+";"
+                        resp = requests.post(url = URL, data = PARAMS)
+                        
 
 #                        url = base + urllib.urlencode(data)
 #                        page = urllib.urlopen(url).read()
