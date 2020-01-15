@@ -8179,9 +8179,9 @@ def workshop_sale_check_add(request):
                             # url = base + urllib.urlencode(data)
                             #===================================================
                             #page = urllib.urlopen(url).read()
-                            PARAMS['cmd'] = "pay;0;"+val+";"
+                            PARAMS['cmd'] = "pay;0;"+m_val+";"
                             resp = requests.post(url = URL, data = PARAMS)
-                            PARAMS['cmd'] = "pay;2;"+val+";"
+                            PARAMS['cmd'] = "pay;2;"+t_val+";"
                             resp = requests.post(url = URL, data = PARAMS)
 
                     else:
@@ -8203,9 +8203,9 @@ def workshop_sale_check_add(request):
                             # url = base + urllib.urlencode(data)
                             # page = urllib.urlopen(url).read()
                             #===================================================
-                            PARAMS['cmd'] = "pay;2;"+val+";"
+                            PARAMS['cmd'] = "pay;2;"+t_val+";"
                             resp = requests.post(url = URL, data = PARAMS)
-                            PARAMS['cmd'] = "pay;0;"+val+";"
+                            PARAMS['cmd'] = "pay;0;"+m_val+";"
                             resp = requests.post(url = URL, data = PARAMS)
                         
                     #base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
@@ -8655,9 +8655,12 @@ def casa_command(request, id):
         #PARAMS['cmd'] = 'get_cashbox_sum;'
         #PARAMS['cmd'] = 'in_out;0;0;0;0;'+str(0.0)+';;;' # внесення готівки
         #PARAMS['cmd'] = 'in_out;0;0;0;1;'+str(0.0)+';;;' #Вилучення готівки
-        PARAMS['cmd'] = u'get_plu_info;7247;' # 3 параметр - Штучный/весовой товар (0/1)
+        #PARAMS['cmd'] = u'get_plu_info;7247;' # 3 параметр - Штучный/весовой товар (0/1)
         #PARAMS['cmd'] = u'add_plu;7247;0;0;0;1;1;1;203.00;0;[BRL-80-99] Tektro - Гальмівні ручки Tektro RS36;0.00;'.encode('cp1251')
         #PARAMS['cmd'] = 'execute_Z_report;12321;'
+        PARAMS['cmd'] = 'pay;2;191.90;'
+        PARAMS['cmd'] = 'pay;0;0;'
+        
         resp = requests.post(url = URL, data = PARAMS)
         print "Result = " + str(resp)
         #print dir(resp) #TEXT/HTML

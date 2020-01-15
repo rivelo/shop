@@ -310,6 +310,7 @@ urlpatterns = patterns('',
     url(r'^casa/(?P<id>\d+)/view/$', 'catalog.accounting.views.casa_checkout'),
     url(r'^casa/(?P<id>\d+)/status/$', 'catalog.accounting.views.casa_getstatus'),
     url(r'^casa/(?P<id>\d+)/zreport/$', 'catalog.accounting.views.casa_z_report'),
+    url(r'^casa/(?P<id>\d+)/cmd/$', 'catalog.accounting.views.casa_command'),
     # Example:
     # url(r'^catalog/', include('catalog.foo.urls')),
 #    url(r'^sendmail/$', 'catalog.accounting.views.sendemail'),
