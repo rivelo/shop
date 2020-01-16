@@ -55,6 +55,7 @@ from django.db.models import F
 from django.http import JsonResponse
 from django.core.context_processors import request
 from _mysql import NULL
+#from pyasn1.compat.octets import null
 
 
 def custom_proc(request):
@@ -7986,6 +7987,12 @@ def shop_sale_check_add(request):
     message = ''
     list_id = request.session['invoice_id']
     count = None
+    URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
+    cmd = 'open_port;1;115200;'
+    PARAMS = {'address':URL, 'cmd': cmd, 
+              'hash': settings.MINI_HASH_1, 
+              'user': request.user.username,
+              }
     if request.is_ajax():
         if request.method == 'POST':  
             POST = request.POST  
@@ -7994,14 +8001,16 @@ def shop_sale_check_add(request):
                 t_val = request.POST.get( 't_value' )
                 ci = ClientInvoice.objects.filter(id__in = list_id)
                 chk_list = Check.objects.filter(catalog__in = ci)
-                if chk_list.count()>0:
+                if chk_list.count() > 0:
                     message = "Даний чек вже існує"
+                    return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
                 else:
-                    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-                    data =  {"cmd": "open"}
-                    url = base + urllib.urlencode(data)
                     try:
-                        page = urllib.urlopen(url).read()
+                        resp_open = requests.post(url = URL, data = PARAMS)
+                        PARAMS['cmd'] = "cashier_registration;1;0"
+                        resp_registration = requests.post(url = URL, data = PARAMS)
+                        PARAMS['cmd'] = 'open_receipt;0' # відкрити чек
+                        resp_registration = requests.post(url = URL, data = PARAMS)
                     except:
                         message = "Сервер "+settings.HTTP_MINI_SERVER_IP+" не відповідає"
                         return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
@@ -8024,55 +8033,91 @@ def shop_sale_check_add(request):
                             t = 1
                             check.price = inv.sum #m_val
                         else: 
-                            t = 2
+                            t = 9 # PUMB = 9 / PB = 2
                             check.price = t_val 
                         check.cash_type = CashType.objects.get(id = t)
                         check.print_status = False
                         check.user = request.user
                         check.save()    
 
-
                     for inv in ci:
                         price =  "%.2f" % inv.price
                         count = "%.3f" % inv.count
                         discount = inv.sale
-                        data =  {"cmd": "add_plu", "id":str(inv.catalog.pk), "cname":inv.catalog, "price":price, "count": count, "discount": discount}
-                        url = base + urllib.urlencode(data)
-                        page = urllib.urlopen(url).read()
-                    
+                        if inv.catalog.length <> None:
+                            PARAMS['cmd'] = 'add_plu;'+str(inv.catalog.pk)+";0;0;1;1;1;1;"+price+";0;"+inv.catalog.name[:40].encode('cp1251')+";"+count+";"
+                            resp = requests.post(url = URL, data = PARAMS)
+                        else:
+                            PARAMS['cmd'] = 'add_plu;'+str(inv.catalog.pk)+";0;0;0;1;1;1;"+price+";0;"+inv.catalog.name[:40].encode('cp1251')+";"+count+";"
+                            resp = requests.post(url = URL, data = PARAMS)
+                        PARAMS['cmd'] = 'sale_plu;0;0;0;'+count+";"+str(inv.catalog.pk)+";"
+                        resp = requests.post(url = URL, data = PARAMS)
+                        PARAMS['cmd'] = 'discount_surcharge;1;0;1;'+"%.2f" % discount+";"
+                        resp = requests.post(url = URL, data = PARAMS)
+                        
+#                        data =  {"cmd": "add_plu", "id":str(inv.catalog.pk), "cname":inv.catalog, "price":price, "count": count, "discount": discount}
+#                        url = base + urllib.urlencode(data)
+#                        page = urllib.urlopen(url).read()
+
                     if m_val >= t_val:
                         if float(t_val) == 0:
-                            data =  {"cmd": "pay", "sum": 0, "mtype": 0}
-                            url = base + urllib.urlencode(data)
-                            page = urllib.urlopen(url).read()
+                            PARAMS['cmd'] = "pay;"+"0;0;"
+                            resp = requests.post(url = URL, data = PARAMS)
                         else:
-                            val = "%.2f" % float(m_val)
-                            data =  {"cmd": "pay", "sum": val, "mtype": 0}
-                            url = base + urllib.urlencode(data)
-                            page = urllib.urlopen(url).read()
-                            val = "%.2f" % float(t_val)
-                            data =  {"cmd": "pay", "sum": t_val, "mtype": 2}
-                            url = base + urllib.urlencode(data)
-                            page = urllib.urlopen(url).read()
+                            PARAMS['cmd'] = "pay;0;"+"%.2f" % float(m_val)+";"
+                            resp = requests.post(url = URL, data = PARAMS)
+                            PARAMS['cmd'] = "pay;2;"+"%.2f" % float(t_val)+";"
+                            print "PARAM = " + PARAMS['cmd']
+                            resp = requests.post(url = URL, data = PARAMS)
                     else:
                         if float(m_val) == 0:
-                            data =  {"cmd": "pay", "sum": 0, "mtype": 2}
-                            url = base + urllib.urlencode(data)
-                            page = urllib.urlopen(url).read()
+                            PARAMS['cmd'] = "pay;"+"2;0;"
+                            resp = requests.post(url = URL, data = PARAMS)
                         else:
-                            val = "%.2f" % float(t_val)
-                            data =  {"cmd": "pay", "sum": val, "mtype": 2}
-                            url = base + urllib.urlencode(data)
-                            page = urllib.urlopen(url).read()
-                            val = "%.2f" % float(m_val)
-                            data =  {"cmd": "pay", "sum": val, "mtype": 0}
-                            url = base + urllib.urlencode(data)
-                            page = urllib.urlopen(url).read()
+                            PARAMS['cmd'] = "pay;2;"+"%.2f" % float(t_val)+";"
+                            resp = requests.post(url = URL, data = PARAMS)
+                            PARAMS['cmd'] = "pay;0;"+"%.2f" % float(m_val)+";"
+                            resp = requests.post(url = URL, data = PARAMS)
+                    
+                    #===========================================================
+                    # if m_val >= t_val:
+                    #     if float(t_val) == 0:
+                    #         data =  {"cmd": "pay", "sum": 0, "mtype": 0}
+                    #         url = base + urllib.urlencode(data)
+                    #         page = urllib.urlopen(url).read()
+                    #     else:
+                    #         val = "%.2f" % float(m_val)
+                    #         data =  {"cmd": "pay", "sum": val, "mtype": 0}
+                    #         url = base + urllib.urlencode(data)
+                    #         page = urllib.urlopen(url).read()
+                    #         val = "%.2f" % float(t_val)
+                    #         data =  {"cmd": "pay", "sum": t_val, "mtype": 2}
+                    #         url = base + urllib.urlencode(data)
+                    #         page = urllib.urlopen(url).read()
+                    # else:
+                    #     if float(m_val) == 0:
+                    #         data =  {"cmd": "pay", "sum": 0, "mtype": 2}
+                    #         url = base + urllib.urlencode(data)
+                    #         page = urllib.urlopen(url).read()
+                    #     else:
+                    #         val = "%.2f" % float(t_val)
+                    #         data =  {"cmd": "pay", "sum": val, "mtype": 2}
+                    #         url = base + urllib.urlencode(data)
+                    #         page = urllib.urlopen(url).read()
+                    #         val = "%.2f" % float(m_val)
+                    #         data =  {"cmd": "pay", "sum": val, "mtype": 0}
+                    #         url = base + urllib.urlencode(data)
+                    #         page = urllib.urlopen(url).read()
+                    #===========================================================
                         
-                    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-                    data =  {"cmd": "close"}
-                    url = base + urllib.urlencode(data)
-                    page = urllib.urlopen(url).read()
+                    #===========================================================
+                    # base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+                    # data =  {"cmd": "close"}
+                    # url = base + urllib.urlencode(data)
+                    # page = urllib.urlopen(url).read()
+                    #===========================================================
+                    PARAMS['cmd'] = 'close_port;'
+                    resp_close = requests.post(url = URL, data = PARAMS)
 
                 message = "Виконано"
                 return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
