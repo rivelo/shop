@@ -8045,7 +8045,7 @@ def shop_sale_check_add(request):
                         count = "%.3f" % inv.count
                         discount = inv.sale
                         if inv.catalog.length <> None:
-                            PARAMS['cmd'] = 'add_plu;'+str(inv.catalog.pk)+";0;0;1;1;1;1;"+price+";0;"+inv.catalog.name[:40].encode('cp1251')+";"+count+";"
+                            PARAMS['cmd'] = 'add_plu;'+str(inv.catalog.pk)+";0;1;0;1;1;1;"+price+";0;"+inv.catalog.name[:40].encode('cp1251')+";"+count+";"
                             resp = requests.post(url = URL, data = PARAMS)
                         else:
                             PARAMS['cmd'] = 'add_plu;'+str(inv.catalog.pk)+";0;0;0;1;1;1;"+price+";0;"+inv.catalog.name[:40].encode('cp1251')+";"+count+";"
@@ -8054,11 +8054,9 @@ def shop_sale_check_add(request):
                         resp = requests.post(url = URL, data = PARAMS)
                         PARAMS['cmd'] = 'discount_surcharge;1;0;1;'+"%.2f" % discount+";"
                         resp = requests.post(url = URL, data = PARAMS)
+                        #PARAMS['cmd'] = 'cancel_receipt;'
+                        #resp = requests.post(url = URL, data = PARAMS)
                         
-#                        data =  {"cmd": "add_plu", "id":str(inv.catalog.pk), "cname":inv.catalog, "price":price, "count": count, "discount": discount}
-#                        url = base + urllib.urlencode(data)
-#                        page = urllib.urlopen(url).read()
-
                     if m_val >= t_val:
                         if float(t_val) == 0:
                             PARAMS['cmd'] = "pay;"+"0;0;"
@@ -8079,43 +8077,6 @@ def shop_sale_check_add(request):
                             PARAMS['cmd'] = "pay;0;"+"%.2f" % float(m_val)+";"
                             resp = requests.post(url = URL, data = PARAMS)
                     
-                    #===========================================================
-                    # if m_val >= t_val:
-                    #     if float(t_val) == 0:
-                    #         data =  {"cmd": "pay", "sum": 0, "mtype": 0}
-                    #         url = base + urllib.urlencode(data)
-                    #         page = urllib.urlopen(url).read()
-                    #     else:
-                    #         val = "%.2f" % float(m_val)
-                    #         data =  {"cmd": "pay", "sum": val, "mtype": 0}
-                    #         url = base + urllib.urlencode(data)
-                    #         page = urllib.urlopen(url).read()
-                    #         val = "%.2f" % float(t_val)
-                    #         data =  {"cmd": "pay", "sum": t_val, "mtype": 2}
-                    #         url = base + urllib.urlencode(data)
-                    #         page = urllib.urlopen(url).read()
-                    # else:
-                    #     if float(m_val) == 0:
-                    #         data =  {"cmd": "pay", "sum": 0, "mtype": 2}
-                    #         url = base + urllib.urlencode(data)
-                    #         page = urllib.urlopen(url).read()
-                    #     else:
-                    #         val = "%.2f" % float(t_val)
-                    #         data =  {"cmd": "pay", "sum": val, "mtype": 2}
-                    #         url = base + urllib.urlencode(data)
-                    #         page = urllib.urlopen(url).read()
-                    #         val = "%.2f" % float(m_val)
-                    #         data =  {"cmd": "pay", "sum": val, "mtype": 0}
-                    #         url = base + urllib.urlencode(data)
-                    #         page = urllib.urlopen(url).read()
-                    #===========================================================
-                        
-                    #===========================================================
-                    # base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-                    # data =  {"cmd": "close"}
-                    # url = base + urllib.urlencode(data)
-                    # page = urllib.urlopen(url).read()
-                    #===========================================================
                     PARAMS['cmd'] = 'close_port;'
                     resp_close = requests.post(url = URL, data = PARAMS)
 
@@ -8700,11 +8661,12 @@ def casa_command(request, id):
         #PARAMS['cmd'] = 'get_cashbox_sum;'
         #PARAMS['cmd'] = 'in_out;0;0;0;0;'+str(0.0)+';;;' # внесення готівки
         #PARAMS['cmd'] = 'in_out;0;0;0;1;'+str(0.0)+';;;' #Вилучення готівки
-        #PARAMS['cmd'] = u'get_plu_info;7247;' # 3 параметр - Штучный/весовой товар (0/1)
-        #PARAMS['cmd'] = u'add_plu;7247;0;0;0;1;1;1;203.00;0;[BRL-80-99] Tektro - Гальмівні ручки Tektro RS36;0.00;'.encode('cp1251')
+        PARAMS['cmd'] = u'get_plu_info;8591;' # 3 параметр - Штучный/весовой товар (0/1)
+#        PARAMS['cmd'] = u'add_plu;8591;0;0;0;1;1;1;203.00;0;Трос перемикання JAGWIRE Basics BWC1011;0.00;'.encode('cp1251')
+#                                8591;0;0;1;1;1;1;15.00;0;Трос перемикання JAGWIRE Basics BWC1011;1.000;
         #PARAMS['cmd'] = 'execute_Z_report;12321;'
-        PARAMS['cmd'] = 'pay;2;191.90;'
-        PARAMS['cmd'] = 'pay;0;0;'
+        #PARAMS['cmd'] = 'pay;2;191.90;'
+        #PARAMS['cmd'] = 'pay;0;0;'
         
         resp = requests.post(url = URL, data = PARAMS)
         print "Result = " + str(resp)
