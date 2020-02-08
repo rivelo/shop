@@ -78,6 +78,7 @@ MINI_HASH_2 = 'rivelo2020casa4MickevuchSt.'
 
 HTTP_MINI_SERVER_IP = '10.9.8.22' # work server
 HTTP_MINI_SERVER_IP_2 = '10.9.8.25' # work server
+HTTP_MINI_SERVER_IP_3 = '10.9.8.17' # home server
 #HTTP_MINI_SERVER_IP = '192.168.88.238' # test server
 #HTTP_MINI_SERVER_IP_2 = '192.168.88.239' # test server
 

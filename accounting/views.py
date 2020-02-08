@@ -8064,7 +8064,7 @@ def shop_sale_check_add(request):
                 m_val = request.POST.get( 'm_value' )
                 t_val = request.POST.get( 't_value' )
                 term_number =  request.POST.get( 'term' )
-                if term_number == 2:
+                if term_number == '2':
                     URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/"
                 ci = ClientInvoice.objects.filter(id__in = list_id)
                 chk_list = Check.objects.filter(catalog__in = ci)
@@ -8654,9 +8654,9 @@ def qrscanner(request):
 
 def casa_checkout(request, id):
     URL = ''
-    if id == 1:
+    if id == '1':
         URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
-    if id == 2:
+    if id == '2':
         URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/"
     cmd = 'open_port;1;115200;'
     PARAMS = {'address':URL, 'cmd': cmd, 
@@ -8696,9 +8696,9 @@ def casa_checkout(request, id):
     
 def casa_command(request, id):
     URL = ''
-    if id == 1:
+    if id == '1':
         URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
-    if id == 2:
+    if id == '2':
         URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/"
 
     #URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
@@ -8738,37 +8738,52 @@ def casa_command(request, id):
         #PARAMS['cmd'] = 'get_cashbox_sum;'
         #PARAMS['cmd'] = 'in_out;0;0;0;0;'+str(0.0)+';;;' # внесення готівки
         #PARAMS['cmd'] = 'in_out;0;0;0;1;'+str(0.0)+';;;' #Вилучення готівки
-        PARAMS['cmd'] = u'get_plu_info;8591;' # 3 параметр - Штучный/весовой товар (0/1)
+        json = None
+        if request.is_ajax():
+            if request.method == 'POST':  
+                POST = request.POST  
+                if POST.has_key('command'):
+                    cmd = request.POST.get('command')
+                    PARAMS['cmd'] = cmd
+                    resp = requests.post(url = URL, data = PARAMS)
+                try:
+                    json = simplejson.dumps({'status_code': resp.status_code, 'resp': resp.reason})
+                except:
+                    error = 'Сталась помилка'
+                    json = simplejson.dumps({'yData': "None", 'error': error})
+
+                    return HttpResponse(json, content_type='application/json')
+        
+        #PARAMS['cmd'] = u'get_plu_info;8591;' # 3 параметр - Штучный/весовой товар (0/1)
 #        PARAMS['cmd'] = u'add_plu;8591;0;0;0;1;1;1;203.00;0;Трос перемикання JAGWIRE Basics BWC1011;0.00;'.encode('cp1251')
 #                                8591;0;0;1;1;1;1;15.00;0;Трос перемикання JAGWIRE Basics BWC1011;1.000;
         #PARAMS['cmd'] = 'execute_Z_report;12321;'
         #PARAMS['cmd'] = 'pay;2;191.90;'
         #PARAMS['cmd'] = 'pay;0;0;'
         
-        resp = requests.post(url = URL, data = PARAMS)
-        print "Result = " + str(resp)
-        #print dir(resp) #TEXT/HTML
-        print (resp.status_code, resp.reason) #HTTP
+#        print "Result = " + str(resp)
+#        print (resp.status_code, resp.reason) #HTTP
     except:
         print  "Error - Connection failed!"
         return HttpResponse("Connection failed! Перевірте зєднання з комп'ютером")
     
-    print "Content:" + str(resp.content)
-    print "Text:" + str(resp.request.body)    
+#    print "Content:" + str(resp.content)
+#    print "Text:" + str(resp.request.body)    
     #print "JSON:" + str(resp.json)
 
     PARAMS['cmd'] = 'close_port;'
     resp_close = requests.post(url = URL, data = PARAMS)
 
-    return HttpResponse("Status - " + str(resp.reason) + " <br><<< Result >>>" + str(resp.text))
+    #return HttpResponse("Status - " + str(resp.reason) + " <br><<< Result >>>" + str(resp.text))
+    return render_to_response('index.html', {'weblink': 'casa_cmd_list.html', 'id': id, 'next': current_url}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def casa_getstatus(request, id):
 #    URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
     URL = ''
-    if id == 1:
+    if id == '1':
         URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
-    if id == 2:
+    if id == '2':
         URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/"
 
     #hash = 'rivelo2020casa4kavkazkaSt.'
@@ -8818,9 +8833,9 @@ def casa_getstatus(request, id):
 
 def casa_z_report(request, id):
     URL = ''
-    if id == 1:
+    if id == '1':
         URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
-    if id == 2:
+    if id == '2':
         URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/"
 #    URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
     cmd = 'open_port;1;115200;'
