@@ -46,7 +46,7 @@ $(document).ready(function() {
 			$.ajax({
                 type: "POST",
                 url: "/bicycle/sale/{{bicycle.id}}/check/add/",
-                data: {id:  {{bicycle.id}}, t_value: $('#t_spinner').val(), m_value: $('#m_spinner').val()},
+                data: {id:  {{bicycle.id}}, t_value: $('#t_spinner').val(), m_value: $('#m_spinner').val(), term: $('#term2:checked').val()},
                 dataType: "text",
                 beforeSend:function(){
                	    $(".ui-dialog-buttonpane button:contains('Додати')").button("disable");                
@@ -85,6 +85,11 @@ $(document).ready(function() {
 	<p id="dtext">Термінал</p>
 	<label for="spinner">Сума:</label>
   	<input id="t_spinner" name="value" value="{{bicycle.price|percentage:bicycle.sale}}"> грн.
+  	<br>
+	<label for="spinner">Кавказька:</label>
+  	<input id="term1" name="value" value="1" type="checkbox">
+	<label for="spinner">Міцкевича:</label>
+  	<input id="term2" name="value" value="2" type="checkbox">
 	<h2 type="text" id="msg_text" name="mytext[]" rows="10" cols="40" style="color:#ff0000""> рядок стану </h2>  	
 	</div>
 {% endif %}

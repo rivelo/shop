@@ -1105,6 +1105,9 @@ def bicycle_sale_check_add(request, id):
                 b_id = request.POST.get( 'id' )
                 m_val = request.POST.get( 'm_value' )
                 t_val = request.POST.get( 't_value' )
+                term_number =  request.POST.get( 'term' )
+                if term_number == '2':
+                    URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/"
                 bs = Bicycle_Sale.objects.get(id=id)
                 chk_list = Check.objects.filter(bicycle = bs.id)
                 if chk_list.count()>0:
@@ -1159,7 +1162,7 @@ def bicycle_sale_check_add(request, id):
                     count = "%.3f" % 1
                     discount = bs.sale
                     #bike_s = 'Велосипед '+ bs.model.model.brand.name.encode('utf8') +'. Модель '+ bs.model.model.model.encode('utf8') +'. '+str(bs.model.model.year.year)+' ('+bs.model.model.color.encode('utf8')+')'
-                    bike_s = 'Велосипед '+ bs.model.model.brand.name +'. Модель '+ bs.model.model.model +'. '+str(bs.model.model.year.year)+' ('+bs.model.model.color+')'
+                    bike_s = u'Велосипед '+ bs.model.model.brand.name +u'. Модель '+ bs.model.model.model +'. '+str(bs.model.model.year.year)+' ('+bs.model.model.color+')'
                     #bike_s = bs.model.model.model[:40].encode('utf8')
                     #data =  {"cmd": "add_plu", "id":'77'+str(bs.model.pk), "cname":bike_s, "price":price, "count": count, "discount": discount}
                     #url = base + urllib.urlencode(data)
@@ -8172,6 +8175,9 @@ def workshop_sale_check_add(request):
             if POST.has_key('m_value'):
                 m_val = request.POST.get( 'm_value' )
                 t_val = request.POST.get( 't_value' )
+                term_number =  request.POST.get( 'term' )
+                if term_number == '2':
+                    URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/"
                 cw = WorkShop.objects.filter(id__in = list_id)
                 chk_list = Check.objects.filter(catalog__in = cw)
                 if chk_list.count() > 0:
