@@ -869,10 +869,52 @@ class DiscountForm(forms.ModelForm):
     sale = forms.IntegerField(min_value=0, initial = 0, label='Знижка %')
     description = forms.CharField(widget=forms.Textarea(), required=False, label='Опис')
 
-
     class Meta:
         model = Discount
         fields = '__all__'
 #        exclude = ['name']
-            
+
+
+class SalaryForm(forms.Form):
+    #cost_type = forms.CharField(widget=forms.HiddenInput(), label="Робота")
+    client = forms.CharField(widget=forms.HiddenInput())
+    date = forms.DateTimeField(initial = datetime.datetime.now, label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'), required=False)
+    price = forms.FloatField(initial=0, label="Сума" ,widget=forms.TextInput(attrs={'class': 'form-control'}) )
+    description = forms.CharField(label='Опис', widget=forms.Textarea(), max_length=255, required=False)
+    user = forms.ModelChoiceField(queryset = User.objects.all(), required=True, label='Користувач')
+
+    def clean_client(self):
+        data = self.cleaned_data['client']
+        res = Client.objects.filter(pk = data)
+        if not res:
+            raise forms.ValidationError("Клієнт з таким ПІБ або номером телефону не існує!")
+        # Always return a value to use as the new cleaned data, even if
+        # this method didn't change it.
+        return res[0]
+  
+    #===========================================================================
+    # def clean_work_type(self):
+    #     data = self.cleaned_data['work_type']
+    #     res = WorkType.objects.filter(pk = data)
+    #     if not res:
+    #         raise forms.ValidationError("Такої роботи не існує або ви її не вибрали!")
+    #     return res[0]
+    #===========================================================================
+
+
+    #===========================================================================
+    # def save(self, commit=True):
+    #     client = Client.objects.get(id = self.cleaned_data['client'])
+    #     work = WorkType.objects.get(id = self.cleaned_data['work_type'])
+    #     self.cleaned_data['client'] = client.id
+    #     self.cleaned_data['work_type'] = work.id
+    #     return super(WorkShopForm, self).save(commit)
+    #===========================================================================
+    
+#    class Meta:
+#        model = Costs
+#        fields = '__all__'
+#        exclude = ['cost_type']
+
+           
     

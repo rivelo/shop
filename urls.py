@@ -437,6 +437,7 @@ urlpatterns += patterns('',
     url(r'^report/workshop/(?P<user_id>\d+)/byuser/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/$', 'catalog.accounting.views.user_workshop_report', name='report_workshop_by_user_day'),
     url(r'^report/salary/all_user/$', 'catalog.accounting.views.all_user_salary_report', {'day':"all"}),
     url(r'^report/salary/all_user/year/(?P<year>\d+)/month/(?P<month>\d+)/$', 'catalog.accounting.views.all_user_salary_report', {'day':"all"}),
+    url(r'^salary/add/$', 'catalog.accounting.views.salary_add'),
 
     url(r'^shop/price/lastadded/(?P<id>\d+)/view/$', 'catalog.accounting.views.shop_price_lastadd'),    
     url(r'^shop/price/lastadded/(?P<id>\d+)/print/$', 'catalog.accounting.views.shop_price_lastadd', {'pprint': True}),

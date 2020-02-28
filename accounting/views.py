@@ -16,7 +16,7 @@ from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerIn
 from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm, DiscountForm 
 
 from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus, YouTube
-from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm, WorkShopFormset
+from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm, WorkShopFormset, SalaryForm
   
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.core.exceptions import ObjectDoesNotExist
@@ -4274,8 +4274,16 @@ def client_result(request, tdelta = 30, id = None, email=False):
         client_name = Client.objects.values('name', 'forumname', 'id', 'phone', 'birthday', 'email').get(id=user)
     except ObjectDoesNotExist:
         client_name = ""
-
-    credit_list = ClientCredits.objects.filter(client=user, date__gt=now-datetime.timedelta(days=tdelta))
+    
+    credit_list = None
+    cash_id = CashType.objects.get(id = 6)
+    if auth_group(request.user, "admin") == False:
+        if str(request.user.username) == str(client_name['forumname']):
+            credit_list = ClientCredits.objects.filter(client=user, date__gt=now-datetime.timedelta(days=tdelta))
+        else:    
+            credit_list = ClientCredits.objects.filter(client=user, date__gt=now-datetime.timedelta(days=tdelta)).exclude(cash_type = cash_id)
+    else: 
+        credit_list = ClientCredits.objects.filter(client=user, date__gt=now-datetime.timedelta(days=tdelta))
     debt_list = ClientDebts.objects.filter(client=user, date__gt=now-datetime.timedelta(days=tdelta))
     client_invoice = ClientInvoice.objects.filter(Q(client=user) & (Q(pay__lt = F('sum')) | Q(date__gt=now-datetime.timedelta(days=tdelta))) ).order_by("-date", "-id")
      
@@ -4822,7 +4830,6 @@ def workshop_add(request, id=None, id_client=None):
         
         if form.is_valid():
             form.save()
-            
             #WorkShop(client=client, date=date, work_type=work_type, price=price, description=description, user=user).save()
             return HttpResponseRedirect('/workshop/view/')
     else:
@@ -5089,8 +5096,15 @@ def shopmonthlysales_view(request, year=None, month=None):
 
 def shopdailysales_view(request, year, month, day):
 #    deb = ClientDebts.objects.values('date__year').annotate(suma=Sum("price"))
+    cred = None
+    cash_id = CashType.objects.get(id = 6) # Заробітна плата
+    if auth_group(request.user, "admin") == False:
+        cred = ClientCredits.objects.filter(date__year=year, date__month=month, date__day=day).exclude(cash_type = cash_id).order_by()
+    else:    
+        cred = ClientCredits.objects.filter(date__year=year, date__month=month, date__day=day).order_by()        
+
     deb = ClientDebts.objects.filter(date__year=year, date__month=month, date__day=day).order_by()
-    cred = ClientCredits.objects.filter(date__year=year, date__month=month, date__day=day).order_by()
+    #cred = ClientCredits.objects.filter(date__year=year, date__month=month, date__day=day).order_by()
     try:
         cash_credsum = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price"))
         cashCred = cash_credsum.get(cash_type=1)['suma']
@@ -5598,6 +5612,39 @@ def cost_delete(request, id):
     return HttpResponseRedirect('/cost/view/')
 
 
+def salary_add(request, id=None):
+    if request.user.is_authenticated():
+        user = request.user
+    else:
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
+#        return HttpResponse('Error: У вас не має прав для редагування, або ви не Авторизувались на сайті')
+    now = datetime.datetime.now()
+    form = SalaryForm(initial={'user': user.pk})
+    if request.method == 'POST':
+        form = SalaryForm(request.POST)
+        print "POST is true"
+        if form.is_valid():
+            print "FORM is true"
+            cash_type = CashType.objects.get(id = 6)
+            client = form.cleaned_data['client']
+            #wclient = Client.objects.get(id=client)
+            date = form.cleaned_data['date']
+            cost_type = CostType.objects.get(id = 5) #form.cleaned_data['cost_type']
+            description = form.cleaned_data['description']
+            description_cost = u"Зарплата за " + description + u". " + client.name 
+            price = form.cleaned_data['price']
+            Costs(id=id, date=date, cost_type=cost_type, price=price, description = description_cost).save()
+            ClientCredits(client=client, date=date, price=price, description= u"Зарплата за "+ description, user=user, cash_type = cash_type).save()
+            
+            #form.save()
+            #WorkShop(client=client, date=date, work_type=work_type, price=price, description=description, user=user).save()
+            return HttpResponseRedirect('/cost/view/')
+    else:
+        print "FORM is false"
+        form = SalaryForm(initial={'user': user.pk})
+
+    return render_to_response('index.html', {'form': form, 'weblink': 'salary.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
 
 from django.forms.models import inlineformset_factory, modelformset_factory
 from django.forms.models import formset_factory
@@ -5968,6 +6015,22 @@ def client_ws_payform(request):
     client = wk[0].client
     desc = u"Роботи: "
     sum = 0
+
+    URL = ""
+    cash_id = None
+    term_id = None
+    shop_number = request.POST.get("shop")
+    if int(shop_number) == 1:
+        URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/?"
+        print "SERVER 1 - SEND request"
+        cash_id = CashType.objects.get(id = 1) # готівка Каказька
+        term_id = CashType.objects.get(id = 9) # термінал Кавказька
+    if int(shop_number) == 2:
+        print "SERVER 2 - SEND request"
+        URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/?"
+        cash_id = CashType.objects.get(id = 10) # готівка Міцкевича
+        term_id = CashType.objects.get(id = 2) # термінал Міцкевича
+    
     for inv in wk:
         if client!=inv.client:
             return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -5980,15 +6043,15 @@ def client_ws_payform(request):
     if print_check == False:
         if 'pay' in request.POST and request.POST['pay']:
             pay = request.POST['pay']
-            cash_type = CashType.objects.get(id = 1) # готівка
+            #cash_type = CashType.objects.get(id = 1) # готівка
             if float(request.POST['pay']) != 0:
-                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
+                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_id)
                 ccred.save()
         if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
             pay = request.POST['pay_terminal']
-            cash_type = CashType.objects.get(id = 9) # термінал приват = 2; ПУМБ = 9
+            #cash_type = CashType.objects.get(id = 9) # термінал приват = 2; ПУМБ = 9
             if float(request.POST['pay_terminal']) != 0:
-                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
+                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=term_id)
                 ccred.save()
 
         ccred = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
@@ -6006,14 +6069,14 @@ def client_ws_payform(request):
 #--------- Begin section to send data to CASA ---------
 
     if (float(request.POST['pay']) != 0) or (float(request.POST['pay_terminal']) != 0):
-        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+        #base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
         data =  {"cmd": "get_status"}
-        url = base + urllib.urlencode(data)
+        url = URL + urllib.urlencode(data)
         try:
             page = urllib.urlopen(url).read()
-            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+            #base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
             data =  {"cmd": "open"}
-            url = base + urllib.urlencode(data)
+            url = URL + urllib.urlencode(data)
             page = urllib.urlopen(url).read()
         except:
             return HttpResponse("Включіть комп'ютер з касовим апаратом")
@@ -6027,15 +6090,9 @@ def client_ws_payform(request):
         for item in wk:
             item.pay = True
             item.save()
-#===============================================================================
-#        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-#        data =  {"cmd": "cancel_receipt"}
-#        url = base + urllib.urlencode(data)
-#        page = urllib.urlopen(url).read()
-#===============================================================================
-        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+        #base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
         data =  {"cmd": "close"}
-        url = base + urllib.urlencode(data)
+        url = URL + urllib.urlencode(data)
         page = urllib.urlopen(url).read()
         url = '/client/result/search/?id=' + str(client.id)
         return HttpResponseRedirect(url)
@@ -6061,40 +6118,40 @@ def client_ws_payform(request):
                 check.count = 1
                 check.discount = 0
                 check.price = inv.price
-                check.cash_type = CashType.objects.get(id = 1)
+                check.cash_type = cash_id #CashType.objects.get(id = 1)
                 check.print_status = False
                 check.user = user
                 check.save()
                 price =  "%.2f" % inv.price
                 count = "%.3f" % 1
                 data =  {"cmd": "add_plu", "id":'99'+str(inv.work_type.pk), "cname":inv.work_type.name[:40].encode('utf8'), "price":price, "count": count, "discount": 0}
-                url = base + urllib.urlencode(data)
+                url = URL + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
                 
             if (float(pay) >= sum):
                 data =  {"cmd": "pay", "sum": 0, "mtype": 0}
-                url = base + urllib.urlencode(data)
+                url = URL + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
-                base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+                #base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
                 data =  {"cmd": "close"}
-                url = base + urllib.urlencode(data)
+                url = URL + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()                
             else:
                 data =  {"cmd": "pay", "sum": pay, "mtype": 0}
-                url = base + urllib.urlencode(data)
+                url = URL + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
                 data =  {"cmd": "pay", "sum": 0, "mtype": 2}
                 url = base + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
-                base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+                #base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
                 data =  {"cmd": "close"}
-                url = base + urllib.urlencode(data)
+                url = URL + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
                 
             
     if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
         pay = request.POST['pay_terminal']
-        cash_type = CashType.objects.get(id = 9) # термінал приват = 2 / ПУМБ = 9
+        cash_type = term_id #CashType.objects.get(id = 9) # термінал приват = 2 / ПУМБ = 9
         if float(request.POST['pay_terminal']) != 0:
             ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
             ccred.save()
@@ -6111,32 +6168,32 @@ def client_ws_payform(request):
                 check.count = 1
                 check.discount = 0
                 check.price = inv.price
-                check.cash_type = CashType.objects.get(id = 9)
+                check.cash_type = term_id #CashType.objects.get(id = 9)
                 check.print_status = False
                 check.user = user
                 check.save()
                 price =  "%.2f" % inv.price
                 count = "%.3f" % 1
                 data =  {"cmd": "add_plu", "id":'99'+str(inv.work_type.pk), "cname":inv.work_type.name[:40].encode('utf8'), "price":price, "count": count, "discount": 0}
-                url = base + urllib.urlencode(data)
+                url = URL + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
             
             if (float(pay) >= sum):
                 data =  {"cmd": "pay", "sum": 0, "mtype": 2}
-                url = base + urllib.urlencode(data)
+                url = URL + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
             else:
                 data =  {"cmd": "pay", "sum": pay, "mtype": 2}
-                url = base + urllib.urlencode(data)
+                url = URL + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
                 data =  {"cmd": "pay", "sum": 0, "mtype": 0}
-                url = base + urllib.urlencode(data)
+                url = URL + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
                 
 
-    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
+    #base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
     data =  {"cmd": "close"}
-    url = base + urllib.urlencode(data)
+    url = URL + urllib.urlencode(data)
     page = urllib.urlopen(url).read()
 
 #----- End section to send data to CASA  
@@ -6173,7 +6230,20 @@ def client_payform(request):
     res = Check.objects.aggregate(max_count=Max('check_num'))
     check = None
     status = True
-    URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
+    URL = ""
+    cash_id = None
+    term_id = None
+    shop_number = request.POST.get("shop")
+    if int(shop_number) == 1:
+        URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
+        print "SERVER 1 - SEND request"
+        cash_id = CashType.objects.get(id = 1) # готівка Каказька
+        term_id = CashType.objects.get(id = 9) # термінал Кавказька
+    if int(shop_number) == 2:
+        print "SERVER 2 - SEND request"
+        URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/"
+        cash_id = CashType.objects.get(id = 10) # готівка Міцкевича
+        term_id = CashType.objects.get(id = 2) # термінал Міцкевича
     cmd = 'open_port;1;115200;'
     PARAMS = {'address':URL, 'cmd': cmd, 
               'hash': settings.MINI_HASH_1, 
@@ -6226,15 +6296,15 @@ def client_payform(request):
         
         if 'pay' in request.POST and request.POST['pay']:
             pay = request.POST['pay']
-            cash_type = CashType.objects.get(id = 1) # готівка
+#            cash_type = CashType.objects.get(id = 1) # готівка
             if float(request.POST['pay']) != 0:
-                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
+                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_id)
                 ccred.save()
         if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
             pay = request.POST['pay_terminal']
-            cash_type = CashType.objects.get(id = 9) # термінал
+#            cash_type = CashType.objects.get(id = 9) # термінал
             if float(request.POST['pay_terminal']) != 0:
-                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
+                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=term_id)
                 ccred.save()
    
         cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
@@ -6286,9 +6356,9 @@ def client_payform(request):
     
     if 'pay' in request.POST and request.POST['pay']:
         pay = request.POST['pay']
-        cash_type = CashType.objects.get(id = 1) # готівка
+        #cash_type = CashType.objects.get(id = 1) # готівка
         if float(request.POST['pay']) != 0:
-            ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
+            ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_id)
             ccred.save()
             res = Check.objects.aggregate(max_count=Max('check_num'))
             chkPay = CheckPay(check_num = res['max_count'] + 1, cash = pay, term = 0)
@@ -6304,7 +6374,7 @@ def client_payform(request):
                 check.count = inv.count
                 check.discount = inv.sale
                 check.price = inv.price
-                check.cash_type = CashType.objects.get(id = 1)
+                check.cash_type = cash_id #CashType.objects.get(id = 1)
                 check.print_status = False
                 check.user = user
                 check.save()
@@ -6349,9 +6419,9 @@ def client_payform(request):
 
     if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
         pay = request.POST['pay_terminal']
-        cash_type = CashType.objects.get(id = 9) # термінал
+        #cash_type = CashType.objects.get(id = 9) # термінал
         if float(request.POST['pay_terminal']) != 0:
-            ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_type)
+            ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_id)
             ccred.save()
 #===============================================================================
 #            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
@@ -6372,7 +6442,7 @@ def client_payform(request):
                 check.count = inv.count
                 check.discount = inv.sale
                 check.price = inv.price
-                check.cash_type = CashType.objects.get(id = 9)
+                check.cash_type = term_id #CashType.objects.get(id = 9)
                 check.print_status = False
                 check.user = user
                 check.save()
@@ -6643,7 +6713,6 @@ def rent_add(request):
             ccred.save()
             r.cred = ccred
             r.save()
-            
             return HttpResponseRedirect('/rent/view/')
     else:
         form = RentForm(instance = a)
@@ -6862,7 +6931,18 @@ def client_history_cred(request):
         
             if 'clientId' in request.POST and request.POST['clientId']:
                 clientId = request.POST['clientId']
-                p_cred_month = ClientCredits.objects.filter(client = clientId).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
+                p_cred_month = None
+                cash_id = CashType.objects.get(id = 6)
+                if auth_group(request.user, "admin") == False:
+                    client_name = Client.objects.values('name', 'forumname', 'id', 'phone', 'birthday', 'email').get(id = clientId)
+                    if str(request.user.username) == str(client_name['forumname']):
+                        p_cred_month = ClientCredits.objects.filter(client = clientId).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
+                    else:    
+                        p_cred_month = ClientCredits.objects.filter(client = clientId).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id').exclude(cash_type = cash_id)
+                else: 
+                    p_cred_month = ClientCredits.objects.filter(client = clientId).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
+                
+                #p_cred_month = ClientCredits.objects.filter(client = clientId).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
                 #p_cred_month = ClientCredits.objects.filter(client = cid, date__month = cmonth, date__year = cyear).values('id', 'price', 'description', 'user', 'user__username', 'date')
                 json = list(p_cred_month)
                 for x in json:  
@@ -8893,5 +8973,8 @@ def casa_z_report(request, id):
     resp_close = requests.post(url = URL, data = PARAMS)
     response.write("<br><<< Result >>> <br>" +str(resp.reason) + "<br><<< Result >>><br>" +  str(resp.text))
     return response
+
+
+
 
     

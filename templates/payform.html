@@ -117,12 +117,30 @@ $('#client_cred_term_but').click(function() {
 	$('#client_cred_term_but').off("click");
 	$("#pay_term").val($("#pay").val())
 	$("#pay").val(0);
+	$('#shop1').prop( "checked", true );
 	console.log("PAY = "+$("#pay").val());
 	$("#pay_form").submit();
 });
 
 $('#client_cred_but').click(function() {
 	$('#client_cred_but').off("click");
+	$('#shop1').prop( "checked", true );
+	$("#pay_form").submit();
+});
+
+$('#client_cred_term2_but').click(function() {
+	$('#client_cred_term1_but').off("click");
+	$("#pay_term").val($("#pay").val())
+	$("#pay").val(0);
+	console.log("PAY = "+$("#pay").val());
+	$('#shop2').prop( "checked", true );
+	$("#pay_form").submit();
+});
+
+$('#client_cred2_but').click(function() {
+	console.log("PAY = "+$("#pay").val());
+	$('#client_cred1_but').off("click");
+	$('#shop2').prop( "checked", true );
 	$("#pay_form").submit();
 });
 
@@ -157,8 +175,8 @@ function PaySum() {
 function checkedSum() {
 var sum = 0;
 $.each($("input:checked"),function(index,item){
-	console.log("chk = " + index); // item.attr("value"));
-	console.log("TYPE = " + item.value);
+//	console.log("chk = " + index); // item.attr("value"));
+//	console.log("TYPE = " + item.value);
 	sum = sum + parseFloat(item.value); 	
 })
 $("#to_pay").html("До сплати: "+ sum.toFixed(2) +" грн.");
@@ -171,7 +189,6 @@ $("#AllSum").html("Загальна сума: "+ res.toFixed(2)*-1 +" грн.");
 $('#AllSum').attr("value", res);
 
 $('#pay').change();
-
 
 }
     
@@ -242,6 +259,25 @@ $('#pay').change();
 <span class="outer">
 <span class="top">Борг</span>
 <span class="bottom"></span>
+</span>
+</a>
+</div>
+
+
+<div style="float:left;">
+<a href="#" class="css3dbutton" id="client_cred2_but">
+<span class="outer">
+<span class="top">Оплатити</span>
+<span class="bottom">оплата готівкою Міцкевича</span>
+</span>
+</a>
+</div>
+
+<div style="float:left;">
+<a href="#" class="css3dbutton" id="client_cred_term2_but">
+<span class="outer">
+<span class="top">Оплатити</span>
+<span class="bottom">оплата через термінал Приватбанку</span>
 </span>
 </a>
 </div>
@@ -358,6 +394,12 @@ $('#pay').change();
 
 <div class="checkbox">
   <label><input type="checkbox" name="print_check" value="Друкувати чек на касовому" id="print_check" >Друкувати чек на касовому</label>
+ <div>
+	<input type="radio" id="shop1" name="shop" value="1">
+	<label for="male">Кавказька</label><br>
+	<input type="radio" id="shop2" name="shop" value="2">
+	<label for="female">Міцкевича</label><br>
+ </div>
 </div>
  
         
