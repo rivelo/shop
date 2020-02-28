@@ -1,0 +1,248 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Додати зарплату</title>
+
+	<script type="text/javascript" src="/media/jquery.searchabledropdown-1.0.8.min.js"></script>
+	
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script src="/media/jquery-ui.min.js"></script>
+	
+	
+<style type="text/css">
+/*  .custom-combobox {
+    position: relative;
+    display: inline-block;
+  }
+  .custom-combobox-toggle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin-left: -1px;
+    padding: 0;
+  }
+  .custom-combobox-input {
+    margin: 0;
+    padding: 5px 10px;
+  }
+*/
+  span:visited{ text-decoration:none; color:#293d6b; }
+  span:hover{ text-decoration:underline; color:#FFF; }
+  span {color:#293d6b; 
+  		cursor: pointer; 
+  		border-radius: 5px;
+  		color: #FFF;
+  		background-color: #4A4A4A;
+  		}
+  span.one {background-color: #5cb85c;
+  		}
+  span.two {background-color: #FF6600;
+  		}
+
+/*  div.box {//border-radius: 5px;
+  		   background-color: #bfbfbf;
+  		   font-size:200%;
+  		   margin: 80px 0px 0px;
+  }*/  		
+  span.input-group-text {
+  background-color: #cccdce;
+  }
+ 		
+</style>		
+	
+{% load poll_extras %}
+	
+<script type="text/javascript">
+$(document).ready(function() {
+
+//	$("#id_work_type").combobox();      
+//	$('.ui-autocomplete-input').css('width','280px');
+
+	$("#s_client").val($('#id_client').val());
+	
+
+    $( "#s_client" ).autocomplete({
+    	source: function( request, response ) {
+        	$.ajax({
+                type: "GET",
+                url: "/client/lookup",
+				data: { query: $("#s_client").val() },
+                dataType: "json",
+                success: function( data ) {
+                        	response( $.map( data, function( item ) {
+                            return {
+                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
+                                value: item.fields.name,
+                                idid: item.fields.sale,
+                                pk_id: item.pk                                
+    							}
+                        	}));                                
+                            }
+            })
+        },
+        minLength: 3,
+        select: function( event, ui ) {
+	    	$('#id_client').val(ui.item.pk_id);
+        },
+        open: function() {
+        	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+        },
+        close: function() {
+        	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+        }
+    });
+    
+    
+/*	
+	$("#id_work_type").change(function(){
+		$.getJSON("/worktype/price/", {id: $("select#id_work_type").val()}, function(data) {
+    		$('#id_price').val(data[0].price);
+		});
+	});
+*/	
+//	$('#id_user').parents("tr").hide();
+	//$('#id_user').hide();
+	//$('#client_cloud').insertAfter('#id_client');
+	
+	$('#client_cloud span').click(function(){
+    	//$(this).hide();
+    	$("#s_client").val($(this).attr('vname'));
+    	$('#id_client').val($(this).attr('val'));
+    	$('#id_work_type').next().find('input').focus();
+    });	
+    
+	$("#id_description").addClass('form-control');
+	$("#id_date").addClass('form-control');
+//	$("#id_price").attr("class","form-control");
+	
+	{% if client_name %}
+	$("#s_client").val('{{client_name}}');
+	{% endif %}
+	
+	$("#s_client").focus();
+});
+
+</script>
+
+<body>
+
+<h1><span class="badge badge-success">Зарплата</span> {% if client_name %} >>>  <a href="/client/result/search/?id={{client_name.id}}" class="badge badge-secondary">{{ client_name }}</a> {% endif %}</h1>
+    
+<div class="container mw-100">
+  <div class="row justify-content-between">
+    <div class="col-12 col-md-6 col-lg-4">
+
+{% if form.non_field_errors %}
+    <div class="alert alert-danger" role="alert">
+      {% for error in form.non_field_errors %}
+        {{ error }}
+      {% endfor %}
+    </div>
+{% endif %}
+      
+    <form action="" method="POST" enctype="multipart/form-data" >
+    <table>
+
+<tr>
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold" id="basic-addon1">Працівник</span>
+  </div>
+  {{ form.client }}
+  <input type="text" id="s_client" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="Прізвище, імя клієнта" aria-label="Username" aria-describedby="basic-addon1">
+{#<div class="valid-feedback"> #}
+<div class="invalid-feedback">
+	{{ form.client.errors }}
+</div>
+
+</div>
+</tr>
+
+<!-- 
+<tr>
+<div class="input-group mb-3">
+  <div class="input-group-prepend ">
+	<span class="input-group-text font-weight-bold" id="basic-addon1">Робота</span>    
+  </div>
+  {{ form.work_type }}	
+  <input type="text"  id="s_id_work_type" class="form-control {% if form.work_type.errors %}  is-invalid {% endif %}" placeholder="Пошук роботи" aria-label="Username" aria-describedby="basic-addon1" value="{{ work.name }}"/>
+<div class="invalid-feedback">
+{{ form.work_type.errors }}
+</div>
+     <small class="form-text text-muted">{{ field.work_type.help_text }}</small>
+</div>
+</tr>
+ -->
+
+<tr>
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Сума</span>
+  </div>
+  {# form.price|addcss:'is-invalid' #}
+{% if form.work_type.errors %}   {{ form.price|add_attr:"class:form-control is-invalid" }} {% else %} {{ form.price|add_attr:"class:form-control" }} {% endif %} 
+  {# form.price #}
+ <div class="invalid-feedback">
+	{{ form.price.errors }}
+ </div>
+  <div class="input-group-prepend"> 
+  <span class="input-group-text font-weight-bold">Грн.</span>
+  </div>
+  
+{#  <textarea class="form-control" aria-label="With textarea" id="id_description"></textarea> #}
+</div>
+</tr>            
+
+
+            {# form.as_table #}  
+
+<tr>
+<div class="input-group">
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Опис</span>
+  </div>
+  {{ form.description |add_attr:"class:form-control" }}
+{#  <textarea class="form-control" aria-label="With textarea" id="id_description"></textarea> #}
+</div>
+</tr>            
+
+<tr>
+<div class="input-group mb-3 mt-2">
+  <div class="input-group-prepend">
+    <span class="input-group-text">Дата</span>
+  </div>
+  {{form.date}}
+    <div class="input-group-prepend">
+    <span class="input-group-text">Користувач</span>
+    </div>
+  {{form.user}}
+</div>
+</tr>            
+
+<tr>        
+<div class="input-group">
+        {# <p><input type="submit" value="Save"></p> #}
+        <button type="submit" class="btn btn-success btn-lg w-100"><b>Зберегти</b></button>
+</div>
+</tr>   
+           
+	</table>        
+    </form>
+    <br>
+    </div>
+    
+
+  </div>
+
+<div class="row">
+    <div class="col-12 col-md-6" id="depence_component">
+{#  	<span class="btn btn-dark"><a class="text-light" href="/invoice/category/{{dependence_comp.pk}}/view/">{{dependence_comp}}</a></span> #}
+	</div>
+</div>
+
+</div>
+<br>
+
+ 
+</body>
+	
+
+
