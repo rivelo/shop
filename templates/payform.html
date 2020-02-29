@@ -110,6 +110,13 @@ $('#client_debt_but').click(function() {
 	$('#client_debt_but').off("click");
 	$("#pay").val(0);
 	$("#pay_term").val(0);
+	if ($('#shop2').prop( "checked") == false) {
+		$('#shop1').prop( "checked", true );
+		console.log("Kavkazka");
+	}
+	else {
+		console.log("MIZkevich");
+	}
 	$("#pay_form").submit();
 });
 
@@ -118,7 +125,7 @@ $('#client_cred_term_but').click(function() {
 	$("#pay_term").val($("#pay").val())
 	$("#pay").val(0);
 	$('#shop1').prop( "checked", true );
-	console.log("PAY = "+$("#pay").val());
+//	console.log("PAY = "+$("#pay").val());
 	$("#pay_form").submit();
 });
 
@@ -132,13 +139,13 @@ $('#client_cred_term2_but').click(function() {
 	$('#client_cred_term1_but').off("click");
 	$("#pay_term").val($("#pay").val())
 	$("#pay").val(0);
-	console.log("PAY = "+$("#pay").val());
+//	console.log("PAY = "+$("#pay").val());
 	$('#shop2').prop( "checked", true );
 	$("#pay_form").submit();
 });
 
 $('#client_cred2_but').click(function() {
-	console.log("PAY = "+$("#pay").val());
+//	console.log("PAY = "+$("#pay").val());
 	$('#client_cred1_but').off("click");
 	$('#shop2').prop( "checked", true );
 	$("#pay_form").submit();
