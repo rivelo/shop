@@ -1170,6 +1170,11 @@ def bicycle_sale_check_add(request, id):
                     
                     PARAMS['cmd'] = 'add_plu;'+'77'+str(bs.model.pk)+";0;0;0;1;1;1;"+price+";0;"+bike_s[:40].encode('cp1251')+";"+count+";"
                     resp = requests.post(url = URL, data = PARAMS)
+                    PARAMS['cmd'] = 'sale_plu;0;0;0;1;'+'77'+str(bs.model.pk)+";"
+                    resp = requests.post(url = URL, data = PARAMS)
+                    PARAMS['cmd'] = 'discount_surcharge;1;0;1;'+"%.2f" % discount+";"
+                    resp = requests.post(url = URL, data = PARAMS)
+
 
                     if m_val >= t_val:
                         if float(t_val) == 0:
