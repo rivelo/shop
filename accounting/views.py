@@ -4283,7 +4283,8 @@ def client_result(request, tdelta = 30, id = None, email=False):
     credit_list = None
     cash_id = CashType.objects.get(id = 6)
     if auth_group(request.user, "admin") == False:
-        if str(request.user.username) == str(client_name['forumname']):
+        #if str(request.user.username.encode('utf8')) == str(client_name['forumname'].encode('utf8')):
+        if request.user.username == client_name['forumname'].encode('utf8'):
             credit_list = ClientCredits.objects.filter(client=user, date__gt=now-datetime.timedelta(days=tdelta))
         else:    
             credit_list = ClientCredits.objects.filter(client=user, date__gt=now-datetime.timedelta(days=tdelta)).exclude(cash_type = cash_id)
@@ -6146,7 +6147,7 @@ def client_ws_payform(request):
                 url = URL + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
                 data =  {"cmd": "pay", "sum": 0, "mtype": 2}
-                url = base + urllib.urlencode(data)
+                url = URL + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
                 #base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
                 data =  {"cmd": "close"}
@@ -6241,11 +6242,11 @@ def client_payform(request):
     shop_number = request.POST.get("shop")
     if int(shop_number) == 1:
         URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
-        print "SERVER 1 - SEND request"
+#        print "SERVER 1 - SEND request"
         cash_id = CashType.objects.get(id = 1) # готівка Каказька
         term_id = CashType.objects.get(id = 9) # термінал Кавказька
     if int(shop_number) == 2:
-        print "SERVER 2 - SEND request"
+#        print "SERVER 2 - SEND request"
         URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/"
         cash_id = CashType.objects.get(id = 10) # готівка Міцкевича
         term_id = CashType.objects.get(id = 2) # термінал Міцкевича
@@ -6401,17 +6402,26 @@ def client_payform(request):
                 resp = requests.post(url = URL, data = PARAMS)
 
             if (float(pay) >= sum):
-                data =  {"cmd": "pay", "sum": 0, "mtype": 0}
-                url = base + urllib.urlencode(data)
-                page = urllib.urlopen(url).read()
+                PARAMS['cmd'] = "pay;0;0;"
+                resp = requests.post(url = URL, data = PARAMS)
+                #===============================================================
+                # data =  {"cmd": "pay", "sum": 0, "mtype": 0}
+                # url = base + urllib.urlencode(data)
+                # page = urllib.urlopen(url).read()
+                #===============================================================
             else:
-                data =  {"cmd": "pay", "sum": pay, "mtype": 0}
-                url = base + urllib.urlencode(data)
-                page = urllib.urlopen(url).read()
-                data =  {"cmd": "pay", "sum": 0, "mtype": 2}
-                url = base + urllib.urlencode(data)
-                page = urllib.urlopen(url).read()
-
+                PARAMS['cmd'] = "pay;0;"+"%.2f" % float(pay)+";"
+                resp = requests.post(url = URL, data = PARAMS)
+                PARAMS['cmd'] = "pay;2;0;"
+                resp = requests.post(url = URL, data = PARAMS)
+                #===============================================================
+                # data =  {"cmd": "pay", "sum": pay, "mtype": 0}
+                # url = base + urllib.urlencode(data)
+                # page = urllib.urlopen(url).read()
+                # data =  {"cmd": "pay", "sum": 0, "mtype": 2}
+                # url = base + urllib.urlencode(data)
+                # page = urllib.urlopen(url).read()
+                #===============================================================
         if float(pay) <> 0:
             PARAMS['cmd'] = 'close_port;'
             resp_close = requests.post(url = URL, data = PARAMS)
@@ -6468,17 +6478,26 @@ def client_payform(request):
                 resp = requests.post(url = URL, data = PARAMS)
 
             if (float(pay) >= sum):                
-                data =  {"cmd": "pay", "sum": 0, "mtype": 2}
-                url = base + urllib.urlencode(data)
-                page = urllib.urlopen(url).read()
+                #===============================================================
+                # data =  {"cmd": "pay", "sum": 0, "mtype": 2}
+                # url = base + urllib.urlencode(data)
+                # page = urllib.urlopen(url).read()
+                #===============================================================
+                PARAMS['cmd'] = "pay;2;0;"
+                resp = requests.post(url = URL, data = PARAMS)
             else:
-                data =  {"cmd": "pay", "sum": pay, "mtype": 2}
-                url = base + urllib.urlencode(data)
-                page = urllib.urlopen(url).read()
-                data =  {"cmd": "pay", "sum": 0, "mtype": 0}
-                url = base + urllib.urlencode(data)
-                page = urllib.urlopen(url).read()
-                
+                PARAMS['cmd'] = "pay;2;"+"%.2f" % float(pay)+";"
+                resp = requests.post(url = URL, data = PARAMS)
+                PARAMS['cmd'] = "pay;0;0;"
+                resp = requests.post(url = URL, data = PARAMS)
+                #===============================================================
+                # data =  {"cmd": "pay", "sum": pay, "mtype": 2}
+                # url = base + urllib.urlencode(data)
+                # page = urllib.urlopen(url).read()
+                # data =  {"cmd": "pay", "sum": 0, "mtype": 0}
+                # url = base + urllib.urlencode(data)
+                # page = urllib.urlopen(url).read()
+                #===============================================================
  
         if float(pay) <> 0:
             PARAMS['cmd'] = 'close_port;'
