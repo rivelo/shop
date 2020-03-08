@@ -287,7 +287,13 @@ $(document).ready(function() {
 {# endif #} 			
  			<a class="dropdown-item" href="/shop/sale/day/add/"><i class="material-icons">query_builder</i> Денна каса</a>
  			<a class="dropdown-item" href="/shop/sale/view/">Денна каса (за місяць)</a>
- 			<a class="dropdown-item" href="/casa/1/view/">Сума в касовому</a>
+ 			<a class="dropdown-item" href="/casa/1/view/">Сума в касовому Кавказька</a>
+ 			<a class="dropdown-item" href="/casa/2/view/">Сума в касовому Міцкевича</a>
+{% if request.user|has_group:"manager" %}
+			<div class="dropdown-divider"></div>
+			<a class="dropdown-item" href="/casa/1/zreport/" onclick="return confirm('Виконати Z звіт в магазині на вул.Кавказька?')">Z звіт РРО №1</a>
+			<a class="dropdown-item" href="/casa/2/zreport/" onclick="return confirm('Виконати Z звіт в магазині на вул.Міцкевича?')">Z звіт РРО №2</a>
+{% endif %} 			
 		</div>	       		
       </li>
 
@@ -331,11 +337,11 @@ $(document).ready(function() {
 		<div class="dropdown-divider"></div>	
 			<a class="dropdown-item" href="/casa/1/view/">Сума в касовому №1</a>
 			<a class="dropdown-item" href="/casa/1/status/">Статус РРО №1</a>
-			<a class="dropdown-item" href="/casa/1/zreport/">Z звіт РРО №1</a>
+			<a class="dropdown-item" href="/casa/1/zreport/" onclick="return confirm('Виконати Z звіт в магазині на вул.Кавказька?')">Z звіт РРО №1</a>
 		<div class="dropdown-divider"></div>
 			<a class="dropdown-item" href="/casa/2/view/">Сума в касовому №2</a>
 			<a class="dropdown-item" href="/casa/2/status/">Статус РРО №2</a>
-			<a class="dropdown-item" href="/casa/2/zreport/">Z звіт РРО №2</a>
+			<a class="dropdown-item" href="/casa/2/zreport/" onclick="return confirm('Виконати Z звіт в магазині на вул.Міцкевича?')">Z звіт РРО №2</a>
 			<a class="dropdown-item" href="/casa/2/cmd/">Command</a>
 		<div class="dropdown-divider"></div>			
 			<a class="dropdown-item" href="/check/list/now/">Список чеків</a>			

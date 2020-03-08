@@ -6327,7 +6327,8 @@ def client_payform(request):
                 return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8;;");
         
         try:
-            resp_open = requests.post(url = URL, data = PARAMS)
+            #print "Status checkbox = " + str(print_check)
+            #resp_open = requests.post(url = URL, data = PARAMS)
             PARAMS['cmd'] = "cashier_registration;1;0"
             resp_registration = requests.post(url = URL, data = PARAMS)
             PARAMS['cmd'] = 'open_receipt;0' # відкрити чек
@@ -6398,8 +6399,8 @@ def client_payform(request):
                 resp = requests.post(url = URL, data = PARAMS)
                 PARAMS['cmd'] = 'discount_surcharge;1;0;1;'+"%.2f" % discount+";"
                 resp = requests.post(url = URL, data = PARAMS)
-                PARAMS['cmd'] = 'cancel_receipt;'
-                resp = requests.post(url = URL, data = PARAMS)
+                #PARAMS['cmd'] = 'cancel_receipt;'
+                #resp = requests.post(url = URL, data = PARAMS)
 
             if (float(pay) >= sum):
                 PARAMS['cmd'] = "pay;0;0;"
@@ -6474,8 +6475,8 @@ def client_payform(request):
                 resp = requests.post(url = URL, data = PARAMS)
                 PARAMS['cmd'] = 'discount_surcharge;1;0;1;'+"%.2f" % discount+";"
                 resp = requests.post(url = URL, data = PARAMS)
-                PARAMS['cmd'] = 'cancel_receipt;'
-                resp = requests.post(url = URL, data = PARAMS)
+                #PARAMS['cmd'] = 'cancel_receipt;'
+                #resp = requests.post(url = URL, data = PARAMS)
 
             if (float(pay) >= sum):                
                 #===============================================================
