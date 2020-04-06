@@ -2621,8 +2621,15 @@ def goverla_currency():
     eur = soup.find("div", {"id": "eur"})
     soup_usd = BeautifulSoup(str(usd))
     soup_eur = BeautifulSoup(str(eur))
-    c_usd = int(soup_usd.find("div", {'class' : 'gvrl-table-cell ask'}).string)/100.0
-    c_eur = int(soup_eur.find("div", {'class' : 'gvrl-table-cell ask'}).string)/100.0
+    try:
+        c_usd = int(soup_usd.find("div", {'class' : 'gvrl-table-cell ask'}).string.split("-")[0])/100.0
+    except:
+        c_usd = 0
+    try:
+        c_eur = int(soup_eur.find("div", {'class' : 'gvrl-table-cell ask'}).string.split("-")[0])/100.0
+    except:
+        c_eur = 0
+        
     return [c_usd, c_eur]
 
 
@@ -3750,7 +3757,6 @@ def client_invoice_edit(request, id):
             return HttpResponseRedirect('/client/invoice/view/')
     else:
         form = ClientInvoiceForm(instance = a, catalog_id = cat_id, request = request)
-        
     nday = 3 # користувачі за останні n-днів
     dlen = None
     nbox = cat.locality
@@ -4783,7 +4789,7 @@ def workticket_edit(request, id=None):
 
 def workticket_list(request, year=None, month=None, all=False, status=None):
     cur_year = datetime.datetime.now().year
-    wy = WorkTicket.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('pk'))#annotate(year_count=Count('date__year'))
+    wy = WorkTicket.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('pk')) #annotate(year_count=Count('date__year'))
     list = None
     if month != None:
         list = WorkTicket.objects.filter(date__year=year, date__month=month)
@@ -4807,7 +4813,7 @@ def workticket_list(request, year=None, month=None, all=False, status=None):
     if status == '6':
         list = WorkTicket.objects.filter(status__id__in=[status,6]) # Відкладено
 
-    return render_to_response('index.html', {'workticket':list, 'sel_year': int(year), 'sel_month':int(month), 'status': status, 'year_ticket': wy, 'weblink': 'workticket_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'workticket':list.order_by('-date'), 'sel_year': int(year), 'sel_month':int(month), 'status': status, 'year_ticket': wy, 'weblink': 'workticket_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def workticket_delete(request, id):

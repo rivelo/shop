@@ -215,6 +215,11 @@ function sum() {
 //setInterval(sum, 100);
 
 $(document).ready(function() {
+	console.log("cat.sale = {{catalog_obj.sale}} ");
+	console.log("sale = {{cat_sale.sale}} ");
+	console.log("Form sale = {{form.sale.value}} ");
+	
+
 	if ($("#s_client").val() != '') {
 		id2name();
 	}
@@ -231,6 +236,9 @@ $('#id_sale').val( {{cat_sale.sale}} );
 {% else %}
 $('#id_sale').attr('sale', {{catalog_obj.sale}} );
 $('#id_sale').val( {{catalog_obj.sale}} );
+{% if form.sale.value > catalog_obj.sale %}
+$('#id_sale').val({{form.sale.value}});
+{% endif %}
 {% endif %}
 
 $('[data-toggle="tooltip"]').tooltip();	
