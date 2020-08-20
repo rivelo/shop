@@ -275,7 +275,10 @@ class BicycleStorage_Form(forms.ModelForm):
     #photo = forms.ImageField(required=False)
     #photo = forms.ImageField(widget=files_widget.forms.ImagesWidget())
     date_in = forms.DateField(initial = datetime.date.today, label='Дата', input_formats=['%d.%m.%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))
-    date_out = forms.DateField(input_formats=['%d.%m.%Y', '%d/%m/%Y'], initial = datetime.date.today().replace(month=(datetime.date.today().month+4)%12, day=1), widget=forms.DateTimeInput(format='%d.%m.%Y'), label='Дата завершення зберігання')
+    d_out = (datetime.date.today().month+4)%12
+    if d_out == 0:
+        d_out = 1
+    date_out = forms.DateField(input_formats=['%d.%m.%Y', '%d/%m/%Y'], initial = datetime.date.today().replace(month= d_out, day=1), widget=forms.DateTimeInput(format='%d.%m.%Y'), label='Дата завершення зберігання')
     done = forms.BooleanField(initial = False, required=False)        
     price = forms.FloatField(initial = 0, label = 'Ціна велосипеду (оціночна)', help_text=' гривень')
     currency = forms.ModelChoiceField(queryset = Currency.objects.all(), label='Валюта', initial = 3)
