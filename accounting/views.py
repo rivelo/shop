@@ -6558,6 +6558,8 @@ def user_invoice_report(request, month=None, year=None, day=None, user_id=None):
 
     if request.user.is_authenticated() and user_id == None:
         user_id = request.user.id
+    if user_id == '0':
+        user_id = None
 #    else:
 #        user_id = None
     
@@ -6595,7 +6597,10 @@ def user_invoice_report(request, month=None, year=None, day=None, user_id=None):
         # If page is out of range (e.g. 9999), deliver last page of results.
         cinvoices = paginator.page(paginator.num_pages)
 
-    user = User.objects.get(id=user_id)
+    try:
+        user = User.objects.get(id=user_id)
+    except:
+        user = None
             
     return render_to_response('index.html', {'sel_user':user, 'sel_year':year, 'sel_month':month, 'sel_day':day, 'month_days':days, 'buycomponents': cinvoices, 'sumall':psum, 'sum_salary':psum*0.05, 'countall':scount, 'weblink': 'report_clientinvoice_byuser.html', 'view': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -7553,6 +7558,16 @@ def storage_box_delete(request, id=None):
     obj.save()
     return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;")
     #return HttpResponseRedirect('/workshop/view/')
+
+
+def storage_box_delete_all(request, all=False):
+    if all == True:
+        obj = Catalog.objects.exclude(locality__exact='').update(locality='')
+    else:
+        obj = Catalog.objects.filter(count__lte = 0).update(locality='')
+    
+    return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;")
+
 
 
 def storage_box_rename(request):

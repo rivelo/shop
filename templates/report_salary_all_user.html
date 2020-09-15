@@ -121,7 +121,16 @@ $('#client_13').html(c9.toFixed(2) + ' грн.');
 {% for element in cinvoice %}
 <tr class='client_{{element.user}}' val='{{element.total_price|mul:0.05}}'>	
 	<td>
-	<a href="{% url 'report_sales_by_user_currentmonth' element.user %}"> {{element.user}}</a>       
+	{% if element.user = None %}
+		<a href="{% url 'report_sales_by_user_currentmonth' 0 %}"> {{element.user}}</a>
+	{% else %}
+		<a href="{% url 'report_sales_by_user_currentmonth' element.user %}"> {{element.user}}</a>
+	{% endif %}        
+{% comment %}
+	{{element}}
+{% endcomment %}
+
+	
 	</td>
 	<td>       
 	{{element.user__username}}

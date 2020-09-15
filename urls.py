@@ -524,6 +524,8 @@ urlpatterns += patterns('',
     url(r'^storage/boxes/print/$', 'catalog.accounting.views.storage_box_list', {'pprint': True}),
     url(r'^storage/box/(?P<boxname>[\w,.]+)/view/$', 'catalog.accounting.views.storage_box_list'),
     url(r'^storage/box/delete/$', 'catalog.accounting.views.storage_box_delete'),
+    url(r'^storage/box/delete/all/$', 'catalog.accounting.views.storage_box_delete_all', {'all': True}),
+    url(r'^storage/box/delete/all/empty/$', 'catalog.accounting.views.storage_box_delete_all'),
     url(r'^storage/box/rename/$', 'catalog.accounting.views.storage_box_rename'),
 
     url(r'^shop/sale/day/add/$', 'catalog.accounting.views.shopdailysales_add'),

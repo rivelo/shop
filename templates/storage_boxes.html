@@ -24,41 +24,7 @@
   flex-direction: column;  /* new */
 }
 
-/*
-.card-block {
-  padding: 10px;
-  background-color: #fff;
-  flex: 1;                
-}
 
-.card-title {
-  font-size: 18px;
-  color: grey;
-  font-family: verdana, sans;
-}
-
-.card-footer {
-  padding: 15px;
-  border-top: 1px solid lightgrey;
-  background-color: lightgrey;
-}
-
-.card-columns {
-  @include media-breakpoint-only(xs) {
-    column-count: 5;
-  }
-
-  @include media-breakpoint-only(sm) {
-    column-count: 5;
-  }
-
-  @include media-breakpoint-only(lg) {
-    column-count: 10;
-  }
-  @include media-breakpoint-only(xl) {
-    column-count: 10;
-  }
-}  */
  
 
   @media (min-width:576px) {
@@ -150,9 +116,20 @@ $(".ren_boxname").click(function() {
 {% endcomment %}
 
 
+{% load poll_extras %}     
+
 <body>
 
-<h1><span class="badge badge-secondary">Список ящиків</span> <a href="/storage/boxes/print/" class="badge badge-primary">Версія для друку</a></h1>
+<h1><span class="badge badge-secondary">Список ящиків</span> <a href="/storage/boxes/print/" class="badge badge-primary">Версія для друку</a> 
+{% if request.user|has_group:"admin" %}
+<a href="/storage/box/delete/all/empty/" onClick="return confirm('Видалити всі пусті ящики?')">
+<span class="badge badge-dark" title="Delete all empty boxes"><i class="material-icons" style="font-size: 24px" >delete</i></span>
+</a>
+<a href="/storage/box/delete/all/" onClick="return confirm('Видалити всі ящики?')">
+<span class="badge badge-dark" title="Delete all boxes"><i class="material-icons" style="font-size: 24px" >delete_sweep</i></span>
+</a>
+{% endif %}
+</h1>
 
 
 <div class="row">
@@ -171,9 +148,8 @@ $(".ren_boxname").click(function() {
 
 {% endfor %}
 
-
-
 </div>
+
 
 {% comment %}
 
@@ -196,7 +172,6 @@ $(".ren_boxname").click(function() {
 
 </div>
 </div>
-
  
 {% endcomment %}
 
@@ -208,6 +183,7 @@ $(".ren_boxname").click(function() {
 	<label for="spinner">Назва:</label>
   	<input type="text" id="box_name">
 </div>
+
 
 {% comment %}
 
