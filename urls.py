@@ -281,7 +281,8 @@ urlpatterns = patterns('',
     url(r'^client/workshop/check/email/$', 'catalog.accounting.views.client_workshop_check', {'param': 'email'}),
     
     url(r'^client/invoice/return/(?P<id>\d+)/add/$', 'catalog.accounting.views.client_invioce_return_add'),
-    url(r'^client/invoice/return/list/$', 'catalog.accounting.views.client_invioce_return_view'),
+    url(r'^client/invoice/return/list/$', 'catalog.accounting.views.client_invioce_return_view', {'limit': 100}),
+    url(r'^client/invoice/return/list/(?P<limit>\d+)/limit/$', 'catalog.accounting.views.client_invioce_return_view'),
 
     url(r'^clientdebts/add/(?P<id>\d+)$', 'catalog.accounting.views.clientdebts_add'),
     url(r'^clientdebts/view/$', 'catalog.accounting.views.clientdebts_list'),

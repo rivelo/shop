@@ -32,6 +32,23 @@ $('#id_ocash').attr('readonly','true')
 <a href="/shop/year/{% now "Y" %}/month/{% now "m" %}/day/{% now "d" %}/view/">    
 [Детально] 
 </a>
+
+{% if unk_cash > 0 %}
+<h3 style='color:red'>
+Клієнт Unknown має різницю оплат і боргів = {{unk_cash}} грн
+</h3>
+{% endif %}
+
+{% if ci_status > 0 %}
+<h3 style='color:red'>Клієнт Unknown має не проведені товари - {{ci_status}} шт.</h3>
+{% endif %}
+
+{% if other_ci %}
+	У вас є не проведені товари:
+	<h3 style='color:red'>{{other_ci}}</h3>
+{% endif %}
+
+
 </h1>
     <form action="" method="POST" enctype="multipart/form-data">
         <table>

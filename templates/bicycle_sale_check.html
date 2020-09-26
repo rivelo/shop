@@ -38,11 +38,13 @@ $(document).ready(function() {
         "Додати": function() {
         	var res_sum = parseFloat($("#t_spinner").val()) + parseFloat($("#m_spinner").val())
 //        	$("#t_spinner").val() + $("#m_spinner").val()
-        	if (res_sum != {{bicycle.price|percentage:bicycle.sale}}) {
+        	if (res_sum.toFixed(2) != {{bicycle.price|percentage:bicycle.sale}}) {
+        		console.log("RES_SUM = " + res_sum.toFixed(2) );
 	        	$('#msg_text').show();
 	        	$('#msg_text').text("Невірна сума");
         	}
         	else {
+        		$('.ui-dialog-buttonset > button:contains(Додати)').hide();
 			$.ajax({
                 type: "POST",
                 url: "/bicycle/sale/{{bicycle.id}}/check/add/",
@@ -73,6 +75,65 @@ $(document).ready(function() {
         }  		
   		});
 	});
+
+	$( "#pp1" ).click(function() {
+		$("#pp1").hide();
+	});
+
+	$( "#pp2" ).click(function() {
+		$("#pp2").hide();
+	});
+
+	$( "#pp_show_all" ).click(function() {
+		$("#pp1").show();
+		$("#pp2").show();
+	});
+
+	
+
+	$('#m_spinner').spinner({
+	    min: 0,
+	    max: {{bicycle.price|percentage:bicycle.sale}},
+	    step: 0.01,
+	    stop: function(event, ui) {
+	    	var res = {{bicycle.price|percentage:bicycle.sale}} - $('#m_spinner').val();
+	    	console.log("M_VAL = " + $('#m_spinner').val());
+			$('#t_spinner').val(res);        
+	    }
+	});
+
+	$('#t_spinner').spinner({
+	    min: 0,
+	    max: {{bicycle.price|percentage:bicycle.sale}},
+	    step: 0.01,
+	    stop: function(event, ui) {
+	    	var res = parseFloat({{bicycle.price|percentage:bicycle.sale}}) - parseFloat($('#t_spinner').spinner( "value" ));
+	    	console.log("T_VAL = " + $('#t_spinner').spinner( "value" ) );
+	    	console.log("RES = " + res );
+			$('#m_spinner').val(parseFloat(res));        
+	    }
+	});
+
+	
+	$('#t_spinner').spinner({
+	  change: function( event, ui ) {
+	    	var res = parseFloat({{bicycle.price|percentage:bicycle.sale}}) - parseFloat($('#t_spinner').val());
+	    	console.log("T_VAL = " + $('#t_spinner').spinner( "value" ) );
+	    	console.log("RES = " + res );
+			$('#m_spinner').spinner( "value", parseFloat(res) );        
+	  }
+	});
+
+	$('#m_spinner').spinner({
+	  change: function( event, ui ) {
+	    	var res = parseFloat({{bicycle.price|percentage:bicycle.sale}}) - parseFloat($('#m_spinner').val());
+	    	console.log("M_VAL = " + $('#t_spinner').spinner( "value" ) );
+	    	console.log("RES = " + res );
+			$('#t_spinner').spinner( "value", res );        
+	  }
+	});
+	
+	$('#pp1').hide()	
 	
 });
 </script>
@@ -97,14 +158,15 @@ $(document).ready(function() {
 <table id="checktable">
 <tr>
 <td style="text-align:center; border: 2px solid white;" colspan="2">
-<h1>Товарний чек №000{{chk_num}}</h1>
+<h1 id="pp_show_all">Товарний чек №000{{chk_num}}</h1>
 <h2>від {{month}} року</h2>
 </td>
 </tr>
 
 <tr>
 <td style="text-align:left;" valign="bottom">
-<p>Продавець: ПП. Панчук Ігор Олексійович (ІПН 3084020932)</p>
+<p id="pp1">Продавець: ПП. Панчук Ігор Олексійович (ІПН 3084020932)</p>
+<p id="pp2">Продавець: ПП Міщанюк Андрій Юрійович (ІПН 3285112819) IBAN UA213348510000000002600583618</p>
 <p> Покупець: <a href="/client/{{bicycle.client.id}}">{{bicycle.client.name}}</a></p>
 </td>
 <td id="tdchecklogo" ALIGN="right">

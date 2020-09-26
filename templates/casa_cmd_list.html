@@ -119,6 +119,8 @@ $('#run_cmd').click(function(){
     <br>
     #cmd = 'in_out;0;0;0;0;'+str(0.0)+';;;'
     <br>
+    #cmd = 'cancel_receipt;' # закрити чек
+    <br>
     #cmd = 'open_receipt;0' # відкрити чек
     <br>
     #cmd = 'open_receipt;1' # відкрити чек повернення
@@ -136,6 +138,12 @@ $('#run_cmd').click(function(){
         #PARAMS['cmd'] = 'pay;2;191.90;'
 	<br>
         #PARAMS['cmd'] = 'pay;0;0;'
+    <br>
+    	#cmd = get_last_receipt_number; # Получить номер последнего чека
+    <br>
+    #cmd = 'in_out;2;0;0;1;*;коментар;повернення товару через термінал;'
+	
+    	
 	
 </h4>
     

@@ -42,7 +42,7 @@ $(document).ready(function() {
       	buttons: {
         "Додати": function() {
         	var res_sum = parseFloat($("#t_spinner").val()) + parseFloat($("#m_spinner").val())
-        	if (res_sum != {{sum}}) {
+        	if (res_sum.toFixed(2) != {{sum}}) {
 	        	$('#msg_text').show();
 	        	$('#msg_text').text("Невірна сума");
         	}
@@ -124,7 +124,22 @@ $('#m_spinner').spinner({
   }
 });
 
-	
+
+$( "#pp1" ).click(function() {
+	$("#pp1").hide();
+});
+
+$( "#pp2" ).click(function() {
+	$("#pp2").hide();
+});
+
+$( "#pp_show_all" ).click(function() {
+	$("#pp1").show();
+	$("#pp2").show();
+});
+
+$("#pp1").hide()
+
 });       
 </script>
 
@@ -150,7 +165,7 @@ $('#m_spinner').spinner({
 
 <table id="checktable">
 <tr>
-<td style="text-align:center; border: 2px solid white;" colspan="2">
+<td style="text-align:center; border: 2px solid white;" colspan="2" id="pp_show_all">
 
 {% if is_workshop %}
 <h1>Акт виконаних робіт №000{{check_num}} {{printed}}</h1>
@@ -165,7 +180,8 @@ $('#m_spinner').spinner({
 <tr>
 <td style="text-align:left;" valign="bottom">
 <!--  <p>Продавець: ПП. Панчук Ігор Олексійович (ІПН 3084020932)</p>  -->
-<p>Продавець: ПП Міщанюк Андрій Юрійович (ІПН 3285112819) IBAN UA213348510000000002600583618</p>
+<p id="pp1">Продавець: ПП. Панчук Ігор Олексійович (ІПН 3084020932)</p>
+<p id="pp2">Продавець: ПП Міщанюк Андрій Юрійович (ІПН 3285112819) IBAN UA213348510000000002600583618</p>
 <p> Покупець: <a href="/client/result/search/?id={{client.id}}">{{client.name}}</a></p>
 </td>
 <td id="tdchecklogo" ALIGN="right">

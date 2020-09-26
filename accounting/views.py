@@ -4008,8 +4008,12 @@ def client_workshop_check(request, param=None):
     return w    
 
 
-def client_invioce_return_view(request):
-    cr_list = ClientReturn.objects.all()
+def client_invioce_return_view(request, limit = None):
+    cr_list = None
+    if limit != None:
+        cr_list = ClientReturn.objects.all().order_by('-id')[:limit]
+    else:
+        cr_list = ClientReturn.objects.all()
     return render_to_response('index.html', {'return_list': cr_list, 'weblink': 'ci_return_list.html'}, context_instance=RequestContext(request, processors=[custom_proc])) 
 
 
@@ -4640,7 +4644,8 @@ def workstatus_list(request):
 def workstatus_delete(request, id):
     obj = WorkStatus.objects.get(id=id)
     del_logging(obj)
-    obj.delete()
+    if (auth_group(request.user, 'admin') == True):
+        obj.delete()
     return HttpResponseRedirect('/workstatus/view/')
 
 
@@ -5052,6 +5057,9 @@ def shopdailysales_add(request):
             ShopDailySales(date=date, price=price, description=description, user = user, cash=cash, tcash=tcash, ocash=ocash).save()
             return HttpResponseRedirect('/shop/sale/view/')
     else:        
+        unknown_client = Client.objects.get(id = settings.CLIENT_UNKNOWN)
+        print "USER - " + str(unknown_client.pk)
+        
         deb = ClientDebts.objects.filter(date__year=now.year, date__month=now.month, date__day=now.day).order_by()
         cred = ClientCredits.objects.filter(date__year=now.year, date__month=now.month, date__day=now.day).order_by()
 #        cash_credsum = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price"))
@@ -5069,13 +5077,41 @@ def shopdailysales_add(request):
         except ClientDebts.DoesNotExist:
             cashDeb = 0
 
+        cashCred_sum = 0
+        cashDeb_sum = 0
+        try:
+            cashCred_sum = cred.values('client').annotate(suma=Sum("price")).get(client = settings.CLIENT_UNKNOWN)['suma']
+        except ClientCredits.DoesNotExist:
+            cashCred_sum = 0
+        try:
+            cashDeb_sum = deb.values('client').annotate(suma=Sum("price")).get(client = settings.CLIENT_UNKNOWN)['suma'] #.filter(client = unknown_client).annotate(suma=Sum("price"))
+        except ClientDebts.DoesNotExist:
+            cashDeb_sum = 0
+
+        unk_cash = cashCred_sum - cashDeb_sum
+
+        ci_status = 0
+        other_ci = 0
+        try:
+            ci_array = ClientInvoice.objects.filter(date__year=now.year, date__month=now.month, date__day=now.day)
+            #ci_res = ClientInvoice.objects.filter(client = unknown_client, date__year=now.year, date__month=now.month, date__day=now.day)
+            ci_res = ci_array.filter(client = unknown_client)
+            for ci in ci_res: 
+                if ci.check_pay() == False:
+#                    print "FILTER ok!!!"
+                    ci_status = ci_status + 1
+            other_ci = ci_array.exclude(sum = F('pay'))
+        except ClientInvoice.DoesNotExist:
+            ci_status = 0
+           
+            
         #lastCasa = ShopDailySales.objects.filter(date__year=now.year, date__month=now.month).order_by('-pk')[0]
         #lastCasa = ShopDailySales.objects.filter(date__gt = now - datetime.timedelta(days=int(10))).order_by('-pk')[0]
         lastCasa = ShopDailySales.objects.latest('date')
                 
         casa = cashCred - cashDeb
         form = ShopDailySalesForm(initial={'cash': casa, 'ocash': cashDeb, 'tcash':TcashCred, 'user': request.user})
-    return render_to_response('index.html', {'form': form, 'weblink': 'shop_daily_sales.html', 'lastcasa': lastCasa}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'shop_daily_sales.html', 'lastcasa': lastCasa, 'ci_status': ci_status, 'other_ci':other_ci, 'unk_cash': unk_cash}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def shopmonthlysales_view(request, year=None, month=None):
@@ -6072,7 +6108,7 @@ def client_ws_payform(request):
             item.pay = True
             item.save()
         
-        if client.id == 138:
+        if client.id == settings.CLIENT_UNKNOWN:
             return HttpResponseRedirect('/workshop/view/')
          
         url = '/client/result/search/?id=' + str(client.id)

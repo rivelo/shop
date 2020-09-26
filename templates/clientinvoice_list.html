@@ -552,7 +552,12 @@ $.ajax({
     {% endif %}
 	</td>
 	<td class="tsum">       
-	{{type.sum}}     
+	{{type.sum}}  
+	{% if request.user|has_group:"admin" %}
+	{% if type.pay != type.sum %}   
+	<span class="badge badge-pill badge-warning" onclick=""> {{type.pay}} </span>
+	{% endif %}
+	{% endif %}
 	</td>
 {#	<td>	{{type.currency.name}}	</td> #}
 	<td align="center" title="Економія склала {{type.get_client_profit}} грн.">       
@@ -605,7 +610,9 @@ $.ajax({
 	<td align="center" title="Ящик номер: {{type.catalog.locality}}" data-toggle="tooltip" data-html="true" data-placement="left">
 	{% else %}
 	<td align="center" bgcolor="yellow" title="Ящик номер: {{type.catalog.locality}}" data-toggle="tooltip" data-html="true" data-placement="left">
+	{% if request.user|has_group:"admin" %} 
 	<span class="badge badge-pill badge-warning" onclick="change_count(this)">{{type.catalog.get_realshop_count}}</span>
+	{% endif %}
 	{% endif %}
  
 	{{type.catalog.count}} 
