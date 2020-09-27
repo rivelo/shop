@@ -1,5 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Прокат сидінь</title>
 
 <link rel="stylesheet" type="text/css" href="/media/css/table.css">
 <link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" />
@@ -15,6 +16,10 @@ $(document).ready(function() {
 
 
 function true_false(obj){
+	cres = confirm('Повернути готівку?\nЯкщо так то OK в іншому випадку Cancel.');
+	if (cres == false){
+		return 0;
+	};
             var rent_id = $(obj).attr('id'); 
             var res = new Array();
             res = rent_id.split('_');
@@ -82,12 +87,12 @@ function true_false(obj){
 	{{type.id}}
 	</td>
 	<td>
-	<a href="/client/{{type.client.id}}/invoice/catalog/{{ type.catalog.id }}/add/" title="Продати дану річ" >
+	<a href="/client/{{type.client.id}}/invoice/catalog/{{ type.catalog.id }}/add/" data-toggle="tooltip" data-html="true" data-placement="right" title="Продати дану річ" >
 	{{type.catalog}}
 	</a>
 	</td>
 	<td>
-	<span class="jQtooltip" title="Телефон: {{type.client.phone}}"> 
+	<span class="jQtooltip" title="Телефон: <p style='font-size: 16pt;'>{{type.client.show_str_phone1}}</p>{{type.client.show_str_phone2}}" data-toggle="tooltip" data-html="true" data-placement="bottom"> 
 	<a href="/client/{{ type.client.id }}"> 
 	{{type.client}}
 	</a>
@@ -106,7 +111,7 @@ function true_false(obj){
 	{{type.deposit}} грн.
 	</td>	
 	<td align="center">       
-	<span title="Змінити статус" id="status_{{type.id}}" onclick="true_false(this)" >{{type.status}}</span>
+	<span title="Змінити статус" id="status_{{type.id}}" onclick="true_false(this)" data-toggle="tooltip" data-html="true" data-placement="right" >{{type.status}}</span>
 	</td>	
 	<td align="center">       
 	{{type.user}}
@@ -117,7 +122,7 @@ function true_false(obj){
 {% if request.user|has_group:"admin" %}  	
 	<td>
     <a href="/rent/edit/{{ type.id }}"><i class="material-icons">edit</i></a>
-    <a href="/rent/delete/{{ type.id }}"><i class="material-icons">delete</i></a>
+    <a href="/rent/delete/{{ type.id }}" onclick="return confirm('Видалити прокат?\n {{type.client}} \n {{type.catalog}}?')"><i class="material-icons">delete</i></a>
     </td>
 {% endif %}        
 </tr>

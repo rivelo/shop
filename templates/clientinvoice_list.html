@@ -439,7 +439,8 @@ $.ajax({
    <h1>
    <span class="badge badge-dark">Список проданого товару</span> <span class="badge badge-info" id="show_date">{{sel_day}}/{{sel_month}}/{{sel_year}}</span> 
    <span id="clear_basket"><img src="/media/images/Ecommerce Return.ico" title="видалити всі відмічені" width="32" height="32" data-toggle="tooltip" data-html="true" data-placement="right"> </span>
-   <a href="/workshop/playsound/" ><span class="badge badge-dark mt-250"><i class="material-icons" style="font-size: 28px" >notification_important</i></span></a> 
+   <a href="/workshop/playsound/" ><span class="badge badge-dark mt-250"><i class="material-icons" style="font-size: 28px" >notification_important</i></span></a>
+   <a href="notpay/" ><span class="badge badge-dark mt-250"><i class="material-icons" style="font-size: 28px" >check_box</i></span></a>
    </h1>
    </div>
    
@@ -541,7 +542,7 @@ $.ajax({
 		{{type.catalog.name}}
 	</td>
 	<td align="center" class="tcount">       
-	{{type.count|floatformat}}
+	<a href="{% url 'client_catalog_sale' type.catalog.id %}" >{{type.count|floatformat}}</a>
 	</td>
 	<td class="tprice">       
 	{{type.price}}

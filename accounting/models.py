@@ -683,6 +683,17 @@ class Client(models.Model):
     birthday = models.DateField(auto_now_add=False, blank = True, null = True)
     sale_on = models.BooleanField(default=True, verbose_name="Знижка включена")
     description = models.TextField(blank = True, null = True)
+
+    def show_str_phone1(self):
+        str = self.phone[0:3] + '-' + self.phone[3:6] + '-' + self.phone[6:8]  + '-' + self.phone[8:]
+        return str 
+
+    def show_str_phone2(self):
+        str = ''
+        if self.phone1:
+            str = self.phone1[0:3] + '-' + self.phone1[3:6] + '-' + self.phone1[6:8]  + '-' + self.phone1[8:]
+        return str 
+
     
     def __unicode__(self):
         return u"%s - [%s]" % (self.name, self.forumname)

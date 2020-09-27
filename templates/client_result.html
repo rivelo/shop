@@ -975,7 +975,7 @@ function show_ret(ciid, item) {
 	{% for inv in invoice %}
 	<tr class="tr_inv" ci_id="{{inv.id}}" count="{{inv.count}}" cat_id={{inv.catalog.pk}} cat_name="{{inv.catalog}}">
 	<td title="{{inv.user}} - {{inv.date|time:"H:i"}}" data-toggle="tooltip" data-placement="top">
-	{{inv.date}}
+	<a href="{% url 'client_invoice_day' inv.date.year inv.date.month inv.date.day%}" >{{inv.date}}</a>
 	</td>
 	<td class="cat_name">
 	<div class="d-flex">
@@ -1091,7 +1091,7 @@ function show_ret(ciid, item) {
 	{% for inv in workshop %}
 	<tr>
 	<td title="{{inv.date|time:"H:i"}} - {{inv.user}}" data-toggle="tooltip" data-html="true" data-placement="left">
-	{{inv.date}}
+	<a href="{% url 'workshop_day' inv.date.year inv.date.month inv.date.day%}" >{{inv.date}}</a>
 	</td>
 	<td>
 	{{inv.work_type}}

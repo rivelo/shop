@@ -3857,7 +3857,7 @@ def client_invoice_delete(request, id=None):
     return HttpResponseRedirect('/client/invoice/view/')
 
 
-def client_invoice_view(request, month=None, year=None, day=None, id=None):
+def client_invoice_view(request, month=None, year=None, day=None, id=None, notpay=False):
     # upd = ClientInvoice.objects.filter(sale = None).update(sale=0) # update recors with sale = 0
     
     if year == None:
@@ -3887,6 +3887,9 @@ def client_invoice_view(request, month=None, year=None, day=None, id=None):
         scount = scount + item.count
         sprofit = sprofit + item.get_profit()[1]        
     days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
+
+    if notpay == True:    
+        list = list.exclude(sum = F('pay'))
     
     paginator = Paginator(list, 15)
     page = request.GET.get('page')
@@ -3921,7 +3924,7 @@ def client_invoice_lookup(request, client_id):
     return render_to_response('clientinvoice_ajax.html', {'invoice': list})
 
 
-def client_invoice_id(request, id):
+def client_invoice_id(request, id, notpay=False):
     list = ClientInvoice.objects.filter(catalog__id=id).order_by("-date", "-id") #.values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
     psum = 0
     scount = 0
@@ -3932,6 +3935,9 @@ def client_invoice_id(request, id):
         psum = psum + item.sum
         scount = scount + item.count
         sprofit = sprofit + item.get_profit()[1]  
+
+    if notpay == True:    
+        list = list.exclude(sum = F('pay'))
     
     paginator = Paginator(list, 15)
     page = request.GET.get('page')
@@ -6799,6 +6805,10 @@ def rent_edit(request, id):
             if GET.has_key('id'):
                 q = request.GET.get( 'id' )
                 r = Rent.objects.get(id = id)
+                if r.status == False:
+                    cdeb = ClientDebts(client=r.client, date=datetime.datetime.now(), price=r.cred.price, description="Повернення завдатку за прокат "+str(r.catalog), user=request.user, cash=True)
+                    cdeb.save()
+                #r.deposit
                 r.status = not r.status
                 r.save()
                 #search = Rent.objects.filter(id = id).values_list('status', flat=True)    
