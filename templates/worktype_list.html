@@ -267,7 +267,7 @@ function formSubmit_components(item){
       <th scope="row">{{forloop.counter}}</th>
       <td>{{type.name}} 
       {% if request.user|has_group:"admin" %}
-      <span class="badge badge-pill badge-info " >{{type.work_count.work_count_sum}}</span>
+      <a href= "{% url 'repot_by_work' type.pk %}" ><span class="badge badge-pill badge-info " >{{type.work_count.work_count_sum}}</span></a>
       <span class="badge badge-pill badge-info sum_work">{{type.work_count.work_sum}} грн.</span>
       {% endif %}
       </td>

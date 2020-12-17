@@ -843,12 +843,16 @@ class RentForm(forms.ModelForm):
     date_end = forms.DateTimeField(initial = datetime.date.today() + datetime.timedelta(days=3), label='Закінчення прокату')
 #    count = forms.IntegerField(initial=1)
     deposit = forms.FloatField(label='Завдаток', initial=0)
+    currency = forms.ModelChoiceField(queryset = Currency.objects.all(), label='Валюта')
+    cash_type = forms.ModelChoiceField(queryset = CashType.objects.all(), label='Вид оплати', required=False)
 #    status = forms.BooleanField(initial = False, required=False)
-    description = forms.CharField(label='Description', widget=forms.Textarea(), required=False)
+    description = forms.CharField(label='Коментар', widget=forms.Textarea(), required=False)
+#    field_order = ['catalog','client','date_start', 'date_end', 'deposit', 'currency', 'description']
 
     class Meta:
         model = Rent
-        fields = '__all__'
+        #fields = '__all__'
+        fields = ['catalog','client','date_start', 'date_end', 'deposit', 'currency', 'cash_type', 'description']
         exclude = ['cred', 'user', 'status', 'count']
 
 

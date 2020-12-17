@@ -4,6 +4,13 @@
 <html lang="en">
 <head>
     <title>В прокат</title>
+<style>
+   label {
+    /*color: maroon; /* Цвет текста */
+    
+    font-weight: 600; /* Жирное начертание */
+   }
+  </style>
 </head>
 
 	<link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
@@ -23,28 +30,7 @@
 <script type="text/javascript">
 	$(document).ready(function() {
 //      $('select.autocomplete').select_autocomplete();
-      $('#s_client').focus();
-      
-{% comment %}
-      $('#ttt').click(function(){
-            var TextStory = "ygrik" 
-            $.ajax({
-                type: "POST",
-                url: "/insertstory/",
-                data: { TextStory: TextStory },
-                dataType: "json",
-                success:function(msg){
-                    $('#ttt').text(""+msg);
-                    $('#id_deposit').val(""+msg);
-                    
-                },
-                error:function(){
-                    alert("При отправке возникли проблемы");
-                }
-            });      
-});
-{% endcomment %}      
-            
+    $('#s_client').focus();
 
     $( "#s_client" ).autocomplete({
                 source: function( request, response ) {
@@ -74,7 +60,7 @@
                 	$('#id_sale').val($('#id_sale').attr('sale'));
                 }
                 $('#id_client').val(ui.item.pk_id);
-           	            
+                console.log("VAL CLIENT = " + ui.item.pk_id)        
                 },
                 open: function() {
                     $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
@@ -87,40 +73,57 @@
             
 })
 
-function id2name(){
 
-            $.ajax({
-                type: "GET",
-                url: "/client/lookup/byid/",
-                data: { client_id: $("#s_client").val() },
-                dataType: "json",
-                success:function(msg){
-                	$.each(msg,function(index,item){
-                	$("#s_client").val(item)    
-                    });
-                },
-                error:function(){
-                    alert("При отправке возникли проблемы");
-                }
-            });      
-
-};
-
-
+/*
 	$(function(){
       $("select#id_catalog").change(function(){
-    	  $("#goods").html($("#id_catalog :selected").text());
-	$.getJSON("/ajax/test/", {id: $("select#id_catalog").val()}, function(data) {
-//        alert(data);    
-//      var text = eval("(" + data + ")");
-
-      $('#id_deposit').val(data[0].price);
-//      $('#result')[0].innerHTML= data;
-		});
+    	  	$("#goods").html($("#id_catalog :selected").text());
+			$.getJSON("/ajax/test/", {id: $("select#id_catalog").val()}, function(data) {
+		    	$('#id_deposit').val(data[0].price);
+			});
 		
       });
-  	})
+  	});
+*/
+  	
 
+$(function() {
+   var mySource = [];
+   $("#id_catalog").children("option").map(function() {
+	  var h = { label: $(this).text(), value: $(this).val() }
+      mySource.push(h)
+   });
+
+   $("#auto_catalog").autocomplete({
+      source: mySource,
+      minLength: 2,
+      select: function( event, ui ) {
+    	event.preventDefault();  
+        $('#id_catalog').val(ui.item.value);
+		$("#auto_catalog").val(ui.item.label);
+		$("#goods").text(ui.item.label)
+		$.getJSON("/ajax/test/", {id: $("select#id_catalog").val()}, function(data) {
+	    	$('#id_deposit').val(data[0].price);
+		});
+     	            
+      },
+      
+   });
+   
+   $("label[for=id_catalog]").hide();
+   $("label[for=id_client]").hide();
+   $("#id_client").hide();
+   $("#id_catalog").hide();
+   
+})
+
+
+$(function() {
+    $('#id_currency option').filter(function() { 
+        return ($(this).text() == 'Гривня (UAH)');
+    }).prop('selected', true);
+});
+  	
 </script>
 
 
@@ -132,7 +135,11 @@ function id2name(){
   
     <form action="" method="POST">
         <table>
+        	<label>Введіть дані клієнта:</label>
         	<input type="text" id="s_client" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="Прізвище, імя клієнта" aria-label="Username" aria-describedby="basic-addon1">
+        	<label>Товар:</label>
+        	<input type="text" id="auto_catalog" class="form-control {% if form.catalog.errors %}  is-invalid {% endif %}" placeholder="Товар" aria-label="Username" aria-describedby="basic-addon1">
+        	
             {{ form.as_table }}
         </table>
 {#        <p><input type="submit" value="Save"></p> #}

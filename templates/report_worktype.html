@@ -1,0 +1,260 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Список виконанних робіт майстерні</title>
+
+<link type="text/css" rel="stylesheet" href="/media/paginator.css">
+
+	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+	<script src="/media/jquery-ui.min.js"></script>
+
+
+
+<script language="JavaScript">
+
+function resWorkshop()
+{
+var p=0;
+var All=document.forms['formWorkshopSum'];
+for(var i = 0; i < All.elements.length; ++i) {
+	if(All.elements[i].checked){
+	p+=parseFloat(All.elements[i].value);
+	}
+	document.getElementById('workshop_pay').innerHTML = "До оплати: <br>" + p.toFixed(2)+" грн.";
+}
+}
+    
+    
+$(document).ready(function() {
+
+	$('[data-toggle="tooltip"]').tooltip();
+
+	  $( "#s_id_work_type" ).autocomplete({
+	    	source: function( request, response ) {
+	        	$.ajax({
+	                type: "POST",
+	                url: "/worktype/lookup/",
+					data: { query: $("#s_id_work_type").val() },
+	                dataType: "json",
+	                success: function( data ) {
+	                        	response( $.map( data, function( item ) {
+	                            return {
+	                                label: item.pk + ": [" + item.model__name + "] "+ item.fields.name + " - " + item.fields.price + "грн",
+	                                value: item.fields.name,
+	                                idid: item.fields.sale,
+	                                id_sale: item.fields.sale,                                
+	                                id_price: item.fields.price,
+	                                pk_id: item.pk
+	    							}
+	                        	}));                                
+	                            }
+	            })
+	        },
+	        minLength: 3,
+	        select: function( event, ui ) {
+	        	//var sprice = ui.item.id_price / 100 * (100-ui.item.id_sale)
+	        	//var base = 5
+	        	//var r = sprice
+	        	//sprice = parseInt(base * Math.round(r/base))
+		    	//$('#id_price').val(ui.item.id_price);
+	        	//$('#id_price').val(sprice);
+		    	//$('#id_work_type').val(ui.item.pk_id);
+		    	$("#s_id_work_type").attr("value", ui.item.pk_id);
+		    	console.log("WORK id = " + ui.item.pk_id);
+	        },
+	        open: function() {
+	        	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+	        },
+	        close: function() {
+	        	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+	        }
+	    });	
+
+	  
+});
+
+function join_atext(){
+	return "Ви впевненні що хочете обєднати роботи: \n{{work_type.name}} + " + $('#s_id_work_type').val() + "?"
+}		
+
+function join_worktype(item){
+	  //$("#work_join_button")
+	  
+		var id1 = {{work_type.id}};	
+		var id2 = $("#s_id_work_type").attr("value");
+		console.log("WORK id = " + id1);
+		
+	    $.ajax({
+	        type: "POST",
+	        url: "/worktype/join/",
+	    	data: {id1:  id1, id2: id2},
+	    	dataType : 'json',
+	    	success:function(json){
+	    	   	if (json['status'] == true) {
+	    			$(item).hide();
+	    			//$(item).parents('span').hide();
+	    	   	}
+	    		else {
+	    			console.log('JSON = ' + json['error'] + ' STATUS = ' + json['status'] );
+	    		    alert("Помилка: " + json['msg']);
+	    		}
+	    	 },
+	    	 error:function(){
+	    	    	alert("При відправці виникли проблеми");
+	    	 }
+	    }); 
+	}
+
+</script>
+
+{% load poll_extras %}
+
+<body onLoad="resWorkshop()">
+
+<span class="badge badge-secondary">
+<h1>Список виконаної роботи [{{work_type.name}}] ({{sel_day}}/{{sel_month}}/{{sel_year}}) <a href="/workshop/add/{{work_type.id}}" class="badge badge-success"><i class="material-icons">add_circle_outline</i></a></h1>
+<span class="badge bg-info text-dark mb-1" id="work_join_button" onClick="if(confirm(join_atext())) join_worktype(this);"><h5>перейменувати в -></h5></span> 
+<input type="text"  id="s_id_work_type" class="form-control {% if form.work_type.errors %}  is-invalid {% endif %}" placeholder="Пошук роботи" aria-label="Username" aria-describedby="basic-addon1" value="{{ work.name }}"/>
+</span>
+
+<br>
+<h2>
+    За рік: 
+    {% for i in years %}
+    <a href="/report/worktype/{{work_type.id}}/year/{{i.0}}/" class="badge badge-success">{{i.0}}<span class="badge bg-secondary">{{i.1}}</span></a>
+    {% endfor %}
+</h2>    
+
+<h2>
+    За місяць: 
+{#    {% for month in 1|mrange:13 %} #}
+	{% for month in month_list %}
+    <a href="/report/worktype/{{work_type.id}}/year/{{sel_year}}/month/{{month.0}}" class="badge badge-secondary">{{month.0}}<span class="badge bg-info">{{month.1}}</span></a>
+    {% endfor %}
+</h2>    
+
+{% comment %}
+<h2>
+	За день:
+	{% for day in month_days %}		 
+    <a href="/report/workshop/{{sel_user.id}}/byuser/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}" class="badge badge-success">{{day}}</a>
+    {% endfor %}
+</h2>    
+{% endcomment %}
+
+
+	
+<form action="/payform/workshop/" method="post" name="formWorkshopSum">
+<br> 
+    <table class="table table-striped table-hover table-sm ">
+    <tr>
+    	<th scope="col">#</th>
+    	<th>ID</th>
+    	<th>Клієнт</th>
+    	<th>Дата завершення</th>
+    	<th>Робота</th>
+    	<th>Ціна (грн.)</th>
+    	<th>Опис</th>
+    	<th>Дія</th>
+    	<th></th>
+    </tr>
+ 
+{% for type in workshop.object_list %}
+{% if type.pay %}	
+<tr>	
+{% else %}
+<tr BGCOLOR="#F2AE6B">
+{% endif %}
+    <th scope="row">{{forloop.counter}}</th>
+	<td title="Створено користувачем {{type.user.username}}" data-toggle="tooltip" data-html="true" data-placement="right">       
+	{{type.id}}
+	</td>
+	<td>       
+	<a href="/client/result/search/?id={{type.client.id}}">
+	{{type.client}}
+	</a>
+	</td>
+	<td>       
+	{{type.date|date}}
+	</td>
+	<td>       
+	{{type.work_type}}
+	</td>	
+	<td>       
+	{{type.price}}
+	</td>
+	<td>       
+	{{type.description}}
+	</td>
+	<td align="center">
+	<a href="/workshop/edit/{{ type.id }}"><i class="material-icons">edit</i></a>
+	{% if perms.accounting.delete_workshop %}	
+    <a href="/workshop/delete/{{ type.id }}" onclick="return confirm('Видалити роботу?')"><i class="material-icons">delete_forever</i></a>
+    {% endif %}
+    </td>
+    <td>
+{% if type.pay %}    
+   	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{type.price}}" onclick="resWorkshop()" name="checkbox_{{ type.id }}"/>
+{% else %}
+   	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{type.price}}" onclick="resWorkshop()" checked name="checkbox_{{ type.id }}"/>
+{% endif %}
+    </td>
+</tr>
+{% endfor %}   
+
+<tr>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th></th>
+    	<th>Сума</th>
+    	<th><font color="#000099">{{sumall}} грн.</font></th> <!-- {{sumall}} -->
+    	<th>
+    	<input type="submit" value="E-mail" name="send_check" id="send_check" onClick="return confirm('Створити і надіслати листа?')">
+    	</th>
+    	<th>	
+    	<p><input type="submit" value="Оплата" name="pay" onClick="return confirm('Провести операцію?')"></p>
+		
+		</th>
+    	<th id="workshop_pay"></th>
+</tr> 
+
+</table>
+<br>
+
+</form>
+
+<div class="pagination">
+  <ul>
+  	{% if workshop.has_previous %}
+        <li class="prev">
+            <a href="?page={{ workshop.previous_page_number }}">&larr; Previous</a>
+        </li>
+    {% else %}
+    <li class="prev disabled">
+            <a href="?page={{ workshop.number }}">&larr; Previous</a>
+    </li>
+    {% endif %}
+    
+<!--     <li class="disabled"><a href="">Page {{ workshop.number }} of {{ workshop.paginator.num_pages }}.</a></li>
+ -->
+    {% for i in workshop.paginator.page_range %}
+    {% ifequal i  workshop.number%}
+    <li class="disabled"><a href="">{{ i }}.</a></li>
+    {% else %}
+    <li class="active"><a href="?page={{ i }}">{{ i }}.</a></li>
+    {% endifequal %}
+    {% endfor %}   
+    
+    {% if buycomponents.has_next %}
+        <li class="next">
+            <a href="?page={{ workshop.next_page_number }}">Next &rarr;</a>
+        </li>
+    {% else %}
+    <li class="next disabled">
+            <a href="?page={{ workshop.number }}">Next &rarr;</a>
+     </li>    
+    {% endif %}
+  </ul>
+</div>
+
+

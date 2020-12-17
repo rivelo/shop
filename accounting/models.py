@@ -1259,6 +1259,7 @@ class WorkType(models.Model):
     block = models.BooleanField(default = False, verbose_name="Блок/обєднання робіт")
     plus = models.BooleanField(default = False, verbose_name="Сума+")
     sale = models.FloatField(default = 0, blank=True, null=True)
+    #user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
 
     def work_count(self):
         r = WorkShop.objects.filter(work_type = self).aggregate(work_count_sum = Count('pk'), work_sum=Sum('price'))#.latest('date')

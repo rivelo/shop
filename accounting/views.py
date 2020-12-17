@@ -2633,8 +2633,36 @@ def goverla_currency():
     return [c_usd, c_eur]
 
 
+def pb_currency():
+    url='https://privatbank.ua/'
+    req = urllib2.Request(url)
+    response = urllib2.urlopen(req)
+    the_page = response.read()
+    soup = BeautifulSoup(the_page)
+    usd_b = soup.find("td", {"id": "USD_buy"})
+    eur_b = soup.find("td", {"id": "EUR_buy"})
+    usd_s = soup.find("td", {"id": "USD_sell"})
+    eur_s = soup.find("td", {"id": "EUR_sell"})
+
+    soup_usd_b = BeautifulSoup(str(usd_b))
+    soup_eur_b = BeautifulSoup(str(eur_b))
+    soup_usd_s = BeautifulSoup(str(usd_s))
+    soup_eur_s = BeautifulSoup(str(eur_s))
+    try:
+        c_usd = (float(str(soup_usd_b.string)) + float(str(soup_usd_s.string))) / 2
+    except:
+        c_usd = 0
+    try:
+        c_eur = (float(str(eur_s.string)) + float(str(eur_b.string)) ) / 2
+    except:
+        c_eur = 0
+        
+    return [c_usd, c_eur]
+
+
 def exchange_add(request):
-    cur = goverla_currency()
+    #cur = goverla_currency()
+    cur = pb_currency()
     c_usd = cur[0]
     c_eur = cur[1]
         
@@ -2659,7 +2687,8 @@ def exchange_add(request):
 
 
 def exchange_list(request):
-    cur = goverla_currency()
+    #cur = goverla_currency()
+    cur = pb_currency()
     c_usd = cur[0]
     c_eur = cur[1]
         
@@ -4478,6 +4507,60 @@ def worktype_list(request, id=None):
 #    return render_to_response('index.html', {'worktypes': list, 'weblink': 'worktype_list.html'})
 #===============================================================================
 
+def worktype_join(request, id1=None, id2=None, ids=None):
+    if auth_group(request.user, 'admin')==False:
+        #return HttpResponseRedirect('/')
+        return HttpResponse('Error: У вас не має прав для обєднання')
+    d = {}
+    if (id1 == id2) and (id1 != None):
+        return HttpResponse('Не має сенсу обєднувати роботу саму з собою')
+    
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'seller')==False:
+                return HttpResponse('Error: У вас не має прав для редагування')
+            POST = request.POST  
+            if POST.has_key('id1'):
+                id1 = request.POST['id1']
+                if id1 == '':
+                    d['status'] = False
+                    d['msg'] = 'Основна робота не вибрана'
+                    response = JsonResponse(d)
+                    return response
+            if POST.has_key('id2'):
+                id2 = request.POST['id2']
+                if id2 == '':
+                    d['status'] = False
+                    d['msg'] = 'Виберіть роботу зі списку для обєднання'
+                    response = JsonResponse(d)
+                    return response
+            if POST.has_key('ids'):
+                ids = request.POST['ids'].split(',')
+                try:
+                    ids.remove(id1)
+                except:
+                    result = "Введіть правильний ID товару для обєднання"
+                    return HttpResponse(result, content_type="text/plain;charset=UTF-8;;")
+
+                for i in ids:
+                    workshop = WorkShop.objects.filter(work_type = i).update(work_type = id1)
+                    obj_del = WorkShop.objects.get(id = i)
+                #obj_del.delete()
+            workshop = WorkShop.objects.filter(work_type = id2).update(work_type = id1)
+            obj_del = WorkType.objects.get(id = id2)
+                
+            d['status'] = True
+            d['msg'] = 'Дані про роботу оновлено'
+            response = JsonResponse(d)
+#            result = "ok"
+            return response #HttpResponse(result, content_type="text/plain;charset=UTF-8;")
+    
+    w1 = WorkType.objects.get(id=id1)
+    w2 = WorkType.objects.get(id=id2)
+    workshop = WorkShop.objects.filter(work_type = id2).update(work_type = id1)
+    
+    return HttpResponseRedirect( '/worktype/view/group/' + str(w1.work_group.id) )
+
 
 def worktype_delete(request, id):
     obj = WorkType.objects.get(id=id)
@@ -5128,7 +5211,8 @@ def shopmonthlysales_view(request, year=None, month=None):
     if auth_group(request.user, 'admin') == False:
         return HttpResponseRedirect("/.")
     deb = ClientDebts.objects.filter(date__year=year, date__month=month ).extra(select={'year': "EXTRACT(year FROM date)", 'month': "EXTRACT(month from date)", 'day': "EXTRACT(day from date)"}).values('year', 'month', 'day').annotate(suma=Sum("price")).order_by()
-    cred = ClientCredits.objects.filter(Q(date__year=year), Q(date__month=month), Q(cash_type__name='Готівка') | Q(cash_type__name='Термінал pb.ua') | Q(cash_type=None)).extra(select={'year': "EXTRACT(year FROM date)", 'month': "EXTRACT(month from date)", 'day': "EXTRACT(day from date)"}).values('year', 'month', 'day').annotate(suma=Sum("price")).order_by()
+#    cred = ClientCredits.objects.filter(Q(date__year=year), Q(date__month=month), Q(cash_type__name='Готівка') | Q(cash_type__name='Термінал ПУМБ') | Q(cash_type__name='Термінал pb.ua') | Q(cash_type=None) | Q(cash_type='Готівка Міцкевича')).extra(select={'year': "EXTRACT(year FROM date)", 'month': "EXTRACT(month from date)", 'day': "EXTRACT(day from date)"}).values('year', 'month', 'day').annotate(suma=Sum("price")).order_by()
+    cred = ClientCredits.objects.filter(Q(date__year=year), Q(date__month=month), Q(cash_type__name='Готівка') | Q(cash_type__name='Термінал ПУМБ') | Q(cash_type__name='Термінал pb.ua') | Q(cash_type__name='Готівка Міцкевича') | Q(cash_type=None)).extra(select={'year': "EXTRACT(year FROM date)", 'month': "EXTRACT(month from date)", 'day': "EXTRACT(day from date)"}).values('year', 'month', 'day').annotate(suma=Sum("price")).order_by()
     year_list = ClientCredits.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('pk')).order_by('year')    
     sum_cred = 0
     sum_deb = 0
@@ -6647,16 +6731,64 @@ def user_invoice_report(request, month=None, year=None, day=None, user_id=None):
     return render_to_response('index.html', {'sel_user':user, 'sel_year':year, 'sel_month':month, 'sel_day':day, 'month_days':days, 'buycomponents': cinvoices, 'sumall':psum, 'sum_salary':psum*0.05, 'countall':scount, 'weblink': 'report_clientinvoice_byuser.html', 'view': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def user_workshop_report(request, month=None, year=None, day=None, user_id=None):
+
+def worktype_report(request, id, month=None, year=None, day=None,  limit=None):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponseRedirect('/')    
+
+    work_type = WorkType.objects.get(id=id)
+        
+    if year == None:
+        year = datetime.datetime.now().year
+    if month <> None:
+        list = WorkShop.objects.filter(date__year=year, date__month=month, work_type__id=id).order_by("-date", "-id")
+    if month == None:
+        month = datetime.datetime.now().month        
+    if day == 'all':
+        #day = datetime.datetime.now().day
+        #list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day, work_type__id=id).order_by("-date", "-id")
+        list = WorkShop.objects.filter(date__year=year, work_type__id=id).order_by("-date", "-id")
+    if limit == 'all':
+        list = WorkShop.objects.filter(work_type__id=id).order_by("-date", "-id")
+
+    year_list = WorkShop.objects.filter(work_type__id=id).extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
+    month_list = WorkShop.objects.filter(work_type__id=id).filter(date__year = year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')
+
+    psum = 0
+    scount = 0
+    for item in list:
+        psum = psum + item.price
+        scount = scount + 1
+    days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
+    
+    paginator = Paginator(list, 25)
+    page = request.GET.get('page')
+    if page == None:
+        page = 1
+    try:
+        cinvoices = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        cinvoices = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        cinvoices = paginator.page(paginator.num_pages)
+    user_id = request.user.id
+    user = User.objects.get(id=user_id)
+            
+    return render_to_response('index.html', {'sel_user':user, 'sel_year':year, 'years': year_list, 'sel_month':month, 'month_list':month_list, 'sel_day':day, 'month_days':days, 'workshop': cinvoices, 'sumall':psum, 'countall':scount, 'work_type': work_type,  'weblink': 'report_worktype.html', 'view': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    
+
+
+
+def user_workshop_report(request,  month=None, year=None, day=None, user_id=None):
     if request.user.is_authenticated() and user_id == None:
-#    if request.user.is_authenticated():
         user_id = request.user.id
     
     if year == None:
         year = datetime.datetime.now().year
     if month == None:
         month = datetime.datetime.now().month
-
     if day == None:
         day = datetime.datetime.now().day
         list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day, user__id=user_id).order_by("-date", "-id")

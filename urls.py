@@ -357,6 +357,8 @@ urlpatterns += patterns('',
     url(r'^worktype/view/group/(?P<id>\d+)$', 'catalog.accounting.views.worktype_list'),        
     url(r'^worktype/view/$', 'catalog.accounting.views.worktype_list', name="worktypelist"),
     url(r'^worktype/delete/(?P<id>\d+)$', 'catalog.accounting.views.worktype_delete'),
+    url(r'^worktype/join/(?P<id1>\d+)/(?P<id2>\d+)/$', 'catalog.accounting.views.worktype_join'),
+    url(r'^worktype/join/$', 'catalog.accounting.views.worktype_join'),
     url(r'^worktype/price/$', 'catalog.accounting.views.worktype_ajax'),    
     url(r'^worktype/lookup/$', 'catalog.accounting.views.worktype_lookup'),
     url(r'^work/depence/add/$', 'catalog.accounting.views.worktype_depence_add', name="add_work_depence"),
@@ -396,6 +398,10 @@ urlpatterns += patterns('',
     url(r'^workshop/year/(?P<year>\d+)/view/$', 'catalog.accounting.views.workshop_list'),
     url(r'^workshop/delete/(?P<id>\d+)/$', 'catalog.accounting.views.workshop_delete'),    
     url(r'^workshop/delete/$', 'catalog.accounting.views.workshop_delete'),
+    
+    url(r'^report/worktype/(?P<id>\d+)/$', 'catalog.accounting.views.worktype_report', {'limit':"all"}, name='repot_by_work'),    
+    url(r'^report/worktype/(?P<id>\d+)/year/(?P<year>\d+)/$', 'catalog.accounting.views.worktype_report', {'day':"all"}, name='repot_by_work_year'),
+    url(r'^report/worktype/(?P<id>\d+)/year/(?P<year>\d+)/month/(?P<month>\d+)/$', 'catalog.accounting.views.worktype_report', name='repot_by_work_month'),
 )
 
 
