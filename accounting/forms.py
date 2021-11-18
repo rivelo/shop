@@ -442,7 +442,7 @@ class CatalogForm(forms.ModelForm):
     weight = forms.FloatField(min_value=0, required=False)
     photo = forms.ImageField(required=False)
     color = forms.CharField(max_length=255)
-    year = forms.IntegerField(initial = datetime.datetime.today().year, min_value = 1900, max_value = 2020)
+    year = forms.IntegerField(initial = datetime.datetime.today().year, min_value = 1999, max_value = datetime.datetime.today().year)
     sale = forms.FloatField(initial=0, required=False)
     #sale_to = forms.DateField(initial=datetime.date.today)
     sale_to = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))

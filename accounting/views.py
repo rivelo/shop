@@ -2649,7 +2649,8 @@ def pb_currency():
     soup_usd_s = BeautifulSoup(str(usd_s))
     soup_eur_s = BeautifulSoup(str(eur_s))
     try:
-        c_usd = (float(str(soup_usd_b.string)) + float(str(soup_usd_s.string))) / 2
+        #c_usd = (float(str(soup_usd_b.string)) + float(str(soup_usd_s.string))) / 2
+        c_usd = (float(str(usd_b.string)) + float(str(usd_s.string))) / 2
     except:
         c_usd = 0
     try:
