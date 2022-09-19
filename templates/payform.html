@@ -231,9 +231,9 @@ $('#pay').change();
 <div style="float:left;">
 	<h2><font color="#fe6037" id="cl_balance" value="{{balance}}"> Ваш рахунок:
 	{% if balance >= 0 %} 
-	<span class="badge badge-success">{{balance}} грн.</span> 
+	<span class="badge badge-success">{{balance|floatformat:"2"}} грн.</span> 
 	{% else %}
-	<span class="badge badge-danger">{{balance}} грн.</span>
+	<span class="badge badge-danger">{{balance|floatformat:"2"}} грн.</span>
 	{% endif %}
 	</font>
 	</h2>

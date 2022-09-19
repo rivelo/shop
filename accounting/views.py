@@ -43,7 +43,7 @@ from django.core.mail import send_mail
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.models import Group
 
-import simplejson
+import simplejson as json
 from django.core import serializers
 
 import pytils_ua
@@ -2634,26 +2634,42 @@ def goverla_currency():
 
 
 def pb_currency():
-    url='https://privatbank.ua/'
+    EUR = 0
+    USD = 0
+    res = None
+    #url='https://privatbank.ua/'
+    url='https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5'
     req = urllib2.Request(url)
-    response = urllib2.urlopen(req)
-    the_page = response.read()
-    soup = BeautifulSoup(the_page)
-    usd_b = soup.find("td", {"id": "USD_buy"})
-    eur_b = soup.find("td", {"id": "EUR_buy"})
-    usd_s = soup.find("td", {"id": "USD_sell"})
-    eur_s = soup.find("td", {"id": "EUR_sell"})
-
-    soup_usd_b = BeautifulSoup(str(usd_b))
-    soup_eur_b = BeautifulSoup(str(eur_b))
-    soup_usd_s = BeautifulSoup(str(usd_s))
-    soup_eur_s = BeautifulSoup(str(eur_s))
     try:
-        c_usd = (float(str(soup_usd_b.string)) + float(str(soup_usd_s.string))) / 2
+        response = urllib2.urlopen(req)
+        the_page = response.read()
+        res = json.loads(the_page)
+    except:
+        res = None
+    #===========================================================================
+    # soup = BeautifulSoup(the_page)
+    # usd_b = soup.find("td", {"id": "USD_buy"})
+    # eur_b = soup.find("td", {"id": "EUR_buy"})
+    # usd_s = soup.find("td", {"id": "USD_sell"})
+    # eur_s = soup.find("td", {"id": "EUR_sell"})
+    #===========================================================================
+    #===========================================================================
+    # soup_usd_b = BeautifulSoup(str(usd_b))
+    # soup_eur_b = BeautifulSoup(str(eur_b))
+    # soup_usd_s = BeautifulSoup(str(usd_s))
+    # soup_eur_s = BeautifulSoup(str(eur_s))
+    #===========================================================================
+    try:
+        #c_usd = (float(str(soup_usd_b.string)) + float(str(soup_usd_s.string))) / 2
+        USDb = res[0]['buy']
+        USDs = res[0]['sale']
+        c_usd = (float(USDb) + float(USDs)) / 2
     except:
         c_usd = 0
     try:
-        c_eur = (float(str(eur_s.string)) + float(str(eur_b.string)) ) / 2
+        EURb = res[1]['buy']
+        EURs = res[1]['buy']
+        c_eur = (float(EURb) + float(EURs)) / 2
     except:
         c_eur = 0
         

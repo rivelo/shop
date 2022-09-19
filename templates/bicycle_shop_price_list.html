@@ -1,5 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Цінники на велосипеди</title>
+
 
 <link rel="stylesheet" type="text/css" href="/media/css/table.css">
 
@@ -64,7 +66,7 @@ font-size: 20px;
   	<img class="card-img-top" src="/media/{{bike.model.brand.logo}}">
 
     <ul class="list-group list-group-flush">
-    <li class="list-group-item"><h3 class="card-title"><b>Модель: <a style="color:black; font-size: 45px; margin-left:5px;" href="{% url 'bicycle-photo' bike.model.pk %}">{{bike.model.model}}</a> ({{bike.model.year.year}})</b> </h3><h6>Колір: {{bike.model.color}}</h6></li>
+    <li class="list-group-item"><h3 class="card-title"><b>Модель: <a style="color:black; font-size: 45px; margin-left:5px;" href="{% url 'bicycle-photo' bike.model.pk %}">{{bike.model.model}}</a> ({{bike.model.year.year}})</b> </h3><h6>Колір: {{bike.model.color}}</h6><h6>Розмір: {{bike.size}}</h6></li>
     </ul>     	
 {% comment %}
 <div class="card-block">
