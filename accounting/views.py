@@ -2664,6 +2664,8 @@ def pb_currency():
         USDb = res[0]['buy']
         USDs = res[0]['sale']
         c_usd = (float(USDb) + float(USDs)) / 2
+        #c_usd = (float(str(soup_usd_b.string)) + float(str(soup_usd_s.string))) / 2
+        #c_usd = (float(str(usd_b.string)) + float(str(usd_s.string))) / 2
     except:
         c_usd = 0
     try:
