@@ -55,3 +55,15 @@ docs/_build/
 
 # PyBuilder
 target/
+
+#logs
+catalog/media/csv/
+catalog/media/upload/
+catalog/media/upload/manufecturer/
+catalog/media/download/
+catalog/media/csv/id_miss.csv
+
+# csv files
+*.csv
+
+.gitignore

@@ -2641,6 +2641,7 @@ def pb_currency():
     url='https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5'
     req = urllib2.Request(url)
     try:
+<<<<<<< HEAD
         response = urllib2.urlopen(req)
         the_page = response.read()
         res = json.loads(the_page)
@@ -2664,6 +2665,10 @@ def pb_currency():
         USDb = res[0]['buy']
         USDs = res[0]['sale']
         c_usd = (float(USDb) + float(USDs)) / 2
+=======
+        #c_usd = (float(str(soup_usd_b.string)) + float(str(soup_usd_s.string))) / 2
+        c_usd = (float(str(usd_b.string)) + float(str(usd_s.string))) / 2
+>>>>>>> d4da044f88f9b51ec46defec026f5c482c3746af
     except:
         c_usd = 0
     try:
