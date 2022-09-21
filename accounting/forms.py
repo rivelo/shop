@@ -172,7 +172,7 @@ class BicycleSaleForm(forms.ModelForm):
     description = forms.CharField(label='Опис', widget=forms.Textarea(), required=False)
     #debt = forms.ModelChoiceField(queryset = ClientDebts.objects.all(), required=False)
     #debt = forms.IntegerField(widget=forms.HiddenInput(), required=False)
-    user = forms.ModelChoiceField(queryset = User.objects.all(), widget=forms.HiddenInput(), required=False)
+    user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True), widget=forms.HiddenInput(), required=False)
     
     def __init__(self, *args, **kwargs):
         bike_id = kwargs.pop('bike_id', None)
@@ -564,7 +564,8 @@ class ClientInvoiceForm(forms.ModelForm):
     date = forms.DateTimeField(initial = datetime.datetime.now, label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'))
     description = forms.CharField(label='Description', widget=forms.Textarea(), required=False)
     length = forms.FloatField(initial=0, label="Довжина", widget=forms.HiddenInput())
-    user = forms.ModelChoiceField(queryset = User.objects.all(), required=True, label='Користувач')
+    #user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True), required=True, label='Користувач')
+    user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True), required=True, label='Користувач')
 
     def __init__(self, *args, **kwargs):
         cid = kwargs.pop('catalog_id', None)
@@ -695,7 +696,7 @@ class WorkShopForm(forms.ModelForm):
     price = forms.FloatField(initial=0, label="Ціна" ,widget=forms.TextInput(attrs={'class': 'form-control'}) )
     #pay = forms.BooleanField(initial=False, required=False, label="Оплачено?")
     description = forms.CharField(label='Опис', widget=forms.Textarea(), max_length=255, required=False)
-    user = forms.ModelChoiceField(queryset = User.objects.all(), required=True, label='Користувач')
+    user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True), required=True, label='Користувач')
 
     def clean_client(self):
         data = self.cleaned_data['client']
@@ -805,7 +806,7 @@ class ShopDailySalesForm(forms.ModelForm):
     date = forms.DateTimeField(initial=datetime.datetime.today, input_formats=['%d.%m.%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d.%m.%Y %H:%M:%S'), label="Дата")
     price = forms.FloatField(initial=0, label="Сума в касі")    
     description = forms.CharField(label='Опис', widget=forms.Textarea(), required=False)
-    user = forms.ModelChoiceField(queryset = User.objects.all(), required=False, label='Користувач')
+    user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True), required=False, label='Користувач')
     cash = forms.FloatField(label="Готівка в касі")
     tcash = forms.FloatField(label="Термінал")
     ocash = forms.FloatField(label="Видано з каси")
@@ -857,7 +858,7 @@ class RentForm(forms.ModelForm):
 
 
 class WorkDayForm(forms.ModelForm):
-    user = forms.ModelChoiceField(queryset = User.objects.all(), required=True, label='Користувач')
+    user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True), required=True, label='Користувач')
     date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), label='Дата')
     status = forms.IntegerField(min_value=0, initial = 0, label='Статус')
     description = forms.CharField(widget=forms.Textarea(), required=False, label='Опис')
@@ -888,7 +889,7 @@ class SalaryForm(forms.Form):
     date = forms.DateTimeField(initial = datetime.datetime.now, label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'), required=False)
     price = forms.FloatField(initial=0, label="Сума" ,widget=forms.TextInput(attrs={'class': 'form-control'}) )
     description = forms.CharField(label='Опис', widget=forms.Textarea(), max_length=255, required=False)
-    user = forms.ModelChoiceField(queryset = User.objects.all(), required=True, label='Користувач')
+    user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True), required=True, label='Користувач')
 
     def clean_client(self):
         data = self.cleaned_data['client']

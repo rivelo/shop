@@ -43,7 +43,7 @@ from django.core.mail import send_mail
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.models import Group
 
-import simplejson as json
+import simplejson, json
 from django.core import serializers
 
 import pytils_ua
@@ -2089,10 +2089,20 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
     
     if 'name' in request.GET and request.GET['name']:
         name = request.GET['name']
-        list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__dealer_code', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')        
+        try:
+            re.search('^ +$', name).group()
+        except:
+            list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__dealer_code', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')        
     elif  'id' in request.GET and request.GET['id']:
         id = request.GET['id']
-        list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        try:
+            id_res = re.search(r"(?<=rivelo.com.ua/component/)[0-9]+", id).group()
+            list = InvoiceComponentList.objects.filter(Q(catalog__id=id_res)).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')            
+        except:
+            try:
+                re.search('^ +$', id).group()
+            except:
+                list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
     if mid:
         if all == True:
             list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
@@ -2176,8 +2186,8 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
             element['get_discount'] = cat_obj.get_discount()
             element['invoice_price'] = cat_obj.invoice_price()
 #            element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
-        if element['balance'] == 0:
-            print "Element = " + str(element)
+#        if element['balance'] == 0:
+#            print "Element = " + str(element)
 
     
 # update count field in catalog table            
@@ -4425,8 +4435,8 @@ def client_lookup(request):
             value = request.GET[u'query']
             if len(value) > 2:
                 #model_results = Client.objects.filter(name__icontains=value)
-                model_results = Client.objects.filter(Q(name__icontains = value) | Q(forumname__icontains = value))
-                data = serializers.serialize("json", model_results, fields=('name','id', 'sale', 'forumname'))
+                model_results = Client.objects.filter(Q(name__icontains = value) | Q(forumname__icontains = value) | Q(phone__icontains = value) | Q(phone1__icontains = value))
+                data = serializers.serialize("json", model_results, fields=('name','id', 'sale', 'forumname', 'phone'))
             else:
                 data = []
     return HttpResponse(data)                

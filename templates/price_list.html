@@ -1,10 +1,12 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Цінники</title>
+<title>Цінники {{company.name}}</title>
 
 
+<!--  
 <link rel="stylesheet" type="text/css" href="/media/css/table.css">
-
+ -->
+ 
 <script type="text/javascript" src="/media/js/jquery.js"></script>
 <script type="text/javascript" src="/media/jquery.qrcode-0.7.0.min.js"></script>
 
@@ -23,9 +25,20 @@ $("#qr_tr1").qrcode({
 </script>
 
 <style type="text/css">
+
+.overflow-multiply {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-height: 20px;
+  max-height: 60px;
+}
+
 .table {
-    width: 70mm;
-    height: 42mm; 
+/*    width: 70mm;
+    height: 42mm; */ 
     /* width: 100%;
     height: 243px; */
 }
@@ -35,26 +48,81 @@ $("#qr_tr1").qrcode({
 	border-bottom: 1px solid white;
 	}     
 
-table {
-    border: 2px solid white;
+.1table {
+    border: 2px solid black;
     border-spacing: 1px;
     }
 
+
 TR {
+	height: 40mm;
+	max-height: 40mm;
+	width: 100mm;
+	min-width: 80mm;
+	max-width: 180mm;
 	/* border-bottom: 1px solid black; */ 
 	}
-TD{
 
+TD .qr{
+    width: 40mm;
+    max-width: 40mm;
 	}
+
+TD .content{
+    width: 30mm;
+    max-width: 40mm;
+	}
+
 
 .nameTD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
 	border: 1px solid white; /* Граница вокруг ячеек */
 	/*border-bottom: 1px solid black;*/ 
 	}     
 
-a { 
+span a { 
     text-decoration: none; /* Отменяем подчеркивание у ссылки */
+    color: white;
    } 
+   
+.price_table {
+	border: 3px solid red;
+	height: 40mm;
+	max-height: 40mm;
+	width: 100mm;
+	max-width: 100mm;
+	page-break-before: always; 
+	
+}
+
+
+.tlabel {
+	font-style: inherit;
+	font-size: small;
+	font-weight: bold;
+}
+	
+.grid-container {
+  display: grid;
+  grid-template-columns: 18mm auto;
+ /* background-color: #2196F3; */
+  padding: 10px;
+}
+.grid-item {
+/*  background-color: rgba(255, 255, 255, 0.8); */
+/*  border: 1px solid rgba(0, 0, 0, 0.8); */
+  padding: 0px; 
+/*   font-size: 30px; */
+  text-align: left;
+}
+
+#price {
+		font-size: medium;
+		}     
+
+#price_value {
+		font-size: large;
+		}     
+
      
 </style>
 
@@ -64,17 +132,62 @@ a {
     
 <h1>Цінники на продукцію {{company.name}}  ({{catalog.count}})  <a href="{{link}}">(Версія для друку)</a> </h1>
 
-<br>
 {% for company in company_list %}
-<a href="/shop/price/company/{{company.id}}/view/">{{company.name}}</a>
+<span class="badge badge-secondary"><a href="/shop/price/company/{{company.id}}/view/">{{company.name}}</a></span>
 {% endfor %}
-<br>
+<br><br>
 
 {% endif %}
 
+
+<body>
+
+{% for type in catalog %}
+
+
+
+<table class="price_table">
+
+<tr>
+{% with type.id|sale_url:request.get_host as url_buy %}  
+<td class="qr" >
+<img src="{{url_buy|qr:"140x140"}}" />
+</td>
+{% endwith %}
+
+<td class="content">
+
+
+<div class="grid-container">
+  
+    <div class="grid-item col tlabel" id="code">Код</div>
+    <div class="grid-item col" id="ids">	{{type.catalog__ids}}	{{type.ids}}</div>
+    <div class="grid-item col tlabel" id="company">Виробник</div>
+    <div class="grid-item col" id="manufacturer">{{type.manufacturer}}</div>
+    <div class="grid-item col tlabel" id="country">Країна виробник</div>
+    <div class="grid-item col" id="country_name">{{type.country}}</div>
+    <div class="grid-item col tlabel" id="price">	Ціна </div>
+    <div class="grid-item col" id="price_value"><b>	{{type.price}} грн. </b></div>
+</div>
+{#    <div class="grid-item col tlabel"> </b></div> #} 
+    <div class="grid-item col" id="catalog_name"><a href="/catalog/edit/{{ type.id }}">{{type.name|slice:"50"}}</a></div>
+
+
+</td>
+
+
+</tr>
+
+</table>
+{% endfor %}
+</body>
+
+
+{% comment %}
 <!-- <table border="1" CELLPADDING=0px style="padding: 1px;">  --> 
 <table id="iTable">
 <tr>
+
 {% for type in catalog %}
 
 <td class="nameTD">
@@ -176,3 +289,4 @@ a {
  
 {% endfor %}   
 
+{% endcomment %}

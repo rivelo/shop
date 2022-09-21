@@ -148,7 +148,7 @@ $( "input" ).change(function(){
                 success: function( data ) {
                         	response( $.map( data, function( item ) {
                             return {
-                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
+                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name + " ("+item.fields.phone+")",
                                 value: item.fields.name,
                                 idid: item.fields.sale,
                                 pk_id: item.pk                                

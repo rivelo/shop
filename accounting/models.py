@@ -400,11 +400,11 @@ class Catalog(models.Model):
         sum = 0
         for item in cc:
             sum = sum + item.get_uaprice() * item.count
-            print "ITEM UA ["+ str(item.catalog) +"] = " + str(item.get_uaprice())
+#            print "ITEM UA ["+ str(item.catalog) +"] = " + str(item.get_uaprice())
             ic_count = ic_count + item.count
         if ic_count != 0:
             ua = sum / ic_count
-            print "UA ["+ str(item.catalog) +"] = " + str(item.get_uaprice())
+#            print "UA ["+ str(item.catalog) +"] = " + str(item.get_uaprice())
         if (self.currency.ids_char == 'UAH'):
             percent_sale = (100-self.sale)*0.01
             profit = self.price * percent_sale - ua 
