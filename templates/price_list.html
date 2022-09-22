@@ -22,6 +22,12 @@ $("#qr_tr1").qrcode({
 	text: '/catalog/edit/{{ type.id }}'
 	});
 };
+
+function change_width_table(){
+	$('.price_table').css('width', '160mm')
+	$('.price_table').css('max-width', '160mm')
+}
+
 </script>
 
 <style type="text/css">
@@ -64,13 +70,13 @@ TR {
 	}
 
 TD .qr{
-    width: 40mm;
-    max-width: 40mm;
+    width: 20mm;
+    max-width: 20mm;
 	}
 
 TD .content{
-    width: 30mm;
-    max-width: 40mm;
+    width: 40mm;
+    max-width: 50mm;
 	}
 
 
@@ -85,11 +91,12 @@ span a {
    } 
    
 .price_table {
-	border: 3px solid red;
-	height: 40mm;
-	max-height: 40mm;
-	width: 100mm;
-	max-width: 100mm;
+	/*table-layout: fixed;*/
+	border: 1px solid red;
+	height: 35mm;
+	max-height: 35mm;
+	width: 110mm;
+	max-width: 110mm;
 	page-break-before: always; 
 	
 }
@@ -103,9 +110,9 @@ span a {
 	
 .grid-container {
   display: grid;
-  grid-template-columns: 18mm auto;
+  grid-template-columns: 30% auto;
  /* background-color: #2196F3; */
-  padding: 10px;
+  padding: 5px;
 }
 .grid-item {
 /*  background-color: rgba(255, 255, 255, 0.8); */
@@ -170,7 +177,7 @@ span a {
     <div class="grid-item col" id="price_value"><b>	{{type.price}} грн. </b></div>
 </div>
 {#    <div class="grid-item col tlabel"> </b></div> #} 
-    <div class="grid-item col" id="catalog_name"><a href="/catalog/edit/{{ type.id }}">{{type.name|slice:"50"}}</a></div>
+    <div class="grid-item col" id="catalog_name"><a href="/catalog/edit/{{ type.id }}">{{type.name|slice:"70"}}</a></div>
 
 
 </td>

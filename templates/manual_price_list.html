@@ -1,28 +1,21 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+<title>Друк. Цінники</title>
+
+{# <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
 
 <script type="text/javascript" src="/media/js/jquery.js"></script>
-{#<script type="text/javascript" src="/media/jquery-1.11.2.min.js"></script>#}
 
-{# <script type="text/javascript" src="/media/jquery.qrcode-0.7.0.min.js"></script> #}
 
-{% comment %}
+
 <script language="JavaScript">
-function qrcode(){
-$("#qr_tr1").qrcode({
-	render: 'image',
-	width: 60,
-	height: 60,
-	size: 80,
-	fill: '#3a3',
-	ecLevel: 'H',
-	text: '/catalog/edit/{{ type.id }}'
-	});
-};
+function change_row1_table() {
+	$('.grid-container').css('grid-template-columns','100mm');
+}
+function change_row3_table() {
+	$('.grid-container').css('grid-template-columns','33.3% 33.3% 33.3%');
+}
 </script>
-{% endcomment %}
-
 
 <style type="text/css">
 table {
@@ -61,21 +54,168 @@ a {
     text-decoration: none; /* Отменяем подчеркивание у ссылки */
    } 
    
+</style>
+
+
+<style>
+.grid-container {
+  display: grid;
+  grid-template-columns: 100mm; /*33.3% 33.3% 33.3%; /* 70mm 70mm 70mm;*/
+  grid-template-rows: 40mm;
+  
+  gap: 1px;
+//  background-color: #2196F3;
+  padding: 5px;
+}
+
+.grid-container > div {
+//  background-color: rgba(255, 255, 255, 0.8);
+  text-align: left;
+//  padding: 5px 5px 5px 5px;
+  font-size: 12px;
+  border: 1px solid black;
+  height: 40mm;
+}
+
+.item11 {
+  grid-column-start: 1;
+  grid-column-end: 1;
+}
+
+div .item {
+
+	//page-break-before:  always;
+	//page-break-inside: avoid; 
+}
+
+.grid-container-table {
+  display: grid;
+  grid-template-columns: 20mm;
+  grid-template-rows: 5mm;
+  gap: 1px;
+//  background-color: #2196F3;
+  padding: 2px;
+  height: 40px;
+
+}
+
+.grid-container-table > div {
+//  background-color: rgba(255, 255, 255, 0.8);
+  text-align: left;
+  padding: 0px 0px;
+  font-size: 12px;
+//  page-break-before: always;
+}
+
+div .item8 {
+  text-align: left;
+  grid-column-start: 1;
+  grid-column-end: 3;
+  font-size: 10px;
+}
+
+div .lable-text {
+  text-align: left;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+div .lable-value {
+  text-align: left;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+div .price{
+  text-align: left;
+  font-size: 16px;
+  font-weight: bold;
+
+}
+
+
 @media print {
-        /* avoid cutting tr in half */
+ div .item { 
+    //page-break-after: always;
+    break-inside: avoid;
+  }
+  
+ .no-print, .no-print *
+    {
+        display: none !important;
+    }
+
  div .row {
             margin-top:-8px;
             padding-top:8px;
             page-break-inside:avoid;
         }
-}   
-     
+
+
+}
+
+
 </style>
 
 
 {% load poll_extras %}
 
-<!-- <table border="1" CELLPADDING=0px style="padding: 1px;">  --> 
+<button type="button" class="btn btn-primary no-print" onclick="change_row1_table()">1</button>
+<button type="button" class="btn btn-primary no-print" onclick="change_row3_table()">3</button>
+
+<div class="grid-container">
+{% for price in price_list.object_list %}
+
+  <div class="item{{price.count}}">
+  
+<div style="background:#FA911D; width:140px; height:140px; float:left;">
+{% with price.catalog.id|sale_url:request.get_host as url_buy %}  
+<img src="{{url_buy|qr:"140x140"}}" />
+{% endwith %}
+</div>
+
+
+<div> {# style="width:auto; float:left"> #}
+
+<div class="grid-container-table">
+  <div class="item1 lable-text">Код </div>
+  <div class="item5 lable-value">{{price.catalog.ids|slice:"20"}}</div>
+  <div class="item2 lable-text">Виробник</div>
+  <div class="item3 lable-value">{{price.catalog.manufacturer}}</div>  
+  <div class="item4 lable-text">Країна виробник</div>
+  <div class="item5 lable-value">{{price.catalog.country}}</div>
+  <div class="item6 lable-text price">Ціна</div>
+  <div class="item7 lable-value price">
+	{% if price.catalog.price == price.catalog.get_saleprice %}
+	<b>{{price.catalog.price}} грн.<br></b>
+	{% else %}
+	<b><s>{{price.catalog.price}} грн. </s><br>{{price.catalog.get_saleprice}} грн.<br></b>
+	{% endif %}
+  </div>
+  <div class="item8">
+  {% with price.catalog.name|lenght as s_len %}
+<a 
+{% if s_len > 64  %}
+	style="padding-left: 0px; text-align: center; font-size: 10pt; vertical-align: top;"
+{% endif %}
+{% if s_len >= 32 and  s_len < 64 %} 
+	style="padding-left: 0px; text-align: center; font-size: 11pt; vertical-align: top;"
+{% endif %}
+{% if s_len < 32 %}		       
+	style="padding-left: 0px; text-align: center; font-size: 12pt; vertical-align: top;"
+{% endif %}
+{% endwith %}
+	 href="/catalog/edit/{{ type.id }}" style="margin-right:20px">{{price.catalog.name|slice:"100"}}</a>
+  </div>  
+</div>
+
+</div>  
+  </div>
+{% endfor %}
+
+</div>
+
+
 <table>
 <tr>
 {% for price in price_list.object_list %}
