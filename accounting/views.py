@@ -3134,10 +3134,15 @@ def catalog_edit(request, id=None):
     a = Catalog.objects.get(pk=id)
     #url1=request.META['HTTP_REFERER']
     if request.method == 'POST':
-        form = CatalogForm(request.POST, request.FILES, instance=a)
+#        manufacturer = form.cleaned_data['manufacturer']
+        
+        form = CatalogForm(request.POST, request.FILES, instance=a, request = request)
         if form.is_valid():
-            manufacturer = form.cleaned_data['manufacturer']
-            type = form.cleaned_data['type']
+#            if auth_group(request.user, "admin") == False:
+#               return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу для редагування ID товару', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+#            manufacturer = form.cleaned_data['manufacturer']
+#            type = form.cleaned_data['type']
             a.last_update = datetime.datetime.now()
             a.user_update = request.user
             a.save()
@@ -3148,7 +3153,7 @@ def catalog_edit(request, id=None):
             #return HttpResponseRedirect('/catalog/view/')
             #return HttpResponseRedirect(str(url1))
     else:
-        form = CatalogForm(instance=a)
+        form = CatalogForm(instance=a, request = request)
     #url=request.META['HTTP_REFERER']
 
     return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'cat_pk': id, 'catalog_obj': a.get_photos(), 'youtube_list': a.youtube_url.all(), 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))

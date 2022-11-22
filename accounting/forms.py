@@ -436,23 +436,28 @@ class ContactForm(forms.ModelForm):
 class CatalogForm(forms.ModelForm):
     ids = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'size': 30, 'title': 'код товару',}))
     name = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'size': 100, 'title': 'Назва',}))
-    manufacturer = forms.ModelChoiceField(queryset = Manufacturer.objects.all())
+    manufacturer = forms.ModelChoiceField(queryset = Manufacturer.objects.all(), label='Виробник')
     type = forms.ModelChoiceField(queryset = Type.objects.all())
     size = forms.ModelChoiceField(queryset = Size.objects.all(), required=False)
-    weight = forms.FloatField(min_value=0, required=False)
+    weight = forms.FloatField(min_value=0, required=False, label='Вага (грам)')
     photo = forms.ImageField(required=False)
-    color = forms.CharField(max_length=255)
+    color = forms.CharField(max_length=255, label='Колір')
     year = forms.IntegerField(initial = datetime.datetime.today().year, min_value = 1999, max_value = datetime.datetime.today().year)
     sale = forms.FloatField(initial=0, required=False)
     #sale_to = forms.DateField(initial=datetime.date.today)
     sale_to = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))
-    price = forms.FloatField(min_value=0)
+    price = forms.FloatField(min_value=0, label='Ціна')
     currency = forms.ModelChoiceField(initial = 3, queryset = Currency.objects.all())
     count = forms.IntegerField(initial=0, required=False)
     length = forms.FloatField(initial=0, required=False)
     country = forms.ModelChoiceField(queryset = Country.objects.all())    
     description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255, required=False)
     date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y') , required=False)    
+
+    def __init__(self, *args, **kwargs):
+        #cid = kwargs.pop('ids', None)
+        self.request = kwargs.pop("request")
+        super(CatalogForm, self).__init__(*args, **kwargs)
 
     def clean_ids(self):
         data = self.cleaned_data['ids']
@@ -466,10 +471,27 @@ class CatalogForm(forms.ModelForm):
         data = self.cleaned_data['dealer_code']
         return data.strip()
 
-
+    def clean_price(self):
+        obj = Catalog.objects.get(pk=self.instance.pk)        
+        data = self.cleaned_data['price']
+        if (auth_group(self.request.user, 'admin')==False) and ('price' in self.changed_data):
+            raise forms.ValidationError(u"У вас не має прав Адміністратора для зміни ціни " + str(obj.price) + u" грн. -> " + str(data) + u" грн.")
+        return data
+        
+    def clean_sale(self):
+        obj = Catalog.objects.get(pk=self.instance.pk)        
+        data = self.cleaned_data['sale']
+        if (auth_group(self.request.user, 'admin')==False) and ('sale' in self.changed_data):
+            raise forms.ValidationError(u"У вас не має прав Адміністратора для зміни знижки " + str(int(obj.sale)) + " -> " +str(int(data)) + u" %")
+        #if (discount > sprice) and (auth_group(self.request.user, 'admin')==False):
+#            print "IF discount > sale /// Sprice = " + str(sprice) + " --- Discount = " + str(discount)
+        #    raise forms.ValidationError(u"Знижка не може бути більше за встановлену на товар " + str(int(discount)) + u" грн.")
+        return data
+        
     class Meta:
         model = Catalog
         fields = '__all__'
+        exclude = ['size']
 
 
 # ---------- Client -------------

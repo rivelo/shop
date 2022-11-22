@@ -39,7 +39,7 @@ width: 150px;
 </style>
 
 
-<body onLoad="res()">
+
 
 <script type="text/javascript">
 
@@ -254,6 +254,47 @@ $( "#dialog_delete" ).dialog({
 });
 
 
+$("#dialog_addprice").dialog({
+	autoOpen: false,
+      resizable: false,
+      modal: true,
+      buttons: {
+        "Додати": function() {
+			$.ajax({
+                type: "POST",
+                url: "/shop/price/print/add/",
+                data: {id:  $("#dtext").attr("ids"), url: $('#spinner_').val()},
+                dataType: "text",
+                success:function(msg){
+                    alert("Запит надіслано " + msg);
+                },
+                error:function(){
+                    alert("При відправці виникли проблеми");
+                }
+            });
+
+        
+          $( this ).dialog( "close" );
+        },
+        "Відмінити": function() {
+          $( this ).dialog( "close" );
+        }
+      }
+});
+
+
+$(document).on("click", ".addprice", function(event) {
+    $("#dtext").html($(this).attr('href'));
+    $("#dtext").attr({"ids": $(this).attr('ids')});
+	var spinner = $("#spinner").spinner();
+	$("#spinner").val(1);
+//	console.log($(this).parents('tr').find('td.cat_name').html());
+	$("#dialog_addprice").dialog("open");
+	$("#catalog_name").remove();
+	$("#dtext").after("<span id='catalog_name'>" + $(this).parents('tr').find('td.cat_name').html() + "</span>");
+});
+
+
 $("body").on('click', '#clear_basket', function() {
 //	$("#buy_c").html('<b>Продати товари:</b>');
     $("#dialog_delete").dialog("open");
@@ -402,10 +443,13 @@ $.ajax({
 	
 }
 
+
+
 </script>
 
 
 
+<body onLoad="res()">
 <br>
 {% if view %}
 <h2>
@@ -473,6 +517,16 @@ $.ajax({
 </div>
 
 
+<!-- Dialog to add print price -->
+<div id="dialog_addprice" title="Додати цінник в чергу" id_target="">
+<div class="del_container">Вибрані товари:</div>
+	<p style="font-weight: bold;" id="dtext">Додати цінник до списку друку:</p>
+	<label for="spinner_addprice">Кількість:</label>
+  	<input id="spinner_addprice" name="value" value="1">
+
+</div>
+
+
 <div id="dialog_return" title="Повернення/Обмін" id_target="">
 <label>Введіть причину відмови/повернення</label>
 <textarea  name="dreturn" id="msg_return" value="" wrap="soft" cols="42" rows="7"></textarea>
@@ -484,6 +538,9 @@ $.ajax({
 <input type="checkbox" id="sp_cash" >
 <label id="print_sum" class="ressum">Сума:</label>
 </div>
+
+
+
 <!-- ДІАЛОГИ End -->
 
 
@@ -541,13 +598,13 @@ $.ajax({
 	{% endif %}
 		{{type.catalog.name}}
 	</td>
-	<td align="center" class="tcount">       
+	<td align="center" class="tcount" data-toggle="tooltip" data-placement="top" title="Переглянути попередні продажі" data-html="true">       
 	<a href="{% url 'client_catalog_sale' type.catalog.id %}" >{{type.count|floatformat}}</a>
 	</td>
 	<td class="tprice">       
 	{{type.price}}
 	</td>
-	<td class="profit">
+	<td class="profit" data-toggle="tooltip" data-placement="top" title="(Ціна в гривні / сума профіту)" data-html="true">
 	{% if perms.accounting.add_preorder %} 
 	({{type.get_profit.0|floatformat:"2"}} / {{type.get_profit.1|floatformat:"0"}})
     {% endif %}
@@ -585,6 +642,7 @@ $.ajax({
 {#<a class="dropdown-item" href="/client/invoice/return/{{type.id}}/add/">Обмін/Повернення</a>#}
 <a class="dropdown-item" href="#" onclick="show_ret(ciid={{type.id}}, this);return false">Обмін/Повернення</a>
 <a class="dropdown-item" href="#" onclick="show_client();return false">Змінити клієнта/кількість</a>
+<a class="dropdown-item addprice" ids="{{type.catalog.id}}" href="#">Додати цінник в чергу</a>
   
 {#    <div class="dropdown-divider"></div> #}
 {#    <a class="dropdown-item" href="#">Separated link</a> #}

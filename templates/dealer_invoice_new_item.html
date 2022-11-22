@@ -143,18 +143,18 @@ $("#dialog").dialog({
       modal: true,
       buttons: {
         "Додати": function() {
-        	console.log("ATTR = " + $("#dtext").attr("ids"));        	
+//        	console.log("ATTR = " + $("#dtext").attr("ids"));        	
 			$.ajax({
                 type: "POST",
                 url: "/shop/price/print/add/",
                 data: {id:  $("#dtext").attr("ids"), url: $('#spinner').val()},
                 dataType: "text",
                 success:function(msg){
-                    alert("Все отлично ушло на сервер - " + msg);
+                    alert("Запит надіслано - " + msg);
 //               	    $('#spinner').after('<p>ajax done</p>');
                 },
                 error:function(){
-                    alert("При отправке возникли проблемы");
+                    alert("При відправці виникли проблеми");
                 }
             });
 

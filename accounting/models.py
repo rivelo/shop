@@ -299,6 +299,9 @@ class YouTube(models.Model):
 class Catalog(models.Model):
     ids = models.CharField("code", unique=True, max_length=50)
     dealer_code = models.CharField("dealer code", max_length=50, blank=True, null=True)
+    #barcode_upc = models.CharField("dealer code", max_length=12, blank=True, null=True)
+    #barcode_ean = models.CharField("dealer code", max_length=13, blank=True, null=True)
+    #barcode = models.CharField("dealer code", max_length=50, blank=True, null=True)
     name = models.CharField(max_length=255)
     manufacturer = models.ForeignKey(Manufacturer)
     type = models.ForeignKey(Type, related_name='type')
@@ -319,6 +322,7 @@ class Catalog(models.Model):
     length = models.FloatField(blank=True, null=True)
     last_update = models.DateTimeField(auto_now_add=False, null=True, blank=True)
     user_update = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+#    last_changes = models.TextField(blank=True, null=True, verbose_name="Останні зміни в товарі")    
     description = models.CharField(max_length=255)
     locality = models.CharField("locality", blank=True, null=True, max_length=50)
     show = models.BooleanField(default=False, verbose_name="Статус відображення")
