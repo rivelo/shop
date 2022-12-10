@@ -12,10 +12,19 @@
 function change_row1_table() {
 	$('.grid-container').css('grid-template-columns','100mm');
 	$('div .item').css("margin-left", "1mm")
+	
+	document.querySelectorAll('.itemthree').forEach(function(element) {
+		  element.className = "item";
+		});	
+	
 }
 function change_row3_table() {
 	$('.grid-container').css('grid-template-columns','33.0% 33.0% 33.0%');
 	$('div .item').css("margin-left", "5mm")
+	
+	document.querySelectorAll('.item').forEach(function(element) {
+		  element.className = "itemthree";
+		});	
 }
 </script>
 
@@ -40,6 +49,7 @@ TR {
 	/* border-bottom: 1px solid black; */
  
 	}
+	
 TD{
 	width: 70mm;
 	height: 25mm;
@@ -79,10 +89,10 @@ a {
   height: 40mm;
 }
 
-.item11 {
+/* .item11 {
   grid-column-start: 1;
   grid-column-end: 1;
-}
+}*/
 
 div .item {
 
@@ -137,15 +147,27 @@ div .price{
 
 
 @media print {
- div .item { 
-    //page-break-after: always;
-    break-inside: avoid;
+ div .itemthree { 
+	//page-break-after: always;
+	page-break-after: auto;
+    //page-break-before : always;
+	//    display: none;
+    //border: none;
   }
+
+
+ div .item { 
+	page-break-after: always;
+    //page-break-before : always;
+	//    display: none;
+    border: none;
+  }
+
   
  .no-print, .no-print *
-    {
-        display: none !important;
-    }
+    	{
+        	display: none !important;
+    	}
 
  div .row {
             margin-top:-8px;
@@ -218,6 +240,8 @@ div .price{
 </div>
 
 
+{% comment %}
+
 <table>
 <tr>
 {% for price in price_list.object_list %}
@@ -270,7 +294,7 @@ div .price{
 </div>
 
 {# <div>{{price.catalog.id|sale_url:"rivelo.com.ua/component"}}</div> #}
-
+{% endcomment %}
 
 {% comment %}
 <td class="nameTD">
@@ -344,15 +368,15 @@ div .price{
 	</td>
 </tr>
 
-
 </table>
 </td>
 {% endcomment %}
 
+
+{% comment %}
 {% if forloop.counter|divisibleby:"3"  %}
 </tr><tr height= 125mm>
 {% endif %}
-
 
 {% if forloop.counter|divisibleby:"33"  %}
  </table> 
@@ -360,9 +384,17 @@ div .price{
  <table>  
 {% endif %}
 
+{% endcomment %}
+
+
 {% comment %}
 </table>
 {% endcomment %} 
- 
+
+{% comment %} 
 {% endfor %}   
+{% endcomment %}
+
+
+
 
