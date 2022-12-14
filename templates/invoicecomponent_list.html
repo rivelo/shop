@@ -1786,11 +1786,25 @@ function show_tr_year(obj){
      <a href="{% url 'category_id_list_all' category_id %}" >
      <span id="all_record_show" class="badge badge-success" title="Показати всі записи" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">more_horiz</i></span>
      </a>
+{% if request.user|has_group:"admin" %}     
+   {% for yy in years_range %}
+     <a href="{% url 'invoice_year_category' yy.0 componentlist.0.catalog__type__id %}" class="badge badge-success">{{yy.0}} 
+          <span class="badge badge-light">{{yy.1}}</span>
+     </a>
+   {% endfor %}  
+{% endif %}   
 {% endif %}     
 {% if company_id %}
      <a href="{% url 'manufacture_id_list_all' company_id %}" >
      <span id="all_record_show" class="badge badge-success" title="Показати всі записи" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">more_horiz</i></span>
      </a>
+{% if request.user|has_group:"admin" %}          
+     {% for yy in years_range %}
+     <a href="{% url 'invoice_year_manufacture' yy.0 componentlist.0.manufacturer__id %}" class="badge badge-primary">{{yy.0}} 
+          <span class="badge badge-light">{{yy.1}}</span>
+     </a>
+     {% endfor %}
+{% endif %}     
 {% endif %}     
      
       
@@ -1804,11 +1818,6 @@ function show_tr_year(obj){
      {% endif %}
 {% endif %}
      {# url 'invoice_year_manufacture' 2018 componentlist.0.manufacturer__id #}
-     {% for yy in years_range %}
-     <a href="{% url 'invoice_year_manufacture' yy.0 componentlist.0.manufacturer__id %}" class="badge badge-primary">{{yy.0}} 
-          <span class="badge badge-light">{{yy.1}}</span>
-     </a>
-     {% endfor %}
      <span class="badge badge-danger">{{category_name.get_discount.0}}</span>
      <span class="badge badge-danger">{{company_name.get_discount.0}}</span>
 {#     <span class="badge badge-warning">{{cat_discount.0}}</span> #}
