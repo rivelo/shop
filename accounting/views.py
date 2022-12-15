@@ -3035,7 +3035,7 @@ def catalog_add(request):
             #return HttpResponseRedirect('/catalog/view/')
             return HttpResponseRedirect('/catalog/manufacture/' + str(manufacturer.id) + '/view/5')
     else:
-        form = CatalogForm(request = request)
+        form = CatalogForm()
     #return render_to_response('catalog.html', {'form': form})
     return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 

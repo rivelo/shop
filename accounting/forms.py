@@ -472,14 +472,22 @@ class CatalogForm(forms.ModelForm):
         return data.strip()
 
     def clean_price(self):
-        obj = Catalog.objects.get(pk=self.instance.pk)        
+        obj = None
+        try:
+            obj = Catalog.objects.get(pk=self.instance.pk)
+        except:
+            pass    
         data = self.cleaned_data['price']
         if (auth_group(self.request.user, 'admin')==False) and ('price' in self.changed_data):
             raise forms.ValidationError(u"У вас не має прав Адміністратора для зміни ціни " + str(obj.price) + u" грн. -> " + str(data) + u" грн.")
         return data
         
     def clean_sale(self):
-        obj = Catalog.objects.get(pk=self.instance.pk)        
+        obj = None
+        try:
+            obj = Catalog.objects.get(pk=self.instance.pk)
+        except:
+            pass        
         data = self.cleaned_data['sale']
         if (auth_group(self.request.user, 'admin')==False) and ('sale' in self.changed_data):
             raise forms.ValidationError(u"У вас не має прав Адміністратора для зміни знижки " + str(int(obj.sale)) + " -> " +str(int(data)) + u" %")
