@@ -713,7 +713,7 @@ def bicycle_store_add(request, id=None):
         else:
             form = BicycleStoreForm()
     #return render_to_response('bicycle_store.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_store.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'bike': bike, 'weblink': 'bicycle_store.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def bicycle_store_edit(request, id=None):
