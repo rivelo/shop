@@ -2,7 +2,18 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Прайс майстерні</title>
 
+{% load poll_extras %}
+
 <link rel="stylesheet" type="text/css" href="/media/table.css">
+
+<style>
+
+.work_name{
+	padding-left: 5px;
+}
+
+</style>
+
 
 {% if pprint %}
 <a></a>
@@ -88,16 +99,30 @@
 
 <tr>
 	<td align="center">       
+	{% if request.user|has_group:"admin" %}
+	<a href="/worktype/edit/{{type.id}}">{{forloop.counter}}</a>
+	{% else %}
 	{{forloop.counter}}
+	{% endif %}
+	
 	</td>
-	<td width="27%">       
+	<td width="27%" class="work_name">
+	{% if user.is_authenticated %}       
+	<a href="/workshop/add/{{type.id}}/"> 
 	{{type.name}}
+	</a>
+	{% else %}
+	{{type.name}}
+	{% endif %}
 	</td>
 	<td>       
 	{{type.description}}
 	</td>	
 	<td align="center">       
-	{{type.price}}
+	{{type.price|floatformat:0}}
+	{% if type.plus %}
+	+
+	{% endif %}
 	</td>
 </tr>
 {% endfor %}       

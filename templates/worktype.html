@@ -1,4 +1,8 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>{{add_edit_text}} роботу: {{ form.name.value }}</title>
+
+{% load poll_extras %}
 
 <style>
 
@@ -43,5 +47,12 @@ $(document).ready(function() {
 
 <h4><a href="{% url 'worktypelist'%}" class="badge badge-info">Список всіх робіт</a></h4>
 <h4><a href="{% url 'workgrouplist'%}" class="badge badge-light">Групи робіт</a></h4>
+
+	{% if request.user|has_group:"admin" %}
+	{% if workID %}
+	<h4><a href="{% url 'repot_by_work' workID.pk %}" class="badge badge-primary">Виконані роботи <button type="button" class="btn btn-dark">{{workID.work_count.work_count_sum}}</button></a></h4>
+	{% endif %}
+	{% endif %}
+
 
 

@@ -1271,10 +1271,10 @@ class WorkType(models.Model):
         return r #int(round(res, 0))
 
     def get_sale_price(self):
-        r = int(self.price or 1)/100 * (100 - int (self.sale or 1))
-#        r = self.price/100 * (100 - self.sale)
+        #r = int(self.price or 1)/100 * (100 - int (self.sale or 1))
+        r = int(self.price or 1)/100.0 * (100 - int(self.sale))
         base = 5
-        return int(base * round(float(r)/base)) 
+        return int(base * round(float(r)/base))
 
     def sum_depend_work(self):
         r = WorkType.objects.filter(dependence_work = self).aggregate(depend_sum=Sum('price'))

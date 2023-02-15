@@ -115,7 +115,7 @@ def del_logging(obj):
 
 
 def send_shop_mail(request, mto, w, subject='Наявний товар'):
-    from_email = 'rivelo@ymail.com' 
+    from_email = 'rivelo@ukr.net' #'rivelo@ymail.com' 
     to = mto
     text_content = 'www.rivelo.com.ua'
     html_content = w.content
@@ -2671,16 +2671,16 @@ def pb_currency():
     #===========================================================================
     try:
         #c_usd = (float(str(soup_usd_b.string)) + float(str(soup_usd_s.string))) / 2
-        USDb = res[0]['buy']
-        USDs = res[0]['sale']
+        USDb = res[1]['buy']
+        USDs = res[1]['sale']
         c_usd = (float(USDb) + float(USDs)) / 2
         #c_usd = (float(str(soup_usd_b.string)) + float(str(soup_usd_s.string))) / 2
         #c_usd = (float(str(usd_b.string)) + float(str(usd_s.string))) / 2
     except:
         c_usd = 0
     try:
-        EURb = res[1]['buy']
-        EURs = res[1]['buy']
+        EURb = res[0]['buy']
+        EURs = res[0]['buy']
         c_eur = (float(EURb) + float(EURs)) / 2
     except:
         c_eur = 0
@@ -4034,10 +4034,10 @@ def client_invoice_check(request, param=None):
     if param == 'email': 
         if client.email == '':
             return HttpResponse("Заповніть поле Email для відправки чеку")
-        subject, from_email, to = 'Товарний чек від веломагазину Rivelo', 'rivelo@ymail.com', client.email
+        subject, from_email, to = 'Товарний чек від веломагазину Rivelo', 'rivelo@ukr.net', client.email
         text_content = 'www.rivelo.com.ua'
         html_content = w.content
-        msg = EmailMultiAlternatives(subject, text_content, from_email, [to, 'rivelo@ukr.net'])
+        msg = EmailMultiAlternatives(subject, text_content, from_email, [to, 'rivelo.shop@gmail.com'])
         msg.attach_alternative(html_content, "text/html")
         msg.send()
         return HttpResponse("Лист з чеком успішно відправлено")        
@@ -4507,7 +4507,7 @@ def worktype_add(request):
             return HttpResponseRedirect('/worktype/view/')
     else:
         form = WorkTypeForm()
-    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html', 'add_edit_text': 'Створити'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html', 'add_edit_text': 'Створити', 'workID': None}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def worktype_edit(request, id):
@@ -4520,7 +4520,7 @@ def worktype_edit(request, id):
             return HttpResponseRedirect('/worktype/view/group/'+ str(a.work_group.id))
     else:
         form = WorkTypeForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html', 'add_edit_text': 'Редагувати'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html', 'add_edit_text': 'Редагувати', 'workID': a}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def worktype_list(request, id=None):
@@ -5141,14 +5141,14 @@ def worktype_lookup(request):
             value = request.POST[u'query']
             if len(value) > 2:
                 results = WorkType.objects.filter(name__icontains = value, disable = False)
-                data = serializers.serialize("json", results, fields=('name', 'id', 'price', 'dependence_work', 'get_sale_price', 'sale', 'work_group'))
+                data = serializers.serialize("json", results, fields=('name', 'id', 'price', 'dependence_work', 'get_sale_price', 'sale', 'work_group', 'description', 'plus'))
             else:
                 data = []
     return HttpResponse(data)    
 
 
 def workshop_pricelist(request, pprint=False):
-    list = WorkType.objects.all().values('name', 'price', 'id', 'description', 'work_group', 'work_group__name').order_by('work_group__tabindex')
+    list = WorkType.objects.all().values('name', 'price', 'id', 'description', 'work_group', 'work_group__name', 'plus').order_by('work_group__tabindex')
     if pprint:
         return render_to_response('workshop_pricelist.html', {'work_list': list, 'pprint': True})
     else:        

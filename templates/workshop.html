@@ -74,7 +74,9 @@ $(document).ready(function() {
                                 idid: item.fields.sale,
                                 id_sale: item.fields.sale,                                
                                 id_price: item.fields.price,
-                                pk_id: item.pk
+                                pk_id: item.pk,
+                                w_desc: item.fields.description,
+                                w_plus: item.fields.plus
     							}
                         	}));                                
                             }
@@ -89,6 +91,17 @@ $(document).ready(function() {
 	    	//$('#id_price').val(ui.item.id_price);
         	$('#id_price').val(sprice);
 	    	$('#id_work_type').val(ui.item.pk_id);
+	    	$('#work_desc').html(ui.item.w_desc);
+	    	$("#id_description").val('');
+	    	
+	    	if (ui.item.w_plus) {
+	    		$('#work_plus').html('Ціна +');	
+	    	}
+	    	else{
+	    		$('#work_plus').html('Ціна');
+	    	}
+	    	
+	    	
         },
         open: function() {
         	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
@@ -162,6 +175,33 @@ $(document).ready(function() {
 	$("#s_client").focus();
 });
 
+
+function doublePrice(){
+	var idpr = $("#id_price").val();
+	var res = parseInt(idpr)*2;
+	$("#id_price").val(res);
+	$("#id_description").val($("#id_description").val()+" \nx2")
+};
+
+
+function triplePrice(){
+	var idpr = $("#id_price").val();
+	var res = parseInt(idpr)*3;
+	$("#id_price").val(res);
+	$("#id_description").val($("#id_description").val()+" \nx3")
+};
+
+
+function percentPrice(p){
+	var idpr = $("#id_price").val();
+	var res = parseInt(idpr)*p;
+	$("#id_price").val(res);
+	var mp = (p*100)-100
+	$("#id_description").val($("#id_description").val()+" \n"+ mp +"%")
+};
+
+
+
 </script>
 
 <body>
@@ -201,7 +241,7 @@ $(document).ready(function() {
 <tr>
 <div class="input-group mb-3">
   <div class="input-group-prepend ">
-	<span class="input-group-text font-weight-bold" id="basic-addon1">Робота</span>    
+	<span class="input-group-text font-weight-bold" id="basic-addon1">Робота</span>
   </div>
   {{ form.work_type }}	
   <input type="text"  id="s_id_work_type" class="form-control {% if form.work_type.errors %}  is-invalid {% endif %}" placeholder="Пошук роботи" aria-label="Username" aria-describedby="basic-addon1" value="{{ work.name }}"/>
@@ -209,14 +249,21 @@ $(document).ready(function() {
 {{ form.work_type.errors }}
 </div>
      <small class="form-text text-muted">{{ field.work_type.help_text }}</small>
+     
 </div>
-
+<label for="work_name" id="work_desc">{{ work.description }}</label>
 </tr>
 
 <tr>
 <div class="input-group mb-3">
   <div class="input-group-prepend">
-    <span class="input-group-text font-weight-bold">Ціна</span>
+    <span class="input-group-text font-weight-bold" id="work_plus">
+    {% if work.plus %}
+    Ціна + 
+    {% else %}
+    Ціна
+    {% endif %}
+    </span>
   </div>
   {# form.price|addcss:'is-invalid' #}
 {% if form.work_type.errors %}   {{ form.price|add_attr:"class:form-control is-invalid" }} {% else %} {{ form.price|add_attr:"class:form-control" }} {% endif %} 
@@ -283,18 +330,29 @@ $(document).ready(function() {
 <span val='{{client.client__id}}' vname="{{client.client__name}}" sale="{{client.client__sale}}" style="font-size:100%;"> {{client.client__name}} ({{client.num_inv}}) </span>,
 {% endif %}
 {% endfor %}    
-</div>      
 </div>
+
+<div id="button_cloud" class="col-13">
+	<button type="button" class="btn btn-info col-12 mb-10">Збільшення тарифів / кількості:</button>
+	
+      <button type="button" class="btn btn-dark" onclick="doublePrice()">x2</button>
+      <button type="button" class="btn btn-dark " onclick="triplePrice()">x3</button>
+      <button type="button" class="btn btn-dark" onclick="percentPrice(2.0)">+100%</button>
+      <button type="button" class="btn btn-dark" onclick="percentPrice(1.75)">+75%</button>
+      <button type="button" class="btn btn-dark" onclick="percentPrice(1.5)">+50%</button>
+    
+</div>
+
   </div>
 
 <div class="row">
     <div class="col-12 col-md-6" id="depence_component">
-{#  	<span class="btn btn-dark"><a class="text-light" href="/invoice/category/{{dependence_comp.pk}}/view/">{{dependence_comp}}</a></span> #}
+{#  	<span class="btn btn-dark"><a class="text-light" href="/invoice/category/{{dependence_comp.pk}}/view/">{{dependence_comp}}</a></span> #} 
 	</div>
 </div>
 
 </div>
-<br>
+
 
  
 </body>
