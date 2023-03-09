@@ -1,4 +1,7 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Накладні від постачальників</title>
+
 
 {# load template_math #}
 {% load poll_extras %}
@@ -165,6 +168,8 @@ $('.checkbox').change(function(){
 {% endwith %}
 </h2>    
 
+<form action="/payform/dealer/" method="post" name="formSum"> 
+
 <div class="d-flex">
 <div class="mr-auto">
 {% if sel_year %}	
@@ -183,7 +188,7 @@ $('.checkbox').change(function(){
   	<span id="for_pay" style="COLOR: red" class="input-group-text font-weight-bold" >2133</span>
     <span class="input-group-text" id="basic-addon1">Грн.</span>
   </div>
- <input type="submit" value="Оплата" type="button" class="btn btn-warning font-weight-bold">
+ <input type="submit" value="Оплата" type="button" class="btn btn-warning font-weight-bold" >
 </div>
 </div>
 </div>
@@ -194,7 +199,7 @@ $('.checkbox').change(function(){
 {% endfor %}    
 </h5>
 
-<form action="/payform/" method="post" name="formSum"> 
+
 
 <table class="table table-bordered table-hover invoice">
 <thead class="thead-light text-center">

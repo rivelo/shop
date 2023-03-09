@@ -63,7 +63,8 @@ def custom_proc(request):
     return {
         'app': 'Rivelo catalog',
         'user': request.user,
-        'ip_address': request.META['REMOTE_ADDR']
+        'ip_address': request.META['REMOTE_ADDR'],
+        'shop_name': check_ip(request.META['REMOTE_ADDR'])
     }
 
     
@@ -76,6 +77,17 @@ def auth_group(user, group):
 #    print "****Group FALSE = " + str(user)
     return False
     #return True if user.groups.filter(name=group) else False
+
+
+def check_ip(ip_addr):
+    ip = '.'.join(ip_addr.split('.')[0:3])
+    print "IP = " + ip
+    #request.META['REMOTE_ADDR']
+    if ip == "192.168.88":
+        return "Home"
+    else:
+        return "----"
+     
 
 
 def current_url(request):
@@ -1732,7 +1744,7 @@ def dealer_payment_add(request):
             return HttpResponseRedirect('/dealer/payment/view/')
     else:
         form = DealerPaymentForm(instance = a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'dealer_payment.html'})
+    return render_to_response('index.html', {'form': form, 'weblink': 'dealer_payment.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
  
 def dealer_payment_del(request, id):
@@ -1994,7 +2006,7 @@ def dealer_invoice_search_result(request):
 
 
 
-def dealer_invoice_set(request):
+def dealer_invoice_set(request, id = None):
     if auth_group(request.user, 'admin')==False:
         #return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain;charset=UTF-8;charset=UTF-8")
         return HttpResponse(simplejson.dumps({'msg': 'Error: У вас не має прав для редагування'}), content_type="application/json")
@@ -2013,8 +2025,12 @@ def dealer_invoice_set(request):
                 #return HttpResponse('Ваш запит виконано', content_type="text/plain;charset=UTF-8;charset=UTF-8")
                 return HttpResponse(simplejson.dumps({'status': di_obj.received, 'msg': status_msg}), content_type="application/json")
     else:
+         di_obj = DealerInvoice.objects.get(pk = id)
+         di_obj.received = not (di_obj.received)
+         di_obj.save()
+    return HttpResponseRedirect('/dealer/invoice/view/')
         #return HttpResponse('Ваш запит відхилено. Щось пішло не так', content_type="text/plain;charset=UTF-8;charset=UTF-8", status=401)
-        return HttpResponse(simplejson.dumps({'msg':'Ваш запит відхилено. Щось пішло не так'}), content_type="application/json", status=401)
+    #    return HttpResponse(simplejson.dumps({'msg':'Ваш запит відхилено. Щось пішло не так'}), content_type="application/json", status=401)
 
 
 def invoice_new_item(request):
@@ -2432,15 +2448,20 @@ def invoice_id_list(request, id=None, limit=0):
     psum = 0
     optsum = 0
     scount = 0
+    rcount = 0
     uaoptsum = 0
+    status_delivery = False
     for item in list:
         psum = psum + (item.catalog.price * item.count)
         optsum = optsum + (item.price * item.count)
         uaoptsum = optsum + (item.get_uaprice() * item.count)
         scount = scount + item.count
+        rcount = rcount + int(item.rcount or 0)
+    if scount == rcount:
+        status_delivery = True
     dinvoice = DealerInvoice.objects.get(id=id)    
     #return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'company_list':company_list, 'allpricesum':psum, 'alloptsum':optsum, 'countsum': scount, 'weblink': 'invoice_component_report.html'})
-    return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'allpricesum':psum, 'alloptsum':optsum, 'ua_optsum':uaoptsum, 'countsum': scount, 'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'allpricesum':psum, 'alloptsum':optsum, 'ua_optsum':uaoptsum, 'countsum': scount, 'status_delivery': status_delivery, 'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def invoice_cat_id_list(request, cid=None, limit=0):
@@ -6168,6 +6189,32 @@ def workshop_payform(request):
         bal = res
     cmsg = ClientMessage.objects.filter(client__id=user)
     return render_to_response('index.html', {'messages': cmsg,'checkbox': list_id, 'invoice': wk, 'summ': sum, 'balance':bal, 'client': client, 'weblink': 'payform.html', 'workshop':True}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def dealer_payform(request):
+    checkbox_list = [x for x in request.POST if x.startswith('checkbox_')]
+    print "CHECK BOX = " + str(checkbox_list)
+#    if bool(checkbox_list) == False:
+#        return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    list_id = []
+    for id in checkbox_list:
+        list_id.append( int(id.replace('checkbox_', '')) )
+        print "dealer ID = "  + id.replace('checkbox_', '')
+    
+    di_list = DealerInvoice.objects.filter(id__in = list_id)
+    di_list.update(payment = True)
+    
+    icl = InvoiceComponentList.objects.filter(invoice__in = di_list)
+    for i in icl: 
+        #print "Count DIFF = " + str (i.check_count)
+        if i.check_count() == False:
+            print "FALSE - is REAL"
+            print "INVOICE = " + str(i.invoice.id)
+            DealerInvoice.objects.filter(id = i.invoice.id).update(payment = False)
+
+    url = '/dealer/invoice/view/'
+    return HttpResponseRedirect(url)
+#    return render_to_response('index.html', {'weblink': 'payform_dealer.html', 'workshop':True}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def client_ws_payform(request):

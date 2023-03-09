@@ -206,8 +206,8 @@ function percentPrice(p){
 
 <body>
 
-<h1><span class="badge badge-success">Рахунок на виконані роботи</span> {% if client_name %} >>>  <a href="/client/result/search/?id={{client_name.id}}" class="badge badge-secondary">{{ client_name }}</a> {% endif %}</h1>
-    
+<h1><span class="badge badge-success">Рахунок на виконані роботи</span> {{shop_name}} {% if client_name %} >>>  <a href="/client/result/search/?id={{client_name.id}}" class="badge badge-secondary">{{ client_name }}</a> {% endif %}</h1>
+  
 <div class="container mw-100">
   <div class="row justify-content-between">
     <div class="col-12 col-md-6">
@@ -274,15 +274,16 @@ function percentPrice(p){
   <div class="input-group-prepend"> 
   <span class="input-group-text font-weight-bold">Грн.</span>
   </div>
-  
 {#  <textarea class="form-control" aria-label="With textarea" id="id_description"></textarea> #}
 </div>
 </tr>            
 
-
             {# form.as_table #}  
 
 <tr>
+<small id="passwordHelpBlock" class="form-text text-muted">
+  Короткий опис роботи або прив'язка роботи до велосипеду клієнта
+</small>
 <div class="input-group">
   <div class="input-group-prepend">
     <span class="input-group-text font-weight-bold">Опис</span>
@@ -335,13 +336,21 @@ function percentPrice(p){
 <div id="button_cloud" class="col-13">
 	<button type="button" class="btn btn-info col-12 mb-10">Збільшення тарифів / кількості:</button>
 	
-      <button type="button" class="btn btn-dark" onclick="doublePrice()">x2</button>
-      <button type="button" class="btn btn-dark " onclick="triplePrice()">x3</button>
-      <button type="button" class="btn btn-dark" onclick="percentPrice(2.0)">+100%</button>
-      <button type="button" class="btn btn-dark" onclick="percentPrice(1.75)">+75%</button>
-      <button type="button" class="btn btn-dark" onclick="percentPrice(1.5)">+50%</button>
+      <button type="button" class="btn btn-dark" onclick="doublePrice()" title="Збільшити суму у 2 рази">x2</button>
+      <button type="button" class="btn btn-dark " onclick="triplePrice()" title="Збільшити суму у 3 рази">x3</button>
+      <button type="button" class="btn btn-dark" onclick="percentPrice(2.0)" title="Тариф +100%">+100%</button>
+      <button type="button" class="btn btn-dark" onclick="percentPrice(1.75)" title="Тариф +75%">+75%</button>
+      <button type="button" class="btn btn-dark" onclick="percentPrice(1.5)" title="Тариф +50%">+50%</button>
     
 </div>
+<br>
+<div id="works_cloud" class="col-13">
+	<button type="button" class="btn btn-secondary col-12 mb-10">Дотичні роботи:</button>
+	{% for wd in work.dependence_work.all %}
+      <a href="/workshop/add/{{wd.pk}}"><button type="button" class="btn btn-light" onclick="" title="Виписати роботу">{{wd}}</button></a>
+    {% endfor %}
+</div>
+
 
   </div>
 

@@ -1,7 +1,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <html lang="en">
 <head>
-    <title>Список товару</title>
+    <title>Накладна №{{dinvoice.origin_id}}</title>
 {#    <link rel="stylesheet" type="text/css" href="/media/css/table.css"> #}
 </head>
 <body>
@@ -10,7 +10,7 @@
 {% load template_math %}    
 
 {% if dinvoice.origin_id %}
-    <h1><span class="badge badge-success">Список наявного товару по накладній: </span> <span class="badge badge-info">{{dinvoice.origin_id}} ({{dinvoice.company}})</span></h1>
+    <h1><span class="badge badge-success">Список наявного товару по накладній: </span> <span class="badge badge-info">{{dinvoice.origin_id}} ({{dinvoice.company}})</span> <a href="{% url 'dealear_invoice_set_status' dinvoice.id %}" ><span class="badge badge-success">Status - {{status_delivery}}</span></a></h1>
 {% else %}
 	<h1>Надходження товару: <br> [{{list.0.catalog.ids}} / {{list.0.catalog.dealer_code}}] {{list.0.catalog.name}} </h1>
 {% endif %}

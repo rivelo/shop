@@ -20,6 +20,7 @@ from django.conf import settings
 from _mysql import NULL
 from django.db.models import Q
 from django.utils.translation.trans_real import catalog
+from __builtin__ import True
 
 
 # Group Type = Group for Component category 
@@ -188,6 +189,8 @@ class Manufacturer(models.Model):
     logo = models.ImageField(upload_to = 'upload/brandlogo/', blank=True, null=True)
     country = models.ForeignKey(Country, null=True)
     description = models.TextField(blank=True, null=True)    
+    #bikecompany = models.BooleanField()
+    #component types
 
     def get_discount(self):
         max_sale = None
@@ -647,6 +650,12 @@ class InvoiceComponentList(models.Model):
     def ci_sum(self):
         ci = ClientInvoice.objects.filter(catalog = self.catalog).aggregate(Count('pk'), csum = Sum('sum'))
         return (ci['csum'], ci['pk__count'])
+
+    def check_count(self):
+        if self.count == self.rcount:
+            return True
+        else:
+            return False
             
     def __unicode__(self):
         return u"%s - %s" % (self.invoice, self.catalog) 
@@ -1263,6 +1272,8 @@ class WorkType(models.Model):
     block = models.BooleanField(default = False, verbose_name="Блок/обєднання робіт")
     plus = models.BooleanField(default = False, verbose_name="Сума+")
     sale = models.FloatField(default = 0, blank=True, null=True)
+    #timer = models.Datetime
+    
     #user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
 
     def work_count(self):
@@ -1297,6 +1308,9 @@ class WorkShop(models.Model):
     pay = models.BooleanField(default = False, verbose_name="Оплачено?")
     description = models.TextField(blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    #bike =
+    #time = 
+    #ticket = 
 
     def check_depence_category(self):
         if self.work_type.component_type.exists():
@@ -1342,7 +1356,11 @@ class WorkTicket(models.Model):
     phone_user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='p_user') 
     description = models.TextField(blank=True, null=True)
     phone_status = models.ForeignKey(PhoneStatus, blank=True, null=True)
-    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)    
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    #estimate_time = Hours
+    #change_status_dateTime =
+    #user_work 
+        
     
     def __unicode__(self):
         return self.description
