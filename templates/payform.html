@@ -121,18 +121,45 @@ $('#client_debt_but').click(function() {
 });
 
 $('#client_cred_term_but').click(function() {
+	$('#shop1').prop( "checked", true );
 	$('#client_cred_term_but').off("click");
 	$("#pay_term").val($("#pay").val())
 	$("#pay").val(0);
-	$('#shop1').prop( "checked", true );
-//	console.log("PAY = "+$("#pay").val());
 	$("#pay_form").submit();
 });
 
 $('#client_cred_but').click(function() {
-	$('#client_cred_but').off("click");
+	var m_pay, pay_cash, pay_term;
+	m_pay = $('#to_pay').attr('value');
+	pay_term = $("#pay_term").val()
+	pay_cash = $("#pay").val();
+	console.log("PAY cash= " + pay_cash);
+	console.log("PAY term = "+ pay_term);
+	console.log("PAY MUST = " + m_pay );
 	$('#shop1').prop( "checked", true );
-	$("#pay_form").submit();
+	if (pay_cash == m_pay)	{
+		console.log("PAY is EQUAL");
+		$('#client_cred_but').off("click");
+		$("#pay_form").submit();
+	}
+	else {
+		console.log("PAY NOT EQUAL");
+		if (confirm("До оплати " + m_pay + " грн. \nВаша оплата складає " + pay_cash + " грн. \nВсе вірно?") == true) {
+			text = "You pressed OK!";
+			console.log("" + text);
+			$('#client_cred_but').off("click");
+			$("#pay_form").submit();
+		} 
+		else {
+			  text = "You canceled!";
+			  console.log("" + text);
+		}
+
+	}
+	
+	//$('#client_cred_but').off("click");
+	//$('#shop1').prop( "checked", true );
+	///$("#pay_form").submit();
 });
 
 $('#client_cred_term2_but').click(function() {
@@ -145,10 +172,35 @@ $('#client_cred_term2_but').click(function() {
 });
 
 $('#client_cred2_but').click(function() {
-//	console.log("PAY = "+$("#pay").val());
-	$('#client_cred1_but').off("click");
+	var m_pay, pay_cash, pay_term;
+	m_pay = $('#to_pay').attr('value');
+	pay_term = $("#pay_term").val()
+	pay_cash = $("#pay").val();
+	console.log("PAY cash= " + pay_cash);
+	console.log("PAY term = "+ pay_term);
+	console.log("PAY MUST = " + m_pay );
 	$('#shop2').prop( "checked", true );
-	$("#pay_form").submit();
+	if (pay_cash == m_pay)	{
+		console.log("PAY is EQUAL");
+		$('#client_cred1_but').off("click");
+		$("#pay_form").submit();
+	}
+	else {
+		console.log("PAY NOT EQUAL");
+		if (confirm("До оплати " + m_pay + " грн. \nВаша оплата складає " + pay_cash + " грн. \nВсе вірно?") == true) {
+			text = "You pressed OK!";
+			console.log("" + text);
+			$('#client_cred1_but').off("click");
+			$("#pay_form").submit();
+		} 
+		else {
+			  text = "You canceled!";
+			  console.log("" + text);
+		}
+	}
+	
+	//$('#client_cred1_but').off("click");
+	//$("#pay_form").submit();
 });
 
 $('#pay').change(function() {

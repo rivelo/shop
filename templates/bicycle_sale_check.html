@@ -78,15 +78,19 @@ $(document).ready(function() {
 
 	$( "#pp1" ).click(function() {
 		$("#pp1").hide();
+		$("#pp11").hide();
 	});
 
 	$( "#pp2" ).click(function() {
 		$("#pp2").hide();
+		$("#pp21").hide();
 	});
 
 	$( "#pp_show_all" ).click(function() {
 		$("#pp1").show();
 		$("#pp2").show();
+		$("#pp11").show();
+		$("#pp21").show();
 	});
 
 	
@@ -134,6 +138,7 @@ $(document).ready(function() {
 	});
 	
 	$('#pp1').hide()	
+	$('#pp11').hide()
 	
 });
 </script>
@@ -213,7 +218,9 @@ $(document).ready(function() {
 </p>
 <p>
 <br>
-Підпис ___________________   Панчук Ігор Олексійович
+<p id="pp11">Підпис ___________________   Панчук Ігор Олексійович</p>
+<p id="pp21">Підпис ___________________   Міщанюк Андрій Юрійович</p>
+
 
 </p>
 

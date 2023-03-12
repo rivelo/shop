@@ -696,6 +696,8 @@ class Client(models.Model):
     birthday = models.DateField(auto_now_add=False, blank = True, null = True)
     sale_on = models.BooleanField(default=True, verbose_name="Знижка включена")
     description = models.TextField(blank = True, null = True)
+    #reg_date = models.DateField()
+    #bicycle_service = 
 
     def show_str_phone1(self):
         str = self.phone[0:3] + '-' + self.phone[3:6] + '-' + self.phone[6:8]  + '-' + self.phone[8:]
@@ -1416,6 +1418,10 @@ class CheckPay(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL) 
     description = models.CharField(max_length=255)
+    #shop
+    #UID
+    #url_dps
+    #print_status
     
     def __unicode__(self):
         return u'%s / [%s / %s]' % (self.check_num, self.cash, self.term)
@@ -1440,7 +1446,8 @@ class Check(models.Model):
     cash_type = models.ForeignKey(CashType, blank=True, null=True, on_delete=models.SET_NULL) 
     description = models.CharField(max_length=255, blank=True, null=True)
     print_status = models.BooleanField(default=False)
-    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)    
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    #shop =     
     
     def __unicode__(self):
         return self.catalog

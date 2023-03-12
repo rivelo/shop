@@ -32,6 +32,7 @@ import calendar
 import codecs
 import csv
 import re
+import math
 
 import StringIO, requests, os
 from PIL import Image
@@ -1088,15 +1089,159 @@ def bicycle_sale_service(request, id=None):
             
     else:
         message = "Error"
+        return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
 
-#    return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
-   
-#    list = Bicycle_Sale.objects.get(id=id)
+
+
+def sale_post_bike(token, bike, cash_pay=0, card_pay=0):
+    goods = []
+    payments = []
+    ci = []
+    ci.append(bike)
+    bike_name = ""
+    bike_name = u'Велосипед '+ bike.model.model.brand.name +u'. Модель '+ bike.model.model.model +'. '+str(bike.model.model.year.year)+' ('+bike.model.model.color+')'
     
-    #list.save()
-    #list = Bicycle_Sale.objects.filter(id=id)
-#    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-    #return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html',})
+    for inv in ci:
+        ci_dic = {}
+        price =  "%.2f" % inv.price
+#        count = "%.3f" % inv.count
+        discount = inv.sale
+
+        gkey = {
+        "code": '77'+str(bike.model.pk),
+#        "name": inv.catalog.name[:40], #.encode('cp1251'),
+        "name": bike_name,
+        #"barcode": str(inv.catalog.ids), # "1112222111",
+        "excise_barcode": "",
+        "header": "HeaderString",
+        "footer": "FooterTitle",
+        "price": str(int(inv.price*100)),#"12200",
+        #"uktzed": ""
+        } 
+        quantity =  "1000"   # one bike #
+        discounts =  [ {
+            "type": "DISCOUNT",
+            "mode": "PERCENT",
+            "value": str(discount) }
+        ]
+        
+        ci_dic.update({'good': gkey})
+        if discount <> 0:
+            ci_dic.update({'discounts': discounts})
+        ci_dic.update({'is_return': 'false'})
+        ci_dic.update({'quantity': str(int(quantity))})
+        ci_dic.update({"is_winnings_payout": "true",})
+        goods.append(ci_dic)
+        
+        #cash_round = round(float(cash_pay), 1)
+        cash_round = int(math.ceil(round(float(cash_pay), 1)*100))
+        
+        cash = {
+        "type": "CASH",
+        "value": str(cash_round),
+        }
+        cashless = {
+        "type": "CASHLESS",
+        "value": str(int(float(card_pay)*100)), 
+        "bank_name": "PrivatBank",
+        "terminal": "Verifone",
+        "acquirer_and_seller": "ecquirer007",
+        #"receipt_no": "BANK_no"
+        }
+        if cash_pay <> '0':
+            payments.append(cash)
+        
+        if card_pay <> '0':
+            payments.append(cashless)
+     
+    url = "https://api.checkbox.ua/api/v1/receipts/sell"
+    data_work = {
+    "cashier_name": "RiveloName",
+    "departament": "RiveloShop",
+    "goods":  goods,
+    "delivery": {
+    },
+#    "discounts": [],
+    "bonuses": [],
+    "payments": payments,      
+    "rounding": "true",
+    "header": "Вас вітає веломагазин-майстерня Rivelo!",
+    "footer": "До зустрічі на дорогах і стежках України.",
+    "stock_code": "string_Bottom",
+    "technical_return": "false",
+    "context": {
+        "additionalProp1": "string_1",
+        "additionalProp2": "string_2",
+        "additionalProp3": "string_3"
+    },
+    "is_pawnshop": "false",
+    "custom": {
+        }
+    
+    }
+    headers = {
+        'Content-type': 'application/json', 
+        'Accept': 'text/plain', 
+        'Authorization': token
+        }  
+    
+    jsonString = json.dumps(data_work, indent=4)
+    print "\nJSON : \n" + jsonString + "\n"
+    
+    r = requests.post(url, data=json.dumps(data_work), headers=headers)
+    resp_str = json.dumps(r.json(), indent=4)
+    print "CREATE Payment: " + resp_str + "\n"
+    #print "Balance After: " + str(r.json()['shift']['balance']['balance']/100.0) + "\n"
+    return r
+
+
+def save_chek2db_bike(cash, term, bike, shop, request, desc=''):
+    ci = []
+    ci.append(bike)
+    res = Check.objects.aggregate(max_count=Max('check_num'))
+    chkPay = CheckPay(check_num = res['max_count'] + 1, cash = cash, term = term, description='checkbox_id='+desc+";")
+    chkPay.user = request.user
+    chkPay.save()
+                    
+    for inv in ci:
+        check = Check(check_num=res['max_count'] + 1)
+        checkPay = chkPay
+        check.client = inv.client #Client.objects.get(id=client.id)
+        #check.catalog = inv #ClientInvoice.objects.get(pk=inv)
+        check.bicycle = inv #ClientInvoice.objects.get(pk=inv)
+        check.description = "Продаж велосипеду. "
+        
+        if ((float(cash) > 0) and (float(term) > 0)):
+            check.description = check.description + " Готівка / Термінал"
+        if (cash == '0'):
+            check.description = check.description + " Термінал"
+        if (term == '0'):
+            check.description = check.description + " Готівка"
+                        
+        #check.count = inv.count
+        check.count = 1 #bike count
+        check.discount = inv.sale
+        t = 1
+        if cash >= term:
+            if shop == 1:
+                t = 1
+            if shop == 2:
+                t = 10
+            check.price = inv.sum #m_val
+        else: 
+            if shop == 1:
+                t = 9 # PUMB = 9 / PB = 2
+            if shop == 2:
+                t = 2 # PUMB = 9 / PB = 2
+
+            check.price = term 
+        check.cash_type = CashType.objects.get(id = t)
+        check.print_status = False
+        check.user = request.user
+        check.save()
+    return            
+
+
 
 def bicycle_sale_check_add(request, id):
     if request.user.is_authenticated()==False:
@@ -1118,13 +1263,31 @@ def bicycle_sale_check_add(request, id):
                 m_val = request.POST.get( 'm_value' )
                 t_val = request.POST.get( 't_value' )
                 term_number =  request.POST.get( 'term' )
-                if term_number == '2':
-                    URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/"
+
                 bs = Bicycle_Sale.objects.get(id=id)
                 chk_list = Check.objects.filter(bicycle = bs.id)
                 if chk_list.count()>0:
                     message = "Даний чек вже існує"
                     return HttpResponse(message, content_type="text/plain;charset=UTF-8;")                    
+                
+                #CheckBox casa
+                if term_number == '2':
+#                    URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/"
+                    token = post_casa_token()
+                    resp = sale_post_bike(token, bs, cash_pay = m_val, card_pay = t_val)
+                    if resp.status_code == 201:
+#                        print "\nSTATUS RESPONCE - " + str(resp.status_code) + "\n"
+                        #save_chek2db(m_val, t_val, ci, 2, request, desc=str(resp.json()['id']))
+                        save_chek2db_bike(m_val, t_val, bs, 2, request, desc=str(resp.json()['id']))
+                        message = "CHECKBOX - Done\n" + str(resp.json()['id'])
+                    else:
+                        message = "CHECKBOX - Error\n" + str(resp.text.encode('utf-8'))
+                    return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
+
+
+                    
+                    return 
+                
                 else:
 #                    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
 #                    data =  {"cmd": "open"}
@@ -1146,30 +1309,34 @@ def bicycle_sale_check_add(request, id):
                         message = "Сервер "+settings.HTTP_MINI_SERVER_IP+" не відповідає"
                         return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
 
-                    res = Check.objects.aggregate(max_count=Max('check_num'))
-                    chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
-                    chkPay.save()
-                    
-                    res = Check.objects.aggregate(max_count=Max('check_num'))
-                    check = Check(check_num=res['max_count'] + 1)
-                    check.checkPay = chkPay
-                    check.client = bs.client #Client.objects.get(id=client.id)
-                    check.bicycle = bs #ClientInvoice.objects.get(pk=inv)
-                    check.description = "Продаж велосипеду"
-                    check.count = 1
-                    check.discount = bs.sale
-                    t = 1
-                    if m_val >= t_val:
-                        t = 1
-                        check.price = m_val
-                    else: 
-                        t = 2
-                        check.price = t_val 
-                    check.cash_type = CashType.objects.get(id = t)
-                    check.print_status = False
-                    check.user = request.user
-                    check.save()    
-
+                    save_chek2db_bike(m_val, t_val, bs, 1, request)
+####
+                    #===========================================================
+                    # res = Check.objects.aggregate(max_count=Max('check_num'))
+                    # chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
+                    # chkPay.save()
+                    # 
+                    # res = Check.objects.aggregate(max_count=Max('check_num'))
+                    # check = Check(check_num=res['max_count'] + 1)
+                    # check.checkPay = chkPay
+                    # check.client = bs.client #Client.objects.get(id=client.id)
+                    # check.bicycle = bs #ClientInvoice.objects.get(pk=inv)
+                    # check.description = "Продаж велосипеду"
+                    # check.count = 1
+                    # check.discount = bs.sale
+                    # t = 1
+                    # if m_val >= t_val:
+                    #     t = 1
+                    #     check.price = m_val
+                    # else: 
+                    #     t = 2
+                    #     check.price = t_val 
+                    # check.cash_type = CashType.objects.get(id = t)
+                    # check.print_status = False
+                    # check.user = request.user
+                    # check.save()    
+                    #===========================================================
+###
                     price =  "%.2f" % bs.price
                     count = "%.3f" % 1
                     discount = bs.sale
@@ -1177,8 +1344,6 @@ def bicycle_sale_check_add(request, id):
                     bike_s = u'Велосипед '+ bs.model.model.brand.name +u'. Модель '+ bs.model.model.model +'. '+str(bs.model.model.year.year)+' ('+bs.model.model.color+')'
                     #bike_s = bs.model.model.model[:40].encode('utf8')
                     #data =  {"cmd": "add_plu", "id":'77'+str(bs.model.pk), "cname":bike_s, "price":price, "count": count, "discount": discount}
-                    #url = base + urllib.urlencode(data)
-                    #page = urllib.urlopen(url).read()
                     
                     PARAMS['cmd'] = 'add_plu;'+'77'+str(bs.model.pk)+";0;0;0;1;1;1;"+price+";0;"+bike_s[:40].encode('cp1251')+";"+count+";"
                     resp = requests.post(url = URL, data = PARAMS)
@@ -1213,31 +1378,6 @@ def bicycle_sale_check_add(request, id):
 
                 message = "Виконано"
                 return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
-                    
-#===============================================================================
-#                     if m_val >= t_val:
-#                         data =  {"cmd": "pay", "sum": m_val, "mtype": 0}
-#                         url = base + urllib.urlencode(data)
-#                         page = urllib.urlopen(url).read()
-#                         data =  {"cmd": "pay", "sum": t_val, "mtype": 2}
-#                         url = base + urllib.urlencode(data)
-#                         page = urllib.urlopen(url).read()
-#                     else:
-#                         data =  {"cmd": "pay", "sum": t_val, "mtype": 2}
-#                         url = base + urllib.urlencode(data)
-#                         page = urllib.urlopen(url).read()
-#                         data =  {"cmd": "pay", "sum": m_val, "mtype": 0}
-#                         url = base + urllib.urlencode(data)
-#                         page = urllib.urlopen(url).read()
-#                         
-#                     base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-#                     data =  {"cmd": "close"}
-#                     url = base + urllib.urlencode(data)
-#                     page = urllib.urlopen(url).read()
-# 
-#                     message = "Виконано"
-#                 return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
-#===============================================================================
     else:
         message = "Error"
         return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
@@ -6462,8 +6602,9 @@ def client_payform(request):
         URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/"
         cash_id = CashType.objects.get(id = 10) # готівка Міцкевича
         term_id = CashType.objects.get(id = 2) # термінал Міцкевича
-    cmd = 'open_port;1;115200;'
-    PARAMS = {'address':URL, 'cmd': cmd, 
+        
+        cmd = 'open_port;1;115200;'
+        PARAMS = {'address':URL, 'cmd': cmd, 
               'hash': settings.MINI_HASH_1, 
               'user': request.user.username,
               }
@@ -6579,6 +6720,7 @@ def client_payform(request):
         if float(request.POST['pay']) != 0:
             ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_id)
             ccred.save()
+            
             res = Check.objects.aggregate(max_count=Max('check_num'))
             chkPay = CheckPay(check_num = res['max_count'] + 1, cash = pay, term = 0)
             chkPay.user = request.user
@@ -8431,6 +8573,177 @@ def check_print(request, num):
     
 #    return render_to_response("index.html", {"weblink": 'check_list.html', "check_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
 
+def sale_post(token, ci=None, ws=None, cash_pay=0, card_pay=0):
+    goods = []
+    payments = []
+    inv_list = None
+    if ci == None:
+         inv_list = ws
+    if ws == None:
+         inv_list = ci
+    
+    for inv in inv_list:
+        ci_dic = {}
+#        price =  "%.2f" % inv.price
+        count = 1
+        discount = 0
+        code = ''
+        name = ''
+        barcode = ''
+        if ci == None:
+            count = 1
+            discount = 0
+            code = '99'+str(inv.work_type.pk)
+            name = inv.work_type.name[:100] #.encode('cp1251')
+            barcode = '' 
+        if ws == None:
+            count = inv.count
+            discount = inv.sale
+            code = str(inv.catalog.pk)
+            name = inv.catalog.name[:40]
+            barcode = str(inv.catalog.ids)
+
+        gkey = {
+        "code": code,
+        "name": name, #.encode('cp1251'),
+        "barcode": barcode, # "1112222111",
+        "excise_barcode": "",
+        "header": "HeaderString",
+        "footer": "FooterTitle",
+        "price": str(int(inv.price*100)),#"12200",
+        #"uktzed": ""
+        } 
+                        
+        quantity =  count * 1000
+        discounts =  [ {
+            "type": "DISCOUNT",
+            "mode": "PERCENT",
+            "value": str(discount) }
+        ]
+        
+        ci_dic.update({'good': gkey})
+        if discount <> 0:
+            ci_dic.update({'discounts': discounts})
+        ci_dic.update({'is_return': 'false'})
+        ci_dic.update({'quantity': str(int(quantity))})
+        ci_dic.update({"is_winnings_payout": "true",})
+        goods.append(ci_dic)
+        
+        cash_round = int(math.ceil(round(float(cash_pay), 1)*100))
+        
+        cash = {
+        "type": "CASH",
+        "value": str(cash_round),#int(float(cash_pay)*100)),
+        }
+        cashless = {
+        "type": "CASHLESS",
+        "value": str(int(float(card_pay)*100)), 
+        "bank_name": "PrivatBank",
+        "terminal": "Verifone",
+        "acquirer_and_seller": "ecquirer007",
+        #"receipt_no": "BANK_no"
+        }
+    if cash_pay <> '0':
+        payments.append(cash)
+        
+    if card_pay <> '0':
+        payments.append(cashless)
+     
+    url = "https://api.checkbox.ua/api/v1/receipts/sell"
+    data_work = {
+    "cashier_name": "RiveloName",
+    "departament": "RiveloShop",
+    "goods":  goods,
+    "delivery": {
+    },
+#    "discounts": [],
+    "bonuses": [],
+    "payments": payments,      
+    "rounding": "true",
+    "header": "Вас вітає веломагазин-майстерня Rivelo!",
+    "footer": "До зустрічі на дорогах і стежках України.",
+    "stock_code": "string_Bottom",
+    "technical_return": "false",
+    "context": {
+        "additionalProp1": "string_1",
+        "additionalProp2": "string_2",
+        "additionalProp3": "string_3"
+    },
+    "is_pawnshop": "false",
+    "custom": {
+        }
+    
+    }
+    headers = {
+        'Content-type': 'application/json', 
+        'Accept': 'text/plain', 
+        'Authorization': token
+        }  
+    
+    jsonString = json.dumps(data_work, indent=4)
+    print "\nJSON : \n" + jsonString + "\n"
+    
+    r = requests.post(url, data=json.dumps(data_work), headers=headers)
+    resp_str = json.dumps(r.json(), indent=4)
+    print "CREATE Payment: " + resp_str + "\n"
+    #print "Balance After: " + str(r.json()['shift']['balance']['balance']/100.0) + "\n"
+    return r
+
+
+def save_chek2db(cash, term, shop, request, ci=None, ws=None, desc=''):
+    res = Check.objects.aggregate(max_count=Max('check_num'))
+    chkPay = CheckPay(check_num = res['max_count'] + 1, cash = cash, term = term, description='checkbox_id='+desc+";")
+    chkPay.user = request.user
+    chkPay.save()
+
+    inv_list = None
+    cash_sum = 0
+    if ci == None:
+         inv_list = ws
+    if ws == None:
+         inv_list = ci
+                    
+    for inv in inv_list:
+        check = Check(check_num=res['max_count'] + 1)
+        checkPay = chkPay
+        check.client = inv.client #Client.objects.get(id=client.id)
+        if ci == None:
+            check.workshop = inv
+            check.count = 1
+            check.discount = 0
+            cash_sum = inv.price
+        if ws == None:
+            check.catalog = inv #ClientInvoice.objects.get(pk=inv)
+            check.count = inv.count
+            check.discount = inv.sale
+            cash_sum = inv.sum
+        
+        if ((float(cash) > 0) and (float(term) > 0)):
+            check.description = "Готівка / Термінал"
+        if (cash == '0'):
+            check.description = "Термінал"
+        if (term == '0'):
+            check.description = "Готівка"
+                        
+        t = 1
+        if cash >= term:
+            if shop == 1:
+                t = 1
+            if shop == 2:
+                t = 10
+            check.price = cash_sum #m_val
+        else: 
+            if shop == 1:
+                t = 9 # PUMB = 9 / PB = 2
+            if shop == 2:
+                t = 2 # PUMB = 9 / PB = 2
+            check.price = term 
+        check.cash_type = CashType.objects.get(id = t)
+        check.print_status = False
+        check.user = request.user
+        check.save()
+    return            
+
 
 def shop_sale_check_add(request):
     if request.user.is_authenticated()==False:
@@ -8451,93 +8764,80 @@ def shop_sale_check_add(request):
                 m_val = request.POST.get( 'm_value' )
                 t_val = request.POST.get( 't_value' )
                 term_number =  request.POST.get( 'term' )
-                if term_number == '2':
-                    URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/"
+                    
                 ci = ClientInvoice.objects.filter(id__in = list_id)
                 chk_list = Check.objects.filter(catalog__in = ci)
                 if chk_list.count() > 0:
                     message = "Даний чек вже існує"
                     return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
-                else:
-                    try:
-                        resp_open = requests.post(url = URL, data = PARAMS)
-                        PARAMS['cmd'] = "cashier_registration;1;0"
-                        resp_registration = requests.post(url = URL, data = PARAMS)
-                        PARAMS['cmd'] = 'open_receipt;0' # відкрити чек
-                        resp_registration = requests.post(url = URL, data = PARAMS)
-                    except:
-                        message = "Сервер "+settings.HTTP_MINI_SERVER_IP+" не відповідає"
-                        return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
-
-                    res = Check.objects.aggregate(max_count=Max('check_num'))
-                    chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
-                    chkPay.user = request.user
-                    chkPay.save()
-                    
-                    for inv in ci:
-                        check = Check(check_num=res['max_count'] + 1)
-                        checkPay = chkPay
-                        check.client = inv.client #Client.objects.get(id=client.id)
-                        check.catalog = inv #ClientInvoice.objects.get(pk=inv)
-                        check.description = "Готівка / Термінал"
-                        check.count = inv.count
-                        check.discount = inv.sale
-                        t = 1
-                        if m_val >= t_val:
-                            t = 1
-                            check.price = inv.sum #m_val
-                        else: 
-                            t = 9 # PUMB = 9 / PB = 2
-                            check.price = t_val 
-                        check.cash_type = CashType.objects.get(id = t)
-                        check.print_status = False
-                        check.user = request.user
-                        check.save()    
-
-                    for inv in ci:
-                        price =  "%.2f" % inv.price
-                        count = "%.3f" % inv.count
-                        discount = inv.sale
-                        if inv.catalog.length <> None:
-                            PARAMS['cmd'] = 'add_plu;'+str(inv.catalog.pk)+";0;1;0;1;1;1;"+price+";0;"+inv.catalog.name[:40].encode('cp1251')+";"+count+";"
-                            resp = requests.post(url = URL, data = PARAMS)
-                        else:
-                            PARAMS['cmd'] = 'add_plu;'+str(inv.catalog.pk)+";0;0;0;1;1;1;"+price+";0;"+inv.catalog.name[:40].encode('cp1251')+";"+count+";"
-                            resp = requests.post(url = URL, data = PARAMS)
-                        PARAMS['cmd'] = 'sale_plu;0;0;0;'+count+";"+str(inv.catalog.pk)+";"
-                        resp = requests.post(url = URL, data = PARAMS)
-                        PARAMS['cmd'] = 'discount_surcharge;1;0;1;'+"%.2f" % discount+";"
-                        resp = requests.post(url = URL, data = PARAMS)
-                        #PARAMS['cmd'] = 'cancel_receipt;'
-                        #resp = requests.post(url = URL, data = PARAMS)
-                        
-                    if m_val >= t_val:
-                        if float(t_val) == 0:
-                            PARAMS['cmd'] = "pay;"+"0;0;"
-                            resp = requests.post(url = URL, data = PARAMS)
-                        else:
-                            PARAMS['cmd'] = "pay;0;"+"%.2f" % float(m_val)+";"
-                            resp = requests.post(url = URL, data = PARAMS)
-                            PARAMS['cmd'] = "pay;2;"+"%.2f" % float(t_val)+";"
-                            print "PARAM = " + PARAMS['cmd']
-                            resp = requests.post(url = URL, data = PARAMS)
+                #CheckBox casa
+                if term_number == '2':
+                    token = post_casa_token()
+                    resp = sale_post(token, ci=ci, cash_pay = m_val, card_pay = t_val)
+                    if resp.status_code == 201:
+#                        print "\nSTATUS RESPONCE - " + str(resp.status_code) + "\n"
+                        save_chek2db(m_val, t_val, 2, request, ci=ci, desc=str(resp.json()['id']))
+                        message = "CHECKBOX - Done\n" + str(resp.json()['id'])
                     else:
-                        if float(m_val) == 0:
-                            PARAMS['cmd'] = "pay;"+"2;0;"
-                            resp = requests.post(url = URL, data = PARAMS)
-                        else:
-                            PARAMS['cmd'] = "pay;2;"+"%.2f" % float(t_val)+";"
-                            resp = requests.post(url = URL, data = PARAMS)
-                            PARAMS['cmd'] = "pay;0;"+"%.2f" % float(m_val)+";"
-                            resp = requests.post(url = URL, data = PARAMS)
-                    
-                    PARAMS['cmd'] = 'close_port;'
-                    resp_close = requests.post(url = URL, data = PARAMS)
+                        message = "CHECKBOX - Error\n" + str(resp.text.encode('utf-8'))
+                    return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
 
-                message = "Виконано"
-                return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
+                try:
+                    resp_open = requests.post(url = URL, data = PARAMS)
+                    PARAMS['cmd'] = "cashier_registration;1;0"
+                    resp_registration = requests.post(url = URL, data = PARAMS)
+                    PARAMS['cmd'] = 'open_receipt;0' # відкрити чек
+                    resp_registration = requests.post(url = URL, data = PARAMS)
+                except:
+                    message = "Сервер "+settings.HTTP_MINI_SERVER_IP+" не відповідає"
+                    return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
+
+                save_chek2db(m_val, t_val, 1, request, ci=ci)
+
+                for inv in ci:
+                    price =  "%.2f" % inv.price
+                    count = "%.3f" % inv.count
+                    discount = inv.sale
+                    if inv.catalog.length <> None:
+                        PARAMS['cmd'] = 'add_plu;'+str(inv.catalog.pk)+";0;1;0;1;1;1;"+price+";0;"+inv.catalog.name[:40].encode('cp1251')+";"+count+";"
+                        resp = requests.post(url = URL, data = PARAMS)
+                    else:
+                        PARAMS['cmd'] = 'add_plu;'+str(inv.catalog.pk)+";0;0;0;1;1;1;"+price+";0;"+inv.catalog.name[:40].encode('cp1251')+";"+count+";"
+                        resp = requests.post(url = URL, data = PARAMS)
+                    PARAMS['cmd'] = 'sale_plu;0;0;0;'+count+";"+str(inv.catalog.pk)+";"
+                    resp = requests.post(url = URL, data = PARAMS)
+                    PARAMS['cmd'] = 'discount_surcharge;1;0;1;'+"%.2f" % discount+";"
+                    resp = requests.post(url = URL, data = PARAMS)
+                    #PARAMS['cmd'] = 'cancel_receipt;'
+                    #resp = requests.post(url = URL, data = PARAMS)
+                        
+                if m_val >= t_val:
+                    if float(t_val) == 0:
+                        PARAMS['cmd'] = "pay;"+"0;0;"
+                        resp = requests.post(url = URL, data = PARAMS)
+                    else:
+                        PARAMS['cmd'] = "pay;0;"+"%.2f" % float(m_val)+";"
+                        resp = requests.post(url = URL, data = PARAMS)
+                        PARAMS['cmd'] = "pay;2;"+"%.2f" % float(t_val)+";"
+                        print "PARAM = " + PARAMS['cmd']
+                        resp = requests.post(url = URL, data = PARAMS)
+                else:
+                    if float(m_val) == 0:
+                        PARAMS['cmd'] = "pay;"+"2;0;"
+                        resp = requests.post(url = URL, data = PARAMS)
+                    else:
+                        PARAMS['cmd'] = "pay;2;"+"%.2f" % float(t_val)+";"
+                        resp = requests.post(url = URL, data = PARAMS)
+                        PARAMS['cmd'] = "pay;0;"+"%.2f" % float(m_val)+";"
+                        resp = requests.post(url = URL, data = PARAMS)   
+                    
+                PARAMS['cmd'] = 'close_port;'
+                resp_close = requests.post(url = URL, data = PARAMS)
+
+        message = "Виконано"
+        return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
     else:
-        message = "Error"
+        message = "Error. Post is not Ajax!"
         return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
 
 
@@ -8560,16 +8860,24 @@ def workshop_sale_check_add(request):
                 m_val = request.POST.get( 'm_value' )
                 t_val = request.POST.get( 't_value' )
                 term_number =  request.POST.get( 'term' )
-                if term_number == '2':
-                    URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/"
+                   
                 cw = WorkShop.objects.filter(id__in = list_id)
                 chk_list = Check.objects.filter(catalog__in = cw)
                 if chk_list.count() > 0:
                     message = "Даний чек вже існує"
+                #CheckBoX casa
+                if term_number == '2':
+                    token = post_casa_token()
+                    resp = sale_post(token, ws = cw, cash_pay = m_val, card_pay = t_val)
+                    if resp.status_code == 201:
+#                        print "\nSTATUS RESPONCE - " + str(resp.status_code) + "\n"
+                        save_chek2db(m_val, t_val, 2, request, ws = cw, desc=str(resp.json()['id']))
+                        message = "CHECKBOX - Done\n" + str(resp.json()['id'])
+                    else:
+                        message = "CHECKBOX - Error\n" + str(resp.text.encode('utf-8'))
+                    return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
+                    
                 else:
-                    #base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-                    #data =  {"cmd": "open"}
-                    #url = base + urllib.urlencode(data)
                     try:
                         #page = urllib.urlopen(url).read()
                         resp_open = requests.post(url = URL, data = PARAMS)
@@ -8581,32 +8889,36 @@ def workshop_sale_check_add(request):
                     except:
                         message = "Сервер не відповідає"
                         return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
-
-                    res = Check.objects.aggregate(max_count=Max('check_num'))
-                    chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
-                    chkPay.user = request.user
-                    chkPay.save()
                     
-                    for inv in cw:
-                        check = Check(check_num=res['max_count'] + 1)
-                        check.client = inv.client #Client.objects.get(id=client.id)
-                        check.checkPay = chkPay
-                        check.workshop = inv #ClientInvoice.objects.get(pk=inv)
-                        check.description = "Майстерня. Готівка / Термінал"
-                        check.count = 1
-                        check.discount = inv.work_type.sale
-                        check.price = inv.price
-                        t = 1
-                        if m_val >= t_val:
-                            t = 1
-                        else: 
-                            t = 9 # PUMB
-
-                        check.cash_type = CashType.objects.get(id = t)
-                        check.print_status = False
-                        check.user = request.user
-                        check.save()
-
+                    save_chek2db(m_val, t_val, 2, request, ws = cw, desc=str(resp.json()['id']))
+###
+#===============================================================================
+#                     res = Check.objects.aggregate(max_count=Max('check_num'))
+#                     chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
+#                     chkPay.user = request.user
+#                     chkPay.save()
+#                     
+#                     for inv in cw:
+#                         check = Check(check_num=res['max_count'] + 1)
+#                         check.client = inv.client #Client.objects.get(id=client.id)
+#                         check.checkPay = chkPay
+#                         check.workshop = inv #ClientInvoice.objects.get(pk=inv)
+#                         check.description = "Майстерня. Готівка / Термінал"
+#                         check.count = 1
+#                         check.discount = inv.work_type.sale
+#                         check.price = inv.price
+#                         t = 1
+#                         if m_val >= t_val:
+#                             t = 1
+#                         else: 
+#                             t = 9 # PUMB
+# 
+#                         check.cash_type = CashType.objects.get(id = t)
+#                         check.print_status = False
+#                         check.user = request.user
+#                         check.save()
+#===============================================================================
+###
                     for inv in cw:
                         price =  "%.2f" % inv.price
                         count = "%.3f" % 1
@@ -8616,32 +8928,12 @@ def workshop_sale_check_add(request):
                         PARAMS['cmd'] = 'sale_plu;0;0;0;'+count+";"+'99'+str(inv.work_type.pk)+";"
                         resp = requests.post(url = URL, data = PARAMS)
                         
-
-#                        url = base + urllib.urlencode(data)
-#                        page = urllib.urlopen(url).read()
-#                        data =  {"cmd": "pay", "sum": 0, "mtype": 0}
-#                        url = base + urllib.urlencode(data)
-#                        page = urllib.urlopen(url).read()
-                    
                     if m_val >= t_val:
                         if float(t_val) == 0:
-                            #data =  {"cmd": "pay", "sum": 0, "mtype": 0}
-                            #url = base + urllib.urlencode(data)
-                            #page = urllib.urlopen(url).read()
                             PARAMS['cmd'] = "pay;"+"0;0;"
                             resp = requests.post(url = URL, data = PARAMS)
 
                         else:
-                            #===================================================
-                            # val = "%.2f" % float(m_val)
-                            # data =  {"cmd": "pay", "sum": val, "mtype": 0}
-                            # url = base + urllib.urlencode(data)
-                            # page = urllib.urlopen(url).read()
-                            # val = "%.2f" % float(t_val)
-                            # data =  {"cmd": "pay", "sum": t_val, "mtype": 2}
-                            # url = base + urllib.urlencode(data)
-                            #===================================================
-                            #page = urllib.urlopen(url).read()
                             PARAMS['cmd'] = "pay;0;"+m_val+";"
                             resp = requests.post(url = URL, data = PARAMS)
                             PARAMS['cmd'] = "pay;2;"+t_val+";"
@@ -8649,32 +8941,15 @@ def workshop_sale_check_add(request):
 
                     else:
                         if float(m_val) == 0:
-#                            data =  {"cmd": "pay", "sum": 0, "mtype": 2}
-#                            url = base + urllib.urlencode(data)
-#                            page = urllib.urlopen(url).read()
                             PARAMS['cmd'] = "pay;"+"2;0;"
                             resp = requests.post(url = URL, data = PARAMS)
 
                         else:
-                            #===================================================
-                            # val = "%.2f" % float(t_val)
-                            # data =  {"cmd": "pay", "sum": val, "mtype": 2}
-                            # url = base + urllib.urlencode(data)
-                            # page = urllib.urlopen(url).read()
-                            # val = "%.2f" % float(m_val)
-                            # data =  {"cmd": "pay", "sum": val, "mtype": 0}
-                            # url = base + urllib.urlencode(data)
-                            # page = urllib.urlopen(url).read()
-                            #===================================================
                             PARAMS['cmd'] = "pay;2;"+t_val+";"
                             resp = requests.post(url = URL, data = PARAMS)
                             PARAMS['cmd'] = "pay;0;"+m_val+";"
                             resp = requests.post(url = URL, data = PARAMS)
                         
-                    #base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-                    #data =  {"cmd": "close"}
-                    #url = base + urllib.urlencode(data)
-                    #page = urllib.urlopen(url).read()
                     PARAMS['cmd'] = 'close_port;'
                     resp_close = requests.post(url = URL, data = PARAMS)
 
@@ -9041,6 +9316,204 @@ def qrscanner(request):
     #return render_to_response('scanner_qr.html', {}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 ### ---------- RRO Casa Function --------------  
+
+def licenseKey():
+    xLicenseKey = settings.XLICENSEKEY
+    return xLicenseKey
+
+#def post_casa_token(xLicenseKey='test338c45d499f5fea8e7d02280', ):
+def post_casa_token(xLicenseKey=licenseKey(), pin_code=settings.PIN_CODE):
+    headers = {
+        'Content-type': 'application/json', 
+        'Accept': 'text/plain', 
+        'X-License-Key': xLicenseKey #'test338c45d499f5fea8e7d02280'
+        }
+    
+    data = {"pin_code": pin_code}
+    url = "https://api.checkbox.ua/api/v1/cashier/signinPinCode"
+
+    r = requests.post(url, data=json.dumps(data), headers=headers)
+    print('Status: ' + str(r))
+    if r.status_code <> 200:
+        print "Error: " + r.json()['message'].encode('utf-8') #('cp1251') 
+        return "Error: " + str(r)
+
+    ttoken = r.json()['token_type']
+    atoken = r.json()['access_token']
+
+    print "\n'Authorization' : '" + ttoken.title()+ " " + atoken +"'"
+
+    return ttoken + ' ' + atoken
+
+# X-Report on PRRO
+def casa_prro_checkout(request): 
+    resp = None
+    token = post_casa_token()
+    # sending post request and saving response as response object 
+    try:
+        url = "https://api.checkbox.in.ua/api/v1/reports"
+        data = {}
+        headers = {
+            'Content-type': 'application/json', 
+            'Accept': 'text/plain', 
+            'Authorization': token
+            }
+        resp = requests.post(url, data=json.dumps(data), headers=headers)
+    except:
+        return HttpResponse("Connection failed! Перевірте зєднання з інтернетом")
+    
+    response = HttpResponse()
+    response.write("Response: " + str(resp.status_code) + "<br>")
+    if resp.status_code == 200:
+        response.write("Status: <br>")
+        res_list = str(resp.reason).split(';')
+        response.write("JSON: <b>" + str(r.json()) + " </b><br>") 
+        response.write("Готівка: <b>" + res_list[1] + " грн.</b><br>")
+        response.write("Чек: <b>" + res_list[2] + " грн.</b><br>")
+        response.write("Кредитна карта: <b>" + res_list[3] + "</b><br>")
+        response.write("інший тип 1: <b>" + res_list[4] + "</b><br>")
+        response.write("інший тип 2: <b>" + res_list[5] + "</b><br>")
+        response.write("інший тип 3: <b>" + res_list[6] + "</b><br>")
+        response.write("інший тип 4: - <b>" + res_list[7] + "</b><br>")
+
+    json_res = resp.json()
+    response.write("<br>Кількість чеків:  " + str(resp.json()['sell_receipts_count']) + "<br>")
+    response.write("<br>Готівка в касі (сума для вилучення в копійках):  " + str(resp.json()['balance']) + "<br>")
+    response.write("<br>Сума оплат (Готівка):  " + str(float(json_res['payments'][1]['sell_sum'])/100) + " грн.")
+    response.write("<br>Сума оплат (Термінал):  " + str(float(json_res['payments'][0]['sell_sum'])/100) + " грн. <br>")
+    response.write("<br><<< Result: >>> <br>" +str(resp.reason.encode('utf-8')) + "<br><<< Result text >>><br>" +  str(resp.text.encode('utf-8')))
+    #jsonString = json.dumps(resp.json(), indent=4)
+    jsonString = json.dumps(resp.json(), indent=4)
+    print "\n JSON : " + str(jsonString)
+    response.write("<br>JSON:" + str(jsonString.replace('\n', '<br />').encode('utf-8')))
+    return response
+
+
+def casa_prro_xreport(request, token=post_casa_token()):
+    url = "https://api.checkbox.in.ua/api/v1/reports"
+    data = {}
+    headers = {
+        'Content-type': 'application/json', 
+        'Accept': 'text/plain', 
+        'Authorization': token
+        }
+    resp = requests.post(url, data=json.dumps(data), headers=headers)
+    #print "X-Report : " + str(resp.json())
+    #print "CASH in box: " + str(resp.json()['payments'][0]['sell_sum'])
+    #print "CARD in box: " + str(resp.json()['payments'][1]['sell_sum'])
+    #print "\nCASH in box: " + str(resp.json()['balance']/100.0) # Сума невилученої готівки в касі 
+    response = HttpResponse()
+    jsonString = json.dumps(resp.json(), indent=4)
+    response.write("<br>JSON utf-8: " + str(resp.text.encode('utf-8')))
+    print "\n JSON : " + str(jsonString)
+    response.write("<br>JSON:" + str(jsonString.replace('\n', '<br />').encode('utf-8')))
+    return response
+
+
+def casa_prro_zreport(request):
+    resp = None
+    token = post_casa_token()
+    # sending post request and saving response as response object 
+    try:
+        url = "https://api.checkbox.ua/api/v1/shifts/close"
+        data = {}
+        headers = {
+            'Content-type': 'application/json', 
+            'Accept': 'text/plain', 
+            'Authorization': token
+            }
+        resp = requests.post(url, data=json.dumps(data), headers=headers)
+    except:
+        return HttpResponse("Connection failed! Перевірте зєднання з інтернетом")
+    
+    response = HttpResponse()
+    response.write("Response: " + str(resp.status_code) + "<br>")
+    if resp.status_code == 202:
+        response.write("Status: <br>")
+        res_list = str(resp.reason).split(';')
+        response.write("JSON: <b>" + str(resp.json()) + " </b><br>") 
+        response.write("Готівка: <b>" + res_list[1] + " грн.</b><br>")
+        response.write("Чек: <b>" + res_list[2] + " грн.</b><br>")
+        response.write("Кредитна карта: <b>" + res_list[3] + "</b><br>")
+        response.write("інший тип 1: <b>" + res_list[4] + "</b><br>")
+        response.write("інший тип 2: <b>" + res_list[5] + "</b><br>")
+        response.write("інший тип 3: <b>" + res_list[6] + "</b><br>")
+        response.write("інший тип 4: - <b>" + res_list[7] + "</b><br>")
+
+    response.write("<br><<< Result: >>> <br>" +str(resp.reason.encode('utf-8')) + "<br><<< Result text >>><br>" +  str(resp.text.encode('utf-8')))
+    return response
+
+
+def casa_prro_create(request):
+    resp = None
+    token = post_casa_token()
+    xLicenseKey=licenseKey()
+    # sending post request and saving response as response object 
+    try:
+        url = "https://api.checkbox.ua/api/v1/shifts"
+        data = {}
+        headers = {
+            'Content-type': 'application/json', 
+            'Accept': 'text/plain',
+            'X-License-Key': xLicenseKey, 
+            'Authorization': token
+            }
+        resp = requests.post(url, data=json.dumps(data), headers=headers)
+    except:
+        return HttpResponse("Connection failed! Перевірте зєднання з інтернетом")
+    
+    response = HttpResponse()
+    response.write("Response: " + str(resp.status_code) + "<br>")
+    if resp.status_code == 200:
+        response.write("Status: <br>")
+        res_list = str(resp.reason).split(';')
+        response.write("JSON: <b>" + str(r.json()) + " </b><br>") 
+        response.write("Готівка: <b>" + res_list[1] + " грн.</b><br>")
+        response.write("Чек: <b>" + res_list[2] + " грн.</b><br>")
+        response.write("Кредитна карта: <b>" + res_list[3] + "</b><br>")
+        response.write("інший тип 1: <b>" + res_list[4] + "</b><br>")
+        response.write("інший тип 2: <b>" + res_list[5] + "</b><br>")
+        response.write("інший тип 3: <b>" + res_list[6] + "</b><br>")
+        response.write("інший тип 4: - <b>" + res_list[7] + "</b><br>")
+
+    response.write("<br><<< Result: >>> <br>" +str(resp.json()) + "<br><<< Result text >>><br>" +  str(resp.text.encode('utf-8')))
+    return response
+
+
+def casa_prro_in_out(request, sum=0, inout='-'):
+    resp = None
+    token = post_casa_token()
+    xLicenseKey=licenseKey()
+    # sending post request and saving response as response object
+    sum = sum
+    if inout == '-':
+         sum = -1 * int(sum)
+    try:
+        url = "https://api.checkbox.ua/api/v1/receipts/service"
+        data = {
+                "payment": {
+                "type": "CASH",
+                "value": str(sum), #<сума у копійках, для створення чеку службового вилучення перед сумою має бути - >,
+                "label": "Cash" #Готівка            
+                }
+                }
+        headers = {
+            'Content-type': 'application/json', 
+            'Accept': 'text/plain',
+            'X-License-Key': xLicenseKey, 
+            'Authorization': token
+            }
+        resp = requests.post(url, data=json.dumps(data), headers=headers)
+    except:
+        return HttpResponse("Connection failed! Перевірте зєднання з інтернетом")
+    
+    response = HttpResponse()
+    if resp.status_code == 200:
+        response.write("Status: <br>")
+        res_list = str(resp.reason).split(';')
+    response.write("<br><<< Result: >>> <br>" +str(resp.json()) + "<br><<< Result text >>><br>" +  str(resp.text.encode('utf-8')))
+    return response
+    
 
 def casa_checkout(request, id):
     URL = ''
