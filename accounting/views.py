@@ -119,7 +119,7 @@ def del_logging(obj):
     for f in obj._meta.fields:
         log_file.write("Key = " + f.name + " - ") # field name
         s = "Value = %s" % f.value_from_object(obj) + "\n"
-        log_file.write(s.encode('cp1251'))
+        log_file.write(s.encode('utf-8'))
         #log_file.write("Value = %s" % f.value_from_object(obj).encode('cp1251') + "\n") # field value
             
     #log_file.write("DELETE FROM TABLE " + table_name + obj.name)
@@ -9004,6 +9004,7 @@ def check_add(request):
     #return check_list(request, all=True)
     return HttpResponseRedirect('/check/list/now/')
 
+
 def check_delete(request, id):
     if auth_group(request.user, 'admin')==False:
         return HttpResponse('Error: У вас не має прав для редагування')
@@ -9012,6 +9013,15 @@ def check_delete(request, id):
     obj.delete()
     return HttpResponseRedirect('/check/list/now/')
 
+
+def check_pay_delete(request, id):
+    if auth_group(request.user, 'admin')==False:
+        return HttpResponse('Error: У вас не має прав для редагування')
+    obj = CheckPay.objects.get(id=id)
+    del_logging(obj)
+    obj.delete()
+    return HttpResponseRedirect('/check/list/now/')
+    
 
 def youtube_set(request):
     json = None
@@ -9432,13 +9442,13 @@ def casa_prro_zreport(request):
         response.write("Status: <br>")
         res_list = str(resp.reason).split(';')
         response.write("JSON: <b>" + str(resp.json()) + " </b><br>") 
-        response.write("Готівка: <b>" + res_list[1] + " грн.</b><br>")
-        response.write("Чек: <b>" + res_list[2] + " грн.</b><br>")
-        response.write("Кредитна карта: <b>" + res_list[3] + "</b><br>")
-        response.write("інший тип 1: <b>" + res_list[4] + "</b><br>")
-        response.write("інший тип 2: <b>" + res_list[5] + "</b><br>")
-        response.write("інший тип 3: <b>" + res_list[6] + "</b><br>")
-        response.write("інший тип 4: - <b>" + res_list[7] + "</b><br>")
+#        response.write("Готівка: <b>" + res_list[1] + " грн.</b><br>")
+#        response.write("Чек: <b>" + res_list[2] + " грн.</b><br>")
+#        response.write("Кредитна карта: <b>" + res_list[3] + "</b><br>")
+#        response.write("інший тип 1: <b>" + res_list[4] + "</b><br>")
+#        response.write("інший тип 2: <b>" + res_list[5] + "</b><br>")
+#        response.write("інший тип 3: <b>" + res_list[6] + "</b><br>")
+#        response.write("інший тип 4: - <b>" + res_list[7] + "</b><br>")
 
     response.write("<br><<< Result: >>> <br>" +str(resp.reason.encode('utf-8')) + "<br><<< Result text >>><br>" +  str(resp.text.encode('utf-8')))
     return response

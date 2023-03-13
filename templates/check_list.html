@@ -39,7 +39,7 @@
 
     <h1>Список чеків на товар [{{sel_day}}/{{sel_month}}/{{sel_year}}]</h1>
 
-    <table id="iTable" class = "table table-bordered table-hover table-condensed table-responsive-lg table-sm" style="width: 500px;">
+    <table id="iTable" class = "table table-bordered table-hover table-condensed table-responsive-lg table-sm" >
 	<tr>
     	<th>#</th>	
     	<th>№ чека</th>
@@ -47,10 +47,11 @@
     	<th >Термінал</th>
     	<th >Дата</th>
     	<th>Опис</th>
+    	<th>Дія</th>
 	</tr>    
 {% for item in pay_list %}
 <tr>
-	<td>
+	<td class="text-center">
 	<abbr title="Створено користувачем {{item.user.username}}">
 	{{forloop.counter}}
 	</abbr>       
@@ -58,7 +59,7 @@
 	</td>
 	<td>       
 	<a href="/check/{{item.check_num}}/print/" >
-	{{item.check_num}}
+	{{item.check_num}} [id={{item.id}}]
 	</a>
 	</td>	
 	<td>       
@@ -73,17 +74,23 @@
 	<td>       
 	{{item.description}}
 	</td>
+	<td class="text-center">       
+	<a href="{% url 'check_pay_delete' item.pk %}" title="Видалити" onclick="return confirm('Видалити позицію [{{item.pk}}]?')">
+	<i class="material-icons">delete_outline</i>
+	</a>
+	
+	</td>
 </tr>	
 {% endfor %}
 <tr>
 <td>
 </td>
-<td>Сума
+<td class="font-weight-bold">Сума
 </td>
-<td>
+<td class="font-weight-bold">
 {{sum_cash}}
 </td>
-<td>
+<td class="font-weight-bold">
 {{sum_term}}
 </td>
 </tr>
@@ -122,14 +129,15 @@
 	</abbr>
 	</td>
 	<td>       
-    <a href="/check/{{item.check_num}}/print/">{{item.check_num}}[{{item.catalog.id}}{{item.workshop.id}}{{item.bicycle.id}}]</a>
+    <a href="/check/{{item.check_num}}/print/">{{item.check_num}} [{{item.checkPay.pk}}]</a>
 	</td>
 	<td>
 	<a href="/client/result/search/?id={{item.client.id}}">
 	{{item.client.name}} ({{item.client.forumname}})       
 	</a>
 	</td>
-	<td>       
+	<td>
+	[{{item.catalog.id}}{{item.workshop.id}}{{item.bicycle.id}}]       
 	[{{item.catalog.catalog.ids}}{{item.workshop.work_type.id}}{{item.bicycle.model}}] {{item.catalog.catalog.name}}{{item.workshop.work_type}}
 	</td>
 	<td align="center" class="tcount">       
