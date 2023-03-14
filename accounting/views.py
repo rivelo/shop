@@ -6316,16 +6316,13 @@ def workshop_payform(request):
     if user == 138:
         bal = 0
     else:
-        
         try:
             debt = ClientDebts.objects.filter(client__id=user).aggregate(suma=Sum('price'))
             cred = ClientCredits.objects.filter(client__id=user).aggregate(suma=Sum('price'))
             res = cred['suma'] - debt['suma']
-            
         except TypeError:
             #res = "Такого клієнта не існує, або в нього не має заборгованостей"    
             res = 0
-     
         bal = res
     cmsg = ClientMessage.objects.filter(client__id=user)
     return render_to_response('index.html', {'messages': cmsg,'checkbox': list_id, 'invoice': wk, 'summ': sum, 'balance':bal, 'client': client, 'weblink': 'payform.html', 'workshop':True}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -6380,11 +6377,9 @@ def client_ws_payform(request):
     shop_number = request.POST.get("shop")
     if int(shop_number) == 1:
         URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/?"
-        print "SERVER 1 - SEND request"
         cash_id = CashType.objects.get(id = 1) # готівка Каказька
         term_id = CashType.objects.get(id = 9) # термінал Кавказька
     if int(shop_number) == 2:
-        print "SERVER 2 - SEND request"
         URL = "http://" + settings.HTTP_MINI_SERVER_IP_2 + ":" + settings.HTTP_MINI_SERVER_PORT_2 +"/?"
         cash_id = CashType.objects.get(id = 10) # готівка Міцкевича
         term_id = CashType.objects.get(id = 2) # термінал Міцкевича
@@ -6505,7 +6500,6 @@ def client_ws_payform(request):
                 data =  {"cmd": "close"}
                 url = URL + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
-                
             
     if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
         pay = request.POST['pay_terminal']
@@ -6547,7 +6541,6 @@ def client_ws_payform(request):
                 data =  {"cmd": "pay", "sum": 0, "mtype": 0}
                 url = URL + urllib.urlencode(data)
                 page = urllib.urlopen(url).read()
-                
 
     #base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
     data =  {"cmd": "close"}
@@ -6592,6 +6585,7 @@ def client_payform(request):
     cash_id = None
     term_id = None
     shop_number = request.POST.get("shop")
+    pay_status = request.POST.get("pay_status")
     if int(shop_number) == 1:
         URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
 #        print "SERVER 1 - SEND request"
@@ -6603,8 +6597,8 @@ def client_payform(request):
         cash_id = CashType.objects.get(id = 10) # готівка Міцкевича
         term_id = CashType.objects.get(id = 2) # термінал Міцкевича
         
-        cmd = 'open_port;1;115200;'
-        PARAMS = {'address':URL, 'cmd': cmd, 
+    cmd = 'open_port;1;115200;'
+    PARAMS = {'address':URL, 'cmd': cmd, 
               'hash': settings.MINI_HASH_1, 
               'user': request.user.username,
               }
@@ -6621,8 +6615,14 @@ def client_payform(request):
                     return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
        
 #--------- Begin section to send data to CASA ---------
+        
         try: 
-            resp_open = requests.post(url = URL, data = PARAMS)
+            print "\nURL = " + URL + "\n"
+            print "PARAM:" + str(PARAMS) + "\n"
+            if (int(shop_number) == 1) and (int(pay_status) == 1):
+                print "\n**** IF Work ****\n"
+                resp_open = requests.post(url = URL, data = PARAMS)
+                print "Response: " + str(resp_open) + "\n"
         except:
             if auth_group(request.user, 'admin') == False:
                 status = False
@@ -6640,6 +6640,9 @@ def client_payform(request):
             sum = sum + inv.sum
             inv.save()
             
+        if pay_status == '0':
+            print "ADD BORG!!! \n"
+            
     else:
         return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext':'Не вибрано жодного товару', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -6650,18 +6653,15 @@ def client_payform(request):
             if (client.id == settings.CLIENT_UNKNOWN):
 #                print "CLIENT id = " + str(client.id) + " -- SUM = " + str(sum)
                 if (float(request.POST['pay']) + float(request.POST['pay_terminal']) < sum):
-                #return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8;;charset=UTF-8");
                     return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': "Невідомий клієнт не може мати борг"}, context_instance=RequestContext(request, processors=[custom_proc]))
         
         if 'pay' in request.POST and request.POST['pay']:
             pay = request.POST['pay']
-#            cash_type = CashType.objects.get(id = 1) # готівка
             if float(request.POST['pay']) != 0:
                 ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_id)
                 ccred.save()
         if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
             pay = request.POST['pay_terminal']
-#            cash_type = CashType.objects.get(id = 9) # термінал
             if float(request.POST['pay_terminal']) != 0:
                 ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=term_id)
                 ccred.save()
@@ -6695,19 +6695,7 @@ def client_payform(request):
             return HttpResponse("Невідомий клієнт не може мати борг", content_type="text/plain;charset=UTF-8;;");
         cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
         cdeb.save()
-#===============================================================================
-#        base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-#        data =  {"cmd": "cancel_receipt"}
-#        url = base + urllib.urlencode(data)
-#        page = urllib.urlopen(url).read()
-#===============================================================================
         if status == True:
-            #===================================================================
-            # base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-            # data =  {"cmd": "close"}
-            # url = base + urllib.urlencode(data)
-            # page = urllib.urlopen(url).read()
-            #===================================================================
             PARAMS['cmd'] = 'close_port;'
             resp_close = requests.post(url = URL, data = PARAMS)
             
@@ -6759,46 +6747,21 @@ def client_payform(request):
             if (float(pay) >= sum):
                 PARAMS['cmd'] = "pay;0;0;"
                 resp = requests.post(url = URL, data = PARAMS)
-                #===============================================================
-                # data =  {"cmd": "pay", "sum": 0, "mtype": 0}
-                # url = base + urllib.urlencode(data)
-                # page = urllib.urlopen(url).read()
-                #===============================================================
             else:
                 PARAMS['cmd'] = "pay;0;"+"%.2f" % float(pay)+";"
                 resp = requests.post(url = URL, data = PARAMS)
                 PARAMS['cmd'] = "pay;2;0;"
                 resp = requests.post(url = URL, data = PARAMS)
-                #===============================================================
-                # data =  {"cmd": "pay", "sum": pay, "mtype": 0}
-                # url = base + urllib.urlencode(data)
-                # page = urllib.urlopen(url).read()
-                # data =  {"cmd": "pay", "sum": 0, "mtype": 2}
-                # url = base + urllib.urlencode(data)
-                # page = urllib.urlopen(url).read()
-                #===============================================================
         if float(pay) <> 0:
             PARAMS['cmd'] = 'close_port;'
             resp_close = requests.post(url = URL, data = PARAMS)
-            #===================================================================
-            # base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-            # data =  {"cmd": "close"}
-            # url = base + urllib.urlencode(data)
-            # page = urllib.urlopen(url).read()
-            #===================================================================
 
     if 'pay_terminal' in request.POST and request.POST['pay_terminal']:
         pay = request.POST['pay_terminal']
         #cash_type = CashType.objects.get(id = 9) # термінал
         if float(request.POST['pay_terminal']) != 0:
-            ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=cash_id)
+            ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=term_id)
             ccred.save()
-#===============================================================================
-#            base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-#            data =  {"cmd": "open"}
-#            url = base + urllib.urlencode(data)
-#            page = urllib.urlopen(url).read()
-#===============================================================================
             res = Check.objects.aggregate(max_count=Max('check_num'))
             chkPay = CheckPay(check_num = res['max_count'] + 1, cash = 0, term = pay)
             chkPay.save()
@@ -6833,11 +6796,6 @@ def client_payform(request):
                 #resp = requests.post(url = URL, data = PARAMS)
 
             if (float(pay) >= sum):                
-                #===============================================================
-                # data =  {"cmd": "pay", "sum": 0, "mtype": 2}
-                # url = base + urllib.urlencode(data)
-                # page = urllib.urlopen(url).read()
-                #===============================================================
                 PARAMS['cmd'] = "pay;2;0;"
                 resp = requests.post(url = URL, data = PARAMS)
             else:
@@ -6845,24 +6803,10 @@ def client_payform(request):
                 resp = requests.post(url = URL, data = PARAMS)
                 PARAMS['cmd'] = "pay;0;0;"
                 resp = requests.post(url = URL, data = PARAMS)
-                #===============================================================
-                # data =  {"cmd": "pay", "sum": pay, "mtype": 2}
-                # url = base + urllib.urlencode(data)
-                # page = urllib.urlopen(url).read()
-                # data =  {"cmd": "pay", "sum": 0, "mtype": 0}
-                # url = base + urllib.urlencode(data)
-                # page = urllib.urlopen(url).read()
-                #===============================================================
  
         if float(pay) <> 0:
             PARAMS['cmd'] = 'close_port;'
             resp_close = requests.post(url = URL, data = PARAMS)
-            #===================================================================
-            # base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
-            # data =  {"cmd": "close"}
-            # url = base + urllib.urlencode(data)
-            # page = urllib.urlopen(url).read()
-            #===================================================================
                
     cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
     cdeb.save()
@@ -8705,7 +8649,7 @@ def save_chek2db(cash, term, shop, request, ci=None, ws=None, desc=''):
                     
     for inv in inv_list:
         check = Check(check_num=res['max_count'] + 1)
-        checkPay = chkPay
+        check.checkPay = chkPay
         check.client = inv.client #Client.objects.get(id=client.id)
         if ci == None:
             check.workshop = inv

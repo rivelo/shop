@@ -84,7 +84,8 @@ a.css3dbutton.red:hover {
 <script language="JavaScript">
 $(document).ready(function() {
 	$("#dialog_msg").hide();
-
+	$('#pay_status').val(1);
+	
 	$( "#img_msg" ).click(function() {
   		$( "#dialog_msg" ).dialog({
   		resizable: false,
@@ -109,6 +110,7 @@ $(document).ready(function() {
 $('#client_debt_but').click(function() {
 	$('#client_debt_but').off("click");
 	$("#pay").val(0);
+	$('#pay_status').val(0);
 	$("#pay_term").val(0);
 	if ($('#shop2').prop( "checked") == false) {
 		$('#shop1').prop( "checked", true );
@@ -131,13 +133,14 @@ $('#client_cred_term_but').click(function() {
 $('#client_cred_but').click(function() {
 	var m_pay, pay_cash, pay_term;
 	m_pay = $('#to_pay').attr('value');
-	pay_term = $("#pay_term").val()
+	pay_term = $("#pay_term").val();
 	pay_cash = $("#pay").val();
 	console.log("PAY cash= " + pay_cash);
 	console.log("PAY term = "+ pay_term);
 	console.log("PAY MUST = " + m_pay );
 	$('#shop1').prop( "checked", true );
-	if (pay_cash == m_pay)	{
+	console.log("EQUAL - " + (pay_cash*100) + " - " + (m_pay*100));
+	if ((pay_cash*100) == (m_pay*100))	{
 		console.log("PAY is EQUAL");
 		$('#client_cred_but').off("click");
 		$("#pay_form").submit();
@@ -180,7 +183,9 @@ $('#client_cred2_but').click(function() {
 	console.log("PAY term = "+ pay_term);
 	console.log("PAY MUST = " + m_pay );
 	$('#shop2').prop( "checked", true );
-	if (pay_cash == m_pay)	{
+	console.log("EQUAL - " + (pay_cash*100) + " - " + (m_pay*100));
+	if ((pay_cash*100) == (m_pay*100))	{	
+//	if (pay_cash == m_pay)	{
 		console.log("PAY is EQUAL");
 		$('#client_cred1_but').off("click");
 		$("#pay_form").submit();
@@ -452,12 +457,13 @@ $('#pay').change();
 
 
 <div class="checkbox">
-  <label><input type="checkbox" name="print_check" value="Друкувати чек на касовому" id="print_check" >Друкувати чек на касовому</label>
+ <label><input type="checkbox" name="print_check" value="Друкувати чек на касовому" id="print_check" >Друкувати чек на касовому</label>
  <div>
 	<input type="radio" id="shop1" name="shop" value="1">
 	<label for="male">Кавказька</label><br>
 	<input type="radio" id="shop2" name="shop" value="2">
 	<label for="female">Міцкевича</label><br>
+	<input type="hidden" id="pay_status" name="pay_status" value="1">
  </div>
 </div>
  

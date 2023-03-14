@@ -1034,6 +1034,12 @@ class Bicycle_Store(models.Model):
     realization = models.BooleanField(default=False,)
     date = models.DateField(auto_now_add=True)
     description = models.TextField(blank=True, null=True)
+    #status #box shop 
+    #state
+    #shop
+    #added date
+    #invoice
+    
 
     def get_profit(self):
         profit = 0
