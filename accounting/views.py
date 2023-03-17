@@ -8499,9 +8499,11 @@ def check_print(request, num):
     list = None
     list = Check.objects.filter(check_num = num)
     list_id = []
+    chk_pay = []
     
     for id in list:
         list_id.append( int(id.catalog.id) )
+        chk_pay.append(id.checkPay)
     ci = ClientInvoice.objects.filter(id__in=list_id)
     client = ci[0].client
 #    sum = 555
@@ -8512,8 +8514,8 @@ def check_print(request, num):
     request.session['invoice_id'] = list_id
     request.session['chk_num'] = num
     check_num = num
-    p_msg = "(Роздрукований)"
-    return render_to_response('index.html', {'check_invoice': ci, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'check_num':check_num, 'weblink': 'client_invoice_sale_check.html', 'print': True, 'printed': p_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    p_msg = "Роздрукований"
+    return render_to_response('index.html', {'check_invoice': ci, 'month': month, 'sum': sum, 'client': client, 'str_number': text, 'check_num': check_num, 'checkPay': chk_pay, 'weblink': 'client_invoice_sale_check.html', 'print': True, 'printed': p_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
     
 #    return render_to_response("index.html", {"weblink": 'check_list.html', "check_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -8829,40 +8831,10 @@ def workshop_sale_check_add(request):
                         resp_registration = requests.post(url = URL, data = PARAMS)
                         PARAMS['cmd'] = 'open_receipt;0' # відкрити чек
                         resp_registration = requests.post(url = URL, data = PARAMS)
-
                     except:
                         message = "Сервер не відповідає"
                         return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
-                    
-                    save_chek2db(m_val, t_val, 2, request, ws = cw, desc=str(resp.json()['id']))
-###
-#===============================================================================
-#                     res = Check.objects.aggregate(max_count=Max('check_num'))
-#                     chkPay = CheckPay(check_num = res['max_count'] + 1, cash = m_val, term = t_val)
-#                     chkPay.user = request.user
-#                     chkPay.save()
-#                     
-#                     for inv in cw:
-#                         check = Check(check_num=res['max_count'] + 1)
-#                         check.client = inv.client #Client.objects.get(id=client.id)
-#                         check.checkPay = chkPay
-#                         check.workshop = inv #ClientInvoice.objects.get(pk=inv)
-#                         check.description = "Майстерня. Готівка / Термінал"
-#                         check.count = 1
-#                         check.discount = inv.work_type.sale
-#                         check.price = inv.price
-#                         t = 1
-#                         if m_val >= t_val:
-#                             t = 1
-#                         else: 
-#                             t = 9 # PUMB
-# 
-#                         check.cash_type = CashType.objects.get(id = t)
-#                         check.print_status = False
-#                         check.user = request.user
-#                         check.save()
-#===============================================================================
-###
+#                    save_chek2db(m_val, t_val, 2, request, ws = cw, desc=str(resp.json()['id']))
                     for inv in cw:
                         price =  "%.2f" % inv.price
                         count = "%.3f" % 1
@@ -8896,7 +8868,8 @@ def workshop_sale_check_add(request):
                         
                     PARAMS['cmd'] = 'close_port;'
                     resp_close = requests.post(url = URL, data = PARAMS)
-
+                    save_chek2db(m_val, t_val, 2, request, ws = cw, desc=str(resp.json()['id']))
+                    
                 message = "Виконано"
                 return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
     else:
@@ -9299,6 +9272,7 @@ def post_casa_token(xLicenseKey=licenseKey(), pin_code=settings.PIN_CODE):
 
     return ttoken + ' ' + atoken
 
+
 # X-Report on PRRO
 def casa_prro_checkout(request): 
     resp = None
@@ -9510,7 +9484,38 @@ def casa_checkout(request, id):
     return response
 
 
+def casa_prro_check_view(request, chk_uid, type="text"):
+    id = chk_uid
+    #id = "7d79fc22-fc85-479b-9102-f29f3444c96a"
+    data = {}
+    headers = {
+        'Content-type': 'application/json', 
+        'Accept': 'text/plain',         
+    }    
+    url = ""
+    if type == "text":
+        url = "https://api.checkbox.in.ua/api/v1/receipts/"+id+"/text"
+        r = requests.get(url, data=json.dumps(data), headers=headers)
+        content = r.text.encode('utf-8')
+        return HttpResponse(content, content_type='text/plain')
+    if type == "html":
+        url = "https://api.checkbox.in.ua/api/v1/receipts/"+id+"/html?simple=false"
+    if type == "pdf":
+        url = "https://api.checkbox.in.ua/api/v1/receipts/"+id+"/pdf"
+
+    r = requests.get(url, data=json.dumps(data), headers=headers)
+#    with open('recp.txt', 'w') as outfile:
+#        outfile.write(r.text.encode('utf-8'))
+    response = HttpResponse()
+#    response.write("Response: " + str(r.status_code) + "<br>")
+#    if resp.status_code == 202:
+#        response.write("Status: <br>")
+#        res_list = str(resp.reason).split(';')
+#        response.write("JSON: <b>" + str(resp.json()) + " </b><br>") 
+    response.write("" + r.text.encode('utf-8'))
+    return response
     
+   
 def casa_command(request, id):
     URL = ''
     if id == '1':
@@ -9561,15 +9566,20 @@ def casa_command(request, id):
                 POST = request.POST  
                 if POST.has_key('command'):
                     cmd = request.POST.get('command')
+                    print "\nAjax send = " + cmd + "\n"
                     PARAMS['cmd'] = cmd
                     resp = requests.post(url = URL, data = PARAMS)
-                try:
-                    json = simplejson.dumps({'status_code': resp.status_code, 'resp': resp.reason})
-                except:
-                    error = 'Сталась помилка'
-                    json = simplejson.dumps({'yData': "None", 'error': error})
-
-                    return HttpResponse(json, content_type='application/json')
+                    print "\nJson:" + str(resp)
+                    return HttpResponse("Json" + str(resp.text))
+#===============================================================================
+#                 try:
+#                     json = simplejson.dumps({'status_code': resp.status_code, 'resp': resp.reason})
+#                 except:
+#                     error = 'Сталась помилка'
+#                     json = simplejson.dumps({'yData': "None", 'error': error})
+# 
+#                     return HttpResponse(json, content_type='application/json')
+#===============================================================================
         
         #PARAMS['cmd'] = u'get_plu_info;8591;' # 3 параметр - Штучный/весовой товар (0/1)
 #        PARAMS['cmd'] = u'add_plu;8591;0;0;0;1;1;1;203.00;0;Трос перемикання JAGWIRE Basics BWC1011;0.00;'.encode('cp1251')
@@ -9584,8 +9594,10 @@ def casa_command(request, id):
         print  "Error - Connection failed!"
         return HttpResponse("Connection failed! Перевірте зєднання з комп'ютером")
     
-#    print "Content:" + str(resp.content)
-#    print "Text:" + str(resp.request.body)    
+#    print "\nStatus code = " + str(type(resp)) + "\n"
+#    print "Content:" + str(dir(resp))
+    #print "Text:" + str(resp.request.body)    
+    #print "Text:" + str(resp.text)
     #print "JSON:" + str(resp.json)
 
     PARAMS['cmd'] = 'close_port;'

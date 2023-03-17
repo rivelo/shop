@@ -167,15 +167,22 @@ $("#pp11").hide()
 	</div>
 {% endif %}
 
+<br>
+ {{checkPay.0.pk}} - {{checkPay.0.description}} 
+<br>
+
+{% for cp in checkPay %}
+[{{cp.pk}}] - {{cp.description}}
+{% endfor %}
 
 <table id="checktable">
 <tr>
 <td style="text-align:center; border: 2px solid white;" colspan="2" id="pp_show_all">
 
 {% if is_workshop %}
-<h1>Акт виконаних робіт №000{{check_num}} {{printed}}</h1>
+<h1>Акт виконаних робіт №000{{check_num}} <span class="badge badge-danger">{{printed}}</span></h1>
 {% else %}
-<h1>Товарний чек №000{{check_num}} {{printed}}</h1>
+<h1>Товарний чек №000{{check_num}} <span class="badge badge-danger">{{printed}}</span></h1>
 {% endif %}
 
 <h2>від {{month}} року</h2>

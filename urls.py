@@ -315,17 +315,6 @@ urlpatterns = patterns('',
     url(r'^client/payform/$', 'catalog.accounting.views.client_payform'),
     url(r'^client/workshop/payform/$', 'catalog.accounting.views.client_ws_payform'),
     
-    
-    url(r'^casa/prro/view/$', 'catalog.accounting.views.casa_prro_checkout'),
-    url(r'^casa/prro/(?P<sum>\d+)/in/$', 'catalog.accounting.views.casa_prro_in_out', {'inout':"+"}),
-    url(r'^casa/prro/(?P<sum>\d+)/out/$', 'catalog.accounting.views.casa_prro_in_out', {'inout':"-"}),
-    url(r'^casa/prro/xreport/$', 'catalog.accounting.views.casa_prro_xreport'),
-    url(r'^casa/prro/create/$', 'catalog.accounting.views.casa_prro_create'),
-    url(r'^casa/prro/zreport/$', 'catalog.accounting.views.casa_prro_zreport'),
-    url(r'^casa/(?P<id>\d+)/view/$', 'catalog.accounting.views.casa_checkout'),
-    url(r'^casa/(?P<id>\d+)/status/$', 'catalog.accounting.views.casa_getstatus'),
-    url(r'^casa/(?P<id>\d+)/zreport/$', 'catalog.accounting.views.casa_z_report'),
-    url(r'^casa/(?P<id>\d+)/cmd/$', 'catalog.accounting.views.casa_command'),
     # Example:
     # url(r'^catalog/', include('catalog.foo.urls')),
 #    url(r'^sendmail/$', 'catalog.accounting.views.sendemail'),
@@ -412,6 +401,21 @@ urlpatterns += patterns('',
     url(r'^report/worktype/(?P<id>\d+)/$', 'catalog.accounting.views.worktype_report', {'limit':"all"}, name='repot_by_work'),    
     url(r'^report/worktype/(?P<id>\d+)/year/(?P<year>\d+)/$', 'catalog.accounting.views.worktype_report', {'day':"all"}, name='repot_by_work_year'),
     url(r'^report/worktype/(?P<id>\d+)/year/(?P<year>\d+)/month/(?P<month>\d+)/$', 'catalog.accounting.views.worktype_report', name='repot_by_work_month'),
+
+    url(r'^casa/prro/view/$', 'catalog.accounting.views.casa_prro_checkout'),
+    url(r'^casa/prro/check/(?P<chk_uid>[\w-]+)/view/$', 'catalog.accounting.views.casa_prro_check_view', name='prro_check_text_view'),
+    url(r'^casa/prro/check/(?P<chk_uid>[\w-]+)/view/pdf/$', 'catalog.accounting.views.casa_prro_check_view', {'type':'pdf'}, name='prro_check_pdf_view'),
+    url(r'^casa/prro/check/(?P<chk_uid>[\w-]+)/view/html/$', 'catalog.accounting.views.casa_prro_check_view', {'type':'html'}, name='prro_check_html_view'),
+    url(r'^casa/prro/(?P<sum>\d+)/in/$', 'catalog.accounting.views.casa_prro_in_out', {'inout':"+"}),
+    url(r'^casa/prro/(?P<sum>\d+)/out/$', 'catalog.accounting.views.casa_prro_in_out', {'inout':"-"}),
+    url(r'^casa/prro/xreport/$', 'catalog.accounting.views.casa_prro_xreport'),
+    url(r'^casa/prro/create/$', 'catalog.accounting.views.casa_prro_create'),
+    url(r'^casa/prro/zreport/$', 'catalog.accounting.views.casa_prro_zreport'),
+    url(r'^casa/(?P<id>\d+)/view/$', 'catalog.accounting.views.casa_checkout'),
+    url(r'^casa/(?P<id>\d+)/status/$', 'catalog.accounting.views.casa_getstatus'),
+    url(r'^casa/(?P<id>\d+)/zreport/$', 'catalog.accounting.views.casa_z_report'),
+    url(r'^casa/(?P<id>\d+)/cmd/$', 'catalog.accounting.views.casa_command'),
+
 )
 
 
