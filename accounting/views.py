@@ -8547,7 +8547,7 @@ def sale_post(token, ci=None, ws=None, cash_pay=0, card_pay=0):
             discount = inv.sale
             code = str(inv.catalog.pk)
             name = inv.catalog.name[:40]
-            barcode = str(inv.catalog.ids)
+#            barcode = str(inv.catalog.ids)
 
         gkey = {
         "code": code,
@@ -8868,12 +8868,12 @@ def workshop_sale_check_add(request):
                         
                     PARAMS['cmd'] = 'close_port;'
                     resp_close = requests.post(url = URL, data = PARAMS)
-                    save_chek2db(m_val, t_val, 2, request, ws = cw, desc=str(resp.json()['id']))
+                    save_chek2db(m_val, t_val, 2, request, ws = cw, desc='Kavkazka')
                     
                 message = "Виконано"
                 return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
     else:
-        message = "Error"
+        message = "last Error - def workshop_sale_check_add"
         return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
 
 
