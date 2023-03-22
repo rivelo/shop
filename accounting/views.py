@@ -1210,6 +1210,7 @@ def save_chek2db_bike(cash, term, bike, shop, request, desc=''):
         #check.catalog = inv #ClientInvoice.objects.get(pk=inv)
         check.bicycle = inv #ClientInvoice.objects.get(pk=inv)
         check.description = "Продаж велосипеду. "
+        check.checkPay = checkPay
         
         if ((float(cash) > 0) and (float(term) > 0)):
             check.description = check.description + " Готівка / Термінал"
@@ -8498,24 +8499,40 @@ def check_list(request, year=None, month=None, day=None, all=False):
 def check_print(request, num):
     list = None
     list = Check.objects.filter(check_num = num)
+    print "\nLIST ID : " + str(list[0].id) + "\n"
     list_id = []
     chk_pay = []
-    
+
     for id in list:
-        list_id.append( int(id.catalog.id) )
+        try:
+            list_id.append( int(id.catalog.id) )
+            #list = None
+        except:
+            pass
         chk_pay.append(id.checkPay)
+    
     ci = ClientInvoice.objects.filter(id__in=list_id)
-    client = ci[0].client
+#    client = ci[0].client
+    client = list[0].client
 #    sum = 555
     ci_sum = ci.aggregate(suma=Sum('sum'))
     sum = ci_sum['suma']
+    if sum == None:
+        try: 
+            cash = list[0].checkPay.cash
+            term = list[0].checkPay.term
+            sum =  cash + term
+        except:
+            sum = 0 
+
     text = pytils_ua.numeral.in_words(int(sum))
-    month = pytils_ua.dt.ru_strftime(u"%d %B %Y", ci[0].date, inflected=True)
+#    month = pytils_ua.dt.ru_strftime(u"%d %B %Y", ci[0].date, inflected=True)
+    month = pytils_ua.dt.ru_strftime(u"%d %B %Y", list[0].date, inflected=True)
     request.session['invoice_id'] = list_id
     request.session['chk_num'] = num
     check_num = num
     p_msg = "Роздрукований"
-    return render_to_response('index.html', {'check_invoice': ci, 'month': month, 'sum': sum, 'client': client, 'str_number': text, 'check_num': check_num, 'checkPay': chk_pay, 'weblink': 'client_invoice_sale_check.html', 'print': True, 'printed': p_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'check_invoice': ci, 'month': month, 'sum': sum, 'client': client, 'str_number': text, 'check_num': check_num, 'checkPay': chk_pay, 'chk_lst': list, 'weblink': 'client_invoice_sale_check.html', 'print': True, 'printed': p_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
     
 #    return render_to_response("index.html", {"weblink": 'check_list.html', "check_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
 

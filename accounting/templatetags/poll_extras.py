@@ -2,9 +2,12 @@
 from django import template
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
-register = template.Library()
-
+from django.db import connection
+import json
+import requests
+import re
 import datetime
+from django.http import HttpRequest
 
 register = template.Library()
 
@@ -13,13 +16,16 @@ register = template.Library()
 def mul(value, arg):
     return round(float(value) * float(arg), 2)
 
+
 @register.filter(name='mul')
 def mul(value, arg):
     return value * arg
 
+
 @register.filter
 def div(value, arg):
     return value / arg
+
 
 @register.filter
 def sub(value, arg):
@@ -28,7 +34,6 @@ def sub(value, arg):
 
 @register.inclusion_tag('orm_debug.html')
 def orm_debug():
-    import re
     try:
         from pygments import highlight
         from pygments.lexers import SqlLexer
@@ -37,7 +42,6 @@ def orm_debug():
     except ImportError:
         pygments_installed = False
 
-    from django.db import connection
     queries = connection.queries
     query_time = 0
     query_count = 0
@@ -66,15 +70,9 @@ def phone2Str(value):
         s = value
         res = s[0:3]+'-'+s[3:6]+' '+s[6:8]+' '+s[8:10]
         return res
-        
-        #return "%.2f" % (a_percent)  
-        #return round(a_percent)
     except ValueError:  
         return ''  
 
-
-import json
-import requests
 
 def google_url_shorten(url):
     GOOGLE_URL_SHORTEN_API = "AIzaSyAmFLlPmG7SKuwdCEG2s2TLmwGsgStGbZw"
@@ -85,6 +83,7 @@ def google_url_shorten(url):
     resp = json.loads(r.text)
     return resp['id']
 
+
 @register.filter
 def qr(value,size="120x120"):
     """
@@ -93,8 +92,6 @@ def qr(value,size="120x120"):
     """
     return "http://chart.apis.google.com/chart?chs=%s&cht=qr&chl=%s&choe=UTF-8&chld=H|0" % (size, value)
 
-
-from django.http import HttpRequest
 
 @register.filter
 def sale_url(value,host):
@@ -142,7 +139,6 @@ def truncate_chars(value, max_length):
         return  truncd_val + "..."
     return value
 
-
 #register = template.Library() 
 
 @register.filter(name='has_group') 
@@ -189,3 +185,36 @@ def add_attr(field, css):
 def range(min, max):
     r = xrange(min, max)
     return r 
+
+
+@register.filter(name='check_uid')
+def check_uid(value):
+    """
+        Usage:
+        {{object|check_uid}}"
+    """
+    res = ''
+    q = re.search('checkbox_id=(.+?);', value)
+    try:
+        res = q.group(1)
+        res = '/casa/prro/check/'+res+'/view/'
+    except:
+        res = ''
+    return res
+
+
+@register.filter(name='check_uid_html')
+def check_uid(value):
+    """
+        Usage:
+        {{object|check_uid}}"
+    """
+    res = ''
+    q = re.search('checkbox_id=(.+?);', value)
+    try:
+        res = q.group(1)
+        res = '/casa/prro/check/'+res+'/view/html/'
+    except:
+        res = ''
+    return res
+

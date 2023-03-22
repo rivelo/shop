@@ -269,6 +269,12 @@ $(document).ready(function() {
 			<a class="dropdown-item" href="/bank/view/">Банки</a>
 			<a class="dropdown-item" href="/curency/view/">Валюти</a>
 			<a class="dropdown-item" href="/cashtype/view/">Варіанти оплат</a>
+			<div class="dropdown-divider"></div>			
+{# {% if request.user|has_group:"admin" %} #}	 			
+ 			<a class="dropdown-item" href="/discount/add/">Створити дисконт</a>
+ 			<a class="dropdown-item" href="/discount/list/">Дисконтні програми</a>
+{# endif #} 			
+			
 {% endif %}			
 		</div>	       		
       </li>
@@ -281,10 +287,6 @@ $(document).ready(function() {
         	<a class="dropdown-item" href="/qrscanner/">Сканер QR кодів</a>
 			<a class="dropdown-item" href="/report/sales/user/report/">Продажі за місяць</a>
  			<a class="dropdown-item" href="/report/workshop/byuser/">Роботи за місяць</a>
-{# {% if request.user|has_group:"admin" %} #}	 			
- 			<a class="dropdown-item" href="/discount/add/">Створити дисконт</a>
- 			<a class="dropdown-item" href="/discount/list/">Дисконтні програми</a>
-{# endif #} 			
  			<a class="dropdown-item" href="/shop/sale/day/add/"><i class="material-icons">query_builder</i> Денна каса</a>
  			<a class="dropdown-item" href="/shop/sale/view/">Денна каса (за місяць)</a>
  			<a class="dropdown-item" href="/casa/1/view/">Сума в касовому Кавказька</a>
@@ -295,6 +297,8 @@ $(document).ready(function() {
 			<a class="dropdown-item" href="/casa/1/zreport/" onclick="return confirm('Виконати Z звіт в магазині на вул.Кавказька?')">Z звіт РРО №1</a>
 			<a class="dropdown-item" href="/casa/prro/zreport/" onclick="return confirm('Виконати Z звіт в магазині на вул.Міцкевича?')">Z звіт РРО №2</a>
 {% endif %} 			
+		<div class="dropdown-divider"></div>			
+			<a class="dropdown-item" href="/check/list/now/">Список чеків</a>
 		</div>	       		
       </li>
 

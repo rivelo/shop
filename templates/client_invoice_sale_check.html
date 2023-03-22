@@ -148,7 +148,8 @@ $("#pp11").hide()
 });       
 </script>
 
-{% load template_math %} 
+{% load template_math %}
+{% load poll_extras %} 
 
 {% if print %}
 	<div id="dialog_pay" title="Оплата чеку">
@@ -167,13 +168,15 @@ $("#pp11").hide()
 	</div>
 {% endif %}
 
-<br>
- {{checkPay.0.pk}} - {{checkPay.0.description}} 
-<br>
+{# {chk_lst.0} #}
 
+{# {{checkPay.0.pk}} - {{checkPay.0.description|check_uid}} #}  
+
+{% comment %}
 {% for cp in checkPay %}
 [{{cp.pk}}] - {{cp.description}}
 {% endfor %}
+{% endcomment %}
 
 <table id="checktable">
 <tr>
@@ -184,6 +187,12 @@ $("#pp11").hide()
 {% else %}
 <h1>Товарний чек №000{{check_num}} <span class="badge badge-danger">{{printed}}</span></h1>
 {% endif %}
+
+{% if checkPay.0.description|check_uid not in '' %}
+ 	<a href="{{checkPay.0.description|check_uid}}"><span class="badge badge-info">TEXT</span></a>
+ 	<a href="{{checkPay.0.description|check_uid_html}}"><span class="badge badge-info">HTML</span></a>
+{% endif %}
+
 
 <h2>від {{month}} року</h2>
 </td>
@@ -243,6 +252,7 @@ $("#pp11").hide()
 		<th>Знижка %</th>
 		<th>Сума (грн.)</th>
 	</tr>
+{% comment %}	
 {% for invoice in check_invoice %}
 	<tr>
 		<td>{{forloop.counter}}</td>
@@ -255,6 +265,26 @@ $("#pp11").hide()
 		<td>{{invoice.sum}}</td>
 	</tr>
 {% endfor %}
+{% endcomment %}
+
+
+{% for itm in chk_lst %}
+	<tr>
+		<td>{{forloop.counter}}</td>
+		<td><a href="/bicycle/photo/{{itm.bicycle.model.model.id}}/">
+		{% if itm.bicycle != None %} 
+			{{itm.bicycle}}
+		{% endif %}
+		 {{itm.workshop.work_type.name}} [{{itm.catalog.catalog.ids}}] {{itm.catalog.catalog.name}}</a></td>
+		<td>шт.</td>
+		<td>{{itm.count}}</td>
+		<td>{{itm.bicycle.price}} {{itm.workshop.work_type.price}} {{itm.catalog.price}}</td>
+		<td>{{itm.bicycle.sale}} {{itm.discount}}</td>
+		<td>{{itm.bicycle.sum}} {{itm.catalog.sum}}</td>
+	</tr>
+{% endfor %}
+
+
 	<tr>
 		<th></th>
 		<th>ВСЬОГО:</th>
@@ -283,16 +313,16 @@ $("#pp11").hide()
 
 
 {% if print == "True" %}
-<a href="/client/workshop/check/">Версія для друку</a>
-<a href="/client/workshop/check/email/">Відправити на Email</a>
+<a href="/client/workshop/check/"><span class="badge badge-light">Версія для друку</span></a>
+{# <a href="/client/workshop/check/email/">Відправити на Email</a> #}
 <h3 id="print_chk">Фіскальний чек</h3>
 {% endif %}
 
 {% else %}
 
 {% if print %}
-<a href="/client/invoice/check/">Версія для друку</a>
-<a href="/client/invoice/check/email/">Відправити на Email</a>
+<h2><a href="/client/invoice/check/"><span class="badge badge-light">Версія для друку</span></a></h2>
+{# <a href="/client/invoice/check/email/">Відправити на Email</a> #}
 {% if not printed %}
 <h3 id="print_chk">Фіскальний чек</h3>
 {% endif %}

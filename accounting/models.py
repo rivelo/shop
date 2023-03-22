@@ -1456,7 +1456,7 @@ class Check(models.Model):
     #shop =     
     
     def __unicode__(self):
-        return self.catalog
+        return u'[%s] %s %s' % (self.check_num, self.catalog, self.bicycle)
 
     class Meta:
         ordering = ["date", "check_num"]    

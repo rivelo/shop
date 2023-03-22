@@ -73,12 +73,17 @@
 	</td>	
 	<td>       
 	{{item.description}}
+	{% if item.description|check_uid not in '' %}
+	<a href="{{item.description|check_uid}}"><span class="badge badge-info">TEXT</span></a>
+ 	<a href="{{item.description|check_uid_html}}"><span class="badge badge-info">HTML</span></a>
+ 	{% endif %}
 	</td>
-	<td class="text-center">       
+	<td class="text-center">
+{% if request.user|has_group:"admin" %}	       
 	<a href="{% url 'check_pay_delete' item.pk %}" title="Видалити" onclick="return confirm('Видалити позицію [{{item.pk}}]?')">
 	<i class="material-icons">delete_outline</i>
 	</a>
-	
+{% endif %}	
 	</td>
 </tr>	
 {% endfor %}
@@ -169,7 +174,9 @@
 	</td>
 {% if request.user|has_group:"admin" %}    	
 	<td>
-	<a href="/check/delete/{{item.pk}}/" onclick="return confirm('Видалити позицію [{{item.catalog.catalog.ids}}{{item.workshop.work_type.id}}] {{item.catalog.catalog.name}}{{item.workshop.work_type}}?')">Видалити</a>
+	<a href="/check/delete/{{item.pk}}/" onclick="return confirm('Видалити позицію [{{item.catalog.catalog.ids}}{{item.workshop.work_type.id}}] {{item.catalog.catalog.name}}{{item.workshop.work_type}}?')">
+		<i class="material-icons">delete_outline</i>
+	</a>
 	</td>
 {% endif %}	
 
