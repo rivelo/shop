@@ -33,6 +33,8 @@
 $(document).ready(function() {
 	$("#dialog_pay").hide();
 	$("#msg_text").hide();
+	$("#chk_url").hide();
+	$("#s_chk_url").hide();
 
 	$( "#print_chk" ).click(function() {
   		$( "#dialog_pay" ).dialog({
@@ -62,8 +64,16 @@ $(document).ready(function() {
                	    $(".ui-dialog-buttonpane button:contains('Додати')").button("disable");                
                 },
                 success:function(msg){
-               	    $('#msg_text').text(msg);
+               	    var a_link = '';
+               	    a_link = '/casa/prro/check/' + msg + '/view/html/'
+//               	 	console.log('LINK = ' + a_link );
+                	$('#msg_text').text(msg);
                	    $('#msg_text').show();
+               	 	//$('#msg_text').insertAfter( a_link );
+               	 	$("#chk_url").attr('href', a_link);
+               	 	$("#chk_url").text("HTML");
+               	 	$("#chk_url").show();
+               	 	$("#s_chk_url").show();
                	    $(".ui-dialog-buttonpane button:contains('Додати')").button("disable");
                	    $("#print_chk").hide();
                 },
@@ -164,11 +174,13 @@ $("#pp11").hide()
   	<input id="term1" name="value" value="1" type="checkbox">
 	<label for="spinner">Міцкевича:</label>
   	<input id="term2" name="value" value="2" type="checkbox">
-	<h2 type="text" id="msg_text" name="mytext[]" rows="10" cols="40" style="color:#ff0000""> рядок стану </h2>  	
+	<h2 type="text" id="msg_text" name="mytext[]" rows="10" cols="40" style="color:#ff0000""> рядок стану   
+	</h2>
+	<span class="badge badge-success" id="s_chk_url"><a href="" id="chk_url">TEST</a></span>
 	</div>
 {% endif %}
 
-{# {chk_lst.0} #}
+ 
 
 {# {{checkPay.0.pk}} - {{checkPay.0.description|check_uid}} #}  
 
@@ -252,7 +264,10 @@ $("#pp11").hide()
 		<th>Знижка %</th>
 		<th>Сума (грн.)</th>
 	</tr>
-{% comment %}	
+
+{% if check_invoice %}
+  
+{# Array =  {{check_invoice}} #}
 {% for invoice in check_invoice %}
 	<tr>
 		<td>{{forloop.counter}}</td>
@@ -265,8 +280,8 @@ $("#pp11").hide()
 		<td>{{invoice.sum}}</td>
 	</tr>
 {% endfor %}
-{% endcomment %}
-
+ 
+{% else %}
 
 {% for itm in chk_lst %}
 	<tr>
@@ -284,6 +299,7 @@ $("#pp11").hide()
 	</tr>
 {% endfor %}
 
+{% endif %}
 
 	<tr>
 		<th></th>

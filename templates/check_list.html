@@ -59,7 +59,7 @@
 	</td>
 	<td>       
 	<a href="/check/{{item.check_num}}/print/" >
-	{{item.check_num}} [id={{item.id}}]
+	{{item.check_num}} [id={{item.id}}] ({{item__check}})
 	</a>
 	</td>	
 	<td>       
@@ -92,10 +92,10 @@
 </td>
 <td class="font-weight-bold">Сума
 </td>
-<td class="font-weight-bold">
+<td class="font-weight-bold" title="Готівка">
 {{sum_cash}}
 </td>
-<td class="font-weight-bold">
+<td class="font-weight-bold" title="Термінал">
 {{sum_term}}
 </td>
 </tr>
@@ -189,9 +189,9 @@
     	<th></th>
     	<th></th>
     	<th></th>    	
-    	<th></th>    	    	
-    	<th>{{chk_sum}}</th>
-    	<th>{{chk_sum_term}}</th>
+    	<th title="Готівка">{{chk_sum}}</th>
+    	<th title="Термінал">{{chk_sum_term}}</th>
+		<th></th>    	
     	<th></th>
     	<th></th>
     	<th></th>

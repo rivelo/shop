@@ -1454,6 +1454,7 @@ class Check(models.Model):
     print_status = models.BooleanField(default=False)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     #shop =     
+    #fiskal = 
     
     def __unicode__(self):
         return u'[%s] %s %s' % (self.check_num, self.catalog, self.bicycle)

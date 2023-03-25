@@ -1386,15 +1386,19 @@ def bicycle_sale_check_add(request, id):
 
 
 def bicycle_sale_check(request, id=None, param=None):
+    printed = False
+    chk_pay = []
     list = Bicycle_Sale.objects.get(id=id)
     text = pytils_ua.numeral.in_words((100-int(list.sale))*0.01*int(list.price))
     month = pytils_ua.dt.ru_strftime(u"%d %B %Y", list.date, inflected=True)
     chk_list = Check.objects.filter(bicycle = list.id)
     if chk_list.count()>0:
         chk_num = chk_list[0].check_num
+        printed = True
+        chk_pay.append(chk_list[0].checkPay)
     else:
         chk_num = list.id
-    w = render_to_response('bicycle_sale_check.html', {'bicycle': list, 'month':month, 'str_number':text, 'chk_num':chk_num})
+    w = render_to_response('bicycle_sale_check.html', {'bicycle': list, 'month':month, 'str_number':text, 'chk_num':chk_num, 'printed': printed})
     if param == 'print':
         return w
     if param == 'email':
@@ -1414,7 +1418,7 @@ def bicycle_sale_check(request, id=None, param=None):
         except:
             return HttpResponse("<h2>Сталася помилка при відправленні. Перевірте з'єднання до інтернету.</h2>")
         
-    return render_to_response('index.html', {'bicycle': list, 'month':month, 'chk_num':chk_num, 'str_number':text, 'weblink': 'bicycle_sale_check.html', 'print':'True', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc])) 
+    return render_to_response('index.html', {'bicycle': list, 'month':month, 'chk_num':chk_num, 'str_number':text, 'weblink': 'bicycle_sale_check.html', 'print':'True', 'printed': printed, 'checkPay': chk_pay, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc])) 
 
 
 def bicycle_sale_search_by_name(request):
@@ -4185,6 +4189,7 @@ def client_invoice_check(request, param=None):
     ci = ClientInvoice.objects.filter(id__in=list_id)
     #-------- показ і відправка чеку на електронку ------
     client = ci[0].client
+    #client = None 
     sum = ci.aggregate(Sum('sum'))
     sum = sum['sum__sum']
     text = pytils_ua.numeral.in_words(int(sum))
@@ -8469,6 +8474,7 @@ def check_list(request, year=None, month=None, day=None, all=False):
     for lp in listPay :
         sum_term = sum_term + lp.term
         sum_cash = sum_cash + lp.cash
+        print "\n CHECK : " + str(dir(lp))
     
     chk_sum = 0
     chk_sum_term = 0
@@ -8740,7 +8746,7 @@ def shop_sale_check_add(request):
                     if resp.status_code == 201:
 #                        print "\nSTATUS RESPONCE - " + str(resp.status_code) + "\n"
                         save_chek2db(m_val, t_val, 2, request, ci=ci, desc=str(resp.json()['id']))
-                        message = "CHECKBOX - Done\n" + str(resp.json()['id'])
+                        message = "" + str(resp.json()['id'])
                     else:
                         message = "CHECKBOX - Error\n" + str(resp.text.encode('utf-8'))
                     return HttpResponse(message, content_type="text/plain;charset=UTF-8;")

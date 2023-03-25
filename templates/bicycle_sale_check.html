@@ -1,5 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Товарний чек на велосипед {{bicycle.model.model.model}}</title>
+
 <link rel="stylesheet" type="text/css" href="/media/table.css">
 
 	<script type="text/javascript" src="/media/jquery-1.11.2.min.js"></script>
@@ -7,6 +9,7 @@
 	<script src="/media/jquery-ui.min.js"></script>	
 
 {% load template_math %}
+{% load poll_extras %}
 
 <style type="text/css">
    #checktable {
@@ -163,14 +166,27 @@ $(document).ready(function() {
 <table id="checktable">
 <tr>
 <td style="text-align:center; border: 2px solid white;" colspan="2">
-<h1 id="pp_show_all">Товарний чек №000{{chk_num}}</h1>
+<h1 id="pp_show_all">
+Товарний чек №000{{chk_num}}  
+{% if print %}
+{% if printed == True %}
+<span class="badge badge-danger">Роздрукований</span>
+{% else %}
+<span class="badge badge-danger"></span>
+{% endif %}
+{% if checkPay.0.description|check_uid not in '' %}
+ 	<a href="{{checkPay.0.description|check_uid}}"><span class="badge badge-info">TEXT</span></a>
+ 	<a href="{{checkPay.0.description|check_uid_html}}"><span class="badge badge-info">HTML</span></a>
+{% endif %}
+{% endif %}
+</h1>
 <h2>від {{month}} року</h2>
 </td>
 </tr>
 
 <tr>
 <td style="text-align:left;" valign="bottom">
-<p id="pp1">Продавець: ПП. Панчук Ігор Олексійович (ІПН 3084020932)</p>
+<p id="pp1">Продавець: ПП Панчук Ігор Олексійович (ІПН 3084020932) IBAN UA743052990000026001010708899</p>
 <p id="pp2">Продавець: ПП Міщанюк Андрій Юрійович (ІПН 3285112819) IBAN UA213348510000000002600583618</p>
 <p> Покупець: <a href="/client/{{bicycle.client.id}}">{{bicycle.client.name}}</a></p>
 </td>
