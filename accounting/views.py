@@ -1280,7 +1280,7 @@ def bicycle_sale_check_add(request, id):
 #                        print "\nSTATUS RESPONCE - " + str(resp.status_code) + "\n"
                         #save_chek2db(m_val, t_val, ci, 2, request, desc=str(resp.json()['id']))
                         save_chek2db_bike(m_val, t_val, bs, 2, request, desc=str(resp.json()['id']))
-                        message = "CHECKBOX - Done\n" + str(resp.json()['id'])
+                        message = "" + str(resp.json()['id'])
                     else:
                         message = "CHECKBOX - Error\n" + str(resp.text.encode('utf-8'))
                     return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
@@ -8841,7 +8841,7 @@ def workshop_sale_check_add(request):
                     if resp.status_code == 201:
 #                        print "\nSTATUS RESPONCE - " + str(resp.status_code) + "\n"
                         save_chek2db(m_val, t_val, 2, request, ws = cw, desc=str(resp.json()['id']))
-                        message = "CHECKBOX - Done\n" + str(resp.json()['id'])
+                        message = "" + str(resp.json()['id'])
                     else:
                         message = "CHECKBOX - Error\n" + str(resp.text.encode('utf-8'))
                     return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
