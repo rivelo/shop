@@ -31,10 +31,12 @@
 $(document).ready(function() {
 	$("#dialog_pay").hide();
 	$("#msg_text").hide();
+	$("#chk_url").hide();
+	$("#s_chk_url").hide();
 
 	$( "#print_chk" ).click(function() {
   		$( "#dialog_pay" ).dialog({
-  		resizable: false,
+  		resizable: true,
       	modal: true,
   		width: 300,
       	buttons: {
@@ -59,6 +61,13 @@ $(document).ready(function() {
                 success:function(msg){
                	    $('#msg_text').text(msg);
                	    $('#msg_text').show();
+               	    var a_link = '';
+               	    a_link = '/casa/prro/check/' + msg + '/view/html/'
+               	 	$("#chk_url").attr('href', a_link);
+               	 	$("#chk_url").text("HTML");
+               	 	$("#chk_url").show();
+               	 	$("#s_chk_url").show();
+
                	    $(".ui-dialog-buttonpane button:contains('Додати')").button("disable");
                 },
                 error:function(){
@@ -159,7 +168,8 @@ $(document).ready(function() {
   	<input id="term1" name="value" value="1" type="checkbox">
 	<label for="spinner">Міцкевича:</label>
   	<input id="term2" name="value" value="2" type="checkbox">
-	<h2 type="text" id="msg_text" name="mytext[]" rows="10" cols="40" style="color:#ff0000""> рядок стану </h2>  	
+	<h2 type="text" id="msg_text" name="mytext[]" rows="10" cols="40" style="color:#ff0000""> рядок стану </h2>
+	<span class="badge badge-success" id="s_chk_url"><a href="" id="chk_url">TEST</a></span>  	
 	</div>
 {% endif %}
 

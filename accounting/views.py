@@ -1100,10 +1100,12 @@ def sale_post_bike(token, bike, cash_pay=0, card_pay=0):
     ci.append(bike)
     bike_name = ""
     bike_name = u'Велосипед '+ bike.model.model.brand.name +u'. Модель '+ bike.model.model.model +'. '+str(bike.model.model.year.year)+' ('+bike.model.model.color+')'
+    full_price = 0
     
     for inv in ci:
         ci_dic = {}
         price =  "%.2f" % inv.price
+        print "\n PRICE = " + str(int(inv.price*100)) + "\n"
 #        count = "%.3f" % inv.count
         discount = inv.sale
 
@@ -1132,9 +1134,18 @@ def sale_post_bike(token, bike, cash_pay=0, card_pay=0):
         ci_dic.update({'quantity': str(int(quantity))})
         ci_dic.update({"is_winnings_payout": "true",})
         goods.append(ci_dic)
-        
+
+        full_price = int(inv.price*100)*((100-discount)*0.01)
+        print "\nFull price = " + str(full_price)
+        print "\n CASH PAY = " + str(cash_pay) + "\n"
         #cash_round = round(float(cash_pay), 1)
         cash_round = int(math.ceil(round(float(cash_pay), 1)*100))
+        card_round = int(round(float(card_pay)*100))
+        print "\n CASH ROUND = " + str(cash_round) + "\n"
+        print "\n CARD PAY = " + str(int(round(float(card_pay)*100))) + "\n"
+        print "\nMATH  = " + str(full_price - card_round - cash_round) + "\n"
+        if (full_price - card_round - cash_round) <> 0:
+           cash_round = cash_round + 10 
         
         cash = {
         "type": "CASH",
@@ -1142,7 +1153,7 @@ def sale_post_bike(token, bike, cash_pay=0, card_pay=0):
         }
         cashless = {
         "type": "CASHLESS",
-        "value": str(int(float(card_pay)*100)), 
+        "value": str(card_round), 
         "bank_name": "PrivatBank",
         "terminal": "Verifone",
         "acquirer_and_seller": "ecquirer007",
@@ -8606,17 +8617,21 @@ def sale_post(token, ci=None, ws=None, cash_pay=0, card_pay=0):
         }
         cashless = {
         "type": "CASHLESS",
-        "value": str(int(float(card_pay)*100)), 
+        "value": str(int(round(float(card_pay)*100))), 
         "bank_name": "PrivatBank",
         "terminal": "Verifone",
         "acquirer_and_seller": "ecquirer007",
         #"receipt_no": "BANK_no"
         }
+
+    round_status = "false"        
     if cash_pay <> '0':
         payments.append(cash)
+        round_status = "true"
         
     if card_pay <> '0':
         payments.append(cashless)
+   
      
     url = "https://api.checkbox.ua/api/v1/receipts/sell"
     data_work = {
@@ -8628,7 +8643,7 @@ def sale_post(token, ci=None, ws=None, cash_pay=0, card_pay=0):
 #    "discounts": [],
     "bonuses": [],
     "payments": payments,      
-    "rounding": "true",
+    "rounding": round_status,
     "header": "Вас вітає веломагазин-майстерня Rivelo!",
     "footer": "До зустрічі на дорогах і стежках України.",
     "stock_code": "string_Bottom",
@@ -9355,8 +9370,29 @@ def casa_prro_xreport(request, token=post_casa_token()):
     #print "\nCASH in box: " + str(resp.json()['balance']/100.0) # Сума невилученої готівки в касі 
     response = HttpResponse()
     jsonString = json.dumps(resp.json(), indent=4)
-    response.write("<br>JSON utf-8: " + str(resp.text.encode('utf-8')))
-    print "\n JSON : " + str(jsonString)
+    rr = resp.json()
+    try:
+        response.write("<span>Payments block: </span><br>" + str(rr["payments"]) + "<br>")
+        response.write("<br><b><span>Готівка в касі: </span></b> " + str(rr["balance"]/100.00) + " грн." + " <a href='/casa/prro/"+str(rr["balance"])+"/out/'>(" + str(rr["balance"]) +")</a>")
+        response.write("<br><b><span>Кількість чеків за день: </span></b> " + str(rr["sell_receipts_count"]) + " шт.")
+        response.write("<br>")
+        for i in rr["payments"]:
+#        print "\nPAYMENTS [type]: " + i["type"]
+#        print "\nPayments[sell_sum]: " + str(i["sell_sum"])
+            response.write("<br><b><span>В касі [" + str(i['type'].encode('utf-8')) + "]: </span></b> " + str(i["sell_sum"]/100.00) + " грн.")
+            response.write("<br><b><span>Внесено в касу [" + str(i['type'].encode('utf-8')) + "]: </span></b> " + str(i["service_in"]/100.00) + " грн.")
+            response.write("<br><b><span>Вилучено з каси [" + str(i['type'].encode('utf-8')) + "]: </span></b> " + str(i["service_out"]/100.00) + " грн.")
+            response.write("<br>")    
+    except:
+        pass
+        response.write("<b>Status - " + str(resp.status_code) + "</b><br>")
+        response.write("<b>" + str(rr['message'].encode('utf-8')) + "</b><br>")
+        if resp.status_code == 400:
+            response.write("<b><a href='/casa/prro/create/'>Відкрити зміну</a></b>")
+#    print "\n JSON : " + str(rr["payments"])
+#    print "\n Balance: " + str(rr["balance"])
+    response.write("<br>")
+    response.write("<br><span>JSON utf-8: </span><br>" + str(resp.text.encode('utf-8')))         
     response.write("<br>JSON:" + str(jsonString.replace('\n', '<br />').encode('utf-8')))
     return response
 
@@ -9378,8 +9414,12 @@ def casa_prro_zreport(request):
         return HttpResponse("Connection failed! Перевірте зєднання з інтернетом")
     
     response = HttpResponse()
+    rr = resp.json()
+    
     response.write("Response: " + str(resp.status_code) + "<br>")
     if resp.status_code == 202:
+        response.write("Z-звіт виконанно успішно.<br>")
+        response.write("<br><b><span>Готівка в касі: </span></b> " + str(rr["balance"]/100.00) + " грн." + " <a href='/casa/prro/"+str(rr["balance"])+"/out/'>(" + str(rr["balance"]) +")</a>")
         response.write("Status: <br>")
         res_list = str(resp.reason).split(';')
         response.write("JSON: <b>" + str(resp.json()) + " </b><br>") 
@@ -9415,17 +9455,21 @@ def casa_prro_create(request):
     
     response = HttpResponse()
     response.write("Response: " + str(resp.status_code) + "<br>")
-    if resp.status_code == 200:
-        response.write("Status: <br>")
-        res_list = str(resp.reason).split(';')
-        response.write("JSON: <b>" + str(r.json()) + " </b><br>") 
-        response.write("Готівка: <b>" + res_list[1] + " грн.</b><br>")
-        response.write("Чек: <b>" + res_list[2] + " грн.</b><br>")
-        response.write("Кредитна карта: <b>" + res_list[3] + "</b><br>")
-        response.write("інший тип 1: <b>" + res_list[4] + "</b><br>")
-        response.write("інший тип 2: <b>" + res_list[5] + "</b><br>")
-        response.write("інший тип 3: <b>" + res_list[6] + "</b><br>")
-        response.write("інший тип 4: - <b>" + res_list[7] + "</b><br>")
+    if int(resp.status_code) == 202:
+        response.write("<b>Зміну відкрито </b><br>")
+    if int(resp.status_code) == 400:
+        response.write("<b>Зміну вже відкрито. Касир працює з даною касою.</b><br>")
+        #=======================================================================
+        # res_list = str(resp.reason).split(';')
+        # response.write("JSON: <b>" + str(r.json()) + " </b><br>") 
+        # response.write("Готівка: <b>" + res_list[1] + " грн.</b><br>")
+        # response.write("Чек: <b>" + res_list[2] + " грн.</b><br>")
+        # response.write("Кредитна карта: <b>" + res_list[3] + "</b><br>")
+        # response.write("інший тип 1: <b>" + res_list[4] + "</b><br>")
+        # response.write("інший тип 2: <b>" + res_list[5] + "</b><br>")
+        # response.write("інший тип 3: <b>" + res_list[6] + "</b><br>")
+        # response.write("інший тип 4: - <b>" + res_list[7] + "</b><br>")
+        #=======================================================================
 
     response.write("<br><<< Result: >>> <br>" +str(resp.json()) + "<br><<< Result text >>><br>" +  str(resp.text.encode('utf-8')))
     return response
@@ -9445,7 +9489,7 @@ def casa_prro_in_out(request, sum=0, inout='-'):
                 "payment": {
                 "type": "CASH",
                 "value": str(sum), #<сума у копійках, для створення чеку службового вилучення перед сумою має бути - >,
-                "label": "Cash" #Готівка            
+#                "label": "Cash" #Готівка            
                 }
                 }
         headers = {
