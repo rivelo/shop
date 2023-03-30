@@ -84,8 +84,11 @@ def check_ip(ip_addr):
     ip = '.'.join(ip_addr.split('.')[0:3])
     print "IP = " + ip
     #request.META['REMOTE_ADDR']
-    if ip == "192.168.88":
-        return "Home"
+    dict_shop  = settings.SHOPS
+    for shop in dict_shop.keys():
+        if dict_shop[shop] == ip:
+            print "\nSHOP = " + shop + "\n"
+            return shop
     else:
         return "----"
      
@@ -2275,6 +2278,9 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
                 re.search('^ +$', id).group()
             except:
                 list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+                if not list.count():
+                    id = id.replace(' ', '')
+                    list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')                    
     if mid:
         if all == True:
             list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
@@ -5695,12 +5701,6 @@ def shop_price_print_add_invoice(request):
         return HttpResponse(simplejson.dumps({'msg':'Ваш запит відхилено. Щось пішло не так'}), content_type="application/json", status=401)
 
 
-
-#def shop_price_print_view(request):
-#    list = ShopPrice.objects.all().order_by("user")
-#    return render_to_response('manual_price_list.html', {'price_list': list, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))    
-
-
 def remove_duplicated_ShopPrice_records(request):
     duplicates = ShopPrice.objects.values('catalog').annotate(catalog_count=Count('catalog'), cat_max_id = Max('pk')).filter(catalog_count__gt=1)
     for item in duplicates:
@@ -5727,8 +5727,14 @@ def shop_price_qrcode_print_view(request):
     return render_to_response('manual_qrcode_price_list.html', {'price_list': list, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
-def shop_price_print_list(request, pprint=False):
-    list = ShopPrice.objects.all().order_by("-catalog__sale", "catalog", "user", "date", "catalog__manufacturer")
+def shop_price_print_list(request, user_id = None, pprint=False):
+    list = None
+    by_user = False
+    if user_id :
+        by_user = True
+        list = ShopPrice.objects.filter(user = user_id).order_by("-catalog__sale", "catalog", "date", "catalog__manufacturer")
+    else:    
+        list = ShopPrice.objects.all().order_by("-catalog__sale", "catalog", "user", "date", "catalog__manufacturer")
     
     plist = None
     paginator = Paginator(list, 330)
@@ -5744,19 +5750,25 @@ def shop_price_print_list(request, pprint=False):
         # If page is out of range (e.g. 9999), deliver last page of results.
         plist = paginator.page(paginator.num_pages)
             
-#    return render_to_response('mtable_pricelist.html', {'price_list': list}, context_instance=RequestContext(request, processors=[custom_proc]))
     if pprint:
         return render_to_response('manual_price_list.html', {'price_list': plist, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))
-    return render_to_response('index.html', {'weblink': 'mtable_pricelist.html', 'price_list': plist}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    return render_to_response('index.html', {'weblink': 'mtable_pricelist.html', 'price_list': plist, 'by_user' : by_user}, context_instance=RequestContext(request, processors=[custom_proc]))    
     
 
-def shop_price_print_delete_all(request):
-    list = ShopPrice.objects.all().delete()
-    return render_to_response('index.html', {'weblink': 'manual_price_list.html', 'price_list': list}, context_instance=RequestContext(request, processors=[custom_proc]))        
-#    return render_to_response('manual_price_list.html', {'price_list': list, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))    
+def shop_price_print_delete_all(request, user_id = None):
+    if auth_group(request.user, 'seller')==False:
+        return HttpResponse('Error: У вас не має прав для редагування')
+    
+    list = None
+    if user_id:
+        list = ShopPrice.objects.filter(user = user_id).delete()
+    else:
+        list = ShopPrice.objects.all().delete()
+#    return render_to_response('index.html', {'weblink': 'manual_price_list.html', 'price_list': list}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return HttpResponseRedirect('/shop/price/print/list/')        
 
 
-def shop_price_print_delete(request, id=None):
+def shop_price_print_delete(request, id=None, user_id = None):
     if auth_group(request.user, 'seller')==False:
         return HttpResponse('Error: У вас не має прав для редагування')
     
@@ -5770,9 +5782,17 @@ def shop_price_print_delete(request, id=None):
                 obj.delete()
                 return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;")
     else:
-        obj = ShopPrice.objects.get(id=id)
-        del_logging(obj)
-        obj.delete()
+        try:
+            obj = ShopPrice.objects.get(id=id)
+            del_logging(obj)
+            obj.delete()
+        except:
+            pass
+        if user_id:
+            try:
+                list = ShopPrice.objects.filter(user = user_id).delete()
+            except:
+                pass
     return HttpResponseRedirect('/shop/price/print/list/')
 
 
@@ -9419,7 +9439,7 @@ def casa_prro_zreport(request):
     response.write("Response: " + str(resp.status_code) + "<br>")
     if resp.status_code == 202:
         response.write("Z-звіт виконанно успішно.<br>")
-        response.write("<br><b><span>Готівка в касі: </span></b> " + str(rr["balance"]/100.00) + " грн." + " <a href='/casa/prro/"+str(rr["balance"])+"/out/'>(" + str(rr["balance"]) +")</a>")
+        response.write("<br><b><span>Готівка в касі: </span></b> " + str(rr["balance"]) + " грн.<br>")
         response.write("Status: <br>")
         res_list = str(resp.reason).split(';')
         response.write("JSON: <b>" + str(resp.json()) + " </b><br>") 

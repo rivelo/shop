@@ -53,12 +53,24 @@ $(document).ready(function() {
 
 {% load poll_extras %}
 
-<h1><span class="badge badge-secondary">Черга цінників для друку </span>
-<a href="/shop/price/print/view/?page={{ price_list.number }}" >
+<h1><span class="badge badge-secondary">Черга цінників для друку 
+{% if by_user %}
+	<span class="badge badge-info">{{request.user}} </span>
+{% endif %}
+</span>
+{# <a href="/shop/price/print/view/?page={{ price_list.number }}" > #}
+{% if by_user %}
+	<a href="{% url 'label_print_by_user' request.user.id %}" >
+{% else %}
+	<a href="{% url 'label_print_all' %}" >
+{% endif %}
 <span class="badge badge-success" title="Попередній перегляд" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">print</i></span>
 </a> 
-<a href="/shop/price/print/empty/" onclick="return confirm('Are you sure you want to delete this item?');">
+<a href="/shop/price/print/empty/" onclick="return confirm('Ви хочете видалити всі чеки з черги для друку?');">
 <span class="badge badge-danger" title="Очистити список" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">clear</i></span>
+</a>
+<a href="{% url 'label_delete_by_user' request.user.id %}" onclick="return confirm('Бажаєте видалити чеки, користувача {{request.user}}?');">
+<span class="badge badge-danger" title="Очистити список користувача [{{request.user}}]" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">clear</i></span>
 </a>
 </h1>  
 <a href="/shop/price/qr/print/view/">(Попередній перегляд QR-Code)</a>
@@ -66,6 +78,7 @@ $(document).ready(function() {
 {% if request.user|has_group:"seller" %}
 <span class="badge badge-danger"> <a href="{% url 'shopprice_duplicate_delete' %}" class="icon">Видалити дублікати</a> </span> 
 <span class="badge badge-danger"> <a href="{% url 'shopprice_zero_delete' %}" class="icon">Видалити продані позиції</a> </span>
+<span class="badge badge-danger"> <a href="{% url 'label_list_by_user' request.user.id %}" class="icon">Показати власні чеки {{request.user}}</a> </span>
 {% endif %}
 
 <br>
@@ -116,7 +129,8 @@ $(document).ready(function() {
 <b>	{{price.catalog.get_realshop_count}} шт. </b>
 </td>
 <td   class="nameTD" align="center">       
-<b>	{{price.user}}</b>
+<a href="{% url 'label_list_by_user' price.user.id %}" class="icon"><b>{{price.user}}</b></a>
+
 </td>
 <td   class="nameTD">       
 <b>	{{price.date}}</b>

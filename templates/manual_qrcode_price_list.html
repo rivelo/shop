@@ -9,7 +9,7 @@
 
 <script language="JavaScript">
 function change_row1_table() {
-	$('.grid-container').css('grid-template-columns','100mm');
+	$('.grid-container').css('grid-template-columns','70mm');
 }
 function change_row3_table() {
 	$('.grid-container').css('grid-template-columns','33.3% 33.3% 33.3%');
@@ -25,7 +25,7 @@ function change_row2_table() {
   display: grid;
   grid-template-columns: 15% 15% 15% 15% 15% 15%; /*100mm; /*33.3% 33.3% 33.3%; /* 70mm 70mm 70mm;*/
   grid-template-rows: 30mm;
-//  width: 100mm;
+  width: 100mm;
   gap: 1px;
 //  background-color: #2196F3;
   padding: 0px;
@@ -41,7 +41,7 @@ function change_row2_table() {
 }
 
 div .item {
-
+	page-break-after: always;
 	//page-break-before:  always;
 	//page-break-inside: avoid; 
 }
@@ -94,8 +94,9 @@ div .price{
 
 @media print {
  div .item { 
-    //page-break-after: always;
-    break-inside: avoid;
+	page-break-after: always;
+    //page-break-before : always;
+    border: none;
   }
   
  .no-print, .no-print *
@@ -193,7 +194,7 @@ div.v-t {
   color: black;
 //  background: #ffbd17; 
 //  width: 30px;
-  width: 0px;  
+  width: auto;  
   height: 120px;
   padding-left: 0px;
   padding-right: 0px;
@@ -201,19 +202,19 @@ div.v-t {
 
 #content {
 /*  background: #06c; */
-//  width: auto; 
-  width: 120px;
-//  height: 100%;
+  width: auto; 
+/*  width: 100%;
+  height: 100%; */
   
-  margin-left: auto;
-  margin-right: auto;
+/*  margin-left: auto;
+  margin-right: auto; */
   position: inherit; /* relative;*/
 //  top: 25%;
 //  left: -175%;
 /*  transform: translateY(-50%);
   transform: translateX(50%);*/
 //  transform: translateX(50%);
-  transform: rotate(-90deg);
+//  transform: rotate(-90deg);
 }
 
 </style>
@@ -249,6 +250,7 @@ div.v-t {
 <div id="container" style="float:left;">
   <div id="content">
 <p>  {{ price.catalog.ids }} </p>
+<p>  {{ price.catalog.name|slice:"20" }} </p>
 {{ price.catalog.price }} грн.<br>
   </div>
 </div>
