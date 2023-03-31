@@ -6317,7 +6317,7 @@ def payform(request):
             res = 0
      
         bal = res
-     
+        
     url = '/client/result/search/?id=' + str(client.id)
     cmsg = ClientMessage.objects.filter(client__id=user)
     return render_to_response('index.html', {'messages': cmsg,'checkbox': list_id, 'invoice': ci, 'summ': sum, 'balance':bal, 'client': client, 'chk_list': chk_list, 'error_msg':error_msg, 'weblink': 'payform.html', 'next': url}, context_instance=RequestContext(request, processors=[custom_proc]))

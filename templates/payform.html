@@ -86,7 +86,7 @@ $(document).ready(function() {
 	$("#dialog_msg").hide();
 	$('#pay_status').val(1);
 	
-	{% if shop_name == 'home1' %}	
+	{% if shop_name == 'shop1' %}	
 		$('.shop2').hide();
 		$('#shop2_cashless').hide();
 		$('#shop2_cash').hide();
@@ -96,6 +96,7 @@ $(document).ready(function() {
 		$('#shop1_cashless').hide();
 		$('#shop1_cash').hide();
 		$('#shop2').prop( "checked", true );
+		$("#shop_debt").insertAfter("#shop2_cashless");
 	{% endif %}
 	
 	{% if request.user|has_group:"admin" %}
@@ -105,6 +106,7 @@ $(document).ready(function() {
 		$('.shop2').show();
 		$('#shop2_cashless').show();
 		$('#shop2_cash').show();
+		$("#shop_debt").insertAfter("#shop1_cashless");
 	{% endif %}
 	
 	
@@ -144,16 +146,29 @@ $('#client_debt_but').click(function() {
 	$("#pay_form").submit();
 });
 
-$('#client_cred_term_but').click(function() {
+$('#client_cred_term_but').click(function(event) {
+	event.stopImmediatePropagation();	
+	var shop = 'shop1';
 	$('#shop1').prop( "checked", true );
-	$('#client_cred_term_but').off("click");
+//	$('#client_cred_term_but').off("click");
+	console.log("SHOP name = " + $('#ShopName').attr('nvalue'));
 	$("#pay_term").val($("#pay").val())
 	$("#pay").val(0);
+	if ( $('#ShopName').attr('nvalue') == 'shop2' ) {
+		console.log("SHOP name = " + $('#ShopName').attr('nvalue'));
+		if (confirm("Ви вибрали оплату в магазині " + shop + " але знаходитесь в магазині " + $('#ShopName').attr('nvalue') + " \nВсе вірно?") == true) {
+			console.log("SHOP - TRUE");	
+		}
+		else {
+			return false;
+		}
+	}
 	$("#pay_form").submit();
 });
 
 $('#client_cred_but').click(function() {
 	var m_pay, pay_cash, pay_term;
+	var shop = 'shop1';
 	m_pay = $('#to_pay').attr('value');
 	pay_term = $("#pay_term").val();
 	pay_cash = $("#pay").val();
@@ -162,9 +177,19 @@ $('#client_cred_but').click(function() {
 	console.log("PAY MUST = " + m_pay );
 	$('#shop1').prop( "checked", true );
 	console.log("EQUAL - " + (pay_cash*100) + " - " + (m_pay*100));
+	if ( $('#ShopName').attr('nvalue') == 'shop2' ) {
+		console.log("SHOP name = " + $('#ShopName').attr('nvalue'));
+		if (confirm("Ви вибрали оплату в магазині " + shop + " але знаходитесь в магазині " + $('#ShopName').attr('nvalue') + " \nВсе вірно?") == true) {
+			console.log("SHOP - TRUE");	
+		}
+		else {
+			return false;
+		}
+	}
+	
 	if ((pay_cash*100) == (m_pay*100))	{
 		console.log("PAY is EQUAL");
-		$('#client_cred_but').off("click");
+//		$('#client_cred_but').off("click");
 		$("#pay_form").submit();
 	}
 	else {
@@ -172,14 +197,13 @@ $('#client_cred_but').click(function() {
 		if (confirm("До оплати " + m_pay + " грн. \nВаша оплата складає " + pay_cash + " грн. \nВсе вірно?") == true) {
 			text = "You pressed OK!";
 			console.log("" + text);
-			$('#client_cred_but').off("click");
+//			$('#client_cred_but').off("click");
 			$("#pay_form").submit();
 		} 
 		else {
 			  text = "You canceled!";
 			  console.log("" + text);
 		}
-
 	}
 	
 	//$('#client_cred_but').off("click");
@@ -188,16 +212,28 @@ $('#client_cred_but').click(function() {
 });
 
 $('#client_cred_term2_but').click(function() {
-	$('#client_cred_term1_but').off("click");
+	var shop = 'shop2';
+//	$('#client_cred_term1_but').off("click");
 	$("#pay_term").val($("#pay").val())
 	$("#pay").val(0);
 //	console.log("PAY = "+$("#pay").val());
 	$('#shop2').prop( "checked", true );
+	if ( $('#ShopName').attr('nvalue') == 'shop1' ) {
+		console.log("SHOP name = " + $('#ShopName').attr('nvalue'));
+		if (confirm("Ви вибрали оплату в магазині " + shop + " але знаходитесь в магазині " + $('#ShopName').attr('nvalue') + " \nВсе вірно?") == true) {
+			console.log("SHOP - TRUE");	
+		}
+		else {
+			return false;
+		}
+	}
+	
 	$("#pay_form").submit();
 });
 
 $('#client_cred2_but').click(function() {
 	var m_pay, pay_cash, pay_term;
+	var shop = 'shop2';
 	m_pay = $('#to_pay').attr('value');
 	pay_term = $("#pay_term").val()
 	pay_cash = $("#pay").val();
@@ -206,10 +242,19 @@ $('#client_cred2_but').click(function() {
 	console.log("PAY MUST = " + m_pay );
 	$('#shop2').prop( "checked", true );
 	console.log("EQUAL - " + (pay_cash*100) + " - " + (m_pay*100));
+	if ( $('#ShopName').attr('nvalue') == 'shop1' ) {
+		console.log("SHOP name = " + $('#ShopName').attr('nvalue'));
+		if (confirm("Ви вибрали оплату в магазині " + shop + " але знаходитесь в магазині " + $('#ShopName').attr('nvalue') + " \nВсе вірно?") == true) {
+			console.log("SHOP - TRUE");	
+		}
+		else {
+			return false;
+		}
+	}
 	if ((pay_cash*100) == (m_pay*100))	{	
 //	if (pay_cash == m_pay)	{
 		console.log("PAY is EQUAL");
-		$('#client_cred1_but').off("click");
+//		$('#client_cred1_but').off("click");
 		$("#pay_form").submit();
 	}
 	else {
@@ -217,7 +262,7 @@ $('#client_cred2_but').click(function() {
 		if (confirm("До оплати " + m_pay + " грн. \nВаша оплата складає " + pay_cash + " грн. \nВсе вірно?") == true) {
 			text = "You pressed OK!";
 			console.log("" + text);
-			$('#client_cred1_but').off("click");
+//			$('#client_cred1_but').off("click");
 			$("#pay_form").submit();
 		} 
 		else {
@@ -242,6 +287,31 @@ checkedSum();
 });
 
 
+var isSubmitting = false; 
+$(function() { 
+	$("#pay_form").submit(function(event) { 
+	if(!isSubmitting) { 
+		isSubmitting = true;// form cannot re-submit whilst true 
+		//.. submit the form
+		console.log("Зачекайте форма відправляється ...");
+		$( "#dialog" ).dialog( "open" );	
+//		event.preventDefault();
+		this.submit();
+	} 
+	return false; 
+	});
+	
+	$( "#dialog" ).dialog();
+	$( "#dialog" ).dialog( "close" );
+
+}); 
+
+
+function but_click(){
+	
+}
+
+
 function AllSum() {
 //	document.getElementById('pay').value = {{summ|sub:balance}};
 	document.getElementById('pay').value = Math.abs($('#AllSum').attr("value")); 
@@ -260,12 +330,12 @@ function PaySum() {
 
 function checkedSum() {
 var sum = 0;
-$.each($("input:checked"),function(index,item){
+$.each($("input:checkbox:checked"),function(index,item){
 //	console.log("chk = " + index); // item.attr("value"));
-//	console.log("TYPE = " + item.value);
+	console.log("TYPE = " + item.value);
 	sum = sum + parseFloat(item.value); 	
 })
-$("#to_pay").html("До сплати: "+ sum.toFixed(2) +" грн.");
+$("#to_pay").html("До сплати: "+ sum.toFixed(2) +" грн. ");
 $('#pay').value = sum.toFixed(2);
 $("#checkSum").html(sum.toFixed(2) + " грн.");
 $('#to_pay').attr('value', sum.toFixed(2));
@@ -281,6 +351,10 @@ $('#pay').change();
 </script>
 
 <body onload="document.getElementById('pay').focus()">
+
+<div id="dialog" title="Повідомлення!">
+  <h2><p>Зачекайте триває відправка даних...</p></h2>
+</div>
 
 <div id="dialog_msg" title="Повідомлення">
 {% for msg in messages %}
@@ -307,7 +381,7 @@ $('#pay').change();
 <br>
 {% endif %}
 
-<div style="float:left;">
+<div style="float:left; margin-right: 20px;">
 	<h2><font color="#fe6037" id="cl_balance" value="{{balance}}"> Ваш рахунок:
 	{% if balance >= 0 %} 
 	<span class="badge badge-success">{{balance|floatformat:"2"}} грн.</span> 
@@ -340,7 +414,7 @@ $('#pay').change();
 </a>
 </div>
 
-<div style="float:left;">
+<div style="float:left;" id="shop_debt">
 <a href="#" class="css3dbutton red" id="client_debt_but">
 <span class="outer">
 <span class="top">Борг</span>
@@ -348,7 +422,6 @@ $('#pay').change();
 </span>
 </a>
 </div>
-
 
 <div style="float:left;" id="shop2_cash">
 <a href="#" class="css3dbutton" id="client_cred2_but">
@@ -410,7 +483,7 @@ $('#pay').change();
 	{{inv.price}}
 	</td>
 	<td>
-	<input type="checkbox" id="model{{forloop.counter}}" value="{{inv.price}}" checked name="checkbox_{{ inv.id }}" onclick="checkedSum()"/>
+	<input type="checkbox" id="model{{forloop.counter}}" value="{{inv.price}}" checked name="checkbox_{{ inv.id }}" onclick="checkedSum()" class="invoice_item"/>
 	</td>
 	</tr>
 	{% endfor %}
@@ -492,7 +565,7 @@ $('#pay').change();
  
         
 </form>
-<h2> <span class="badge badge-info">{{shop_name}}</span> </h2>
+<h2 id="ShopName" nvalue="{{shop_name}}"> <span class="badge badge-info">{{shop_name}}</span> </h2>
 </div>
 
 	
