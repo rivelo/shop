@@ -86,6 +86,28 @@ $(document).ready(function() {
 	$("#dialog_msg").hide();
 	$('#pay_status').val(1);
 	
+	{% if shop_name == 'home1' %}	
+		$('.shop2').hide();
+		$('#shop2_cashless').hide();
+		$('#shop2_cash').hide();
+		$('#shop1').prop( "checked", true );
+	{% elif shop_name ==  'shop2'%}
+		$('.shop1').hide();
+		$('#shop1_cashless').hide();
+		$('#shop1_cash').hide();
+		$('#shop2').prop( "checked", true );
+	{% endif %}
+	
+	{% if request.user|has_group:"admin" %}
+		$('.shop1').show();
+		$('#shop1_cashless').show();
+		$('#shop1_cash').show();
+		$('.shop2').show();
+		$('#shop2_cashless').show();
+		$('#shop2_cash').show();
+	{% endif %}
+	
+	
 	$( "#img_msg" ).click(function() {
   		$( "#dialog_msg" ).dialog({
   		resizable: false,
@@ -300,7 +322,7 @@ $('#pay').change();
     <h2 onclick="AllSum()"> <font color="#006699" id="AllSum" value="{{summ|sub:balance}}"> Загальна сума: {{summ|sub:balance}} грн. </font></h2>
 </div>
 
-<div style="float:left;">
+<div style="float:left;" id="shop1_cash">
 <a href="#" class="css3dbutton" id="client_cred_but">
 <span class="outer">
 <span class="top">Оплатити</span>
@@ -309,7 +331,7 @@ $('#pay').change();
 </a>
 </div>
 
-<div style="float:left;">
+<div style="float:left;" id="shop1_cashless">
 <a href="#" class="css3dbutton" id="client_cred_term_but">
 <span class="outer">
 <span class="top">Оплатити</span>
@@ -328,7 +350,7 @@ $('#pay').change();
 </div>
 
 
-<div style="float:left;">
+<div style="float:left;" id="shop2_cash">
 <a href="#" class="css3dbutton" id="client_cred2_but">
 <span class="outer">
 <span class="top">Оплатити</span>
@@ -337,7 +359,7 @@ $('#pay').change();
 </a>
 </div>
 
-<div style="float:left;">
+<div style="float:left;" id="shop2_cashless">
 <a href="#" class="css3dbutton" id="client_cred_term2_but">
 <span class="outer">
 <span class="top">Оплатити</span>
@@ -459,17 +481,18 @@ $('#pay').change();
 <div class="checkbox">
  <label><input type="checkbox" name="print_check" value="Друкувати чек на касовому" id="print_check" >Друкувати чек на касовому</label>
  <div>
-	<input type="radio" id="shop1" name="shop" value="1">
-	<label for="male">Кавказька</label><br>
-	<input type="radio" id="shop2" name="shop" value="2">
-	<label for="female">Міцкевича</label><br>
+	<input type="radio" id="shop1" name="shop" value="1" class="shop1">
+	<label class="shop1">Кавказька</label><br>
+	<input type="radio" id="shop2" name="shop" value="2" class="shop2">
+	<label class="shop2">Міцкевича</label><br>
+{#	<label for="female" class="shop1">Міцкевича</label><br> #}
 	<input type="hidden" id="pay_status" name="pay_status" value="1">
  </div>
 </div>
  
         
 </form>
-
+<h2> <span class="badge badge-info">{{shop_name}}</span> </h2>
 </div>
 
 	
