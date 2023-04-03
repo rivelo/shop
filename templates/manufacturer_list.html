@@ -8,6 +8,16 @@
     max-width: 300px; 
     max-height: 300px;
 }
+
+.div1 {
+    float: left;
+	
+}
+
+.div2 {
+    float:right;
+    font-size: 14px;
+}
 </style>
 
 <script>
@@ -49,10 +59,14 @@ jQuery(document).ready(function ($) {
 	{{forloop.counter}}
 	</td>
 	<td>
+	<div class="div1">
 	<a href="/catalog/manufacture/{{ type.id }}/view/" title="Список продукції даного виробника" >
+	</div>
+	<div class="div2">
 	{{type.name}}
+	</div>
 	</a>
-	
+	<h4><span class="badge badge-secondary" title="id of manufacturer">{{type.id}} </span></h4>
 	</td>
 	<td>       
 	<a href="{{type.www}}" title="Перейти на домашню сторінку виробника">{{type.www}}</a>

@@ -372,7 +372,36 @@ class ImportPriceForm(forms.Form):
     photo = forms.BooleanField(label='Фото', required=False)
     name = forms.BooleanField(label='Оновити назву товару', required=False)
     currency = forms.BooleanField(label='Курс валюти', required=False)
-    
+    check_catalog_id = forms.BooleanField(label='Перевірка наявності товару по артикулу/штрихкоду', required=False)
+    col_count = forms.IntegerField(min_value=3, initial = 3, label = 'Кількість стовбців у файлі')
+
+    def clean_csv_file(self):
+        csvdata = self.cleaned_data['csv_file']
+        print '\nCSV = ' + str(csvdata) + "\n" 
+        if not (csvdata):
+            raise forms.ValidationError("Виберіть CSV файл для імпорту!")
+        return csvdata
+
+    def clean_change_ids(self):
+        data = self.cleaned_data['change_ids']
+        print '\nIDS Work = ' + str(data) + "\n"
+#        if not (data):
+#            raise forms.ValidationError("Поставте галочку!")
+        return data
+
+    def clean_col_count(self):
+        data = self.cleaned_data['col_count']
+        if int(data) > 10:
+            raise forms.ValidationError(u"Кількість стовбців більша за 10")
+        return data
+
+    def clean(self):
+        cleaned_data = super(ImportPriceForm, self).clean()
+        csvdata = cleaned_data.get("csv_file")
+        if (csvdata == None):
+            raise forms.ValidationError("Виберіть файл для імпорту!")
+        return cleaned_data 
+
 
 class InvoiceComponentListForm(forms.ModelForm):
     invoice = forms.ModelChoiceField(queryset = DealerInvoice.objects.filter(received=False))
@@ -427,6 +456,7 @@ class ContactForm(forms.ModelForm):
     topic = forms.ChoiceField(choices=TOPIC_CHOICES)
     message = forms.CharField(widget=forms.Textarea())
     sender = forms.EmailField(required=False)
+    
     class Meta:
         model = ClientMessage
         fields = '__all__'
@@ -602,8 +632,15 @@ class ClientInvoiceForm(forms.ModelForm):
         self.request = kwargs.pop("request")
         super(ClientInvoiceForm, self).__init__(*args, **kwargs)
         self.fields['catalog'].queryset = Catalog.objects.filter(id = cid)
+
+#    def clean_sale(self):
+#        data = self.cleaned_data['sale']
+#        if int(data) > 100:
+#            raise forms.ValidationError(u"Знижка не може бути більше за 100%")
+#        return data
         
     def clean(self):
+        #sale = 0
         cleaned_data = super(ClientInvoiceForm, self).clean()
         sale = cleaned_data.get("sale")
         client = cleaned_data.get("client")

@@ -1,5 +1,5 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Денний звіт</title>
+<title>Денний звіт за {{date}}</title>
 
     <link rel="stylesheet" type="text/css" href="/media/css/table.css">
 
@@ -48,7 +48,13 @@ $(document).ready(function() {
 
 <div class="d-flex">
 <div class="mr-auto">
-	<h1> <span class="badge badge-secondary">Оборот коштів на {{date}} року </span>  <span style="color: red; font-size: x-large;" >Каса: {{casa}} грн.</span> </h1>
+	<h1> 
+	<span class="badge badge-secondary">Оборот коштів на {{date}} року </span>
+	{% if shopNumber != 0 %}
+	<span class="badge badge-success">shop{{shopNumber}}</span>
+	{% endif %}
+	<span style="color: red; font-size: x-large;" >Каса: {{casa}} грн.</span> 
+	</h1>
 </div>
 </div>
 
@@ -105,7 +111,7 @@ $(document).ready(function() {
 {% endfor %}
 	</tr>
 	<tr>
-	<td>	</td>
+	<td><span class="badge badge-light">{{shop_name}}</span></td>
 	<td>	</td>
 	<td>
 	Сума
@@ -198,4 +204,28 @@ $(document).ready(function() {
 	</td>
 	</tr>	
 	</table>	
+
+<h4><a href="{% url 'shop-daily-sales-by-shop' sel_date.year sel_date.month sel_date.day 1 %}"><span class="badge badge-secondary">Shop1 - Кавказька</span></a></h4>
+<div class="text-light bg-dark" >
+{% for itm in Ccred.0.get_daily_pay_shop1.0 %}	
+<p>{{itm.description}} - {{itm.price}} [{{itm.cash_type}}]</p>
+{% endfor %}
+</div>
+
+{% for itm in Ccred.0.get_daily_pay_shop1.1 %}	
+<p>[{{itm.cash_type__pk}}] {{itm.cash_type__name}} ({{itm.cash_count}}) - {{itm.cash_sum}}</p>
+{% endfor %}	
 	
+	
+<h4><a href="{% url 'shop-daily-sales-by-shop' sel_date.year sel_date.month sel_date.day 2 %}"><span class="badge badge-secondary">Shop2 - Міцкевича</span></a></h4>
+<div class="text-light bg-dark" >
+{% for itm in Ccred.0.get_daily_term_shop2.0 %}	
+<p>{{itm.description}} - {{itm.price}} [{{itm.cash_type}}]</p>
+{% endfor %}
+</div>
+
+{% for itm in Ccred.0.get_daily_term_shop2.1 %}	
+<p>[{{itm.cash_type__pk}}] {{itm.cash_type__name}} ({{itm.cash_count}}) - {{itm.cash_sum}}</p>
+{% endfor %}	
+	
+		

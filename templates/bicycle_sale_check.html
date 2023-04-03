@@ -149,8 +149,18 @@ $(document).ready(function() {
 	  }
 	});
 	
+{% if shop_name == 'shop2' %}	
+	$('#pp2').hide()	
+	$('#pp21').hide()
+	$("#pp1").show();
+	$("#pp11").show();
+{% elif shop_name == 'shop1' %}
 	$('#pp1').hide()	
 	$('#pp11').hide()
+	$("#pp2").show();
+	$("#pp21").show();	
+{% endif %}	
+
 	
 });
 </script>
@@ -165,9 +175,17 @@ $(document).ready(function() {
   	<input id="t_spinner" name="value" value="{{bicycle.price|percentage:bicycle.sale}}"> грн.
   	<br>
 	<label for="spinner">Кавказька:</label>
-  	<input id="term1" name="value" value="1" type="checkbox">
+{% if shop_name == 'shop1' %}
+  	<input id="term1" name="value" value="1" type="checkbox" checked>
+{% else %}
+  	<input id="term1" name="value" value="1" type="checkbox" >
+{% endif %}	  	
 	<label for="spinner">Міцкевича:</label>
+{% if shop_name == 'shop2' %}
+  	<input id="term2" name="value" value="2" type="checkbox" checked>
+{% else %}	
   	<input id="term2" name="value" value="2" type="checkbox">
+{% endif %}  	
 	<h2 type="text" id="msg_text" name="mytext[]" rows="10" cols="40" style="color:#ff0000""> рядок стану </h2>
 	<span class="badge badge-success" id="s_chk_url"><a href="" id="chk_url">TEST</a></span>  	
 	</div>
@@ -257,5 +275,6 @@ $(document).ready(function() {
 <!--   <h3 id="print_chk">Друкувати чек (фіскальний)</h3>
  href="/bicycle/sale/{{bicycle.id}}/check/add/"
  -->
+ <br> <span class="badge badge-light">{{shop_name}}</span>
 {% endif %}
 

@@ -6,9 +6,20 @@
 {#    <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>    
+
+<style>
+.div2 {
+    float: left;
+}
+
+.div1 {
+    float:right;
+}
+</style>
+
     
 <body>    
-    <h1><span class="badge badge-secondary">Список типів велокомпонентів</span> <a class="badge badge-success" href="/category/add/" title="Створити новий тип"><i class="material-icons">add_circle_outline</i></a></h1>
+    <h1><span class="badge badge-secondary">Список категорій велокомпонентів</span> <a class="badge badge-success" href="/category/add/" title="Створити новий тип"><i class="material-icons">add_circle_outline</i></a></h1>
 	
 {#<table border="1"> #}
 <div class="table-responsive">
@@ -20,6 +31,7 @@
     	<th>Опис</th>
     	<th>Назва, українською</th>
     	<th>Опис, українською</th>
+    	<th>ID</th>
     	<th>Дія</th>
     </tr>    
 </thead>
@@ -34,12 +46,15 @@
 	{#type.id#}
 	</td>
 	<td>       
+<div class="div1">
 	<a href="/catalog/type/{{type.id}}/view/">{{type.name}}</a>
-{#	<img src="/media/upload/icons/wheel_64.png" class="img-thumbnail" alt="Wheel"> #}
+</div>
+<div class="div2">
 	<img src="/media/upload/icons/{{type.name|slugify}}-gr.png" class="rounded" width="64px" alt="{{type.name|slugify}}">
 	<img src="/media/upload/icons/{{type.name|slugify}}-bl.png" class="rounded" width="64px" alt="{{type.name|slugify}}" >
 {#	<img src="/media/upload/icons/{{type.name|slugify}}-128.png" width="64px" class="rounded" alt="Wheel"> #}
 {#	<img src="/media/upload/icons/{{type.name|slugify}}-select-128.png" width="64px" class="rounded" alt="Wheel"> #}
+</div>
 	</td>
 	<td>       
 	{{type.description}}
@@ -49,6 +64,9 @@
 	</td>
 	<td>       
 	{{type.description_ukr}}
+	</td>
+	<td>
+	<h4><span class="badge badge-secondary">{{type.id}}</span></h4>
 	</td>
 	<td>
 	<a href="/category/edit/{{ type.id }}" title="Редагувати"><i class="material-icons">create</i> </a>

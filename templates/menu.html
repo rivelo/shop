@@ -111,6 +111,7 @@ $(document).ready(function() {
 			<a class="dropdown-item" href="/bicycle/view/">Каталог велосипедів</a>
 			<a class="dropdown-item" href="/bicycle-type/view/">Типи велосипедів</a>
 			<a class="dropdown-item" href="/bicycle-framesize/view/">Розміри рам</a>
+		<div class="dropdown-divider"></div>			
 {#			<a class="dropdown-item" href="/bicycle/sale/add/">Продаж велосипеду</a> #}
 			<a class="dropdown-item" href="/bicycle/order/add/">Замовлення велосипеду</a>
 			<a class="dropdown-item" href="/bicycle/order/view/">Список замовлень</a>
@@ -137,7 +138,8 @@ $(document).ready(function() {
 			<a class="dropdown-item" href="/catalog/file/photo/list/"><i class="material-icons">photo_library</i> Імпортувати фото</a>
 		<div class="dropdown-divider"></div>
 			<a class="dropdown-item" href="/catalog/content/import/">Імпортувати з файлу контент</a>
-			<a class="dropdown-item" href="/catalog/import/">Імпортувати з файлу</a>			
+			<a class="dropdown-item" href="/catalog/import/">Імпортувати з файлу</a>
+			<a class="dropdown-item" href="/catalog/price/import/">Імпорт цін на товари</a>
         </div>
       </li>
 		
@@ -153,7 +155,6 @@ $(document).ready(function() {
 			<a class="dropdown-item" href="/dealer/invoice/search/">Пошук накладної</a>
 			<a class="dropdown-item" href="/preorder/view/">Попередні замовлення</a>
 		<div class="dropdown-divider"></div>
-			<a class="dropdown-item" href="/catalog/price/import/">Імпорт цін на товари</a>
 			<a class="dropdown-item" href="/dealer/invoice/import/">Імпорт накладної</a>
         </div>
       </li>
@@ -284,19 +285,32 @@ $(document).ready(function() {
           Моє меню
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-        	<a class="dropdown-item" href="/qrscanner/">Сканер QR кодів</a>
+{#        	<a class="dropdown-item" href="/qrscanner/">Сканер QR кодів</a> #}
 			<a class="dropdown-item" href="/report/sales/user/report/">Продажі за місяць</a>
  			<a class="dropdown-item" href="/report/workshop/byuser/">Роботи за місяць</a>
- 			<a class="dropdown-item" href="/shop/sale/day/add/"><i class="material-icons">query_builder</i> Денна каса</a>
- 			<a class="dropdown-item" href="/shop/sale/view/">Денна каса (за місяць)</a>
- 			<a class="dropdown-item" href="/casa/1/view/">Сума в касовому Кавказька</a>
- 			<a class="dropdown-item" href="/casa/prro/xreport/">X-Звіт Міцкевича</a>
-{# 			<a class="dropdown-item" href="/casa/prro/view/">Сума в касовому Міцкевича</a> #}
+ 			<div class="dropdown-divider"></div>
+ 			{% if shop_name == 'shop1' %}
+ 				<a class="dropdown-item" href="{% url 'shop-sale-day-add' %}"><i class="material-icons">query_builder</i> Денна каса</a>
+{# <a class="dropdown-item" href="/shop/sale/day/add/"><i class="material-icons">query_builder</i> Денна каса</a> #}
+	 			<a class="dropdown-item" href="/shop/sale/view/">Денна каса (за місяць)</a> 				
+	 			<div class="dropdown-divider"></div>
+	 			<a class="dropdown-item" href="/casa/1/view/">Сума в касовому Кавказька</a>
 {% if request.user|has_group:"manager" %}
 			<div class="dropdown-divider"></div>
 			<a class="dropdown-item" href="/casa/1/zreport/" onclick="return confirm('Виконати Z звіт в магазині на вул.Кавказька?')">Z звіт РРО №1</a>
+{% endif %} 			
+ 			{% elif shop_name == 'shop2' %}
+ 				<a class="dropdown-item" href="{% url 'shop-daily-sales' year_now month_now day_now %}"><i class="material-icons">query_builder</i> Денна каса</a>
+	 			<a class="dropdown-item" href="/shop/sale/view/">Денна каса (за місяць)</a>
+	 			<div class="dropdown-divider"></div>
+	 			<a class="dropdown-item" href="/casa/prro/xreport/">X-Звіт Міцкевича</a>
+{% if request.user|has_group:"manager" %}
+			<div class="dropdown-divider"></div>
 			<a class="dropdown-item" href="/casa/prro/zreport/" onclick="return confirm('Виконати Z звіт в магазині на вул.Міцкевича?')">Z звіт РРО №2</a>
 {% endif %} 			
+	 			
+ 			{% endif %}
+{# 			<a class="dropdown-item" href="/casa/prro/view/">Сума в касовому Міцкевича</a> #}
 		<div class="dropdown-divider"></div>			
 			<a class="dropdown-item" href="/check/list/now/">Список чеків</a>
 		</div>	       		

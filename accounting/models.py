@@ -716,6 +716,7 @@ class Client(models.Model):
     class Meta:
         ordering = ["name"]    
 
+
 #клієнтські борги
 class ClientDebts(models.Model):
     client = models.ForeignKey(Client)
@@ -732,6 +733,7 @@ class ClientDebts(models.Model):
         unique_together = ["client", "date", "price", "cash", "description"]
         ordering = ["client", "date"]    
 
+
 #клієнтські проплати
 class ClientCredits(models.Model):
     client = models.ForeignKey(Client)
@@ -740,6 +742,46 @@ class ClientCredits(models.Model):
     cash_type = models.ForeignKey(CashType, blank=True, null=True, on_delete=models.SET_NULL) 
     description = models.TextField()
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+
+    def get_daily_pay_shop1(self):
+        curdate = datetime.date.today()
+        daySum = ClientCredits.objects.filter(date__year = curdate.year, date__month = curdate.month, date__day = curdate.day) #, date__gte = curdate)
+        pay_lst = settings.SHOP1_PAY
+        cash_list = daySum.filter(cash_type__pk__in = pay_lst)
+        cashtype_sum_day = cash_list.values('cash_type__pk', 'cash_type__name').annotate(cash_sum=Sum('price'), cash_count=Count('price'))
+        return [cash_list, cashtype_sum_day]
+
+    def get_daily_pay_shop2(self):
+        curdate = datetime.date.today()
+        daySum = ClientCredits.objects.filter(date__year = curdate.year, date__month = curdate.month, date__day = curdate.day) #, date__gte = curdate)
+        pay_lst = settings.SHOP2_PAY
+        cash_list = daySum.filter(cash_type__pk__in = pay_lst)
+        cashtype_sum_day = cash_list.values('cash_type__pk', 'cash_type__name').annotate(cash_sum=Sum('price'), cash_count=Count('price'))
+        return [cash_list, cashtype_sum_day]
+
+
+    def get_daily_term_shop1(self):
+        curdate = datetime.date.today()
+        daySum = ClientCredits.objects.filter(date__year = curdate.year, date__month = curdate.month, date__day = curdate.day) #, date__gte = curdate)
+        pay_lst = settings.SHOP1_PAY_TERM
+        print "\nPAY list 1 = " + str(pay_lst) + "\n"
+        #cashtype_lst = CashType.objects.filter(pk__in = pay_lst)
+        cash_list = daySum.filter(cash_type__pk__in = pay_lst)
+        #cash_list = daySum.filter(cash_type__in = cashtype_lst)
+        cashtype_sum_day = cash_list.values('cash_type__pk', 'cash_type__name').annotate(cash_sum=Sum('price'), cash_count=Count('price'))
+        return [cash_list, cashtype_sum_day]
+
+    def get_daily_term_shop2(self):
+        curdate = datetime.date.today()
+        daySum = ClientCredits.objects.filter(date__year = curdate.year, date__month = curdate.month, date__day = curdate.day) #, date__gte = curdate)
+        pay_lst = settings.SHOP2_PAY_TERM
+        print "\nPAY list 2 = " + str(pay_lst) + "\n"
+        #cashtype_lst = CashType.objects.filter(pk__in = pay_lst)
+        cash_list = daySum.filter(cash_type__pk__in = pay_lst)
+        #cash_list = daySum.filter(cash_type__in = cashtype_lst)
+        cashtype_sum_day = cash_list.values('cash_type__pk', 'cash_type__name').annotate(cash_sum=Sum('price'), cash_count=Count('price'))
+        return [cash_list, cashtype_sum_day]
+
 
     def __unicode__(self):
         return "[%s] - %s" % (self.client, self.description)
@@ -772,7 +814,6 @@ class ClientInvoice(models.Model):
             self.sale = self.catalog.sale
             self.sum = self.count * ((1-(self.catalog.sale/100.0)) * self.price)
             self.save()
-            
         return True
 
     def check_pay(self):
@@ -799,13 +840,6 @@ class ClientInvoice(models.Model):
             ic_count = ic_count + item.count
         if ic_count != 0:
             ua = sum / ic_count
-#        cur_exchange = Exchange.objects.filter(currency__ids_char = self.currency.ids_char, date__month = month, date__year = year).aggregate(average_val = Avg('value'))['average_val']
-        #cur_exchange2 = Exchange.objects.aggregate(average_val = Avg('value')) #annotate(avgval = Avg('value'))
-#        if cur_exchange:
-#            ua = self.catalog.price * cur_exchange
-#        else:
-#            ua = self.model.price * 1
-        #ua = self.price * cur_exchange2['average_val'] #['value__avg']
         if (self.currency.ids_char == 'UAH'):
             try:
                 percent_sale = (100-self.sale)*0.01
@@ -1039,7 +1073,6 @@ class Bicycle_Store(models.Model):
     #shop
     #added date
     #invoice
-    
 
     def get_profit(self):
         profit = 0
@@ -1385,6 +1418,7 @@ class ShopDailySales(models.Model):
     cash = models.FloatField() #Готівка
     tcash = models.FloatField() #Термінал
     ocash = models.FloatField() #Взято з каси
+    #shop =  
 
     def day_sale(self):
         r = ShopDailySales.objects.filter(date__lt = self.date).latest('date')

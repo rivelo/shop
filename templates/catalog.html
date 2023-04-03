@@ -74,7 +74,7 @@ $(document).ready( function() {
 		$.ajax({
             type: "POST",
             url: "/photo/url/get/",
-            data: {id:  {{cat_pk}} },
+            data: {id:  {% if cat_pk %} {{cat_pk}} {% else %} None {% endif %} },
             dataType: "json",
             success:function(data){
 

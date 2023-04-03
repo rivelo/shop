@@ -29,7 +29,11 @@ def div(value, arg):
 
 @register.filter
 def sub(value, arg):
-    return value - arg
+    return float(value) - float(arg)
+
+@register.filter
+def sub_int(value, arg):
+    return int(value) - int(arg)
 
 
 @register.inclusion_tag('orm_debug.html')

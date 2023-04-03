@@ -37,7 +37,7 @@ $(document).ready(function() {
 	$("#s_chk_url").hide();
 
 	$( "#print_chk" ).click(function() {
-  		$( "#dialog_pay" ).dialog({
+		$( "#dialog_pay" ).dialog({
   		resizable: false,
       	modal: true,
   		width: 300,
@@ -49,6 +49,16 @@ $(document).ready(function() {
 	        	$('#msg_text').text("Невірна сума");
         	}
         	else {
+/*         		if ($('#term2').prop('checked') == true) {
+        			console.log("Checked RIVELO 2");
+        			confirm('Ви знаходитесь в магазині {{shop_name}} ?');
+        		};
+        		if ($('#term1').prop('checked') == true) {
+        			console.log("Checked RIVELO 1");
+        			return confirm('Ви знаходитесь в магазині {{shop_name}} ?');
+        		};
+ */        		
+        		
         		$('.ui-dialog-buttonset > button:contains(Додати)').hide();        		
 			$.ajax({
                 type: "POST",
@@ -171,9 +181,19 @@ $("#pp11").hide()
   	<input id="t_spinner" name="value" value="{{sum}}"> грн.
 	<br>
 	<label for="spinner">Кавказька:</label>
-  	<input id="term1" name="value" value="1" type="checkbox">
+{% if shop_name == 'shop1' %}
+	<input id="term1" name="value" value="1" type="checkbox" checked>
+{% else %}
+  	<input id="term1" name="value" value="1" type="checkbox" >
+{% endif %}	  	
+{#  	<input id="term1" name="value" value="1" type="checkbox"> #}
 	<label for="spinner">Міцкевича:</label>
+{% if shop_name == 'shop2' %}
+  	<input id="term2" name="value" value="2" type="checkbox" checked>
+{% else %}	
   	<input id="term2" name="value" value="2" type="checkbox">
+{% endif %}  	
+{#  	<input id="term2" name="value" value="2" type="checkbox"> #}
 	<h2 type="text" id="msg_text" name="mytext[]" rows="10" cols="40" style="color:#ff0000""> рядок стану   
 	</h2>
 	<span class="badge badge-success" id="s_chk_url"><a href="" id="chk_url">TEST</a></span>

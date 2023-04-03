@@ -61,11 +61,15 @@ from _mysql import NULL
 
 def custom_proc(request):
 # "A context processor that provides 'app', 'user' and 'ip_address'."
+    date = datetime.datetime.now()
     return {
         'app': 'Rivelo catalog',
         'user': request.user,
         'ip_address': request.META['REMOTE_ADDR'],
-        'shop_name': check_ip(request.META['REMOTE_ADDR'])
+        'shop_name': check_ip(request.META['REMOTE_ADDR']),
+        'year_now': date.year,
+        'month_now': date.month,
+        'day_now': date.day,
     }
 
     
@@ -82,12 +86,10 @@ def auth_group(user, group):
 
 def check_ip(ip_addr):
     ip = '.'.join(ip_addr.split('.')[0:3])
-    print "IP = " + ip
     #request.META['REMOTE_ADDR']
     dict_shop  = settings.SHOPS
     for shop in dict_shop.keys():
         if dict_shop[shop] == ip:
-            print "\nSHOP = " + shop + "\n"
             return shop
     else:
         return "----"
@@ -1036,36 +1038,62 @@ def bicycle_sale_list(request, year=False, month=False, id=None):
     return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'header_links':header_bike, 'price_summ':price_summ, 'profit_summ':profit_summ, 'pay_sum':psum, 'service_summ':service_summ, 'month': month, 'year':year, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def bicycle_sale_list_by_brand(request, year=False, month=False, id=None):
+def bicycle_sale_list_by_brand(request, year=False, month=False, id=None, all=False):
+    if request.user.is_authenticated()==False:
+        return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")   
+
     list = None
+    year = year
+    month = month
+    brand = None
+    brand_count = None
     if (year==False) & (month==False):
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
-        #list = Bicycle_Sale.objects.all().order_by('date')
-        if (id != None):
-            list = Bicycle_Sale.objects.filter(model__model__brand=1, date__year=year).order_by('date')
-        else:
-            list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
+    if all == True:
+        list = Bicycle_Sale.objects.filter(model__model__brand=id).order_by('date')
     else:
-       #list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
-       list = Bicycle_Sale.objects.filter(model__model__brand=id, date__year=year).order_by('date')
+        print "\nBIKE BRAND YEAR = " + str(year) + "\n"
+        print "\nBIKE BRAND MONTH = " + str(month) + "\n"
+        print "\nBIKE ID = " + str(id) + "\n"
+        if (month == False) & (id <> None):
+            list = Bicycle_Sale.objects.filter(model__model__brand=id, date__year=year).order_by('date')
+            brand = list[0].model.model.brand.name
+#            list = Bicycle_Sale.objects.filter(model__model__brand=id).order_by('date')
+        if (year != False) & (month != False) & (id == None):
+            list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
+        if (year != False) & (month != False) & (id <> None):
+            list = Bicycle_Sale.objects.filter(model__model__brand=id, date__year=year, date__month=month).order_by('date')
+            brand = list[0].model.model.brand.name
+        if (month == False) & (id == None):
+            list = Bicycle_Sale.objects.filter(date__year=year).order_by('date')
+        #list = Bicycle_Sale.objects.filter(model__model__brand=id, date__year=year).order_by('date')
+    if id == None:
+        brand_count = list.values('model__model__brand__name', 'model__model__brand').annotate(total=Count('model__model__brand')).order_by('total') #order_by('model__model__brand__name')
+    
     header_bike = Bicycle_Sale.objects.filter().extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')       
     price_summ = 0
+    price_summ_full = 0
     price_opt = 0
+    price_opt_dol = 0
+    price_opt_eur = 0
     profit_summ = 0
     service_summ = 0
     for item in list:
         #price_summ = price_summ + item.price
         price_summ = price_summ + item.price * ((100-item.sale)*0.01)
-        price_opt = price_opt + item.model.price
+        price_summ_full = price_summ_full + item.price
+        if item.model.currency.ids_char == 'UAH':
+            price_opt = price_opt + item.model.price
+        if item.model.currency.ids_char == 'USD':
+            price_opt_dol = price_opt_dol + item.model.price
+        if item.model.currency.ids_char == 'EUR':    
+            price_opt_eur = price_opt_eur + item.model.price
+#        print "\nCURRENCY BIKE = " + str(item.model.currency.ids_char)
         profit_summ = profit_summ + item.get_profit()[1]
         if item.service == False:
             service_summ =  service_summ + 1
-    try:
-        brand = list[0].model.model.brand.name
-    except:
-        brand = None
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ':price_summ, 'header_links':header_bike, 'price_opt': price_opt, 'profit_summ':profit_summ, 'service_summ':service_summ, 'year':year, 'brand':brand, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ':int(price_summ), 'price_summ_full': int(price_summ_full), 'header_links':header_bike, 'brand_count': brand_count, 'price_opt': price_opt, 'price_opt_eur': price_opt_eur, 'price_opt_dol': price_opt_dol, 'profit_summ':profit_summ, 'service_summ':service_summ, 'year':year, 'month': month, 'brand':brand, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]) )
 
 
 def bicycle_sale_service(request, id=None):
@@ -2995,12 +3023,147 @@ def manufacturer_lookup(request):
     return HttpResponse(data)    
 
 
+
 def catalog_import_form(request):
-    form = ImportPriceForm()
-    return render_to_response('index.html', {'form': form, 'weblink': 'catalog_import.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    if auth_group(request.user, 'seller')==False:
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    photo = False
+    rec_price = False
+    description = False
+    name = False
+    check_catalog_id = False
+    add_list = []
+    update_list = []
+    ids_list = []
+    col_count = 3
+    if request.method == 'POST':
+        form = ImportPriceForm(request.POST, request.FILES)
+        if form.is_valid():
+            photo = form.cleaned_data['photo']
+            rec_price = form.cleaned_data['recomended']
+            description = form.cleaned_data['description']
+            name = form.cleaned_data['name']
+            check_catalog_id = form.cleaned_data['check_catalog_id']
+            col_count = form.cleaned_data['col_count']
+            if photo == True:
+                print "PHOTO is True!!!"
+            if check_catalog_id == True:
+                print "Check ID is True!!!"
+        else:
+            print "\nVALID - " + str(form.errors)
+            return render_to_response('index.html', {'form': form, 'weblink': 'catalog_import.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))            
+
+        csvfile = request.FILES['csv_file']
+        dialect = csv.Sniffer().sniff(codecs.EncodedFile(csvfile, "utf-8").read(1024))
+        csvfile.open()
+        csv_file_reader = csv.reader(codecs.EncodedFile(csvfile, "utf-8"), delimiter=';', dialect=dialect)
+
+        w_file = open(settings.MEDIA_ROOT + 'csv/miss_content.csv', 'wb')
+        log_writer = csv.writer(w_file, delimiter=';', quotechar='|') #, quoting=csv.QUOTE_MINIMAL)
+
+        for row in csv_file_reader:
+            id = None
+            code = None
+            cat = None
+            if row[0] and row[0] <> '0':
+                id = row[0]
+            if row[1] and row[1] <> '0':            
+                code = row[1]
+            try:
+                price = row[3]
+                if (not id is None and not code is None):
+                    cat = Catalog.objects.filter(Q(ids = id) | Q(dealer_code = id) | Q(ids = code) | Q(dealer_code = code)).first()
+                if (not id is None) and (code is None):
+                    try:
+                        cat = Catalog.objects.get(Q(ids = id) | Q(dealer_code = id))
+                    except:
+                        pass
+                if (not code is None) and (id is None):                
+                    cat = Catalog.objects.filter(Q(ids = code) | Q(dealer_code = code)).first()
+                if cat:
+                    ids_list.append(cat)
+                if (price <> '0') and (rec_price == True): 
+                    cat.last_price = cat.price
+                    cat.price = row[3]
+                    cat.currency = Currency.objects.get(id = row[4])
+                    cat.last_update = datetime.datetime.now()
+                    cat.user_update = User.objects.get(username='import')
+                if description:
+                    cat.full_description = row[5]
+                if name:
+                    cat.name = row[2]
+                cat.save()
+                update_list.append(row)
+                if col_count >= 10:
+                    m = Manufacturer.objects.get(id=row[8])
+                    t = Type.objects.get(id=row[7])
+                    c = Currency.objects.get(id = row[4])
+                    country = Country.objects.get(id=row[9])                                        
+#                    Catalog(ids=row[0], dealer_code=row[1], name=row[2], manufacturer=m, type=t, year=datetime.datetime.now().year, color='', price=row[3], currency=c, sale=0, country=country, count = 0).save()          
+            except: # Catalog.DoesNotExist:
+                pass
+
+                add_list.append({'id': id, 'code': code, 'photo': row[6], 'name': row[2], 'desc': row[5], 'price': row[3]});
+                log_writer.writerow(row)
+        return render_to_response('index.html', {'update_list': update_list, 'add_list': add_list, 'ids_list': ids_list, 'weblink': 'catalog_import_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        
+    else:
+        form = ImportPriceForm()
+        return render_to_response('index.html', {'form': form, 'title': 'New Fuction', 'weblink': 'catalog_import.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
+#===============================================================================
+#             if photo:
+#                 try:
+#                     old_file = directory  + row[6]
+#                     directory_done = settings.MEDIA_ROOT + 'download/'
+#                     s_name = cat.manufacturer.name
+#                     new_folder = s_name.strip().replace(' ', '-').lower()
+#                     new_file = directory_done + new_folder +'/'+ row[6]
+#                     media_dir = new_file.replace(settings.MEDIA_ROOT, '/media/')
+#                     if os.path.isfile(old_file):
+# #                        print "File found = " + old_file
+#                         ids_list.append({'cat_id': cat.ids, 'id': id, 'code': code, 'photo': row[6], 'photo_is': old_file})
+#                         if not os.path.exists(directory_done + new_folder):
+#                             os.makedirs(directory_done + new_folder)
+#                         os.rename( old_file, new_file )
+#                         chk_photo = Photo.objects.filter(local = media_dir)
+#                         if chk_photo:
+#                             cat.photo_url.add(chk_photo.first())
+#                         else:
+#                             addphoto = Photo(local = media_dir, date = datetime.datetime.now(), user = request.user, description="")
+#                             addphoto.save()
+#                             cat.photo_url.add(addphoto)
+#                     else: 
+#                         if not os.path.isfile(new_file):
+# #                            print "File "+ new_file +" not exists"
+#                             ids_list.append({'cat_id': cat.ids, 'id': id, 'code': code, 'photo': row[6], 'photo_is': 'File not Found'})
+#                         else:   
+# #                            print '*** file found in Download Folder - ' +  new_file
+#                             chk_photo = Photo.objects.filter(local = media_dir)
+#                             if chk_photo:
+#                                 cat.photo_url.add(chk_photo.first())
+#                             else:
+#                                 addphoto = Photo(local = media_dir, date = datetime.datetime.now(), user = request.user, description="")
+#                                 addphoto.save()
+#                                 cat.photo_url.add(addphoto)
+#                             ids_list.append({'cat_id': cat.ids, 'id': id, 'code': code, 'photo': row[6], 'photo_is': new_file})
+#                     cat.save()
+#                 except:
+#                         im1 = Image.open(old_file)
+#                         im2 = Image.open(new_file)
+#                         if im1 == im2:
+#                             os.remove(old_file)
+#                         im1.close()
+#                         im2.close()
+#                 #cat.photo = row[6]
+#===============================================================================    
+#    form = ImportPriceForm()
+#    return render_to_response('index.html', {'form': form, 'weblink': 'catalog_import.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
+#old function to import CSV file from disc
 def catalog_import(request):
+    if auth_group(request.user, 'seller')==False:
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))    
     ids_list = []
 #    if 'name' in request.GET and request.GET['name']:
 #        name = request.GET['name']
@@ -3068,7 +3231,7 @@ def catalog_import_content(request):
 #        print "Recomended = " + str(rec_price)
     else:
         form = ImportPriceForm()
-        return render_to_response('index.html', {'form': form, 'weblink': 'catalog_import.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
+        return render_to_response('index.html', {'form': form, 'title': 'with Photo', 'weblink': 'catalog_import.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
     
     w_file = open(settings.MEDIA_ROOT + 'csv/miss_content.csv', 'wb')
     log_writer = csv.writer(w_file, delimiter=';', quotechar='|') #, quoting=csv.QUOTE_MINIMAL)
@@ -3111,6 +3274,9 @@ def catalog_import_content(request):
  #               except:
  #                   pass
 #            print "Catalog = " + str(cat)
+            if cat:
+                ids_list.append(cat)
+
             if (price <> '0') and (rec_price == True): 
                 cat.last_price = cat.price
                 cat.price = row[3]
@@ -3168,18 +3334,24 @@ def catalog_import_content(request):
             if name:
                 cat.name = row[2]
             cat.save()
-            update_list.append(row)                
+            update_list.append(row)
+
+            try:
+                m = Manufacturer.objects.get(id=row[8])
+                t = Type.objects.get(id=row[7])
+                c = Currency.objects.get(id = row[4])
+                country = Country.objects.get(id=row[9])                                        
+                Catalog(ids=row[0], dealer_code=row[1], name=row[2], manufacturer=m, type=t, year=datetime.datetime.now().year, color='', price=row[3], currency=c, sale=0, country=country, count = 0).save()
+            except:
+                pass
+                            
         except: # Catalog.DoesNotExist:
             #add_list.append(row)
-            m = Manufacturer.objects.get(id=row[8])
-            t = Type.objects.get(id=row[7])
-            c = Currency.objects.get(id = row[4])
-            country = Country.objects.get(id=row[9])                                        
-            Catalog(ids=row[0], dealer_code=row[1], name=row[2], manufacturer=m, type=t, year=datetime.datetime.now().year, color='', price=row[3], currency=c, sale=0, country=country, count = 0).save()          
+            pass
 
-            add_list.append({'id': id, 'code': code, 'photo': row[6], 'name': row[2], 'desc': row[5]});
-            log_writer.writerow([row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]])
-#        print " ---------- END -------------"            
+            add_list.append({'id': id, 'code': code, 'photo': row[6], 'name': row[2], 'desc': row[5], 'price': row[3]});
+#            log_writer.writerow([row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]])
+            log_writer.writerow(row)
         
     #list = Catalog.objects.select_related('manufacturer', 'type', 'currency', 'country').filter(Q(ids__in = ids_list))
     return render_to_response('index.html', {'update_list': update_list, 'add_list': add_list, 'ids_list': ids_list, 'weblink': 'catalog_import_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -3218,7 +3390,13 @@ def catalog_add(request):
             #return HttpResponseRedirect('/catalog/view/')
             return HttpResponseRedirect('/catalog/manufacture/' + str(manufacturer.id) + '/view/5')
     else:
-        form = CatalogForm(request = request)
+        name = request.GET.get('name')
+        ids = request.GET.get('ids')
+        price = request.GET.get('price')
+        dealer_code = request.GET.get('dealer_code')
+        if dealer_code == 'None':
+            dealer_code = '' 
+        form = CatalogForm(request = request, initial={'ids': ids, 'name': name, 'price': price, 'dealer_code': dealer_code})
     #return render_to_response('catalog.html', {'form': form})
     return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -5449,12 +5627,29 @@ def shopmonthlysales_view(request, year=None, month=None):
     return render_to_response('index.html', {'sum_cred': sum_cred, 'sum_deb': sum_deb, 'Cdeb': deb, 'Ccred':cred, 'date_month': date_month, 'sel_year': int(year), 'year_list':year_list, 'sel_month':int(month), 'l_month': xrange(1,13), 'weblink': 'shop_monthly_sales_view.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-def shopdailysales_view(request, year, month, day):
+
+def shopdailysales_view(request, year, month, day, shop=0):
 #    deb = ClientDebts.objects.values('date__year').annotate(suma=Sum("price"))
+    ip_adr = request.META['REMOTE_ADDR']
+    shopName = check_ip(ip_adr)
+    if shop != 0:
+        shopName = 'shop'+str(shop)    
     cred = None
+    dict_shop_pay = []
+    dict_shop_pay = settings.SHOP1_PAY
+    CASH = settings.SHOP2_PAY_CASH
     cash_id = CashType.objects.get(id = 6) # Заробітна плата
+    if shopName == 'shop1': 
+    #custom_proc(request)['shop_name'] == 'shop1':
+        dict_shop_pay  = settings.SHOP2_PAY
+        CASH = settings.SHOP1_PAY_CASH
+    print "\nSHOP PAY = " + str(dict_shop_pay) + "\n"
+    dict_shop_pay.append(6)     
+    cash_id = CashType.objects.filter(id__in=dict_shop_pay) # платежі одного магазину
+    
     if auth_group(request.user, "admin") == False:
-        cred = ClientCredits.objects.filter(date__year=year, date__month=month, date__day=day).exclude(cash_type = cash_id).order_by()
+        #cred = ClientCredits.objects.filter(date__year=year, date__month=month, date__day=day).exclude(cash_type = cash_id).order_by()
+        cred = ClientCredits.objects.filter(date__year=year, date__month=month, date__day=day).exclude(cash_type__in=cash_id).order_by()
     else:    
         cred = ClientCredits.objects.filter(date__year=year, date__month=month, date__day=day).order_by()        
 
@@ -5462,7 +5657,9 @@ def shopdailysales_view(request, year, month, day):
     #cred = ClientCredits.objects.filter(date__year=year, date__month=month, date__day=day).order_by()
     try:
         cash_credsum = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price"))
-        cashCred = cash_credsum.get(cash_type=1)['suma']
+        #cashCred = cash_credsum.get(cash_type__pk__in = settings.)['suma']
+        #cashCred = cash_credsum.get(cash_type__pk__in = settings.SHOP1_PAY_CASH)['suma']
+        cashCred = cash_credsum.get(cash_type__pk = CASH)['suma']
     except ClientCredits.DoesNotExist:
         cashCred = 0
     try:
@@ -5471,6 +5668,9 @@ def shopdailysales_view(request, year, month, day):
     except ClientDebts.DoesNotExist:
         cashDeb = 0
     casa = cashCred - cashDeb
+#    if custom_proc(request)['shop_name'] == 'shop2':
+    if shopName == 'shop2':
+        casa = cashCred
     deb_sum = 0
     cred_sum = 0
     for c in cred:
@@ -5479,7 +5679,7 @@ def shopdailysales_view(request, year, month, day):
         deb_sum = deb_sum + d.price
     sel_date = datetime.date(int(year), int(month), int(day))
     strdate = pytils_ua.dt.ru_strftime(u"%d %B %Y", sel_date, inflected=True)
-    return render_to_response('index.html', {'Cdeb': deb, 'Ccred':cred, 'date': strdate, 'd_sum': deb_sum, 'c_sum': cred_sum, 'cash_credsum': cash_credsum, 'cash_debsum':cash_debsum, 'casa':casa, 'weblink': 'shop_daily_sales_view.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'Cdeb': deb, 'Ccred':cred, 'date': strdate, 'sel_date': sel_date, 'd_sum': deb_sum, 'c_sum': cred_sum, 'cash_credsum': cash_credsum, 'cash_debsum':cash_debsum, 'casa':casa, 'shopNumber': shop, 'weblink': 'shop_daily_sales_view.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def shopdailysales_edit(request, id):

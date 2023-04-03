@@ -10,6 +10,25 @@
 <script src="/media/jquery-ui.min.js"></script>
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 
+<style>
+
+.brand_custom{
+	font-size: 0.7rem;
+	margin-left: 5px;
+}
+
+.table{
+	margin-top: 5px;
+	}
+	
+.bikeModel{
+	margin-left: 5px;
+	font-size: 0.7rem;
+}	
+
+</style>
+
+
 {% load poll_extras %}
 
 <script>
@@ -32,35 +51,43 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
     {% if group.name == 'admin' %}
 <h5>
 {% for item in header_links %}
-<a href="{% url 'bike-sale-by-year' item.0 %}" class="badge badge-warning"> Рік {{item.0}} ({{item.1}})  </a> 
+<a href="{% url 'bicycle-sale-by-year' item.0 %}" class="badge badge-warning"> Рік {{item.0}} ({{item.1}})  </a> 
 {% endfor %}
 </h5>
-
-{% for item in header_links %}
-<a href="/bicycle/sale/brand/11/year/{{item.0}}/month/1/view" class="badge badge-primary">Orbea {{item.0}}</a> 
-<a href="/bicycle/sale/brand/1/year/{{item.0}}/month/1/view" class="badge badge-secondary">Kellys {{item.0}}</a> 
-<a href="/bicycle/sale/brand/3/year/{{item.0}}/month/1/view" class="badge badge-danger">Trek {{item.0}}</a> 
-<a href="/bicycle/sale/brand/138/year/{{item.0}}/month/1/view" class="badge badge-light">Schwinn {{item.0}}</a> 
-<a href="/bicycle/sale/brand/19/year/{{item.0}}/month/1/view" class="badge badge-success">Cannondale {{item.0}}</a> 
-
-{% endfor %}
-
-
-{% endif %}
+	{% endif %}
 {% endfor %}		
 
 {#bicycles.0.model.model.brand}} - {{bicycles.0.model.model.year.year#}
 {% if month and year %}
-<h1><span class="badge badge-info">Список проданих велосипедів за {{month}} місяць {{year}} року</span></h1>
+<h1>
+<span class="badge badge-info">Список проданих велосипедів за {{month}} місяць {{year}} року</span>
+{% if month != '1' and month != '0' %}
+	<a href="{% url 'bicycle-sale-by-year-month' year month|sub_int:1 %}"><span class="badge badge-dark">попередній {{month|sub_int:1}} місяць </span></a>
+ {% endif %}
+</h1>
 {% else %}
 	{% if brand %}
-	{#<h1>Список проданих велосипедів {{brand}} за {{year}} рік</h1> #}
-	<h1><span class="badge badge-info">Список проданих велосипедів {{brand}} за {{year}} рік</span></h1>
+	<h1><span class="badge badge-info">Список проданих велосипедів {{brand}} за {{year}} рік </span></h1>
 	{% else %}
-	{# <h1>Список проданих велосипедів за {{year}} рік</h1> #}
 	<h1><span class="badge badge-info">Список проданих велосипедів за {{year}} рік</span></h1>
 	{% endif %}
 {% endif %}
+
+
+{% for brand in brand_count %}
+{% if month and year %}
+<a href="{% url 'bicycle_year_month_sale_by_brand' brand.model__model__brand year month %}">
+{% else %}
+<a href="{% url 'bicycle_year_sale_by_brand' brand.model__model__brand year %}">
+{% endif %}
+
+<span class="btn btn-primary">
+  {{brand.model__model__brand__name}}
+   <span class="badge badge-light brand_custom">{{brand.total}}</span>
+  </span>
+</a>
+{% endfor %}
+
 
 {% load template_math %}   
 
@@ -95,7 +122,9 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 <!-- 		<td title="{{type.model.size}}"><a href="/bicycle/photo/{{type.model.model.id}}">{{type.model}}</a></td>
  -->
 {% if request.user|has_group:"admin" %}
-		<td title="{{type.model.size}}"><a href="/bicycle-store/edit/{{type.model.id}}">{{type.model}}</a></td>
+		<td title="{{type.model.size}}">
+		<a href="/bicycle-store/edit/{{type.model.id}}" >{{type.model}}</a> <span class="badge badge-secondary bikeModel">{{type.model.size}}</span>
+		</td>
 {% else %}		
 		<td title="{{type.model.size}}">{{type.model}}</td>
 {% endif %}
@@ -134,23 +163,50 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 		<th></th>
 		<th></th>
 {% if user.is_authenticated %}		
+		<th title="Сума продажів без знижок">
+{% if request.user|has_group:"admin" %}			
+		{{price_summ_full|floatformat:"0"}} грн
+		<p>Знижка = {{price_summ_full|sub:price_summ}} грн.</p> 
+{#		<p>Знижка = {{price_summ_full}} грн.</p> #}
+{% endif %}		 
+		</th>
 		<th></th>
 		<th></th>
-		<th></th>
-		<th>{{price_summ|floatformat:"0"}}грн<br>{{pay_sum|floatformat:"0"}} </th>
+	{% if request.user|has_group:"admin" %}		
+		<th title="Загальна сума продажів з врахуванням знижок">{{price_summ|floatformat:"0"}} грн<br>
+	{% else %}
+		<th></th>			
+	{% endif %}
+		
+{#		{{pay_sum|floatformat:"0"}} #} 
+		</th>
 {% else %}
 		<th></th>
 		<th></th>
 		<th></th>
 		<th></th>
 {% endif %}
-{% for group in user.groups.all %}
-    {% if group.name == 'admin' %}
-		<th>Закупка: {{price_opt|floatformat:"0"}} <br> profit = {{profit_summ|floatformat:"0"}}грн </th>
+
+
+	{% if request.user|has_group:"admin" %}
+		<th title="Сума зароблена на продажі без врахування супутніх витрат">Profit = {{profit_summ|floatformat:"0"}}грн </th>
+		<th title="Закуплено за різні валюти:">
+		{% if price_opt_dol %}
+		<p>{{price_opt_dol}} $</p>
+		{% endif %}
+		{% if price_opt_eur %}
+		<p>{{price_opt_eur}} Євро</p>
+		{% endif %}
+		{% if price_opt %} 
+		<p>{{price_opt}} Грн.</p>
+		{% endif %}
+		</th>
+	{% else %}
+		<th></th>
     {% endif %}
-{% endfor %}
-		<th>Не пройдено ТО:</th>			
-		<th align="center" >{{service_summ}}</th>
+
+					
+		<th align="center" >Не пройдено ТО: {{service_summ}}</th>
 		<th></th>
 		<th></th>
 	</tr>

@@ -3,6 +3,18 @@
 <html lang="en">
 <title>Країни виробників</title>
 
+<style>
+.div2 {
+    float: left;
+    margin-right: 10px;
+}
+
+.div1 {
+    float:right;
+}
+</style>
+
+
 <script type="text/javascript">
 $(document).ready( function() {
 
@@ -28,22 +40,26 @@ $(document).ready( function() {
     <tr>
     	<th>#</th>
     	<th>Назва</th>
-    	<th>Дія</th>
+    	<th colspan="2">Дія</th>
+
     </tr>
     {% for country in countries %}
     <tr>
 		<td>
-		{% if user.is_authenticated %}        
-        	<a href="/country/edit/{{ country.id }}"><i class="material-icons">edit</i></a>
-		{% endif %}
 		{{ forloop.counter }}
 		</td>
         <td>
-            {{ country }}
+            <div class="div1" >{{ country }}</div>
+            <div class="div2" data-toggle="tooltip" data-placement="right" title="id of Country">
+            <h4><span class="badge badge-secondary" >{{country.id}}</span></h4>
+            </div>
         </td>
-    
+
+{% if user.is_authenticated %}    
+		<td>
+        	<a href="/country/edit/{{ country.id }}"><i class="material-icons">edit</i></a>
+		</td>
         <td>
-{% if user.is_authenticated %}        
             <a href="/country/delete/{{ country.id }}" onclick="return confirm('Видалити запис - {{country.name}}?')"><i class="material-icons">delete</i></a>
 {% endif %}
         </td>

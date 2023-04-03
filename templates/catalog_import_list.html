@@ -5,6 +5,20 @@
 
 <link rel="stylesheet" type="text/css" href="/media/table.css">
 
+<style>
+
+
+.div_id {
+    float: left;
+}
+
+.div_ico {
+    float:right;
+}
+
+</style>
+
+
 <body>
 
 <h1>
@@ -16,7 +30,7 @@
 <div class="col-auto">
 
 <h2>
-<span class="badge badge-dark">Додані товари</span>
+<span class="badge badge-dark">Додати товари:</span>
 <a href="/media/csv/miss_content.csv" download type="button" class="btn btn-primary"><i class="material-icons">save</i></a>
 </h2>
 
@@ -25,14 +39,21 @@
 		<th>#</th>
 		<th>id</th>
 		<th>Назва</th>
+		<th>Ціна</th>
 		<th>Фото</th>
 		<th>Опис</th>
 	</tr>
 	{% for element in add_list %}
 	<tr>
-		<td>{{ forloop.counter }}</td>
+		<td>
+		<div class="div_id">{{ forloop.counter }}</div>
+		<div class="div_ico">
+		<a href="{% url 'catalog_add' %}?ids={{element.id}}&name={{element.name}}&price={{element.price}}&dealer_code={{element.code}}" title="Додати товар в каталог"><i class="material-icons">note_add</i></a>
+		</div>
+		</td>
 		<td>{{ element.id }} [{{ element.code }}]</td>
 		<td>{{ element.name }}</td>
+		<td>{{ element.price }}</td>
 		<td>{{ element.photo }}</td>
 		<td>{{ element.desc|linebreaks }}</td>
 	</tr>
@@ -45,18 +66,20 @@
 <div class="row">
 <div class="col-auto">
 <h2>
-<span class="badge badge-dark">товари з бази</span>
+<span class="badge badge-dark">Оновлені товари з бази:</span>
 </h2>
 <table class = "table table-bordered table-hover table-condensed">
 	<tr>
 		<th>#</th>
 		<th>Назва</th>
+		<th>Ціна / Стара ціна</th>
 		<th>Photo</th>
 	</tr>
 	{% for element in ids_list %}
 	<tr>
-		<td>{{ forloop.counter }}</td>
-		<td>{{ element }}</td>
+		<td><a href="/catalog/id/{{element.id}}/view">{{ forloop.counter }}</td>
+		<td>[{{ element.id }} / {{ element.ids }}] {{ element.name }}</td>
+		<td>{{ element.price }} / <del>{{ element.last_price }}</del></td>
 		<td {% if element.photo_is == 'File not Found' %} style="color:red;" {% endif %}>{{ element.photo }}</td>
 	</tr>
 	{% endfor %}

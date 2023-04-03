@@ -28,7 +28,10 @@
 	{{item.model}} {{item.model__model__brand__name}} {{item.model.size}}
 	</td>
 	<td>
+{#	<a href="{% url 'bicycle_year_sale_by_brand' item.model__model__brand__id '2022' %}" > #}
+	<a href="{% url 'bicycle_sale_all_by_brand' item.model__model__brand__id  %}" >
 	{{item.bcount}}
+	</a>
 	</td>
 	<td>
 	{{item.model__model__brand__id}}
