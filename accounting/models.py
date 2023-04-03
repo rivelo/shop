@@ -759,7 +759,6 @@ class ClientCredits(models.Model):
         cashtype_sum_day = cash_list.values('cash_type__pk', 'cash_type__name').annotate(cash_sum=Sum('price'), cash_count=Count('price'))
         return [cash_list, cashtype_sum_day]
 
-
     def get_daily_term_shop1(self):
         curdate = datetime.date.today()
         daySum = ClientCredits.objects.filter(date__year = curdate.year, date__month = curdate.month, date__day = curdate.day) #, date__gte = curdate)
@@ -769,7 +768,8 @@ class ClientCredits(models.Model):
         cash_list = daySum.filter(cash_type__pk__in = pay_lst)
         #cash_list = daySum.filter(cash_type__in = cashtype_lst)
         cashtype_sum_day = cash_list.values('cash_type__pk', 'cash_type__name').annotate(cash_sum=Sum('price'), cash_count=Count('price'))
-        return [cash_list, cashtype_sum_day]
+        term_sum = cash_list.aggregate(all_sum = Sum('price'))
+        return [cash_list, cashtype_sum_day, term_sum['all_sum']]
 
     def get_daily_term_shop2(self):
         curdate = datetime.date.today()
@@ -780,7 +780,8 @@ class ClientCredits(models.Model):
         cash_list = daySum.filter(cash_type__pk__in = pay_lst)
         #cash_list = daySum.filter(cash_type__in = cashtype_lst)
         cashtype_sum_day = cash_list.values('cash_type__pk', 'cash_type__name').annotate(cash_sum=Sum('price'), cash_count=Count('price'))
-        return [cash_list, cashtype_sum_day]
+        term_sum = cash_list.aggregate(all_sum = Sum('price'))        
+        return [cash_list, cashtype_sum_day, term_sum['all_sum']]
 
 
     def __unicode__(self):

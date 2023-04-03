@@ -215,17 +215,47 @@ $(document).ready(function() {
 {% for itm in Ccred.0.get_daily_pay_shop1.1 %}	
 <p>[{{itm.cash_type__pk}}] {{itm.cash_type__name}} ({{itm.cash_count}}) - {{itm.cash_sum}}</p>
 {% endfor %}	
+
+<div class="text-light bg-dark" >
+{% for itm in Ccred.0.get_daily_term_shop1.0 %}	
+<p>{{itm.description}} - {{itm.price}} [{{itm.cash_type}}]</p>
+{% endfor %}
+</div>
+
+<div class="p-3 mb-2 bg-success text-white">
+{% for itm in Ccred.0.get_daily_term_shop1.1 %}	
+<p>[{{itm.cash_type__pk}}] {{itm.cash_type__name}} ({{itm.cash_count}}) - {{itm.cash_sum}}</p>
+{% endfor %}	
+</div>
+
+<h3><span class="badge badge-success">{{Ccred.0.get_daily_term_shop1.2}}</span></h3>
 	
 	
 <h4><a href="{% url 'shop-daily-sales-by-shop' sel_date.year sel_date.month sel_date.day 2 %}"><span class="badge badge-secondary">Shop2 - Міцкевича</span></a></h4>
+<div class="text-light bg-dark" >
+{% for itm in Ccred.0.get_daily_pay_shop2.0 %}	
+<p>{{itm.description}} - {{itm.price}} [{{itm.cash_type}}]</p>
+{% endfor %}
+</div>
+
+{% for itm in Ccred.0.get_daily_pay_shop2.1 %}	
+<p>[{{itm.cash_type__pk}}] {{itm.cash_type__name}} ({{itm.cash_count}}) - {{itm.cash_sum}}</p>
+{% endfor %}	
+
+
 <div class="text-light bg-dark" >
 {% for itm in Ccred.0.get_daily_term_shop2.0 %}	
 <p>{{itm.description}} - {{itm.price}} [{{itm.cash_type}}]</p>
 {% endfor %}
 </div>
 
+<div class="p-3 mb-2 bg-success text-white">
 {% for itm in Ccred.0.get_daily_term_shop2.1 %}	
 <p>[{{itm.cash_type__pk}}] {{itm.cash_type__name}} ({{itm.cash_count}}) - {{itm.cash_sum}}</p>
 {% endfor %}	
+</div>
+
+<h3><span class="badge badge-success">{{Ccred.0.get_daily_term_shop2.2}}</span></h3>
+
 	
 		

@@ -157,6 +157,18 @@ def prev_url(request):
          # do another thing here
     return redirect_to
 
+
+#----- Main Page -------------------
+def main_page(request):
+    if request.user.is_authenticated():
+        category_list = Type.objects.filter(ico_status = True)
+        return render_to_response("index.html", {"cat_list": category_list, "weblink": 'index_.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    else:
+        return render_to_response("index.html", {"weblink": 'top.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+
+
 # ------------ Country -----------------
 
 def country_add(request):
@@ -9584,37 +9596,47 @@ def casa_prro_xreport(request, token=post_casa_token()):
         'Authorization': token
         }
     resp = requests.post(url, data=json.dumps(data), headers=headers)
-    #print "X-Report : " + str(resp.json())
-    #print "CASH in box: " + str(resp.json()['payments'][0]['sell_sum'])
-    #print "CARD in box: " + str(resp.json()['payments'][1]['sell_sum'])
-    #print "\nCASH in box: " + str(resp.json()['balance']/100.0) # Сума невилученої готівки в касі 
     response = HttpResponse()
     jsonString = json.dumps(resp.json(), indent=4)
-    rr = resp.json()
+    rr = resp.json() # responce JSON
+    cashless_sell_sum = 0
+    error_msg = None
+    if resp.status_code == 400:
+#        response.write("<b><a href='/casa/prro/create/'>Відкрити зміну</a></b>")
+        error_msg = rr['message'].encode('utf-8')
+    
     try:
-        response.write("<span>Payments block: </span><br>" + str(rr["payments"]) + "<br>")
-        response.write("<br><b><span>Готівка в касі: </span></b> " + str(rr["balance"]/100.00) + " грн." + " <a href='/casa/prro/"+str(rr["balance"])+"/out/'>(" + str(rr["balance"]) +")</a>")
-        response.write("<br><b><span>Кількість чеків за день: </span></b> " + str(rr["sell_receipts_count"]) + " шт.")
-        response.write("<br>")
+#        response.write("<span>Payments block: </span><br>" + str(rr["payments"]) + "<br>")
+#        response.write("<br><b><span>Готівка в касі: </span></b> " + str(rr["balance"]/100.00) + " грн." + " <a href='/casa/prro/"+str(rr["balance"])+"/out/'>(" + str(rr["balance"]) +")</a>")
+#        response.write("<br><b><span>Кількість чеків за день: </span></b> " + str(rr["sell_receipts_count"]) + " шт.")
+#        response.write("<br>")
         for i in rr["payments"]:
-#        print "\nPAYMENTS [type]: " + i["type"]
-#        print "\nPayments[sell_sum]: " + str(i["sell_sum"])
+            print "\nPAYMENTS [type]: " + str(i["type"])
+            if i["type"] == "CASHLESS":
+                print "\nPayments[sell_sum]: " + str(i["sell_sum"])
+                cashless_sell_sum = i["sell_sum"]
             response.write("<br><b><span>В касі [" + str(i['type'].encode('utf-8')) + "]: </span></b> " + str(i["sell_sum"]/100.00) + " грн.")
             response.write("<br><b><span>Внесено в касу [" + str(i['type'].encode('utf-8')) + "]: </span></b> " + str(i["service_in"]/100.00) + " грн.")
             response.write("<br><b><span>Вилучено з каси [" + str(i['type'].encode('utf-8')) + "]: </span></b> " + str(i["service_out"]/100.00) + " грн.")
             response.write("<br>")    
     except:
         pass
-        response.write("<b>Status - " + str(resp.status_code) + "</b><br>")
-        response.write("<b>" + str(rr['message'].encode('utf-8')) + "</b><br>")
-        if resp.status_code == 400:
-            response.write("<b><a href='/casa/prro/create/'>Відкрити зміну</a></b>")
+#        response.write("<b>Status - " + str(resp.status_code) + "</b><br>")
+#        response.write("<b>" + str(rr['message'].encode('utf-8')) + "</b><br>")
 #    print "\n JSON : " + str(rr["payments"])
 #    print "\n Balance: " + str(rr["balance"])
-    response.write("<br>")
-    response.write("<br><span>JSON utf-8: </span><br>" + str(resp.text.encode('utf-8')))         
-    response.write("<br>JSON:" + str(jsonString.replace('\n', '<br />').encode('utf-8')))
-    return response
+#    response.write("<br>")
+#    response.write("<br><span>JSON utf-8: </span><br>" + str(resp.text.encode('utf-8')))
+#    response.write("<br>JSON:" + str(jsonString.replace('\n', '<br />').encode('utf-8')))
+
+    format_json = jsonString.replace('\n', '<br />').encode('utf-8')
+    
+    day_cred=ClientCredits.objects.all().first()
+    term_sum_1 = day_cred.get_daily_term_shop1()[2]
+    term_sum_2 = day_cred.get_daily_term_shop2()[2]
+           
+    #return response
+    return render_to_response('index.html', {'weblink': 'report_prro.html', 'JSON': rr, 'format_resp': format_json, 'day_term_sum': term_sum_2, 'error_status': error_msg, 'cashless_sum': cashless_sell_sum/100.00, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def casa_prro_zreport(request):

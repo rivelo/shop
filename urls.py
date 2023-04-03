@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.conf.urls import patterns, include, url
 
-from catalog.views import main_page
+#from catalog.views import main_page
 #from catalog.test import current_datetime as curdate
 #from django.views.generic.simple import direct_to_template
 #from django.views.generic import TemplateView
@@ -338,8 +338,9 @@ urlpatterns = patterns('',
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^admin/', include(admin.site.urls)),
     #url(r'^admin/', include('admin.site.urls')),
-
-    url(r'^$', main_page),
+    
+    # MAIN PAGE
+    url(r'^$', 'catalog.accounting.views.main_page'),
 
     # Uncomment the next line to enable the admin:
     #url(r'^admin/(.*)', admin.site.root),
@@ -413,7 +414,7 @@ urlpatterns += patterns('',
     url(r'^casa/prro/(?P<sum>\d+)/out/$', 'catalog.accounting.views.casa_prro_in_out', {'inout':"-"}),
     url(r'^casa/prro/xreport/$', 'catalog.accounting.views.casa_prro_xreport'),
     url(r'^casa/prro/create/$', 'catalog.accounting.views.casa_prro_create'),
-    url(r'^casa/prro/zreport/$', 'catalog.accounting.views.casa_prro_zreport'),
+    url(r'^casa/prro/zreport/$', 'catalog.accounting.views.casa_prro_zreport', name='prro-zreport'),
     url(r'^casa/(?P<id>\d+)/view/$', 'catalog.accounting.views.casa_checkout'),
     url(r'^casa/(?P<id>\d+)/status/$', 'catalog.accounting.views.casa_getstatus'),
     url(r'^casa/(?P<id>\d+)/zreport/$', 'catalog.accounting.views.casa_z_report'),
