@@ -1,0 +1,119 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Робота з РРО</title>
+
+<link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" />
+<script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script>    
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+	$('[data-toggle="tooltip"]').tooltip();
+	
+})
+
+
+function true_false(obj){
+	cres = confirm('Повернути готівку?\nЯкщо так то OK в іншому випадку Cancel.');
+	if (cres == false){
+		return 0;
+	};
+            var rent_id = $(obj).attr('id'); 
+            var res = new Array();
+            res = rent_id.split('_');
+            //res = $(this).attr('id');
+            $.ajax({
+                type: "GET",
+                url: "/rent/edit/"+res[1]+"/",
+                data: { id: res[1] },
+                dataType: "json",
+                success:function(msg){
+                    //alert("Все отлично ушло на сервер - " + msg);
+//                    $('#status_2').text(obj);
+//                    obj.innerHTML = msg;
+                    $(obj).html(''+ msg[0].status.toString().toUpperCase());
+                    if (msg[0].status){
+                    $(obj).closest("tr").attr('class', 'tr_true')
+                    } else {
+                    $(obj).closest("tr").attr('class', 'tr_false')
+                    }
+                    //$('#ttt').text(""+msg);
+                    //$('#id_deposit').val(""+msg);
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });
+}      
+
+	</script>    
+    
+{% load poll_extras %}
+    
+    <h1>
+    <span class="badge badge-secondary">X-Звіт магазину <span class="badge badge-light">{{shop_name}}</span></span> 
+    </h1>
+
+{% if error_status %}
+<div class="p-3 mb-2 bg-danger text-white" style="text-size: 2rem;">Помилка: {{error_status}}</div>
+{# <h2><a href="/casa/prro/create/" class="badge badge-success">Відкрити зміну</a></h2> #}
+<div class="p-3 mb-2 bg-success text-white"><h2><a href="/casa/prro/create/" class="text-white font-weight-bold" >Відкрити зміну</a></h2></div>
+{% else %}
+
+<p>
+<b><span>Готівка в касі: </span></b> {{JSON.balance|div:100}} грн. <a href='/casa/prro/{{JSON.balance}}/out/'>({{JSON.balance}})</a>
+<a href="/casa/prro/{{JSON.balance}}/out/" title="Вилучити готівку з каси " data-toggle="tooltip" data-placement="right"><i class="material-icons">remove_circle</i></a> {#add_circle#}
+</p>
+
+<p>
+<b><span>Кількість чеків за день: </span></b> {{JSON.sell_receipts_count}} шт.
+</p>
+
+{% for i in JSON.payments %}
+<b><span>В касі {{i.type}}: </span></b> {{i.sell_sum|div:100}}  грн.
+<br>
+<b><span>Внесено в касу {{i.type}}: </span></b> {{i.service_in|div:100}} грн.
+<br>
+<b><span>Вилучено з каси {{i.type}}: </span></b> {{i.service_out|div:100}} грн.
+<br>   
+{% endfor %}
+
+<h3><span class="badge badge-light">Термінал: {{day_term_sum}} грн.</span></h3>
+<h3><span class="badge badge-light">ПРРО: {{cashless_sum}} грн.</span></h3>  
+<h3><span class="badge badge-warning">Потрібно надрукувати товари на суму: {{day_term_sum|sub:cashless_sum}} грн.</span></h3>
+
+<br>
+
+{% if request.user|has_group:"admin" %}
+<h3><a href="{% url 'prro-zreport' %}" class="badge badge-success" onclick="return confirm('Виконати З-звіт в магазині Рівело, вул.Міцкевича 7?')">Z-звіт</a></h3>
+{% endif %}
+
+
+{% endif %}
+
+<br><br>
+
+
+<span>Payments block: </span><br> {{JSON.payments}}  
+<br>
+<br>
+
+    
+
+JSON:
+<p>
+{{JSON}}
+</p>
+    
+Format:    
+<p>
+{{format_resp}}
+</p>    
+
+{{format_resp|safe}}
+
+
+
+
+
