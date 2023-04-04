@@ -70,6 +70,7 @@ def custom_proc(request):
         'year_now': date.year,
         'month_now': date.month,
         'day_now': date.day,
+        'local_server': settings.LOCAL_TEST_SERVER,
     }
 
     
@@ -5830,7 +5831,7 @@ def shop_price_bysearch_id(request, id):
     
 def shop_price_bysearch_id_print(request, id):
     list = Catalog.objects.filter(ids__icontains=id).order_by("-id")
-    return render_to_response('price_list.html', {'catalog': list})    
+    return render_to_response('price_list.html', {'catalog': list, 'view': False, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
 def shop_price_bysearch_name(request, id, pprint = False):
@@ -5937,6 +5938,12 @@ def remove_zero_ShopPrice_records(request):
 def shop_price_qrcode_print_view(request):
     list = ShopPrice.objects.all().order_by("user")
     return render_to_response('manual_qrcode_price_list.html', {'price_list': list, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))    
+
+
+def shop_price_print_list_add(request):
+    by_user = False
+    plist = None
+    return render_to_response('index.html', {'weblink': 'scan_many_barcode.html', 'price_list': plist, 'by_user' : by_user}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def shop_price_print_list(request, user_id = None, pprint=False):
@@ -9634,6 +9641,9 @@ def casa_prro_xreport(request, token=post_casa_token()):
     day_cred=ClientCredits.objects.all().first()
     term_sum_1 = day_cred.get_daily_term_shop1()[2]
     term_sum_2 = day_cred.get_daily_term_shop2()[2]
+#    if term_sum_2 == None:
+#        term_sum_2 = 0
+    term_sum_2 = int(term_sum_2 or 0)
            
     #return response
     return render_to_response('index.html', {'weblink': 'report_prro.html', 'JSON': rr, 'format_resp': format_json, 'day_term_sum': term_sum_2, 'error_status': error_msg, 'cashless_sum': cashless_sell_sum/100.00, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))

@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Додати/сканувати в Чергу Цінників</title>
+
+<link type="text/css" rel="stylesheet" href="/media/paginator.css">
+<link rel="stylesheet" type="text/css" href="/media/css/table.css"> 
+
+
+
+<style type="text/css">
+a.icon { 
+    text-decoration: none; /* Отменяем подчеркивание у ссылки */ 
+    color: white; 
+   } 
+
+input:invalid ~ span::after {
+  content: "✖";
+  padding-left: 5px;
+  position: absolute;
+}
+
+input:valid ~ span::after {
+  content: "✓";
+  padding-left: 5px;
+  position: absolute;
+}
+     
+</style>
+
+
+<script>
+$(document).ready(function() {
+	
+	$('[data-toggle="tooltip"]').tooltip();
+	
+	 $(".price_del").click(function(){
+		 $(this).parents("tr").children("td.cat_name").css( "background", "yellow" );
+		 console.log($(this).parents("tr").children("td.cat_name").children("a").html());
+		 if (confirm("Ви дійсно бажаєте видалити запис? \n" + $(this).parents("tr").children("td.cat_name").children("a").html())) {
+			$(this).parents("tr").children("td.cat_name").css( "background", "yellow" );
+		 	var tr_del = $(this).parents("tr");
+				$.ajax({
+		                type: "POST",
+		                url: "/shop/price/print/delete/",
+		                data: {id:  $(this).attr("p_id") },
+		                dataType: "text",
+		                success:function(data){
+//		                	console.log("ajax work");
+		                	tr_del.remove();
+//		                	console.log($(this).parents("tr"));
+		                },
+		                error:function(data){
+		                    alert("Виникли проблеми з сервером" + data);
+		                }
+		            });	
+		 }
+		 else {
+			 $(this).parents("tr").children("td.cat_name").css( "background", "white" );			 
+		 }
+		 });
+	 
+});	 
+
+
+</script>
+
+
+{% load poll_extras %}
+
+<h1><span class="badge badge-secondary">Додати/сканувати в чергу цінники
+{% if by_user %}
+	<span class="badge badge-info">{{request.user}} </span>
+{% endif %}
+</span>
+{# <a href="/shop/price/print/view/?page={{ price_list.number }}" > #}
+{% if by_user %}
+	<a href="{% url 'label_print_by_user' request.user.id %}" >
+{% else %}
+	<a href="{% url 'label_print_all' %}" >
+{% endif %}
+<span class="badge badge-success" title="Попередній перегляд" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">print</i></span>
+</a> 
+</h1>
+  
+
+{% comment %}
+{% if request.user|has_group:"seller" %}
+<span class="badge badge-danger"> <a href="{% url 'shopprice_duplicate_delete' %}" class="icon">Видалити дублікати</a> </span> 
+<span class="badge badge-danger"> <a href="{% url 'shopprice_zero_delete' %}" class="icon">Видалити продані позиції</a> </span>
+<span class="badge badge-danger"> <a href="{% url 'label_list_by_user' request.user.id %}" class="icon">Показати власні чеки {{request.user}}</a> </span>
+{% endif %}
+{% endcomment %}
+
+<form action="javascript:alert( 'success!' );">
+  <div>
+{#    <label for="mySearch">Сканування для додавання цінників в чергу</label> #}
+    <input
+      type="search"
+      id="mySearch"
+      name="q"
+      placeholder="Use BarCode 12–15 characters in length"
+      required
+      size="100"
+      minlength="4"
+      maxlength="100" autofocus />
+    <button>Search</button>
+    <span class="validity"></span>
+  </div>
+  <span class="validate"></span>
+</form>
+
+
+<br>
+
+<script>
+$( "form" ).submit(function( event ) {
+	  if ( $( "input" ).first().val() === "correct" ) {
+	    $( "span.validate" ).text( "Validated..." ).show();
+	    return;
+	  }
+	 
+	  $( "span.validate" ).text( "Enter" ).show().fadeOut( 1000 );
+	  	var search_val = $('#mySearch').val();
+	  	$('#mySearch').val('');
+	    $('#mySearch').focus();
+	    $('#mySearch').blur();
+	    
+	  	document.getElementById('mySearch').focus()	    
+		$('#iTable > tbody:first').append('<tr><td></td><td>'+ search_val +'</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>'); 
+	  event.preventDefault();
+	});
+
+
+</script>
+
+
+
+
+
+<table class = "table table-bordered table-hover table-condensed" id="iTable">
+<tr>
+<th><b>#</b></th>
+<th><b>Код</b></th>
+<th><b style="font-size: 10pt;">Виробник </b></th>
+<th><b style="font-size: 10pt;">Країна</b> </th>
+<th><b style="font-size: 10pt;">Ціна </b> </th>
+<th> <b>Назва</b> </th>
+<th><b style="font-size: 10pt;">Друк</b> </th>
+<th><b style="font-size: 10pt;">К-сть склад</b> </th>
+<th><b style="font-size: 10pt;">Користувач</b> </th>
+<th><b>Дата</b> </th>
+<th><b>Дія</b> </th>
+</tr>
+
+{# <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr> #}
+
+</table>
+
+
+
+<br>

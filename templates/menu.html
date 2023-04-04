@@ -71,6 +71,10 @@ $(document).ready(function() {
 
 {% load poll_extras %}
 
+{% if local_server == True %}
+<div class="p-3 mb-2 bg-danger text-white text-center">Локальна версія</div>
+{% endif %}
+
 {# if user.is_authenticated #}
  <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top py-0 py-md-0" data-toggle="sticky-onscroll" id="portal_menu"> 
 {#<nav class="navbar navbar-dark bg-dark navbar-expand-md" data-toggle="sticky-onscroll" id="portal_menu"> #}
@@ -168,15 +172,17 @@ $(document).ready(function() {
        		<a class="dropdown-item" href="/invoice/category/view/">Вибірка по категоріях</a>
        		<a class="dropdown-item" href="/client/invoice/view/"><i class="material-icons">shopping_cart</i> Проданий товар</a>
         <div class="dropdown-divider"></div>        
-  			<a class="dropdown-item" href="/shop/price/print/list/">Черга цінників для друку</a>
+  			<a class="dropdown-item" href="{% url 'shop-price-print-list' %}">Черга цінників для друку</a>
 			<a class="dropdown-item" href="/shop/price/print/view/">Цінники для друку</a>	
 			<a class="dropdown-item" href="/shop/price/lastadded/10/view/">Цінники по останнім товарам</a>
 			<a class="dropdown-item" href="/shop/price/company/12/view/">Цінники по виробнику</a>
+			<a class="dropdown-item" href="{% url 'shop-price-print-list-add' %}"><i class="material-icons">barcode_reader</i> Додати цінники в Чергу</a>
+			
         <div class="dropdown-divider"></div>
 			<a class="dropdown-item" href="/client/invoice/return/list/">Повернений товар</a>
        		<a class="dropdown-item" href="/invoice/price/update/1/view/"><i class="material-icons">update</i> Оновлені товари</a>
        		<a class="dropdown-item" href="/invoice/enddate/list/"><i class="material-icons">calendar_today</i> Товари з терміном</a>
-       		<a class="dropdown-item" href="/invoice/search/"><i class="material-icons">search</i> Пошук наявного товару</a>
+{#       		<a class="dropdown-item" href="/invoice/search/"><i class="material-icons">search</i> Пошук наявного товару</a> #}
 {#       		<a class="dropdown-item" href="/invoice/list/10/view/">Наявний товар 10 останніх</a> #}
        		<a class="dropdown-item" href="/invoice/sale/list/">Товари зі ЗНИЖКАми</a>
        		<a class="dropdown-item" href="/dealer/invoice/new/"><i class="material-icons">local_shipping</i> Нові надходження</a>

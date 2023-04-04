@@ -1457,7 +1457,7 @@ $("body").on('click', '.addprice', function() {
 //$(document).on("click", ".addprice", function(event) {
 //    $("#dtext").html($(this).attr('href'));
 //	console.log("JUST WORK")
-	$("#dtext").html('<b>Додати цінник до списку друку:</b>');
+	$("#dtext").html('<b>Додати цінник до черги друку: >>></b>');
 //    $("#dtext").attr({"ids": $(this).attr('ids')});
 	var spinner = $("#spinner").spinner();
 	$("#spinner").val(1);       
@@ -1843,6 +1843,7 @@ function show_tr_year(obj){
 <!-- Dialog to add print price -->
 	<div id="dialog" title="Add price">
 	<p id="dtext">Додати цінник до списку друку</p>
+{#	<p><a href="{% url 'shop-price-by-search-id-print' 398478 %}">Друкувати</a></p> #}
 	<label for="spinner">Кількість:</label>
   	<input id="spinner" name="value" value="1">
 	</div>

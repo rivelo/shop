@@ -137,7 +137,11 @@ span a {
 
 {% if view %}
     
-<h1>Цінники на продукцію {{company.name}}  ({{catalog.count}})  <a href="{{link}}">(Версія для друку)</a> </h1>
+<h1>Цінники на продукцію {{company.name}}  ({{catalog.count}})  <a href="{{link}}" class="badge badge-success">Версія для друку</a> </h1>
+<h3>
+<a href="{% url 'shop-price-last-added' 25 %}" class="badge badge-success">25</a> <a href="{% url 'shop-price-last-added' 50 %}" class="badge badge-success">50</a>
+<a href="{% url 'shop-price-last-added' 75 %}" class="badge badge-success">75</a> <a href="{% url 'shop-price-last-added' 100 %}" class="badge badge-success">100</a>
+</h3>
 
 {% for company in company_list %}
 <span class="badge badge-secondary"><a href="/shop/price/company/{{company.id}}/view/">{{company.name}}</a></span>
