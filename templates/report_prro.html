@@ -68,20 +68,22 @@ function true_false(obj){
 
 <p>
 <b><span>Кількість чеків за день: </span></b> {{JSON.sell_receipts_count}} шт.
+<br>
+<b><span>Дата/час відкриття зміни: </span></b> {{res_start_dt|date:"d M Y H:i"}}
 </p>
 
 {% for i in JSON.payments %}
-<b><span>В касі {{i.type}}: </span></b> {{i.sell_sum|div:100}}  грн.
+<b><span>В касі {{i.type}}: </span></b> {{i.sell_sum|div:100.0}}  грн.
 <br>
-<b><span>Внесено в касу {{i.type}}: </span></b> {{i.service_in|div:100}} грн.
+<b><span>Внесено в касу {{i.type}}: </span></b> {{i.service_in|div:100.0}} грн.
 <br>
-<b><span>Вилучено з каси {{i.type}}: </span></b> {{i.service_out|div:100}} грн.
+<b><span>Вилучено з каси {{i.type}}: </span></b> {{i.service_out|div:100.0}} грн.
 <br>   
 {% endfor %}
 
-<h3><span class="badge badge-light">Термінал: {{day_term_sum}} грн.</span></h3>
-<h3><span class="badge badge-light">ПРРО: {{cashless_sum}} грн.</span></h3>  
-<h3><span class="badge badge-warning">Потрібно надрукувати товари на суму: {{day_term_sum|sub:cashless_sum}} грн.</span></h3>
+<h3><span class="badge badge-light">Термінал: {{day_term_sum|div:100.0}} грн.</span></h3>
+<h3><span class="badge badge-light">ПРРО: {{cashless_sum|div:100.0}} грн.</span></h3>  
+<h3><span class="badge badge-warning">Потрібно надрукувати товари на суму: {{day_term_sum|sub:cashless_sum|div:100.0}} грн.</span></h3>
 
 <br>
 
