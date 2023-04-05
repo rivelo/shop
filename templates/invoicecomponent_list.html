@@ -204,6 +204,15 @@ cursor: pointer;
 	color: #272728;	
 }*/
 
+.div_c_name {
+    float: left;
+    margin-right: 10px;
+}
+
+.price_tag {
+    float:right;
+}
+
 </style>
         
 
@@ -211,6 +220,8 @@ cursor: pointer;
         
 <script type="text/javascript">
 jQuery(document).ready(function ($) {
+	
+	$("div.price_tag").hide();		
 
 jQuery.extend( jQuery.fn.dataTableExt.oSort, {
     "currency-html-pre": function ( a ) {
@@ -475,8 +486,9 @@ $(document).ready(function() {
 	$("#iTable_length").append(' <a href="javascript:void(0);" id="c_join" class="badge badge-dark text-white" val="0">Обєднати товари</a>');
 	$("#iTable_length").append(' <a href="javascript:void(0);" id="sale_change" val="0" class="badge badge-dark text-white">Змінити знижку</a>');
 {% endif %}	
-	$("#iTable_length").append('  <a href="javascript:void(0);" id="print_phpbb" val="0" class="badge badge-dark text-white">Таблиця phpbb</a>');
+	$("#iTable_length").append('  <a href="javascript:void(0);" id="print_phpbb" val="0" class="badge badge-dark text-white">TEXT</a>');
 	$("#iTable_length").append('  <a href="javascript:void(0);" id="change_type" val="0" class="badge badge-dark text-white">Змінити категорію</a>');
+	$("#iTable_length").append('  <a href="javascript:void(0);" id="price_tag_button" val="0" class="badge badge-dark text-white">Цінники</a>');
 	
 
  
@@ -1487,8 +1499,9 @@ $("body").on('click', '#print_phpbb', function() {
 	$.post( "/invoice/print/forum/", { ids: ids.join() } )
 	.done(function( data ) {
 //    alert( "Data Loaded: " + data );
-	data = data.replace(/</g, "[");
-	data = data.replace(/>/g, "]");
+		//data = data.replace(/</g, "[");
+		//data = data.replace(/>/g, "]");
+		data = data.replace(/\n/g, "<br>");
 		console.log("replace = " + data );	
     $("#dialog_print").dialog("open");
     $("#print_container").html(data);
@@ -1704,6 +1717,20 @@ var table = $('#iTable').DataTable();
 	}
 });
 
+
+$("body").on('click', '#price_tag_button', function() {
+	var status = $('#price_tag_button').attr('val')
+	if ( status == 1) {
+		$("div.price_tag").hide();	
+		$("#price_tag_button").attr('val', 0);
+	}
+	if ( status == 0) {
+		$("div.price_tag").show();
+		$("#price_tag_button").attr('val', 1);
+	}
+})
+
+
 function show_tr_year(obj){
 	$( "#table_body").find( "tr:not([iyear*='{{cur_year}}'])" ).toggle();
 //	$(obj).removeClass('badge-warning').addClass('badge-dark');
@@ -1812,7 +1839,7 @@ function show_tr_year(obj){
 
      
 {% if request.user|has_group:"admin" %}     
-     <span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="42" height="42" title="Відправити вибірку на Email" data-toggle="tooltip" data-placement="bottom"></span>
+{#     <span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="42" height="42" title="Відправити вибірку на Email" data-toggle="tooltip" data-placement="bottom"></span> #}
      {% if category_id %}
 	     <a href="/inventory/type/{{category_id}}/autofix/" title="Звести порахований товар" data-toggle="tooltip" data-placement="bottom"><i class="material-icons md-48 align-middle">playlist_add_check</i> </a>
      {% endif %}
@@ -1826,7 +1853,7 @@ function show_tr_year(obj){
 </div>
 
 <!-- Dialog print PHPbb -->
-	<div id="dialog_print" title="Таблиця для форуму">
+	<div id="dialog_print" title="Текст для повідомлень">
 	<div id="print_container">
 	</div>
 	</div>
@@ -2052,13 +2079,21 @@ function show_tr_year(obj){
 {% endif %}	
 	</td>
 	<td class="c_name">
+<div class="div_c_name">	
 	[{{type.catalog__ids}}] {% if type.catalog__dealer_code %} [{{type.catalog__dealer_code}}] {% endif %}- ({{type.catalog__manufacturer__name}}) {{type.catalog__name}} 
 	{% if type.catalog__date %} 
           <span class="modal-body" data-toggle="datepicker">
 	    [{{type.catalog__date}}]
 	      </span> 
 	{% endif %}
-
+</div>	
+<div class="price_tag">
+<a href="{% url 'shop-price-by-search-id-print' type.catalog__ids %}" title="Друкувати цінник">
+<span class="material-icons">
+local_offer
+</span>
+</a>
+</div>
 {% comment %}	
 	<span class="fa fa-calendar-o red-icon"></span>
 	<span class="typcn typcn-social-youtube green-icon”> text</span>
@@ -2066,6 +2101,7 @@ function show_tr_year(obj){
 {% endcomment %}
 	
 	</td>
+	
 	<td align="center">
 	<a href="/invoice/catalog/{{type.catalog}}/view/" title="Надходження" data-toggle="tooltip" data-placement="top">
 	{{type.sum_catalog}}

@@ -2430,6 +2430,7 @@ def invoicecomponent_print(request):
     list = None
     id_list=[]
     map_id = []
+    result_str = ''
     
     if 'ids' in request.POST and request.POST['ids']:
         id_list = request.POST['ids'].split(',')
@@ -2437,18 +2438,29 @@ def invoicecomponent_print(request):
         list = Catalog.objects.filter(id__in = id_list).values('name', 'ids', 'manufacturer__name', 'price', 'sale', 'count', 'type__name').order_by('manufacturer')
     else:
         return HttpResponse("Не вибрано жодного товару", content_type="text/plain;charset=UTF-8;")
-
     response = HttpResponse()
-    response.write(u"<table>")
-    response.write(u"<tr> <td>Артикул</td> <td>Виробник</td> <td>Назва</td> <td>Ціна</td> <td>Знижка %</td> <td>Нова ціна</td> </tr>")
+    
+#    result_str = u'Назва: '
+        
+#    response.write(u"<table>")
+#    response.write(u"<tr> <td>Артикул</td> <td>Виробник</td> <td>Назва</td> <td>Ціна</td> <td>Знижка %</td> <td>Нова ціна</td> </tr>")
 
     for i in list:
-         response.write("<tr>")
-         new_price = float(i['price']) / 100.0 * (100 - int(i['sale']))
-         response.write("<td>"+ i['ids'] +"</td><td>"+ i['manufacturer__name'] +"</td><td>"+ i['name'] +"</td><td>" + str(i['price']) +u" грн.</td><td>"+ str(i['sale']) +"</td><td>"+ str(new_price) +u" грн.</td>")
-         #response.write("<td>"+ i['ids'] +"</td><td>"+ i['name'] +"</td><td>" + i['ids'] +u" грн.</td><td>"+i['ids'] +"</td><td>") #+ str(new_price) +"</td>")
-         response.write("</tr>")
-    response.write("</table>")
+#        response.write("<tr>")
+        new_price = float(i['price']) / 100.0 * (100 - int(i['sale']))
+ #       response.write("<td>"+ i['ids'] +"</td><td>"+ i['manufacturer__name'] +"</td><td>"+ i['name'] +"</td><td>" + str(i['price']) +u" грн.</td><td>"+ str(i['sale']) +"</td><td>"+ str(new_price) +u" грн.</td>")
+        #response.write("<td>"+ i['ids'] +"</td><td>"+ i['name'] +"</td><td>" + i['ids'] +u" грн.</td><td>"+i['ids'] +"</td><td>") #+ str(new_price) +"</td>")
+  #      response.write("</tr>")
+        result_str = result_str + u'Товар: '
+        result_str =  result_str + "[" + i['ids'] + "] ("  + i['manufacturer__name']+ ") " + i['name'] + "\n"
+        if int(i['sale']) == 0:
+            result_str = result_str + u"Ціна: " + str(i['price']) + "\n"
+        else:
+            result_str = result_str + u"Ціна: " + str(i['price']) + "\n"    
+            result_str = result_str + u"Нова ціна: " + str(new_price) + "\n" 
+        result_str = result_str + '\n'
+    #response.write("</table>")
+    response.write(result_str)
 #    response = response.replace("<", "[")
 #    response = response.replace(">", "]")
     return response
@@ -3048,6 +3060,8 @@ def catalog_import_form(request):
     add_list = []
     update_list = []
     ids_list = []
+    created_cat_list = []
+    error_list = []
     col_count = 3
     if request.method == 'POST':
         form = ImportPriceForm(request.POST, request.FILES)
@@ -3078,6 +3092,7 @@ def catalog_import_form(request):
             id = None
             code = None
             cat = None
+            #print "\n ROW =  " + str(row) + '\n'
             if row[0] and row[0] <> '0':
                 id = row[0]
             if row[1] and row[1] <> '0':            
@@ -3095,30 +3110,52 @@ def catalog_import_form(request):
                     cat = Catalog.objects.filter(Q(ids = code) | Q(dealer_code = code)).first()
                 if cat:
                     ids_list.append(cat)
-                if (price <> '0') and (rec_price == True): 
-                    cat.last_price = cat.price
-                    cat.price = row[3]
-                    cat.currency = Currency.objects.get(id = row[4])
-                    cat.last_update = datetime.datetime.now()
-                    cat.user_update = User.objects.get(username='import')
-                if description:
-                    cat.full_description = row[5]
-                if name:
-                    cat.name = row[2]
-                cat.save()
+                    if (price <> '0') and (rec_price == True): 
+                        cat.last_price = cat.price
+                        cat.price = row[3]
+                        cat.currency = Currency.objects.get(id = row[4])
+                        cat.last_update = datetime.datetime.now()
+                        cat.user_update = User.objects.get(username='import')
+                    if description:
+                        cat.full_description = row[5]
+                    if name:
+                        cat.name = row[2]
+                    cat.save()
+                else:
+                    if int(col_count) >= 10:
+                        print "\n ROW [8] =  " + row[8]
+                        try:
+                            m = None
+                            m = Manufacturer.objects.get(id=row[8])
+                        except:
+                            error_list.append('Для товару ['+ row[0] + '] ' + row[2] +'. ' + 'Виробника з ID [' + row[8] + '] не існує') 
+                        print "\n Manufacturer NAME = : " + m.name
+                        try:
+                            t = None
+                            t = Type.objects.get(id=row[7])
+                        except:
+                            error_list.append('Для товару ['+ row[0] + '] ' + row[2] +'. ' +'Такої категорії ID [' + row[7] + '] не існує')
+                        try:
+                            c = Currency.objects.get(id = row[4])
+                        except:
+                            error_list.append('Для товару ['+ row[0] + '] ' + row[2] +'. ' + 'Валюти з ID [' + row[4] + '] не існує')
+                        try:
+                            country = Country.objects.get(id=row[9])
+                        except:
+                            error_list.append('Для товару ['+ row[0] + '] ' + row[2] +'. ' + 'Країни з ID [' + row[9] + '] не існує')
+                                                                
+                        new_cat = Catalog.objects.create(ids=row[0], dealer_code=row[1], name=row[2], manufacturer=m, type=t, year=datetime.datetime.now().year, color=row[10], price=row[3], currency=c, sale=0, country=country, count = 0) #.save()
+                        print "CRATE CATALOG"
+                        created_cat_list.append(new_cat)
+                print "\n ROW =  " + str(row) + '\n'
+                print "\n CATALOG =  " + str(cat) + '\n'
+                
                 update_list.append(row)
-                if col_count >= 10:
-                    m = Manufacturer.objects.get(id=row[8])
-                    t = Type.objects.get(id=row[7])
-                    c = Currency.objects.get(id = row[4])
-                    country = Country.objects.get(id=row[9])                                        
-#                    Catalog(ids=row[0], dealer_code=row[1], name=row[2], manufacturer=m, type=t, year=datetime.datetime.now().year, color='', price=row[3], currency=c, sale=0, country=country, count = 0).save()          
             except: # Catalog.DoesNotExist:
-                pass
-
+                print "\n EXCEPT \n"
                 add_list.append({'id': id, 'code': code, 'photo': row[6], 'name': row[2], 'desc': row[5], 'price': row[3]});
                 log_writer.writerow(row)
-        return render_to_response('index.html', {'update_list': update_list, 'add_list': add_list, 'ids_list': ids_list, 'weblink': 'catalog_import_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        return render_to_response('index.html', {'update_list': update_list, 'add_list': add_list, 'ids_list': ids_list, 'weblink': 'catalog_import_list.html', 'error_list': error_list, 'created_cat_list': created_cat_list,  'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
         
     else:
         form = ImportPriceForm()
