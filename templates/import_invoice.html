@@ -1,51 +1,65 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Імпорт накладної</title>
 
-    <h1>Імпорт накладної:</h1>
+    <h1>
+    <span class="badge badge-secondary">Імпорт накладної:</span>
+    </h1>
     <form action="/dealer/invoice/import/file/" method="POST" enctype="multipart/form-data">
         <table>
             {{ form.as_table }}
         </table>
-        <p><input type="submit" value="Save"></p>
+        <p><input type="submit" value="Імпортувати"></p>
     </form>
 
-<h3>Структура файлу:</h3>
+
+<h3><span class="badge badge-info">Структура файлу:</span></h3>
+
 <ul>
 <li>
 0. catalog_id
 </li>
 <li>
-1. catalog_name
+1. dealer_code (0 = don't find)
 </li>
 <li>
-2. count
+2. catalog_name
 </li>
 <li>
-3. price
+3. catalog_price_recomended
 </li>
 <li>
-4. curreny (2 - USD; 4 - EUR; 3	- UAH)
+4. catalog_price_curreny (3	- UAH)
 </li>
 <li>
-5. id_nakladna
+5. count
 </li>
 <li>
-6. catalog_price_recomended
+6. price
 </li>
 <li>
-7. catalog_price_curreny (3	- UAH)
+7. curreny (2 - USD; 4 - EUR; 3	- UAH)
 </li>
 <li>
-8. catalog_manufacture
+8. id_nakladna
 </li>
 <li>
 9. catalog_type_id
 </li>
 <li>
-10. catalog_color
+10. catalog_manufacture
 </li>
 <li>
 11. catalog_country
 </li>
+<li>
+12. catalog_color
+</li>
+<li>
+13. description (0 - Null value)
+</li>
+<li>
+14. photo
+</li>
+
 </ul>
     

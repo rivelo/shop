@@ -2699,55 +2699,134 @@ def invoice_import_form(request):
     
 
 def invoice_import(request):
-# id / name / company / type / color / country / count/ price / currency / invoice_id / rrp_price / currency /
-# id / name / count / price / currency / invoice number
     invoice_reader = None
     ids_list = []
+    add_list = []
+    update_list = []
+    error_list = []
+    icl_list = []
+    created_cat_list = []
     now = datetime.datetime.now()
-#    if 'name' in request.GET and request.GET['name']:
-#        name = request.GET['name']
-    if request.POST and request.FILES:
+    inv_number = None
+    recomended = False
+    create_catalog = False
+
+    if request.method == 'POST':
+        form = ImportDealerInvoiceForm(request.POST, request.FILES)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            recomended = form.cleaned_data['recomended']
+            create_catalog = form.cleaned_data['create_catalog']
+            inv_number = form.cleaned_data['invoice_number']
+            inv_number = inv_number.replace(' ', '')
+            print "\ninvoice number : " + inv_number 
+#            col_count = form.cleaned_data['col_count']
+            if recomended == True:
+                print "\nPrice recomended is True!!!"
+#            print "Check ID is True!!!"
+        else:
+            return render_to_response('index.html', {'form': form, 'weblink': 'import_invoice.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))            
+#    if request.POST and request.FILES:
 #    if request.FILES:
         csvfile = request.FILES['csv_file']
         dialect = csv.Sniffer().sniff(codecs.EncodedFile(csvfile, "utf-8").read(1024))
         csvfile.open()
         invoice_reader = csv.reader(codecs.EncodedFile(csvfile, "utf-8"), delimiter=';', dialect=dialect)
-        #invoice_reader = csv.reader(csvfile, delimiter=';', quotechar='|')
 
     name = 'id'
-#    path = settings.MEDIA_ROOT + 'csv/' + name + '.csv'
-#    csvfile = open(path, 'rb')
-#    invoice_reader = csv.reader(csvfile, delimiter=';', quotechar='|')
     w_file = open(settings.MEDIA_ROOT + 'csv/' + name + '_miss.csv', 'wb')
     spamwriter = csv.writer(w_file, delimiter=';', quotechar='|') #, quoting=csv.QUOTE_MINIMAL)
     for row in invoice_reader:
+        cat = None
         id = None
-        print "ROW[0] = " + row[0]
         id = row[0]
-        ids_list.append(row[0])
+        dealer_code = row[1]
+        catalog_name = row[2]
+        catalog_r_price = row[3].replace(' ', '')
+        r_cur = row[4]
+        inv_cat_count = int(row[5])
+        catalog_price = row[6].replace(' ', '')
+        p_cur = row[7]
+        inv = None
+        #print "\nINVOICE NUMBER : " + row[8] 
+        try:            
+            if row[8] != '' and inv_number == '':
+                print "\nINVOICE NUMBER {try}: " + row[8] + "\n"
+                inv_number = row[8]
+                inv = DealerInvoice.objects.get(id = inv_number)
+            elif row[8] == '' and inv_number != '':
+                print "\nINVOICE NUMBER (EDIT): " + row[8] + "\n"
+                inv = DealerInvoice.objects.get(id = inv_number)
+            else:
+                error_list.append('Накладну для товару ['+ id + '] ' + catalog_name +  ' не ВКАЗАНО!')
+        except:
+            error_list.append('Накладної для товару ['+ id + '] ' + catalog_name +  ' не знайдено')
+        if len(row) >= 9:
+            try:
+                catalog_type_id = row[9]
+                catalog_manufacture = row[10]
+                catalog_country = row[11]
+                catalog_color = row[12]
+                description = row[13]
+                photo = row[14]
+            except:
+                error_list.append('Для товару ['+ id + '] ' + catalog_name +'. ' + 'Щось не так в колонках №:  9, 10, 11, 12, 13, 14')  
         try:
             cat = Catalog.objects.get(Q(ids = id) | Q(dealer_code = id))
-            print "ID = " + row[0]
+            print "\nID = " + id
+            ids_list.append(cat)
 #            print "ROW[6] = " + row[6]
-            if int(row[6]) > 0:
-                cat.price = row[6]
-            c = Currency.objects.get(id = row[4])
-            inv = DealerInvoice.objects.get(id = row[5])
-            InvoiceComponentList(invoice = inv, catalog = cat, count = row[2], price= row[3], currency = c, date = now).save()
-            if request.POST.has_key('name'): 
-                if request.POST['name'] == 'on':
-                    cat.name = row[1] 
-            cat.count = cat.count + int(row[2])
+            try:
+                c = None
+                c = Currency.objects.get(id = p_cur)
+            except:
+                error_list.append('Для товару ['+ id + '] ' + catalog_name +'. ' + 'Валюти з ID [' + r_cur + '] не існує')            
+            if (float(catalog_price) > 0) and (recomended == True):
+                cat.price = catalog_r_price 
+            if (catalog_name and recomended == True):
+                cat.name = catalog_name
+
+            cat.count = cat.count + inv_cat_count
             cat.save()
-            #if row[6]: 
-            #    cat.price = row[6]
-            #    cat.save()
+            update_list.append(cat)
+           
+            if inv:
+            #InvoiceComponentList(invoice = inv, catalog = cat, count = inv_cat_count, price= catalog_price, currency = c, date = now).save()
+                icl = InvoiceComponentList.objects.create(invoice = inv, catalog = cat, count = inv_cat_count, price= catalog_price, currency = c, date = now)
+                icl_list.append(icl)
                     
         except Catalog.DoesNotExist:
-            spamwriter.writerow([row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11]])
+            error_list.append('Товару ['+ id + '] ' + catalog_name +  ' не знайдено')
+            add_list.append({'id': id, 'code': dealer_code, 'photo': photo, 'name': catalog_name, 'desc': description, 'price': catalog_r_price});
+            if create_catalog == True:
+                print "\n FLAG CRATE CATALOG is TRUE\n"
+                try:
+                    m = None
+                    m = Manufacturer.objects.get(id=catalog_manufacture)
+                except:
+                    error_list.append('Для товару ['+ id + '] ' + catalog_name +'. ' + 'Виробника з ID [' + catalog_manufacture + '] не існує') 
+                try:
+                    t = None
+                    t = Type.objects.get(id=catalog_type_id)
+                except:
+                    error_list.append('Для товару ['+ id + '] ' + catalog_name +'. ' +'Такої категорії ID [' + catalog_type_id + '] не існує')
+                try:
+                    country = None
+                    country = Country.objects.get(id=catalog_country)
+                except:
+                    error_list.append('Для товару ['+ id + '] ' + catalog_name +'. ' + 'Країни з ID [' + catalog_country + '] не існує')
+                try:
+                    new_cat = Catalog.objects.create(ids=id, dealer_code=dealer_code, name=catalog_name, manufacturer=m, type=t, year=datetime.datetime.now().year, color=catalog_color, price=catalog_r_price, currency=c, sale=0, country=catalog_country, count = 0) #.save()
+                    print "CRATE CATALOG"
+                    created_cat_list.append(new_cat)
+                except:
+                    pass
+                    #error_list.append('Не вистачає полів (Категорія, Виробник, Країна) для товару ['+ id + '] ' + catalog_name +  ' не знайдено')
+            spamwriter.writerow(row)
 
-    list = Catalog.objects.filter(ids__in = ids_list)
-    return render_to_response('index.html', {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    #list = Catalog.objects.filter(ids__in = ids_list)
+    #return render_to_response('index.html', {'catalog': list, 'weblink': 'invoice_catalog_import_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'update_list': update_list, 'add_list': add_list, 'weblink': 'invoice_catalog_import_list.html', 'error_list': error_list, 'created_cat_list': created_cat_list, 'icl_list': icl_list,  'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
 
 # --------------- Classification ---------
@@ -3077,7 +3156,6 @@ def catalog_import_form(request):
             if check_catalog_id == True:
                 print "Check ID is True!!!"
         else:
-            print "\nVALID - " + str(form.errors)
             return render_to_response('index.html', {'form': form, 'weblink': 'catalog_import.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))            
 
         csvfile = request.FILES['csv_file']
@@ -3123,7 +3201,6 @@ def catalog_import_form(request):
                     cat.save()
                 else:
                     if int(col_count) >= 10:
-                        print "\n ROW [8] =  " + row[8]
                         try:
                             m = None
                             m = Manufacturer.objects.get(id=row[8])
@@ -3136,10 +3213,12 @@ def catalog_import_form(request):
                         except:
                             error_list.append('Для товару ['+ row[0] + '] ' + row[2] +'. ' +'Такої категорії ID [' + row[7] + '] не існує')
                         try:
+                            c = None
                             c = Currency.objects.get(id = row[4])
                         except:
                             error_list.append('Для товару ['+ row[0] + '] ' + row[2] +'. ' + 'Валюти з ID [' + row[4] + '] не існує')
                         try:
+                            country = None
                             country = Country.objects.get(id=row[9])
                         except:
                             error_list.append('Для товару ['+ row[0] + '] ' + row[2] +'. ' + 'Країни з ID [' + row[9] + '] не існує')
@@ -3147,9 +3226,8 @@ def catalog_import_form(request):
                         new_cat = Catalog.objects.create(ids=row[0], dealer_code=row[1], name=row[2], manufacturer=m, type=t, year=datetime.datetime.now().year, color=row[10], price=row[3], currency=c, sale=0, country=country, count = 0) #.save()
                         print "CRATE CATALOG"
                         created_cat_list.append(new_cat)
-                print "\n ROW =  " + str(row) + '\n'
-                print "\n CATALOG =  " + str(cat) + '\n'
-                
+#                print "\n ROW =  " + str(row) + '\n'
+#                print "\n CATALOG =  " + str(cat) + '\n'
                 update_list.append(row)
             except: # Catalog.DoesNotExist:
                 print "\n EXCEPT \n"
@@ -9690,10 +9768,10 @@ def casa_prro_xreport(request, token=post_casa_token()):
     day_cred=ClientCredits.objects.all().first()
 #    term_sum_1 = day_cred.get_daily_term_shop1()[2]
     term_sum_2 = day_cred.get_daily_term_shop2()[2]
-    term_sum_2 = (round(term_sum_2*100) or 0)
+    term_sum_2 = (round((term_sum_2 or 0)*100) or 0)
            
     #return response
-    return render_to_response('index.html', {'weblink': 'report_prro.html', 'JSON': rr, 'format_resp': format_json, 'day_term_sum': term_sum_2, 'error_status': error_msg, 'cashless_sum': cashless_sell_sum, 'res_start_dt': res_start_dt, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render_to_response('index.html', {'weblink': 'report_prro.html', 'JSON': rr, 'format_resp': format_json, 'day_term_sum': term_sum_2, 'error_status': error_msg, 'cashless_sum': cashless_sell_sum, 'res_start_dt': res_start_dt, 'casa_status': casa_status, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def casa_prro_zreport(request):

@@ -362,6 +362,17 @@ class ImportDealerInvoiceForm(forms.Form):
     csv_file = forms.FileField(allow_empty_file=False)
     name = forms.BooleanField(label='Назва товару', required=False)
     recomended = forms.BooleanField(label='Ціна товару', initial=True, required=False)
+    invoice_number = forms.CharField(label='Id Накладної для імпорту', required=False)
+    create_catalog = forms.BooleanField(label='Створювати картки товарів?', required=False)
+
+    def clean(self):
+        cleaned_data = super(ImportDealerInvoiceForm, self).clean()
+        csvdata = cleaned_data.get("csv_file")
+        if (csvdata == None):
+            raise forms.ValidationError("Виберіть файл для імпорту!")
+        return cleaned_data 
+
+
 
 
 class ImportPriceForm(forms.Form):
