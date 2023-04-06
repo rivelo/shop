@@ -2679,6 +2679,14 @@ def invoice_id_list(request, id=None, limit=0):
     return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'allpricesum':psum, 'alloptsum':optsum, 'ua_optsum':uaoptsum, 'countsum': scount, 'status_delivery': status_delivery, 'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
+def invoice_id_list_delete(request, id=None):
+    list = None
+    list = InvoiceComponentList.objects.filter(invoice=id).order_by('-id')#.values('catalog__price', 'count', 'id', 'price', 'invoice__origin_id', 'invoice__company__name', 'invoice__manager__name', 'invoice__price', 'invoice__currency__ids_char' , 'catalog__ids', 'catalog__manufacturer', 'catalog__name', 'catalog__dealer_code', 'rcount', 'price', 'catalog__currency__name', 'date', 'description', 'user__username', 'currency__ids_char', 'catalog__id')
+    list.delete()
+    dinvoice = DealerInvoice.objects.get(id=id)
+    return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice,  'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
 def invoice_cat_id_list(request, cid=None, limit=0):
     list = InvoiceComponentList.objects.filter(catalog=cid).order_by('-id') #.values('catalog__price', 'count', 'id', 'price', 'invoice__origin_id', 'invoice__company__name', 'invoice__manager__name', 'invoice__price', 'invoice__currency__ids_char' , 'catalog__ids', 'catalog__manufacturer', 'catalog__name', 'catalog__dealer_code', 'rcount', 'price', 'catalog__currency__name', 'date', 'description', 'user__username', 'currency__ids_char', 'catalog__id')
     psum = 0
@@ -2708,6 +2716,7 @@ def invoice_import(request):
     created_cat_list = []
     now = datetime.datetime.now()
     inv_number = None
+    inv_number_form = ''
     recomended = False
     create_catalog = False
 
@@ -2717,17 +2726,13 @@ def invoice_import(request):
             name = form.cleaned_data['name']
             recomended = form.cleaned_data['recomended']
             create_catalog = form.cleaned_data['create_catalog']
-            inv_number = form.cleaned_data['invoice_number']
-            inv_number = inv_number.replace(' ', '')
-            print "\ninvoice number : " + inv_number 
+            inv_number_form = form.cleaned_data['invoice_number']
+            inv_number_form = inv_number_form.replace(' ', '')
+#            print "\ninvoice number : " + inv_number_form 
 #            col_count = form.cleaned_data['col_count']
-            if recomended == True:
-                print "\nPrice recomended is True!!!"
-#            print "Check ID is True!!!"
         else:
             return render_to_response('index.html', {'form': form, 'weblink': 'import_invoice.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))            
-#    if request.POST and request.FILES:
-#    if request.FILES:
+
         csvfile = request.FILES['csv_file']
         dialect = csv.Sniffer().sniff(codecs.EncodedFile(csvfile, "utf-8").read(1024))
         csvfile.open()
@@ -2739,6 +2744,8 @@ def invoice_import(request):
     for row in invoice_reader:
         cat = None
         id = None
+        cur = None
+        price_cur = None
         id = row[0]
         dealer_code = row[1]
         catalog_name = row[2]
@@ -2750,13 +2757,16 @@ def invoice_import(request):
         inv = None
         #print "\nINVOICE NUMBER : " + row[8] 
         try:            
-            if row[8] != '' and inv_number == '':
-                print "\nINVOICE NUMBER {try}: " + row[8] + "\n"
+ #           print "\nINVOICE NUMBER {IF}: " + row[8] 
+ #           print "// invoice number : " + inv_number_form
+            if row[8] != '' and inv_number_form == '':
+#                print "\nINVOICE NUMBER {try}: " + row[8] + "\n"
                 inv_number = row[8]
-                inv = DealerInvoice.objects.get(id = inv_number)
-            elif row[8] == '' and inv_number != '':
-                print "\nINVOICE NUMBER (EDIT): " + row[8] + "\n"
-                inv = DealerInvoice.objects.get(id = inv_number)
+                inv = DealerInvoice.objects.get(id = int(inv_number))
+            elif row[8] == '' and inv_number_form != '':
+                inv_number = inv_number_form
+#                print "\nINVOICE NUMBER (EDIT): " + row[8] + "\n"
+                inv = DealerInvoice.objects.get(id = int(inv_number))
             else:
                 error_list.append('Накладну для товару ['+ id + '] ' + catalog_name +  ' не ВКАЗАНО!')
         except:
@@ -2770,19 +2780,21 @@ def invoice_import(request):
                 description = row[13]
                 photo = row[14]
             except:
-                error_list.append('Для товару ['+ id + '] ' + catalog_name +'. ' + 'Щось не так в колонках №:  9, 10, 11, 12, 13, 14')  
+                error_list.append('Для товару ['+ id + '] ' + catalog_name +'. ' + 'Щось не так в колонках №:  9, 10, 11, 12, 13, 14')
+        try:
+            cur = Currency.objects.get(id = r_cur)
+            price_cur = Currency.objects.get(id = p_cur)
+        except:
+            error_list.append('Для товару ['+ id + '] ' + catalog_name +'. ' + 'Валюти з ID [' + r_cur + '] не існує')            
+                  
         try:
             cat = Catalog.objects.get(Q(ids = id) | Q(dealer_code = id))
             print "\nID = " + id
             ids_list.append(cat)
 #            print "ROW[6] = " + row[6]
-            try:
-                c = None
-                c = Currency.objects.get(id = p_cur)
-            except:
-                error_list.append('Для товару ['+ id + '] ' + catalog_name +'. ' + 'Валюти з ID [' + r_cur + '] не існує')            
             if (float(catalog_price) > 0) and (recomended == True):
                 cat.price = catalog_r_price 
+                cat.currency = cur
             if (catalog_name and recomended == True):
                 cat.name = catalog_name
 
@@ -2791,15 +2803,17 @@ def invoice_import(request):
             update_list.append(cat)
            
             if inv:
+                print "\nInvoice Component List:"+ str(inv) +" \n"
             #InvoiceComponentList(invoice = inv, catalog = cat, count = inv_cat_count, price= catalog_price, currency = c, date = now).save()
-                icl = InvoiceComponentList.objects.create(invoice = inv, catalog = cat, count = inv_cat_count, price= catalog_price, currency = c, date = now)
+                icl = InvoiceComponentList.objects.create(invoice = inv, catalog = cat, count = inv_cat_count, price= catalog_price, currency = price_cur, date = now)
                 icl_list.append(icl)
                     
         except Catalog.DoesNotExist:
-            error_list.append('Товару ['+ id + '] ' + catalog_name +  ' не знайдено')
-            add_list.append({'id': id, 'code': dealer_code, 'photo': photo, 'name': catalog_name, 'desc': description, 'price': catalog_r_price});
+            error_list.append('Товару ['+ id + '] ' + catalog_name +  ' не знайдено!')
+            add_list.append({'id': id, 'code': dealer_code, 'photo': photo, 'name': catalog_name, 'desc': description, 'price': catalog_r_price})
             if create_catalog == True:
                 print "\n FLAG CRATE CATALOG is TRUE\n"
+
                 try:
                     m = None
                     m = Manufacturer.objects.get(id=catalog_manufacture)
@@ -2815,8 +2829,10 @@ def invoice_import(request):
                     country = Country.objects.get(id=catalog_country)
                 except:
                     error_list.append('Для товару ['+ id + '] ' + catalog_name +'. ' + 'Країни з ID [' + catalog_country + '] не існує')
+#                new_cat = Catalog.objects.create(ids=id, dealer_code=dealer_code, name=catalog_name, manufacturer=m, type=t, year=datetime.datetime.now().year, color=catalog_color, price=catalog_r_price, currency=cur, sale=0, country=country, count = 0) #.save()                    
                 try:
-                    new_cat = Catalog.objects.create(ids=id, dealer_code=dealer_code, name=catalog_name, manufacturer=m, type=t, year=datetime.datetime.now().year, color=catalog_color, price=catalog_r_price, currency=c, sale=0, country=catalog_country, count = 0) #.save()
+                    print "\n Color : " +  catalog_color + "\n"                    
+                    new_cat = Catalog.objects.create(ids=id, dealer_code=dealer_code, name=catalog_name, manufacturer=m, type=t, year=datetime.datetime.now().year, color=catalog_color, price=catalog_r_price, currency=cur, sale=0, country=country, count = 0) #.save()
                     print "CRATE CATALOG"
                     created_cat_list.append(new_cat)
                 except:

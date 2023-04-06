@@ -34,7 +34,12 @@
 <div class="row">
 <div class="col-auto">
 <h2>
-<span class="badge badge-success">Імпортовані товари в накладній <a href="{% url 'invoice-view' icl_list.0.invoice.id %}" <span class="badge badge-light">{{icl_list.0.invoice}}</span></a>:</span>
+{# <span class="badge badge-success">Імпортовані товари в накладній <a href="{% url 'invoice-view' icl_list.0.invoice.id %}" <span class="badge badge-light">{{icl_list.0.invoice}}</span></a>:</span> #}
+<span class="badge badge-success">Імпортовані товари в накладній <a href="
+{% if icl_list %}
+{% url 'invoice-view' icl_list.0.invoice.id %}
+{% endif %}
+" <span class="badge badge-light">{{icl_list.0.invoice}}</span></a>:</span>
 <a href="/media/csv/id_miss.csv" download type="button" class="btn btn-primary"><i class="material-icons">save</i></a>
 </h2>
 
