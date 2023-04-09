@@ -50,20 +50,20 @@ function change_width_table(){
 }
 
 .TableD {
-	border: 1px solid white; /* Граница вокруг ячеек */
-	border-bottom: 1px solid white;
+//	border: 1px solid white; /* Граница вокруг ячеек */
+//	border-bottom: 1px solid white;
 	}     
-
+/*
 .1table {
     border: 2px solid black;
     border-spacing: 1px;
     }
-
+*/
 
 TR {
-	height: 40mm;
-	max-height: 40mm;
-	width: 100mm;
+	height: 30mm;
+	max-height: 30mm;
+	width: 70mm;
 	min-width: 80mm;
 	max-width: 180mm;
 	/* border-bottom: 1px solid black; */ 
@@ -81,7 +81,7 @@ TD .content{
 
 
 .nameTD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
-	border: 1px solid white; /* Граница вокруг ячеек */
+/*	border: 1px solid white; /* Граница вокруг ячеек */ */
 	/*border-bottom: 1px solid black;*/ 
 	}     
 
@@ -92,13 +92,12 @@ span a {
    
 .price_table {
 	/*table-layout: fixed;*/
-	border: 1px solid red;
-	height: 35mm;
+//	border: 1px solid red;
+	height: 32mm;
 	max-height: 35mm;
 	width: 110mm;
 	max-width: 110mm;
 	page-break-before: always; 
-	
 }
 
 
@@ -268,13 +267,13 @@ span a {
 --> 
 {% with type.name|lenght as s_len %}
 {% if s_len > 79  %}
-	<td width = 80mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 8pt;" class="TableD">
+	<td width = 70mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 8pt;" class="TableD">
 {% endif %}
 {% if s_len >= 40 and  s_len < 79 %} 
-	<td width = 80mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 9pt;" class="TableD">	       
+	<td width = 70mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 9pt;" class="TableD">	       
 {% endif %}
 {% if s_len < 40 %}
-	<td width = 80mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 11pt;" class="TableD">
+	<td width = 70mm colspan=3 style="padding-left: 5px; text-align: center; font-size: 11pt;" class="TableD">
 {% endif %}
 {% endwith %}
 	<a href="/catalog/edit/{{ type.id }}" style="margin-right:20px">{{type.name|slice:"100"}}</a>

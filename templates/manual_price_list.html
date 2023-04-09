@@ -16,8 +16,8 @@ function change_row1_table() {
 	document.querySelectorAll('.itemthree').forEach(function(element) {
 		  element.className = "item";
 		});	
+	}
 	
-}
 function change_row3_table() {
 	$('.grid-container').css('grid-template-columns','33.0% 33.0% 33.0%');
 	$('div .item').css("margin-left", "5mm")
@@ -25,51 +25,11 @@ function change_row3_table() {
 	document.querySelectorAll('.item').forEach(function(element) {
 		  element.className = "itemthree";
 		});	
-}
+	}
 </script>
 
+
 <style type="text/css">
-table {
-	border: 1px solid black; /* Граница вокруг ячеек */
-/* 	width: 300mm; */
- 	height: 33mm;
-/*    table-layout: fixed; */
-    border-spacing: 0px;
-    page-break-before: always;
-    padding-top: 14mm;
-}
-
-.TableD {
-	border: 1px solid white; /* Граница вокруг ячеек */
-	/*border-bottom: 1px solid red;*/
-	height: 9mm;
-	}     
-
-TR {
-	/* border-bottom: 1px solid black; */
- 
-	}
-	
-TD{
-	width: 70mm;
-	height: 25mm;
-	padding-bottom: 5.5mm;
-	padding-left: 5mm;
-	}
-
-.nameTD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
-	border: 0px solid black;  /* Граница вокруг ячеек */
-	/*border-bottom: 1px solid black;*/ 
-	}     
-
-a { 
-    text-decoration: none; /* Отменяем подчеркивание у ссылки */
-   } 
-   
-</style>
-
-
-<style>
 .grid-container {
   display: grid;
   grid-template-columns: 100mm; /*33.3% 33.3% 33.3%; /* 70mm 70mm 70mm;*/
@@ -86,13 +46,14 @@ a {
 //  padding: 5px 5px 5px 5px;
   font-size: 12px;
   border: 1px solid black;
-  height: 40mm;
+  height: 38mm;
 }
 
 /* .item11 {
   grid-column-start: 1;
   grid-column-end: 1;
 }*/
+
 
 div .item {
 
@@ -103,12 +64,14 @@ div .item {
 
 .grid-container-table {
   display: grid;
-  grid-template-columns: 20mm;
+  grid-template-columns: 30mm;
   grid-template-rows: 5mm;
   gap: 1px;
 //  background-color: #2196F3;
-  padding: 2px;
-  height: 40px;
+//  padding: 2px;
+/*  height: 35px;*/
+//  width: 100%;
+	margin-left: 20px;
 
 }
 
@@ -193,14 +156,15 @@ div .price{
 
   <div class="item{{price.count}}">
   
-<div style="background:#FA911D; width:140px; height:140px; float:left;">
+{# <div style="background:#FA911D; width:140px; height:140px; float:left;"> #}
+<div style="background:#FA911D; height:100%; float:left;">
 {% with price.catalog.id|sale_url:request.get_host as url_buy %}  
 <img src="{{url_buy|qr:"140x140"}}" />
 {% endwith %}
 </div>
 
 
-<div> {# style="width:auto; float:left"> #}
+ <div> {# style="width:auto; float:left"> #}
 
 <div class="grid-container-table">
   <div class="item1 lable-text">Код </div>
@@ -233,12 +197,11 @@ div .price{
 	 href="/catalog/edit/{{ type.id }}" style="margin-right:20px">{{price.catalog.name|slice:"100"}}</a>
   </div>  
 </div>
-
-</div>  
+</div>
   </div>
 {% endfor %}
 
-</div>
+ </div> 
 
 
 {% comment %}

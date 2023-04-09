@@ -41,7 +41,7 @@ $(document).ready(function() {
 		 	var tr_del = $(this).parents("tr");
 				$.ajax({
 		                type: "POST",
-		                url: "/shop/price/print/delete/",
+		                url: "/catalog/search/",
 		                data: {id:  $(this).attr("p_id") },
 		                dataType: "text",
 		                success:function(data){
@@ -91,7 +91,7 @@ $(document).ready(function() {
 {% endif %}
 {% endcomment %}
 
-<form action="javascript:alert( 'success!' );">
+<form action="javascript:alert( 'success!' );" class="barcode">
   <div>
 {#    <label for="mySearch">Сканування для додавання цінників в чергу</label> #}
     <input
@@ -113,7 +113,11 @@ $(document).ready(function() {
 <br>
 
 <script>
-$( "form" ).submit(function( event ) {
+
+
+
+
+$( "form.barcode" ).submit(function( event ) {
 	  if ( $( "input" ).first().val() === "correct" ) {
 	    $( "span.validate" ).text( "Validated..." ).show();
 	    return;
@@ -125,14 +129,67 @@ $( "form" ).submit(function( event ) {
 	    $('#mySearch').focus();
 	    $('#mySearch').blur();
 	    
-	  	document.getElementById('mySearch').focus()	    
-		$('#iTable > tbody:first').append('<tr><td></td><td>'+ search_val +'</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>'); 
+	  	document.getElementById('mySearch').focus()
+	  	
+		$.ajax({
+		       type: "POST",
+		       url: "/catalog/search/",
+		       data: {ids:  search_val },
+		       dataType: "text",
+		       success:function(data){
+           					//console.log("ajax work - " + typeof data);		                	
+							items = JSON.parse(data);
+							//console.log('ITEMS PARSE = ' + typeof items);
+							//console.log('PARSE = ' + items[0]['count'] + ' name = ' + items[0]['name']);
+//							console.log('Items LEN : ' + items.length);
+							var tr_style = '';
+							for (let i = 0; i < items.length; i++) {
+								var tag_print = '<span class="material-icons add_price_tag" ids="'+ items[i]['pk'] +'">local_offer</span>'
+								if  (items.length == 1) {
+									tr_style = '<tr class="p-3 mb-2 bg-success text-white">'
+								}
+								else {
+									tr_style = '<tr>'
+								}
+								$('#iTable > tbody:first').append(tr_style +'<td>' + (i+1) + '</td><td>'+ items[i]['ids'] + ' / ' + items[i]['dealer_code'] +'</td><td>' + items[i]['manufacturer__name'] + '</td><td>' + items[i]['name'] + '</td><td>' + items[i]['price'] + '</td><td>' + items[i]['count'] + '</td><td>'+ items[i]['country__name'] +'</td><td>'+ tag_print +'</td><td></td><td></td><td></td></tr>');
+							}
+                },
+                error:function(data){
+		             alert("Виникли проблеми з сервером" + data);
+		        }
+		        });
+	  	
+//		$('#iTable > tbody:first').append('<tr><td></td><td>'+ search_val +'</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>'); 
 	  event.preventDefault();
 	});
 
 
-</script>
+$(function() {
 
+$(document).on("click", ".add_price_tag", function(event) {
+/*    $("#dtext").html($(this).attr('href'));
+    $("#dtext").attr({"ids": $(this).attr('ids')});
+	var spinner = $("#spinner").spinner();
+	$("#spinner").val(1);
+*/
+	$.ajax({
+	    type: "POST",
+	    url: "/shop/price/print/add/",
+	    data: {id:  $(this).attr('ids') },
+	    dataType: "text",
+	    success:function(msg){
+	        alert("Запит надіслано - " + msg);
+//	   	    $('#spinner').after('<p>ajax done</p>');
+	    },
+	    error:function(){
+	        alert("При відправці виникли проблеми");
+	    }
+	});	
+});
+
+});
+
+</script>
 
 
 
@@ -142,10 +199,10 @@ $( "form" ).submit(function( event ) {
 <th><b>#</b></th>
 <th><b>Код</b></th>
 <th><b style="font-size: 10pt;">Виробник </b></th>
-<th><b style="font-size: 10pt;">Країна</b> </th>
+<th><b style="font-size: 10pt;">Назва</b> </th>
 <th><b style="font-size: 10pt;">Ціна </b> </th>
-<th> <b>Назва</b> </th>
-<th><b style="font-size: 10pt;">Друк</b> </th>
+<th> <b>Кількість</b> </th>
+<th><b style="font-size: 10pt;">Країна</b> </th>
 <th><b style="font-size: 10pt;">К-сть склад</b> </th>
 <th><b style="font-size: 10pt;">Користувач</b> </th>
 <th><b>Дата</b> </th>

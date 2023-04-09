@@ -245,6 +245,7 @@ urlpatterns = patterns('',
     url(r'^catalog/lookup/$', 'catalog.accounting.views.catalog_lookup'),
 #    url(r'^catalog/import/$', 'catalog.accounting.views.catalog_import'),
     url(r'^catalog/get/locality/$', 'catalog.accounting.views.catalog_get_locality'),
+    url(r'^catalog/search/$', 'catalog.accounting.views.catalog_search_by_ids'), # POST AJAX
 
     # Client
     url(r'^client/(?P<id>\d+)$', 'catalog.accounting.views.client_data'),

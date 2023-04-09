@@ -3143,7 +3143,6 @@ def manufacturer_lookup(request):
     return HttpResponse(data)    
 
 
-
 def catalog_import_form(request):
     if auth_group(request.user, 'seller')==False:
         return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))    
@@ -3745,6 +3744,38 @@ def catalog_search_id(request):
 
 def catalog_search_locality(request):
     return render_to_response('index.html', {'weblink': 'catalog_search.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def catalog_search_by_ids(request):
+    ids = None
+    cat_list = None
+    resp_json = {} 
+    if request.is_ajax():
+        if request.method == 'POST':
+            result = None
+#            if auth_group(request.user, 'seller')==False:
+#                return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain;charset=UTF-8;")
+            POST = request.POST  
+            if POST.has_key('ids'):
+                ids = request.POST['ids']
+                cat_list = Catalog.objects.filter(Q(ids__icontains = ids) | Q(dealer_code__icontains = ids)).order_by('manufacturer')
+                
+                if cat_list.count() == 1:
+#                    sp = ShopPrice()
+#                    sp.catalog = cat_list[0]
+#                    sp.scount = 1
+#                    sp.dcount = 1
+#                    sp.user = request.user
+#                    sp.save()
+                    add_shop_price = ShopPrice.objects.create(catalog = cat_list[0], scount=1, dcount=1, user = request.user)
+                    
+                
+                resp_json = list(cat_list.values('pk', 'name', 'ids', 'dealer_code', 'price', 'count', 'manufacturer__name', 'country__name'))
+                return HttpResponse(simplejson.dumps(resp_json), content_type='application/json')
+            else:
+                return HttpResponse("Помилка! Параметр IDS не може бути пустим або відсутнім", content_type="text/plain;charset=UTF-8;")
+    else:
+        return HttpResponse("Помилка, цей запит не AJAX-овий", content_type="text/plain;charset=UTF-8;")
 
 
 def catalog_search_result(request):
