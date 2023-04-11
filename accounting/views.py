@@ -6103,12 +6103,22 @@ def shop_price_qrcode_print_view(request):
 
 
 def shop_price_print_list_add(request):
+    if request.user.is_authenticated():
+        user = request.user
+    else:
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    
     by_user = False
     plist = None
     return render_to_response('index.html', {'weblink': 'scan_many_barcode.html', 'price_list': plist, 'by_user' : by_user}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def shop_price_print_list(request, user_id = None, pprint=False):
+    if request.user.is_authenticated():
+        user = request.user
+    else:
+        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    
     list = None
     by_user = False
     if user_id :

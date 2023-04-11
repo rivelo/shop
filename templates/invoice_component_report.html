@@ -91,7 +91,7 @@
 	</td>
 	<td>
 {% if request.user|has_group:"admin" %}
-    <a href="/invoice/delete/{{type.id}}"><i class="material-icons">delete_outline</i></a>
+    <a href="/invoice/delete/{{type.id}}" onclick="return confirm('Видалити запис? \n {{type.catalog}}');"><i class="material-icons">delete_outline</i></a>
 {% endif %}
     </td>
 </tr>

@@ -23,7 +23,8 @@ function change_row2_table() {
 <style type="text/css">
 .grid-container {
   display: grid;
-  grid-template-columns: 15% 15% 15% 15% 15% 15%; /*100mm; /*33.3% 33.3% 33.3%; /* 70mm 70mm 70mm;*/
+//  grid-template-columns: 15% 15% 15% 15% 15% 15%; /*100mm; /*33.3% 33.3% 33.3%; /* 70mm 70mm 70mm;*/
+  grid-template-columns: 100%;
   grid-template-rows: 30mm;
   width: 100mm;
   gap: 1px;
@@ -37,13 +38,18 @@ function change_row2_table() {
 //  padding: 5px 5px 5px 5px;
   font-size: 12px;
   border: 1px solid black;
-  height: 30mm;
+//  height: 30mm;
 }
 
 div .item {
 	page-break-after: always;
+	width: 100%;
 	//page-break-before:  always;
 	//page-break-inside: avoid; 
+}
+
+div .container {
+	rotate: 90deg;
 }
 
 .grid-container-table {
@@ -53,7 +59,7 @@ div .item {
   gap: 1px;
 //  background-color: #2196F3;
   padding: 2px;
-  height: 40px;
+//  height: 40px;
 
 }
 
@@ -217,6 +223,11 @@ div.v-t {
 //  transform: rotate(-90deg);
 }
 
+#price_value {
+		font-size: large;
+		}     
+
+
 </style>
 
 {% load poll_extras %}
@@ -250,12 +261,11 @@ div.v-t {
 <div id="container" style="float:left;">
   <div id="content">
 <p>  {{ price.catalog.ids }} </p>
-<p>  {{ price.catalog.name|slice:"20" }} </p>
-{{ price.catalog.price }} грн.<br>
+<p>  {{ price.catalog.name|slice:"30" }} </p>
+<div id="price_value">{{ price.catalog.price }} грн.</div>
+<br>
   </div>
 </div>
-
-
 
 {% comment %}
 <div class="v-t" style="float:left;">
@@ -272,28 +282,6 @@ div.v-t {
 {% endwith %}
 
 
-
-<!--
-<td style="padding-left: 3px; font-family: Arial; font-size: 5pt;" class="nameTD"> 
-<div class="firstBlock"></div>
-<div id="rotateText"> 	{{price.catalog.ids|slice:"20"}}</div>
-<div class="lastBlock"></div>
-</td>
- -->
-
-
-
-{% comment %}
-{% if forloop.counter|divisibleby:"7"  %}
-</tr><tr height= 21mm>
-{% endif %}
-
-{% if forloop.counter|divisibleby:"91"  %}
-</table>
-<!--  <p style="page-break-after: always">  </p> -->
-<table> 
-{% endif %}
-{% endcomment %}
 
  
 </div> 

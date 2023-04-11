@@ -71,7 +71,8 @@ div .item {
 //  padding: 2px;
 /*  height: 35px;*/
 //  width: 100%;
-	margin-left: 20px;
+	margin-left: 143px;
+	margin-top: 5px;
 
 }
 
@@ -133,15 +134,13 @@ div .price{
         	display: none !important;
     	}
 
- div .row {
+/* div .row {
             margin-top:-8px;
             padding-top:8px;
             page-break-inside:avoid;
         }
 
-
-}
-
+}*/
 
 </style>
 
@@ -157,12 +156,11 @@ div .price{
   <div class="item{{price.count}}">
   
 {# <div style="background:#FA911D; width:140px; height:140px; float:left;"> #}
-<div style="background:#FA911D; height:100%; float:left;">
+<div style="background:#FA911D; height:97%; float:left;">
 {% with price.catalog.id|sale_url:request.get_host as url_buy %}  
 <img src="{{url_buy|qr:"140x140"}}" />
 {% endwith %}
 </div>
-
 
  <div> {# style="width:auto; float:left"> #}
 
@@ -197,6 +195,7 @@ div .price{
 	 href="/catalog/edit/{{ type.id }}" style="margin-right:20px">{{price.catalog.name|slice:"100"}}</a>
   </div>  
 </div>
+
 </div>
   </div>
 {% endfor %}
