@@ -333,7 +333,7 @@ class Catalog(models.Model):
 #    bike_style = models.ManyToManyField()  cyclocross, crosscountry, road, gravel ...
 #    season = winter, summer, ...
     full_description = models.TextField(blank=True, null=True)
-    youtube_url = models.ManyToManyField(YouTube, blank=True, null=True)
+    youtube_url = models.ManyToManyField(YouTube, blank=True)
 #    наявність у постачальника
     date = models.DateField(null=True, blank=True) #Строк придатності
     #url_web_site = models.CharField()  
@@ -496,9 +496,30 @@ class FrameSize(models.Model):
     name = models.CharField(max_length=100)
     cm = models.FloatField() 
     inch = models.FloatField()
-    
+    letter = models.CharField(max_length=25, blank=True, null=True, help_text = "Please enter LETTER of frame size")
+    description = models.CharField(blank=True, null=True, help_text = "Please enter description for this Frame Size", max_length=255)
+    rider_height_min = models.PositiveSmallIntegerField(help_text="Rider MIN height (cm)", default=0)
+    rider_height_max = models.PositiveSmallIntegerField(help_text="Rider MAX height (cm)", default=0)
+ 
+# Geometry
+    seattube = models.IntegerField("Seattube size in mm", default=0, blank=True)
+    seattube_angle = models.FloatField("Seat tube angle in degree", default=0, blank=True)
+    ett_toptube = models.IntegerField("Frame ETT in mm", default=0, blank=True)
+    standover = models.IntegerField("how many milimiters on frame standover", default=0, blank=True)
+#    BB DROP = 
+    headtube = models.IntegerField("Frame HEADtube in mm", default=0, blank=True)
+    headtube_angle = models.FloatField("HEADtube angle (degree)", default=0, blank=True)
+#    REACH = 
+#    FORK LENGTH
+#    STACK = 
+    wheelbase = models.PositiveIntegerField("Wheelbase size in mm", default=0, blank=True)
+
+#    brand =  
+#    model = models.ManyToManyField( , blank=True)
     def __unicode__(self):
-        return self.name
+        if self.letter == None:
+            return self.name
+        return '%s [ %s cm -  %s " ]' % (self.letter, self.cm, self.inch)
 
     class Meta:
         ordering = ["inch","name"]    
@@ -995,7 +1016,7 @@ class Bicycle_Parts(models.Model):
         ordering = ["type__bike_order"]    
 
 
-# Bicycle table (Bicycle)
+# Bicycle model table (Bicycle)
 class Bicycle(models.Model):
     model = models.CharField(max_length=255)
     type = models.ForeignKey(Bicycle_Type) #adult, kids, mtb, road, hybrid

@@ -38,28 +38,24 @@ $(document).ready(function() {
                 "visible": true,
             },
             {
-                "targets": [ 9 ],
-                "visible": false,
-            },
-                        {
                 "targets": [ 10 ],
                 "visible": false,
             },
-            {
+                        {
                 "targets": [ 11 ],
-                "visible": true,
+                "visible": false,
             },
             {
-                "targets": [ 13 ],
-                "visible": false,
+                "targets": [ 12 ],
+                "visible": true,
             },
             {
                 "targets": [ 14 ],
-                "visible": true,
+                "visible": false,
             },
             {
                 "targets": [ 15 ],
-                "visible": false,
+                "visible": true,
             },
             {
                 "targets": [ 16 ],
@@ -69,21 +65,28 @@ $(document).ready(function() {
                 "targets": [ 17 ],
                 "visible": false,
             },
+            {
+                "targets": [ 18 ],
+                "visible": false,
+            },
             
         ],
     });
 
 {# $("div.toolbar").html('<b>Custom tool bar! Text/images etc.</b>'); #}
 $("div.toolbar").append('<div class="cdiv"><label> Тип:</label><input type="text" id="s_type" placeholder="Search type" /> </div>');    
-$("div.toolbar").append('<div class="cdiv"><label> Виробник:</label><input type="text" id="s_brand" placeholder="Search name" /></div>' );
-$("div.toolbar").append('<div class="cdiv"><label> Модель:</label><input type="text" id="s_model" placeholder="Search name" /></div>' );
-$("div.toolbar").append('<div class="cdiv"><label> Рік:</label><input type="text" id="s_year" placeholder="Search name" /></div>' );
-$("div.toolbar").append('<div class="cdiv"><label> Розмір:</label><input type="text" id="s_size" placeholder="Search name" /></div>' );
-$("div.toolbar").append('<div class="badge badge-pill badge-dark"><a class="toggle-vis" data-column="-2">Дія</a></div>' );
-$("div.toolbar").append('<div class="badge badge-pill badge-dark"><a class="toggle-vis" data-column="-1">Цінники</a></div>' );
+$("div.toolbar").append('<div class="cdiv"><label> Виробник:</label><input type="text" id="s_brand" placeholder="Search name" /></div>');
+$("div.toolbar").append('<div class="cdiv"><label> Модель:</label><input type="text" id="s_model" placeholder="Search name" /></div>');
+$("div.toolbar").append('<div class="cdiv"><label> Рік:</label><input type="text" id="s_year" placeholder="Search name" /></div>');
+$("div.toolbar").append('<div class="cdiv"><label> Розмір:</label><input type="text" id="s_size" placeholder="Розмір в CM or INCH" /></div>');
+$("div.toolbar").append('<div class="cdiv"><label> </label><input type="text" id="l_size" placeholder="Розмір літерою" /></div>');
+$("div.toolbar").append('<div class="badge badge-pill badge-dark"><a class="toggle-vis" data-column="-2">Дія</a></div>');
+$("div.toolbar").append('<div class="badge badge-pill badge-dark"><a class="toggle-vis" data-column="-1">Цінники</a></div>');
+$("div.toolbar").append('<div class="badge badge-pill badge-dark"><a class="toggle-vis" data-column="7">Розмір рами</a></div>');
 
 {% if request.user|has_group:"admin" %}
-$("div.toolbar").append('<div class="badge badge-pill badge-dark"><a class="toggle-vis" data-column="9">Ціна $</a></div>' );
+$("div.toolbar").append('<div class="badge badge-pill badge-dark"><a class="toggle-vis" data-column="10">Ціна $</a></div>');
+$("div.toolbar").append('<div class="badge badge-pill badge-dark"><a class="toggle-vis" data-column="16">Дата</a></div>');
 {% endif %}
 
     $('a.toggle-vis').on( 'click', function (e) {
@@ -110,6 +113,11 @@ $('#s_year').on( 'keyup change', function () {
 $('#s_size').on( 'keyup change', function () {
    	table.column( 7 ).search( this.value ).draw();
 });
+
+$('#l_size').on( 'keyup change', function () {
+   	table.column( 8 ).search( this.value ).draw();
+});
+
 
 $("span.f_type").on("click", function(){
 //$("body").on("click", "span.f_type", function(){
@@ -222,6 +230,7 @@ $("body").on("click", ".change_sale", function(e){
 		<th>Рік</th>
 		<th>Номер рами</th>
 		<th>Розмір рами</th>
+		<th>Рама</th>
 		<th>Ціна (грн)</th>
 		<th>Ціна $</th>
 		<th>Опис</th>
@@ -247,9 +256,9 @@ $("body").on("click", ".change_sale", function(e){
 	{{type.model.model}} ({{type.model.color}})
 	</a></td>
 	<td><span class="f_year">{{type.model.year|date:"Y"}}</span></td>
-		<td class="serial_edit" id_serial="{{ type.id }}"> {{type.serial_number}}</td>  
-		<td><span class="f_size">{{type.size.inch}}" / {{type.size.cm}}cm</span></td>
-		
+	<td class="serial_edit" id_serial="{{ type.id }}"> {{type.serial_number}}</td>  
+	<td><span class="f_size">{{type.size.inch}}" / {{type.size.cm}}cm</span></td>
+	<td><span class="frame_letter_size">{{type.size.letter}}</span></td>		
 <!-- 		<td class="change_price" id_price="{{type.model.id}}">{{type.model.price}}</td>
  -->
 
@@ -348,6 +357,7 @@ $("body").on("click", ".change_sale", function(e){
 
 <tfoot> 
 	<tr>
+		<th></th>
 		<th></th>
 		<th></th>
 		<th></th>

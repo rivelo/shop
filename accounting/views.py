@@ -23,7 +23,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import auth
 from django.core.files.uploadedfile import InMemoryUploadedFile, UploadedFile
 
-from django.http import HttpResponse 
+from django.http import HttpResponse
+#from django.core.context_processors import request
+#from HttpRequest import request
 from django.http import Http404  
 
 from django.conf import settings
@@ -54,7 +56,6 @@ from django.core.mail import EmailMultiAlternatives
 from urlparse import urlsplit
 from django.db.models import F
 from django.http import JsonResponse
-from django.core.context_processors import request
 from _mysql import NULL
 #from pyasn1.compat.octets import null
 
@@ -839,6 +840,11 @@ def bicycle_store_list_by_seller(request, all=False, size='all', year='all', bra
     return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_store_list_by_seller.html', 'price_summ': price_summ, 'real_summ': real_summ, 'bike_summ': bike_summ, 'sizes': frames, 'b_company': bike_company, 'html': html, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
+def bicycle_store_simple_list(request):
+    list = Bicycle_Store.objects.filter(count=1)
+    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_store_simplelist.html', }, context_instance=RequestContext(request, processors=[custom_proc]))    
+
+
 def bicycle_store_search(request):
     return render_to_response('index.html', {'weblink': 'frame_search.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -1159,8 +1165,8 @@ def sale_post_bike(token, bike, cash_pay=0, card_pay=0):
         "name": bike_name,
         #"barcode": str(inv.catalog.ids), # "1112222111",
         "excise_barcode": "",
-        "header": "HeaderString",
-        "footer": "FooterTitle",
+#        "header": "HeaderString",
+#        "footer": "FooterTitle",
         "price": str(int(inv.price*100)),#"12200",
         #"uktzed": ""
         } 
@@ -1490,9 +1496,11 @@ def bsale_search_by_name_result(request, all=False):
     price_summ = 0
     real_summ = 0
     bike_summ = 0
+    price_summ_full = 0
     for item in list:
         price_summ = price_summ + item.price 
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ': price_summ, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        price_summ_full = price_summ_full + item.price
+    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ': price_summ, 'price_summ_full': int(price_summ_full), 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
 def dictfetchall(cursor):
@@ -5687,7 +5695,7 @@ def worktype_lookup(request):
 def workshop_pricelist(request, pprint=False):
     list = WorkType.objects.all().values('name', 'price', 'id', 'description', 'work_group', 'work_group__name', 'plus').order_by('work_group__tabindex')
     if pprint:
-        return render_to_response('workshop_pricelist.html', {'work_list': list, 'pprint': True})
+        return render_to_response('workshop_pricelist.html', {'work_list': list, 'pprint': True}, context_instance=RequestContext(request, processors=[custom_proc]))
     else:        
         return render_to_response('index.html', {'work_list': list, 'weblink': 'workshop_pricelist.html', 'pprint': False}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
@@ -7498,7 +7506,8 @@ def rent_add(request):
         if form.is_valid():
             catalog = form.cleaned_data['catalog']
             client = form.cleaned_data['client']
-            date_start = form.cleaned_data['date_start']
+#            date_start = form.cleaned_data['date_start']
+            date_start = datetime.datetime.now()
             date_end = form.cleaned_data['date_end']
 #            count = form.cleaned_data['count']
             count = 1
@@ -7512,8 +7521,11 @@ def rent_add(request):
 
             r = Rent(catalog=catalog, client=client, date_start=date_start, date_end=date_end, count=count, deposit=deposit, status=status, description=description, user=user)
             r.save()
-            cash_type = CashType.objects.get(id = 1) # готівка
+            currency = form.cleaned_data['currency']
+            cash_type = form.cleaned_data['cash_type']
+#            cash_type = CashType.objects.get(id = currency.id) 
             ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=deposit, description="Завдаток за прокат "+str(catalog), user=user, cash_type=cash_type)
+#            ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=deposit, description="Завдаток за прокат "+str(catalog), user=user, cash_type=currency.id)
             ccred.save()
             r.cred = ccred
             r.save()
@@ -7549,6 +7561,7 @@ def rent_edit(request, id):
             try:
                 ccred = ClientCredits.objects.get(pk=a.cred.id)
                 ccred.price = form.cleaned_data['deposit']
+                ccred.cash_type = form.cleaned_data['cash_type']
                 if request.user.is_authenticated():
                     user = request.user
                     ccred.user = user
@@ -8866,7 +8879,7 @@ def client_invoice_add(request, ids=None):
             return HttpResponse(result, content_type="text/plain;charset=UTF-8;;")
 
 
-def check_list(request, year=None, month=None, day=None, all=False):
+def check_list(request, year=None, month=None, day=None, all=False, client=None):
     list = None
     listPay = None
     day = day
@@ -8887,6 +8900,12 @@ def check_list(request, year=None, month=None, day=None, all=False):
         if (year == None):
             list = Check.objects.all()
             listPay = CheckPay.objects.all()
+        if (client <> None):
+            client_id = Client.objects.get(id = client)
+            list = Check.objects.filter(client = client_id)
+            list_ids = list.values('checkPay')
+            print "\n LIST IDS : " + str(dir(list_ids))
+            listPay = CheckPay.objects.filter(pk__in = list_ids)
     else:
         list = Check.objects.filter(date__year = year, date__month = month, date__day = day)#.values()
         listPay = CheckPay.objects.filter(date__year = year, date__month = month, date__day = day)
@@ -8999,8 +9018,8 @@ def sale_post(token, ci=None, ws=None, cash_pay=0, card_pay=0):
         "name": name, #.encode('cp1251'),
         "barcode": barcode, # "1112222111",
         "excise_barcode": "",
-        "header": "HeaderString",
-        "footer": "FooterTitle",
+#        "header": "HeaderString",
+#        "footer": "FooterTitle",
         "price": str(int(inv.price*100)),#"12200",
         #"uktzed": ""
         } 
@@ -9031,7 +9050,7 @@ def sale_post(token, ci=None, ws=None, cash_pay=0, card_pay=0):
         "value": str(int(round(float(card_pay)*100))), 
         "bank_name": "PrivatBank",
         "terminal": "Verifone",
-        "acquirer_and_seller": "ecquirer007",
+        "acquirer_and_seller": "s1r006k7",
         #"receipt_no": "BANK_no"
         }
 
@@ -9690,6 +9709,11 @@ def qrscanner(request):
     #return render_to_response('country_list.html', {'countries': list})
     return render_to_response('index.html', {'weblink': 'scanner_qr.html', 'next': current_url}, context_instance=RequestContext(request, processors=[custom_proc]))
     #return render_to_response('scanner_qr.html', {}, context_instance=RequestContext(request, processors=[custom_proc]))
+
+
+def qrscanner2(request):
+    return render_to_response('index.html', {'weblink': 'scanner_qr_nimiq.html', 'next': current_url}, context_instance=RequestContext(request, processors=[custom_proc]))
+
 
 ### ---------- RRO Casa Function --------------  
 

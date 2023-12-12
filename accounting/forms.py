@@ -919,12 +919,15 @@ class RentForm(forms.ModelForm):
 #    catalog = forms.ModelChoiceField(queryset = Catalog.objects.filter(id__in = ClientInvoice.objects.filter(client__id=516).values('catalog__id')))
     catalog = forms.ModelChoiceField(queryset = Catalog.objects.filter(id__in = ClientInvoice.objects.filter(client__name='Прокат').values('catalog__id')))
     client = forms.ModelChoiceField(widget=forms.Select(attrs={'class':'autocomplete'}), queryset = Client.objects.all(), empty_label="")    
-    date_start = forms.DateTimeField(initial = datetime.datetime.today(), label='Дата початку')
+#    date_start = forms.DateTimeField( label='Дата початку')
     date_end = forms.DateTimeField(initial = datetime.date.today() + datetime.timedelta(days=3), label='Закінчення прокату')
+#    date_start = forms.DateTimeField(initial = datetime.datetime.today(), label='Дата початку')
+#    date_end = forms.DateTimeField(initial = datetime.date.today() + datetime.timedelta(days=3), label='Закінчення прокату')
+    
 #    count = forms.IntegerField(initial=1)
     deposit = forms.FloatField(label='Завдаток', initial=0)
     currency = forms.ModelChoiceField(queryset = Currency.objects.all(), label='Валюта')
-    cash_type = forms.ModelChoiceField(queryset = CashType.objects.all(), label='Вид оплати', required=False)
+    cash_type = forms.ModelChoiceField(queryset = CashType.objects.all(), label='Вид оплати')
 #    status = forms.BooleanField(initial = False, required=False)
     description = forms.CharField(label='Коментар', widget=forms.Textarea(), required=False)
 #    field_order = ['catalog','client','date_start', 'date_end', 'deposit', 'currency', 'description']
@@ -932,7 +935,8 @@ class RentForm(forms.ModelForm):
     class Meta:
         model = Rent
         #fields = '__all__'
-        fields = ['catalog','client','date_start', 'date_end', 'deposit', 'currency', 'cash_type', 'description']
+#        fields = ['catalog','client','date_start', 'date_end', 'deposit', 'currency', 'cash_type', 'description']
+        fields = ['catalog','client', 'date_end', 'deposit', 'currency', 'cash_type', 'description']
         exclude = ['cred', 'user', 'status', 'count']
 
 
