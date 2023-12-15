@@ -4,7 +4,7 @@ dirname = os.path.dirname(globals()["__file__"])
 
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
+#TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
@@ -22,6 +22,7 @@ DATABASES = {
         'USER': 'rivelo',
         'PASSWORD': 'Pnj5i5zjF6uC7nv',
         'HOST': '127.0.0.1',
+#        'HOST': '192.168.88.21',
         'PORT': '3306',        
         
     }
@@ -76,11 +77,11 @@ DEFAULT_CHARSET = 'utf-8'
 MINI_HASH_1 = 'rivelo2020casa4kavkazkaSt.'
 MINI_HASH_2 = 'rivelo2020casa4MickevuchSt.'
 
-#HTTP_MINI_SERVER_IP = '10.9.8.22' # work server
+#HTTP_MINI_SERVER_IP = '192.168.88.24' # work server
 #HTTP_MINI_SERVER_IP_2 = '10.9.8.26' # work server
 HTTP_MINI_SERVER_IP_3 = '10.9.8.17' # home server
-HTTP_MINI_SERVER_IP = '192.168.88.239' # test server
-HTTP_MINI_SERVER_IP_2 = '192.168.88.239' # test server
+HTTP_MINI_SERVER_IP = '10.0.0.25' # test server
+HTTP_MINI_SERVER_IP_2 = '192.168.1.99' # test server
 
 HTTP_MINI_SERVER_PORT = '8123'
 HTTP_MINI_SERVER_PORT_2 = '8123'
@@ -102,6 +103,33 @@ CLIENT_SALE_5 = 7500
 CLIENT_SALE_7 = 10000 
 CLIENT_SALE_10 = 15000
 
+SHOPS = {
+    'shop11': '10.0.0.77',
+    'shop22': '192.168.1.7',
+    'shop3': '192.168.88.24',
+    'home': '10.0.1.199',
+    'shop1': '127.0.0'
+}
+
+SHOP1_PAY = [1, 11, 9]
+SHOP2_PAY = [10, 2, ]
+
+SHOP1_PAY_CASH = 1
+SHOP2_PAY_CASH = 10
+
+SHOP1_PAY_TERM = [11, 9, ]
+SHOP2_PAY_TERM = [2, ]
+
+OTHER_SHOP_PAY = [7, 13, 3, 12, 4, 8, 5, ]
+
+LOCAL_TEST_SERVER = False # Local SERVER on network 
+
+XLICENSEKEY = '0ca9dc0a7ae41b66e217cb33' # work casa
+PIN_CODE =  '1850802523' # work casa
+#XLICENSEKEY = 'test338c45d499f5fea8e7d02280' # test casa
+#PIN_CODE =  '1886277255' # test casa
+ 
+
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
@@ -115,10 +143,10 @@ USE_I18N = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 DEFAULT_FROM_EMAIL = 'user@domain.com'
 EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'velorivne@gmail.com'
-EMAIL_HOST_PASSWORD = 'gvelovelog'
-EMAIL_PORT = 587
+EMAIL_HOST = 'smtp.ukr.net' #smtp.gmail.com'
+EMAIL_HOST_USER = 'rivelo@ukr.net' #'velorivne@gmail.com'
+EMAIL_HOST_PASSWORD = 'GOl0c5wjRnZN0P7C' #'gvelovelog'
+EMAIL_PORT = 465 #587
 
 
 PROJECT_DIR = os.path.join(dirname, '')
@@ -163,21 +191,6 @@ STATICFILES_FINDERS = (
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'zmjw9-ks9=p=9(mcoeq#uk89q6vgf2twyi4d(n0(_5wppi)i(u'
 
-# List of callables that know how to import templates from various sources.
-if DEBUG:
-    TEMPLATE_LOADERS = [
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',      
-    ]
-else:
-    TEMPLATE_LOADERS = [
-    ('django.template.loaders.cached.Loader',(
-        'django.template.loaders.filesystem.Loader',
-        'django.template.loaders.app_directories.Loader',
-        'forum.modules.template_loader.module_templates_loader',
-        'forum.skins.load_template_source',
-        )),
-    ]
 
 #TEMPLATE_LOADERS = (
 #    'django.template.loaders.filesystem.load_template_source',
@@ -185,14 +198,28 @@ else:
 #     'django.template.loaders.eggs.load_template_source',
 #)
 
-MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
+#MIDDLEWARE_CLASSES = (
+#    'django.middleware.common.CommonMiddleware',
+#    'django.contrib.sessions.middleware.SessionMiddleware',
+#    'django.contrib.auth.middleware.AuthenticationMiddleware',
+#    'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
+#    'django.contrib.messages.middleware.MessageMiddleware',
 #    'django.middleware.csrf.CsrfViewMiddleware',
-)
+#)
+
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
+    
+]
+
 
 ROOT_URLCONF = 'catalog.urls'
 
@@ -203,9 +230,56 @@ ROOT_URLCONF = 'catalog.urls'
     # Don't forget to use absolute paths, not relative paths.
 #)
 
+# List of callables that know how to import templates from various sources.
+#===============================================================================
+# if DEBUG:
+#     TEMPLATE_LOADERS = [
+#     'django.template.loaders.filesystem.Loader',
+#     'django.template.loaders.app_directories.Loader',      
+#     ]
+# else:
+#     TEMPLATE_LOADERS = [
+#     ('django.template.loaders.cached.Loader',(
+#         'django.template.loaders.filesystem.Loader',
+#         'django.template.loaders.app_directories.Loader',
+#         'forum.modules.template_loader.module_templates_loader',
+#         'forum.skins.load_template_source',
+#         )),
+#     ]
+#===============================================================================
+                
 
-TEMPLATE_DIRS = (
-    os.path.join(dirname, 'templates'),
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+                    os.path.join(dirname, 'templates'), 
+                 ],
+#        'APP_DIRS': True,
+        'OPTIONS': {
+            'debug': DEBUG,
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                ],
+            'loaders': [
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader', 
+                ],
+#            'loaders': [
+#               'django_jinja.loaders.AppLoader',
+#                'django_jinja.loaders.FileSystemLoader',
+#            ]
+        },
+
+    },
+]
+
+#TEMPLATE_DIRS = (
+#    os.path.join(dirname, 'templates'),
     #"D:/development/mysite/templates/",
     #"/templates/admin",
     #"/mysite/templates/",
@@ -213,18 +287,21 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-)
+#)
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-    "django.core.context_processors.media",
-    'django.contrib.messages.context_processors.messages',
-    "django.contrib.auth.context_processors.auth",
-    "django.core.context_processors.debug",
-    "django.core.context_processors.i18n",
-    "django.core.context_processors.static",
-    "django.contrib.messages.context_processors.messages",
-    'django.core.context_processors.request',
-)
+
+#===============================================================================
+# TEMPLATE_CONTEXT_PROCESSORS = (
+#     "django.core.context_processors.media",
+#     'django.contrib.messages.context_processors.messages',
+#     "django.contrib.auth.context_processors.auth",
+#     "django.core.context_processors.debug",
+#     "django.core.context_processors.i18n",
+#     "django.core.context_processors.static",
+#     "django.contrib.messages.context_processors.messages",
+#     'django.core.context_processors.request',
+# )
+#===============================================================================
 
 INSTALLED_APPS = (
     'django.contrib.admin',                  

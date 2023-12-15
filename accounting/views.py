@@ -159,15 +159,19 @@ def prev_url(request):
          # do another thing here
     return redirect_to
 
+from django.shortcuts import render
 
 #----- Main Page -------------------
 def main_page(request):
     if request.user.is_authenticated():
         category_list = Type.objects.filter(ico_status = True)
-        return render_to_response("index.html", {"cat_list": category_list, "weblink": 'index_.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+        context = {"cat_list": category_list, "weblink": 'index_.html'}
+#        return render_to_response("index.html", {"cat_list": category_list, "weblink": 'index_.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+        return render(request, 'index.html', context) 
     else:
-        return render_to_response("index.html", {"weblink": 'top.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
-
+#        return render_to_response("index.html", {"weblink": 'top.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+        context = {"weblink": 'top.html'}
+        return render(request, 'index.html', context)
 
 
 

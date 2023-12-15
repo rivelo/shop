@@ -232,7 +232,7 @@ $("body").on("click", ".change_sale", function(e){
 		<th>Розмір рами</th>
 		<th>Рама</th>
 		<th>Ціна (грн)</th>
-		<th>Ціна $</th>
+		<th>Ціна $</th> 
 		<th>Опис</th>
 		<th>Знижка</th>
 		<th>Нова ціна</th>
@@ -313,8 +313,11 @@ $("body").on("click", ".change_sale", function(e){
 	{{type.model.model}} ({{type.model.color}})
 	</a></td>
 	<td><span class="f_year">{{type.model.year|date:"Y"}}</span></td>
-		<td class="serial_edit" id_serial="{{ type.id }}"> {{type.serial_number}}</td>  
-		<td><span class="f_size">{{type.size.inch}}" / {{type.size.cm}}cm</span></td>
+	<td class="serial_edit" id_serial="{{ type.id }}"> {{type.serial_number}}</td>  
+	
+	<td><span class="f_size">{{type.size.inch}}" / {{type.size.cm}}cm</span></td>
+	<td><span class="frame_letter_size">{{type.size.letter}}</span></td>		
+	
 		
 <!-- 		<td class="change_price" id_price="{{type.model.id}}">{{type.model.price}}</td>
  -->
