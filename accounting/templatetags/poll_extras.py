@@ -3,6 +3,7 @@ from django import template
 from django.contrib.auth.models import Group
 from django.contrib.auth.models import User
 from django.db import connection
+from django.conf import settings
 import json
 import requests
 import re
@@ -35,6 +36,14 @@ def sub(value, arg):
 def sub_int(value, arg):
     return int(value) - int(arg)
 
+
+ALLOWABLE_VALUES = ("LOGO_TOP", "CLIENT_UNKNOWN", "CLIENT_SALE_1", "CLIENT_SALE_3", "CLIENT_SALE_5", "CLIENT_SALE_7", "CLIENT_SALE_10")
+# settings value
+@register.simple_tag
+def settings_value(name):
+    if name in ALLOWABLE_VALUES:
+        return getattr(settings, name, "")
+    return ''
 
 @register.inclusion_tag('orm_debug.html')
 def orm_debug():

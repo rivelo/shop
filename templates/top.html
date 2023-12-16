@@ -30,14 +30,9 @@ $(document).ready(function() {
                     	$('#login_form').hide();
                     	$('#logout_form').show();
                     	//return true;
-
-                    	//location.reload(); //перезавантаження сторінки
+                    	location.reload(); //перезавантаження сторінки
                     }
                     	
-//                    $('#ttt').append("<strong> " + msg + "</strong>");
-//                    $('#ttt').text(""+msg);
-//                    $('#id_deposit').val(""+msg);
-                    
                 },
                 error:function(){
                 	$('#result').empty();
@@ -64,39 +59,17 @@ $(document).bind('keydown', 'alt+x', function(){
 </script>
 
 
+{% load poll_extras %}
 
 {% load i18n %}
 
 <div class="row">
   <div class="col-xs-3 col-sm-3 col-lg-3">
-  <a href="/"><img src="/media/images/site_logo_small.gif" alt="" title=""/></a>
+{#   <a href="/"><img src="/media/images/site_logo_small.gif" alt="" title=""/></a> #}
+  <a href="/"><img src="{% settings_value "LOGO_TOP" %}" alt="" title=""/></a>
   </div>
 
 <div class="col-xs-6 col-sm-6 col-lg-6">
-
-{% comment %}
-<div class="row"> 
-    <form action="/invoice/search/result" method="GET" class="form-horizontal">
-   <div class="form-group form-group-sm">
-  <div class="col-xs-5 col-lg-9">   
-	<div class="input-group input-group-sm"> 
-    <label class="control-label">Введіть назву товару: </label>
-    <input type="text" name="name" id="tsearch_field" class="form-control">
-	</div>
-	<div class="input-group input-group-sm">
-    <label class="control-label">Введіть артикул товару: </label>
-    <input type="text" name="id" id="asearch_field" class="form-control">
-	</div>
-   </div>
-<div class="col-xs-4 col-lg-4">	
-	<div class="input-group input-group-sm">
-    <input type="submit" value="Пошук" class="btn btn-primary">
-	</div>    
-</div>    
-   </div>
-</div> 
-  </form>
-{% endcomment %}
 
 <form action="/invoice/search/result" method="GET" class="form-horizontal">
 <div class="input-group">
@@ -145,62 +118,4 @@ You ip address {{ip_address}} ({{shop_name}})
 </div>
 
 
-{% comment %}
-<table id="mainmenutable"><tr>
-<td style="border-color:white;">
-<a href="/"><img src="/media/images/site_logo_small.gif" alt="" title=""/></a>
-</td>
-
-<td style="border: 0;">  
-  <form action="/invoice/search/result" method="GET" class="form-horizontal">
-  <div class="form-group form-group-sm">
-    <label>Введіть назву товару: </label>
-    <input type="text" name="name" id="tsearch_field">
-    <br>
-    <label>Введіть артикул товару: </label>
-    <input type="text" name="id" id="asearch_field">
-    <input type="submit" value="Пошук">
-   </div>
-  </form>
-</td>
-
- 
-<td id="tdlogo">
-
- <a href="/"><img src="/media/images/riban.gif" alt="" title=""/></a>
- 
-
-
-{% if user.is_authenticated %}
-  <form method="post" action="/accounts/logout/">
-        {% csrf_token %}
-        <label>User name: {{user.username|upper}}</label>
-        <input type="submit" name="logout" value="{% trans "Logout" %}" class="ptserif"/>
-        <input type="hidden" name="next_page" value="{{ next|escape }}" />
-    </form>
-{% else %}
-  <form action="/accounts/login/" method="post" id="login_form">
-    <label for="username">User name:</label>
-    <input type="text" name="username" value="" id="username">
-    <label for="password">Password:</label>
-    <input type="password" name="password" value="" id="password">
-
-    <input type="submit" value="login" />
-    <input type="hidden" name="next" value="{{ next|escape }}" />
-  </form>
-  
-  <form method="post" action="/accounts/logout/" style="display:none;" id="logout_form">
-        {% csrf_token %}
-        <label id="user_label">User name: {{user.username|upper}}</label>
-        <input type="submit" name="logout" value="{% trans "Logout" %}" class="ptserif"/>
-        <input type="hidden" name="next_page" value="{{ next|escape }}" />
-    </form>
-  
-{% endif %}
-	
-</td>
-</tr>
-</table>
-
-{% endcomment %} 
 

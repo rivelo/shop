@@ -268,12 +268,12 @@ $('[data-toggle="tooltip"]').tooltip();
 <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
   <ol class="carousel-indicators">
 {% for photo_url in catalog_obj.get_photos %}  
-    <li data-target="#carouselExampleIndicators" data-slide-to="{{forloop.counter0}}" class="{% if forloop.counter0 = 0 %} active {% endif %}"></li>
+    <li data-target="#carouselExampleIndicators" data-slide-to="{{forloop.counter0}}" class="{% if forloop.counter0 == 0 %} active {% endif %}"></li>
 {% endfor %}
   </ol>
   <div class="carousel-inner">
 {% for photo_url in catalog_obj.get_photos %}
-    <div class="carousel-item {% if forloop.counter = 1 %} active {% endif %} ">
+    <div class="carousel-item {% if forloop.counter == 1 %} active {% endif %} ">
       <img class="d-block w-100" src="{{photo_url}}" alt="photo{{forloop.counter}}" >
     </div>
 {% endfor %}

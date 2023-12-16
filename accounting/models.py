@@ -13,7 +13,6 @@ from django.db.models import F
 from urlparse import urlparse,parse_qs,urlunparse
 from urllib import urlencode
 import httplib
-from compiler.ast import Discard
 import os.path
 import urllib2
 from django.conf import settings
@@ -21,6 +20,7 @@ from _mysql import NULL
 from django.db.models import Q
 from django.utils.translation.trans_real import catalog
 from __builtin__ import True
+from django.template.defaultfilters import default
 
 
 # Group Type = Group for Component category 
@@ -38,8 +38,82 @@ class GroupType(models.Model):
     class Meta:
         ordering = ["name"]    
 
-from django.utils.text import slugify
 
+
+# --- види грошових надходжень
+class CashType(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        ordering = ["name",]    
+
+
+
+class Schedules(models.Model):
+    name = models.CharField(max_length = 255, blank = True, null = True)
+    start_week_day = models.PositiveSmallIntegerField(default = 1) 
+    end_week_day = models.PositiveSmallIntegerField(default = 7)
+    start_time = models.TimeField(default = datetime.time(10, 00, 00))
+    end_time = models.TimeField(default = datetime.time(19, 00, 00))
+    start_date = models.DateField(auto_now_add = False)
+    end_date =  models.DateField()
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    
+    def __unicode__(self):
+        return u'%s : [%s - %s] - (%s - %s)' % (self.name, self.start_date, self.end_date, self.start_time, self.end_time)
+        #return u'%s - %s' % (self.name, self.name_ukr) 
+
+    class Meta:
+        ordering = ["start_date", "start_week_day"]    
+
+
+
+class Shop(models.Model):
+    name = models.CharField(max_length=200)
+    phone = models.CharField(max_length=100, blank = False, null = False)
+    phone1 = models.CharField(max_length=100, blank = True, null = True)
+    phone2 = models.CharField(max_length=100, blank = True, null = True)
+    email = models.EmailField(blank = True, null = True)
+    web_site = models.URLField(blank=True, null=True)
+    address = models.CharField(max_length=255, blank = True, null = True)
+    map_point = models.TextField(blank = True, null = True)
+    ip_addr = models.GenericIPAddressField(protocol='IPv4', blank = True, null = True)
+    status = models.BooleanField(default = True) # Work status
+    shop_pay_cash = models.ManyToManyField(CashType, blank = True, related_name='Shop_Cash_Pay')
+    shop_pay_term = models.ManyToManyField(CashType, blank = True, related_name='Shop_Term_Pay')
+    casa_server_ip =  models.GenericIPAddressField(protocol='IPv4', blank = True, null = True)
+    casa_server_port = models.PositiveSmallIntegerField(default = 8123, null=True)
+    casa_hash = models.CharField(max_length=255, blank=True, null=True)
+# checkBox connect
+    XLICENSEKEY = models.CharField(max_length=255, blank=True, null=True)
+    PIN_CODE = models.CharField(max_length=255, blank=True, null=True)
+    work_schedule = models.ManyToManyField(Schedules, blank=True) 
+    user_list = models.ManyToManyField(User, blank=True)
+    description = models.CharField(max_length=255)
+
+
+    def __unicode__(self):
+        return u'%s' % (self.name)
+        #return u'%s - %s' % (self.name, self.name_ukr) 
+
+    class Meta:
+        ordering = ["name", "address"]    
+
+
+
+#class FOP(models.Model):
+#    FOP =
+#    IBAN = 
+#    bank_data = 
+ 
+
+    
+    
+from django.utils.text import slugify
 # Type = Component category 
 class Type(models.Model):
     name = models.CharField(max_length=100)
@@ -75,8 +149,6 @@ class Type(models.Model):
            return 0
         #return (max_sale, dateDiscount.values('name', 'sale'))         
         #return (max_sale, dateDiscount[0])
-
-
     
     def __unicode__(self):
         return u'%s / %s' % (self.name, self.name_ukr)
@@ -523,19 +595,8 @@ class FrameSize(models.Model):
 
     class Meta:
         ordering = ["inch","name"]    
-
-
-# --- види грошових надходжень
-class CashType(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, null=True)
-
-    def __unicode__(self):
-        return self.name
-
-    class Meta:
-        ordering = ["name",]    
     
+
 
 # postach Dealer (Ukraine)
 class Dealer(models.Model):
@@ -1088,13 +1149,16 @@ class Bicycle_Store(models.Model):
     currency = models.ForeignKey(Currency)
     count = models.PositiveIntegerField()
     realization = models.BooleanField(default=False,)
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField(auto_now_add=True) # create date
     description = models.TextField(blank=True, null=True)
-    #status #box shop 
-    #state
+    #invoice = models.CharField(max_length=255, blank = True, null = True)
+    #dealer_id = models.CharField(max_length=60, blank = True, null = True)
+    #status = models.BooleanField(default=False)  #box shop 
+    #user_assembly = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     #shop
-    #added date
-    #invoice
+    #checked date = models.DateField(auto_now_add=True) # Shop checked date
+    #user_check_state = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    #user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
 
     def get_profit(self):
         profit = 0

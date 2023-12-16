@@ -128,6 +128,8 @@ XLICENSEKEY = '0ca9dc0a7ae41b66e217cb33' # work casa
 PIN_CODE =  '1850802523' # work casa
 #XLICENSEKEY = 'test338c45d499f5fea8e7d02280' # test casa
 #PIN_CODE =  '1886277255' # test casa
+
+LOGO_TOP = '/media/images/site_logo_small.gif'
  
 
 # Language code for this installation. All choices can be found here:

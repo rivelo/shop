@@ -2151,7 +2151,7 @@ local_offer
 	<img src="/media/images/discount_down.png" width="30" height="30">
 {% endif %}
 {% endif %}
-{% if type.catalog__price = type.catalog__last_price %}
+{% if type.catalog__price == type.catalog__last_price %}
 {{type.catalog__price}} грн.
 {% endif %}
 {% if type.get_discount %}

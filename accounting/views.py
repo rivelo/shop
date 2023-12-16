@@ -2,9 +2,32 @@
 from django.db.models import Q
 from django.db.models import F
 from django.db import connection
-from django.shortcuts import render_to_response, redirect
-from django.template import RequestContext
+from django.db.models import Sum, Count, Max, Avg
+
+from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
+from django.http import HttpResponse
+from django.http import Http404  
+from django.http import JsonResponse
+
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.mail import EmailMultiAlternatives
+from django.core.files.uploadedfile import InMemoryUploadedFile, UploadedFile
+from django.core.mail import send_mail
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core import serializers
 from django.core.urlresolvers import resolve
+
+from django.shortcuts import render_to_response, redirect
+
+from django.contrib.auth.models import Group
+from django.contrib import auth
+
+from django.template import RequestContext
+
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+
+from django.utils.text import slugify
 
 from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,  FrameSize, Bicycle_Store, Bicycle_Sale, Bicycle_Order, Bicycle_Storage, Bicycle_Photo, Storage_Type, Bicycle_Parts
 from forms import ContactForm, ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm, BicycleStorage_Form, StorageType_Form 
@@ -18,46 +41,20 @@ from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoic
 from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus, YouTube
 from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm, WorkShopFormset, SalaryForm
   
-from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
-from django.core.exceptions import ObjectDoesNotExist
-from django.contrib import auth
-from django.core.files.uploadedfile import InMemoryUploadedFile, UploadedFile
-
-from django.http import HttpResponse
-#from django.core.context_processors import request
-#from HttpRequest import request
-from django.http import Http404  
-
-from django.conf import settings
 import datetime
 import calendar
 import codecs
 import csv
 import re
 import math
-
-import StringIO, requests, os
-from PIL import Image
-from django.utils.text import slugify
-
-from django.db.models import Sum, Count, Max, Avg
-
-from django.core.mail import send_mail
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.auth.models import Group
-
 import simplejson, json
-from django.core import serializers
-
 import pytils_ua
 import urllib
+import StringIO, requests, os
 
-from django.core.mail import EmailMultiAlternatives
+from PIL import Image
 from urlparse import urlsplit
-from django.db.models import F
-from django.http import JsonResponse
 from _mysql import NULL
-#from pyasn1.compat.octets import null
 
 
 def custom_proc(request):
@@ -73,6 +70,53 @@ def custom_proc(request):
         'day_now': date.day,
         'local_server': settings.LOCAL_TEST_SERVER,
     }
+
+
+
+@csrf_exempt
+def login(request):
+    message = "AJAX"
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('user'):
+                user = request.POST.get('user')
+            if POST.has_key('password'):
+                password = request.POST.get('password')
+            user = auth.authenticate(username=user, password=password)
+            if user is not None and user.is_active:
+                auth.login(request, user)
+                return HttpResponse(simplejson.dumps({'response': message, 'result': 'success'}))
+            else:
+                return HttpResponse(simplejson.dumps({'response': message, 'result': 'error'}))
+        
+    username = request.POST['username']
+    password = request.POST['password']
+    next = request.POST['next']
+    user = auth.authenticate(username=username, password=password)
+    if user is not None and user.is_active:
+        # Правильный пароль и пользователь "активен"
+        auth.login(request, user)
+        # Перенаправление на "правильную" страницу
+        if next:
+            return HttpResponseRedirect(next)
+        else:
+            return HttpResponseRedirect("/.")            
+    else:
+        # Отображение страницы с ошибкой
+        
+            #return HttpResponse(simplejson.dumps(TheStory), content_type="application/json")
+        if next:
+            return HttpResponseRedirect(next)
+        else:
+            return HttpResponseRedirect("/.")            
+
+@csrf_exempt
+def logout(request):
+    auth.logout(request)
+    next_page = request.POST['next_page']
+    return HttpResponseRedirect("/")
+
 
     
 def auth_group(user, group):
@@ -166,11 +210,11 @@ def main_page(request):
     if request.user.is_authenticated():
         category_list = Type.objects.filter(ico_status = True)
         context = {"cat_list": category_list, "weblink": 'index_.html'}
-#        return render_to_response("index.html", {"cat_list": category_list, "weblink": 'index_.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+        context.update(custom_proc(request))
         return render(request, 'index.html', context) 
     else:
-#        return render_to_response("index.html", {"weblink": 'top.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
         context = {"weblink": 'top.html'}
+        context.update(custom_proc(request))
         return render(request, 'index.html', context)
 
 
@@ -2092,10 +2136,10 @@ def dealer_invoice_list_month(request, year=False, month=False, pay='all'):
     if pay == 'all':
             list = DealerInvoice.objects.filter(date__year=year, date__month=month)                        
     #list = DealerInvoice.objects.filter(date__year=year, date__month=month, payment=)
-    exchange = Exchange.objects.filter(date=datetime.date.today)
+    exchange = Exchange.objects.filter(date = datetime.date.today())
     try:
-        exchange_d = Exchange.objects.get(date=datetime.date.today, currency=2)
-        exchange_e = Exchange.objects.get(date=datetime.date.today, currency=4)
+        exchange_d = Exchange.objects.get(date=datetime.date.today(), currency=2)
+        exchange_e = Exchange.objects.get(date=datetime.date.today(), currency=4)
         summ = 0
         summ_debt = 0
         #DealerInvoice.objects.filter(date__year=year, date__month=month):
@@ -2112,19 +2156,18 @@ def dealer_invoice_list_month(request, year=False, month=False, pay='all'):
                 summ = summ + e.price
                 if e.payment != True:
                     summ_debt = summ_debt + e.price
-                
-        
     except Exchange.DoesNotExist:
-        #now = datetime.date.today()
-        #html = "<html><body>Не має курсу валют. Введіть <a href=""/exchange/view/"" >курс валют на сьогодні</a> (%s) та спробуйте знову.</body></html>" % now
         html = "Не має курсу валют. Введіть <a href=""/exchange/view/"" >курс валют на сьогодні</a> (%s) та спробуйте знову" % now.strftime('%d-%m-%Y %H:%m')
-        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': html, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
-        #return HttpResponse(html)
+        context = {'weblink': 'error_message.html', 'mtext': html}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
         exchange_d = 0
         exchange_e = 0
     company_list = list.values("company", "company__name", "company__color").distinct().order_by("company__pk")        
     yearlist = DealerInvoice.list_objects.get_year_list()
-    return render_to_response('index.html', {'dealer_invoice': list, 'exchange': exchange, 'exchange_d': exchange_d, 'year_list' :yearlist, 'company_list': company_list, 'exchange_e': exchange_e, 'summ': summ, 'summ_debt': summ_debt, 'sel_month':month, 'sel_year':year, 'weblink': 'dealer_invoice_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'dealer_invoice': list, 'exchange': exchange, 'exchange_d': exchange_d, 'year_list' :yearlist, 'company_list': company_list, 'exchange_e': exchange_e, 'summ': summ, 'summ_debt': summ_debt, 'sel_month':month, 'sel_year':year, 'weblink': 'dealer_invoice_list.html', 'next': current_url(request)}
+    context.update(custom_proc(request))    
+    return render(request, 'index.html', context)
 
 
 def dealer_invoice_list_year(request, year=False, pay='all'):
@@ -2269,6 +2312,7 @@ def invoice_miss_stuff(request):
     
 
 #-------------- InvoiceComponentList -----------------------
+@csrf_exempt
 def invoicecomponent_add(request, mid=None, cid=None):
 #    company_list = Manufacturer.objects.all()
     price = 0
@@ -2299,8 +2343,11 @@ def invoicecomponent_add(request, mid=None, cid=None):
             return HttpResponseRedirect('/invoice/list/10/view/')
     else:
         form = InvoiceComponentListForm(instance = a, test1=mid, catalog_id=cid)
-    return render_to_response('index.html', {'form': form, 'weblink': 'invoicecomponent.html', 'price_ua': price, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
-#    return render_to_response('index.html', {'form': form, 'weblink': 'invoicecomponent.html', 'company_list': company_list, 'price_ua': price, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+#    return render_to_response('index.html', {'form': form, 'weblink': 'invoicecomponent.html', 'price_ua': price, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'invoicecomponent.html', 'price_ua': price}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
+
 
 
 def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None, all=False):
@@ -2435,7 +2482,8 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
 #    categ = type_list.get(id=cid)
 #    vars.update({'type_obj': categ})
     
-    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+#    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', vars)
 
 
 def invoicecomponent_print(request):
@@ -2567,7 +2615,7 @@ def invoicecomponent_del(request, id):
     cat.save()
     return HttpResponseRedirect('/invoice/list/10/view/')
 
-
+@csrf_exempt
 def invoicecomponent_edit(request, id):
     a = InvoiceComponentList.objects.get(id=id)
     old_count = a.count
@@ -2591,7 +2639,9 @@ def invoicecomponent_edit(request, id):
     else:
         form = InvoiceComponentListForm(instance=a, catalog_id=cid)
         #form = InvoiceComponentListForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'invoicecomponent.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'invoicecomponent.html'}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def invoice_search(request):
@@ -2687,8 +2737,9 @@ def invoice_id_list(request, id=None, limit=0):
     if scount == rcount:
         status_delivery = True
     dinvoice = DealerInvoice.objects.get(id=id)    
-    #return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'company_list':company_list, 'allpricesum':psum, 'alloptsum':optsum, 'countsum': scount, 'weblink': 'invoice_component_report.html'})
-    return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice, 'allpricesum':psum, 'alloptsum':optsum, 'ua_optsum':uaoptsum, 'countsum': scount, 'status_delivery': status_delivery, 'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'list': list, 'dinvoice':dinvoice, 'allpricesum':psum, 'alloptsum':optsum, 'ua_optsum':uaoptsum, 'countsum': scount, 'status_delivery': status_delivery, 'weblink': 'invoice_component_report.html'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def invoice_id_list_delete(request, id=None):
@@ -3030,7 +3081,7 @@ def pb_currency():
         
     return [c_usd, c_eur]
 
-
+@csrf_exempt
 def exchange_add(request):
     #cur = goverla_currency()
     cur = pb_currency()
@@ -3052,23 +3103,22 @@ def exchange_add(request):
                 return HttpResponseRedirect('/exchange/view/')
     else:
         form = ExchangeForm(instance = a)
-    #return render_to_response('exchange.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'eur': c_eur, 'usd': c_usd, 'weblink': 'exchange.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
-
+    context = {'form': form, 'eur': c_eur, 'usd': c_usd, 'weblink': 'exchange.html'}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def exchange_list(request):
-    #cur = goverla_currency()
     cur = pb_currency()
     c_usd = cur[0]
     c_eur = cur[1]
-        
     curdate = datetime.datetime.now()
     list = Exchange.objects.filter(date__month=curdate.month)
-    #return render_to_response('exchange_list.html', {'exchange': list.values()})
-    return render_to_response('index.html', {'exchange': list, 'eur': c_eur, 'usd': c_usd, 'weblink': 'exchange_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'exchange': list, 'eur': c_eur, 'usd': c_usd, 'weblink': 'exchange_list.html'} 
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def exchange_edit(request, id):
     a = Exchange.objects.get(pk=id)
     if request.method == 'POST':
@@ -3078,7 +3128,9 @@ def exchange_edit(request, id):
             return HttpResponseRedirect('/exchange/view/')
     else:
         form = ExchangeForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'exchange.html', 'text': 'Обмін валют (редагування)', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'exchange.html', 'text': 'Обмін валют (редагування)'}
+    context.update(custom_proc(request))         
+    return render(request, 'index.html', context)
 
 
 def exchange_del(request, id):
@@ -3555,7 +3607,7 @@ def catalog_add(request):
     #return render_to_response('catalog.html', {'form': form})
     return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+@csrf_exempt
 def catalog_set(request):
     if auth_group(request.user, 'seller')==False:
         return HttpResponse('Error: У вас не має прав для редагування')
@@ -3645,7 +3697,6 @@ def catalog_set(request):
            return HttpResponse('Error: Щось пішло не так')
     
 
-
 def catalog_edit(request, id=None):
     a = Catalog.objects.get(pk=id)
     #url1=request.META['HTTP_REFERER']
@@ -3681,8 +3732,10 @@ def catalog_list(request, id=None):
         list = Catalog.objects.all().order_by("-id")[:10]
     else:
         list = Catalog.objects.filter(id=id)
-    #return render_to_response('catalog_list.html', {'catalog': list.values_list()})
-    return render_to_response('index.html', {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+#    return render_to_response('index.html', {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def catalog_same_list(request):
@@ -4225,24 +4278,24 @@ def clientcredits_delete_all(request, client_id):
     obj = ClientCredits.objects.filter(client=client_id).delete()
     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
-
+#old function
 def client_invoice_shorturl(request, cid=None):
     cat = Catalog.objects.get(id = cid)
-#    if not request.user.is_authenticated():
-    return render_to_response('index.html', {'weblink': 'guestinvoice.html', 'cat': cat}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'weblink': 'guestinvoice.html', 'cat': cat}
+    return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def client_invoice(request, cid=None, id=None):
     cat = Catalog.objects.get(id = cid)
     if not request.user.is_authenticated():
-        return render_to_response('index.html', {'weblink': 'guestinvoice.html', 'cat': cat}, context_instance=RequestContext(request, processors=[custom_proc]))
-        #return HttpResponseRedirect('/')
+        context = {'weblink': 'guestinvoice.html', 'cat': cat}
+        #custom_proc(request)
+        return render(request, 'index.html', context)
     now = datetime.datetime.now()
 
     if (id):
         client = Client.objects.get(pk = id)
         a = ClientInvoice(client = client, date=datetime.datetime.today(), price=cat.price, sum=cat.price, sale=int(cat.sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=cat, user = request.user)
-        
     else:
         a = ClientInvoice(date=datetime.datetime.today(), price=cat.price, sum=cat.price, sale=int(Catalog.objects.get(id = cid).sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=cat, user = request.user)
         
@@ -4302,18 +4355,22 @@ def client_invoice(request, cid=None, id=None):
     clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))
 
     cat_obj = cat.get_discount_item()
+#    return render_to_response('index.html', {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len}
+    context.update(custom_proc(request))
+    return render(request, 'index.html',  context)
 
-    return render_to_response('index.html', {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len}, context_instance=RequestContext(request, processors=[custom_proc]))
-
-
+@csrf_exempt
 def client_invoice_edit(request, id):
     a = ClientInvoice.objects.get(id=id)
     cat = Catalog.objects.get(id = a.catalog.id)
     if not request.user.is_authenticated():
-        return render_to_response('index.html', {'weblink': 'guestinvoice.html', 'cat': cat}, context_instance=RequestContext(request, processors=[custom_proc]))
+        context = {'weblink': 'guestinvoice.html', 'cat': cat}
+        return render(request, 'index.html', context)
     if (a.pay == a.sum) and ( auth_group(request.user, "admin") == False ):
-        #return HttpResponse("Даний товар вже продано і ви не можете його редагувати", content_type="text/plain;charset=UTF-8;")
-        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Даний товар вже продано і ви не можете його редагувати', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        context = {'weblink': 'error_message.html', 'mtext': 'Даний товар вже продано і ви не можете його редагувати'}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
     
     now = datetime.datetime.now()
     old_count = a.count
@@ -4376,8 +4433,10 @@ def client_invoice_edit(request, id):
         if a.description.find('length:')>=0:
             dlen = a.description.split('\n')[-1].split(':')[1]
     clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))
-    cat_obj = cat.get_discount_item()        
-    return render_to_response('index.html', {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len, 'desc_len':dlen, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    cat_obj = cat.get_discount_item()    
+    context = {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len, 'desc_len':dlen,}
+    context.update(custom_proc(request))     
+    return render(request, 'index.html', context )
 
 
 def client_invoice_set(request):
@@ -4414,7 +4473,7 @@ def client_invoice_set(request):
                 
             return HttpResponse("Помилка", content_type="text/plain;charset=UTF-8;")
 
-
+@csrf_exempt
 def client_invoice_delete(request, id=None):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -4430,17 +4489,11 @@ def client_invoice_delete(request, id=None):
                         return HttpResponse(result, content_type="text/plain;charset=UTF-8;")
                     else:
                         ci.delete()
-                    
-#                if request.user != ci_list.user:
-#                    return HttpResponse('Error: У вас не має прав для редагування')
-                #ci.save()
                 result = 'ok'
                 return HttpResponse(result, content_type="text/plain;charset=UTF-8;")
         else:
             result = 'Помилка запиту'
             return HttpResponse(result, content_type="text/plain;charset=UTF-8;")
-            
-                
         
     obj = ClientInvoice.objects.get(id=id)
     cat = Catalog.objects.get(id = obj.catalog.id)
@@ -4513,10 +4566,13 @@ def client_invoice_view(request, month=None, year=None, day=None, id=None, notpa
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         cinvoices = paginator.page(paginator.num_pages)
-            
-    return render_to_response('index.html', {'sel_year':year, 'sel_month':int(month), 'month_days':days, 'sel_day':day, 'buycomponents': cinvoices, 'sumall':psum, 'sum_profit':sprofit, 'countall':scount, 'weblink': 'clientinvoice_list.html', 'view': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'sel_year':year, 'sel_month':int(month), 'month_days':days, 'sel_day':day, 'buycomponents': cinvoices, 'sumall':psum, 'sum_profit':sprofit, 'countall':scount, 'weblink': 'clientinvoice_list.html', 'view': True, 'next': current_url(request)} 
+    custom_dict = custom_proc(request)
+    context.update(custom_dict)
+    return render(request, 'index.html', context)
+#    return render_to_response('index.html', {'sel_year':year, 'sel_month':int(month), 'month_days':days, 'sel_day':day, 'buycomponents': cinvoices, 'sumall':psum, 'sum_profit':sprofit, 'countall':scount, 'weblink': 'clientinvoice_list.html', 'view': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+@csrf_exempt
 def client_invoice_lookup(request, client_id):
     list = None
     client_invoice_sum = 0
@@ -6005,7 +6061,9 @@ def shop_price_bysearch_id(request, id):
     
 def shop_price_bysearch_id_print(request, id):
     list = Catalog.objects.filter(ids__icontains=id).order_by("-id")
-    return render_to_response('price_list.html', {'catalog': list, 'view': False, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    context = {'catalog': list, 'view': False, 'next': current_url(request)}
+    context.update(custom_proc(request))
+    return render(request, 'price_list.html', context)    
 
 
 def shop_price_bysearch_name(request, id, pprint = False):
@@ -7680,56 +7738,6 @@ def client_card_sendemail(request, id):
 #    return render_to_response("index.html", {"weblink": 'top.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-from django.views.decorators.csrf import csrf_protect
-from django.contrib import auth 
-
-def login(request):
-    message = "AJAX"
-    if request.is_ajax():
-        if request.method == 'POST':  
-            POST = request.POST  
-            if POST.has_key('user'):
-                user = request.POST.get('user')
-            if POST.has_key('password'):
-                password = request.POST.get('password')
-            user = auth.authenticate(username=user, password=password)
-            if user is not None and user.is_active:
-                auth.login(request, user)
-                return HttpResponse(simplejson.dumps({'response': message, 'result': 'success'}))
-            else:
-                return HttpResponse(simplejson.dumps({'response': message, 'result': 'error'}))
-        
-    username = request.POST['username']
-    password = request.POST['password']
-    next = request.POST['next']
-    user = auth.authenticate(username=username, password=password)
-    if user is not None and user.is_active:
-        # Правильный пароль и пользователь "активен"
-        auth.login(request, user)
-        # Перенаправление на "правильную" страницу
-        if next:
-            return HttpResponseRedirect(next)
-        else:
-            return HttpResponseRedirect("/.")            
-    else:
-        # Отображение страницы с ошибкой
-        
-            #return HttpResponse(simplejson.dumps(TheStory), content_type="application/json")
-        if next:
-            return HttpResponseRedirect(next)
-        else:
-            return HttpResponseRedirect("/.")            
-
-
-def logout(request):
-    auth.logout(request)
-    next_page = request.POST['next_page']
-    # Перенаправление на страницу.
-    if next_page:
-        #return HttpResponseRedirect(next_page)
-        return HttpResponseRedirect("/.")
-    else:
-        return HttpResponseRedirect("/.")
 
 
 def client_history_cred(request):
@@ -8858,7 +8866,7 @@ def catalog_upload_photos(request):
 #    print "COUNT = " + str(cat_list.count())
     return render_to_response("index.html", {"weblink": 'catalog_file_upload_photos.html', 'file_list': f_list, 'cat_list': cat_list, 'not_found_files': file_not_exists}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
-
+@csrf_exempt
 def client_invoice_add(request, ids=None):
     if request.is_ajax():
         if request.method == 'POST':  

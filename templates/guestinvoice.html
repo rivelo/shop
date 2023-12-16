@@ -4,15 +4,12 @@
 
 <title>Ціна товару</title>
 
-
-	
-	<link rel="stylesheet" href="/media/jquery-ui.min.css">
-	<script type="text/javascript" src="/media/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<script type="text/javascript" src="/media/jquery-ui.min.js"></script>
 	
 <link rel="stylesheet" href="/media/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="/media/css/dataTables.jqueryui.css">
 
-		
 		
 	
 <style type="text/css">
@@ -259,17 +256,89 @@ function on_off_button(state) {
 	</div>
 	</div>
 
+{% load poll_extras %}
 
-<h1>Ціна товару</h1>
-<div style="float: left;">
+
+<div class="alert alert-danger pt-1 mt-1" role="alert" >
+  Для того щоб продати/редагувати товар вам потрібно авторизуватись та оновити сторінку.
+</div>
+
+<div style="float: none;">
+
+<div class="row">
+    <div class="col-6 col-md-2">
+    {% with cat.id|sale_url:request.get_host as url_buy %} 
+    <img src="{{url_buy|qr:"190x190"}}" style="width: 100%; " />
+    {% endwith %}
+    </div>
+    <div class="col-6 col-md-4">
+    
+    <div class="row">
+    	<div class="col-md-8">Код:</div>
+    	<div class="col-6 col-md-4">{{cat.ids}}</div>
+  	</div>
+  	<div class="row">
+    	<div class="col-md-8">Виробник:</div>
+    	<div class="col-6 col-md-4">{{cat.manufacturer}}</div>
+  	</div>
+	<div class="row">
+    	<div class="col-md-8">Країна виробник:</div>
+    	<div class="col-6 col-md-4">{{cat.country}}</div>
+  	</div>
+	<div class="row">
+    	<div class="col-md-8">
+    	<p class="font-weight-bold" style="font-size: 15px;">
+    	Ціна:
+    	</p>
+    	</div>
+    	<div class="col-6 col-md-4">
+    	<p class="font-weight-bold" style="font-size: 18px;">
+    	{{cat.price}} грн.
+    	</p>
+    	</div>
+    </div>
+  	
+  	
+{% if cat.sale != 0 %}
+<div class="alert alert-success" role="alert">
+<div class="row">
+    	<div class="col-md-8">
+    	<p class="font-weight-bold" style="font-size: 15px;">
+    	Нова ціна:
+    	</p>
+    	</div>
+    	<div class="col-6 col-md-4">
+    	<p class="font-weight-bold" style="font-size: 18px;">
+    	{{cat.sale|div:100|sub:1|mul:cat.price|mul:-1}} грн.
+    	</p>
+    	</div>
+</div>    
+</div>
+{% endif %}
+  	
+  	
+  	
+  	
+  	<div class="row">
+  	<div class="col-md-12">
+  	<p class="font-weight-bold" style="font-size: 25px;">{{cat.name}}</p>
+  	</div>
+  	</div>
+  	
+    </div>
+
+</div>
+
+
+
+{% comment %}
 <table class="table">
 
-{% load poll_extras %}
 
 <tr>
 {% with price.catalog.id|sale_url:request.get_host as url_buy %}  
 <td rowspan="5"  class="nameTD" style="border-bottom: 1px solid black; padding-left: 8px; padding-top: 5px;">
-<img src="{{url_buy|qr:"90x90"}}" />
+    <img src="{{url_buy|qr:"190x190"}}" style="width: 100%; " />
 </td>
 {% endwith %}
 
@@ -342,16 +411,14 @@ function on_off_button(state) {
 </tr>
 
 </table>
+
 </div>
 
-{% comment %}
-<div class="box" style="float: left;">
-<p style="font-style: normal;">Номер ящика:</p>
-{{cat.locality}}
-</div>
 {% endcomment %}
 
-</div>
+
+</body>
+
 
 {% if user.is_authenticated %}
 
@@ -377,5 +444,12 @@ function on_off_button(state) {
 <img cap="[{{cat.ids}}] - ({{cat.manufacturer__name}}) {{cat.name}}" class="inventory" id="link_{{cat}}" url="" ids={{cat.id}} src="/media/images/Inspection.png" width="50" height="50">
 </abbr>
 </div>
+
+
     
-{% endif %}    
+{% endif %}
+
+ 
+
+ 
+   

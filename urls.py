@@ -285,7 +285,7 @@ urlpatterns = [
     url(r'^client/invoice/catalog/(?P<cid>\d+)/add/$', catalog.client_invoice),
     url(r'^client/(?P<id>\d+)/invoice/catalog/(?P<cid>\d+)/add/$', catalog.client_invoice),
     url(r'^sale/(?P<cid>\d+)/$', catalog.client_invoice, {'id': 138}), #short link for sale in android device
-    url(r'^s/(?P<cid>\d+)/$', catalog.client_invoice_shorturl), #short link for sale in android device    
+
     url(r'^client/invoice/catalog/(?P<id>\d+)/view/$', catalog.client_invoice_id, name="client_catalog_sale"),
     url(r'^client/invoice/catalog/(?P<id>\d+)/view/notpay/$', catalog.client_invoice_id, {'notpay': True}),
 #    url(r'^client/invoice/add/$', catalog.client_invoice'),
@@ -627,6 +627,10 @@ urlpatterns = [
     url(r'^qrscanner/$', catalog.qrscanner),
     url(r'^qrscanner2/$', catalog.qrscanner2),
     url(r'^catalog/file/photo/list/$', catalog.catalog_upload_photos),
+    
+    # не потрібний функціонал
+    url(r'^s/(?P<cid>\d+)/$', catalog.client_invoice_shorturl), #short link for sale in android device
+    
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 

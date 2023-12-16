@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 from catalog.accounting.models import Type, Size, Exchange, Manufacturer, Catalog, Country, Dealer, Currency, Rent, Wheel_Size, Bicycle_Storage, Bicycle_Photo, GroupType, YouTube, PhoneStatus, Bicycle_Parts
-from catalog.accounting.models import CheckPay, Check
+from catalog.accounting.models import CheckPay, Check, Schedules, Shop
 
 
 
@@ -78,6 +78,17 @@ class RentAdmin(admin.ModelAdmin):
     search_fields = ('catalog', 'status',)
     
 admin.site.register(Rent, RentAdmin)
+
+
+class ShopAdmin(admin.ModelAdmin):
+    pass
+admin.site.register(Shop, ShopAdmin)
+
+
+class SchedulesAdmin(admin.ModelAdmin):
+    pass
+
+admin.site.register(Schedules, SchedulesAdmin)
 
 
 class Wheel_SizeAdmin(admin.ModelAdmin):
