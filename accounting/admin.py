@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from django.contrib import admin
-from catalog.accounting.models import Type, Size, Exchange, Manufacturer, Catalog, Country, Dealer, Currency, Rent, Wheel_Size, Bicycle_Storage, Bicycle_Photo, GroupType, YouTube, PhoneStatus, Bicycle_Parts
-from catalog.accounting.models import CheckPay, Check, Schedules, Shop
+from catalog.accounting.models import Type, Size, Exchange, Manufacturer, Catalog, Country, Dealer, DealerManager, Currency, Rent, Wheel_Size, Bicycle_Storage, Bicycle_Photo, GroupType, YouTube, PhoneStatus, Bicycle_Parts
+from catalog.accounting.models import CheckPay, Check, Schedules, Shop, CashType, Bank, Discount, FrameSize
 
 
 
@@ -57,9 +57,10 @@ admin.site.register(Manufacturer, ManufacturerAdmin)
 
 
 class CatalogAdmin(admin.ModelAdmin):
-    list_display = ('ids', 'name', 'manufacturer', 'type', 'size', 'photo', 'weight', 'sale', 'country', 'description')
+    autocomplete_fields = ('type', 'manufacturer')
+    list_display = ('ids', 'name', 'type', 'size', 'photo', 'weight', 'sale', 'country', 'description') #'manufacturer',
     ordering = ('-name',)
-    search_fields = ('ids', 'name',)
+    search_fields = ('ids', 'name', 'type__name', 'manufacturer__name')
 
 admin.site.register(Catalog, CatalogAdmin)
 
@@ -142,7 +143,25 @@ class CheckPayAdmin(admin.ModelAdmin):
 admin.site.register(CheckPay, CheckPayAdmin)
 
 
+class CashTypeAdmin(admin.ModelAdmin):
+    pass
+admin.site.register(CashType, CashTypeAdmin)
 
 
+class BankAdmin(admin.ModelAdmin):
+    pass
+admin.site.register(Bank, BankAdmin)
 
+
+class DiscountAdmin(admin.ModelAdmin):
+    pass
+admin.site.register(Discount, DiscountAdmin)
+
+
+class FrameSizeAdmin(admin.ModelAdmin):
+    pass
+admin.site.register(FrameSize, FrameSizeAdmin)
+
+
+admin.site.register(DealerManager)
 

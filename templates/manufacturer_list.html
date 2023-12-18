@@ -83,8 +83,8 @@ jQuery(document).ready(function ($) {
 	{{type.country}}
 	</td>	
 	<td>
-    <a href="/manufacturer/delete/{{ type.id }}"><i class="material-icons">delete_forever</i></a>
-	<a href="/manufacturer/edit/{{ type.id }}" title="Редагування" data-toggle="tooltip" data-placement="left"><i class="material-icons">edit</i></a>
+    <a href="/manufacturer/delete/{{ type.id }}" onclick='return confirm("Ви дійсно бажаєте видалити запис?")'><i class="material-icons">delete_forever</i></a>
+	<a href="/manufacturer/edit/{{ type.id }}"  {" title="Редагування" data-toggle="tooltip" data-placement="left"><i class="material-icons">edit</i></a>
     </td>
 </tr>
 {% endfor %}       

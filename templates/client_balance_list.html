@@ -1,6 +1,23 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+<script type="text/javascript">
+$(function() {
+	$("#show_hide_null_on").hide();
+});
+
+
+function show_hide(){
+
+	$("#show_hide_null_off").toggle(); //.show("slow").delay(5000).show("slow");
+	$('.user_null').toggle();
+//	$("#show_hide_null_on").toggle().show("slow").delay(5000).show("slow");
+	$("#show_hide_null_on").toggle(); //("slow").delay(5000).show("slow");
+}
+
+
+</script>
+
 
 <head>
     <title>Баланс клієнтів</title>
@@ -9,7 +26,12 @@
 
 {% load template_math %}  
 
-    <h1>Баланс по клієнтам</h1>
+    <h1>
+    <span class="badge badge-secondary">Баланс по клієнтам</span> 
+    <a class="badge badge-success" id="show_hide_null_off" onclick="show_hide()" title="Приховати нульових клієнтів"><i id="b_off" class="material-icons"><span class="material-icons">visibility_off</span></i></a>
+    <a class="badge badge-success" id="show_hide_null_on" onclick="show_hide()" title="Показати нульових клієнтів"><i id="b_on" class="material-icons"><span class="material-icons">visibility_on</span></i></a>
+    </h1>
+        
     <table border="1">
     <tr>
     	<th>#</th>
@@ -23,13 +45,13 @@
 
 {% for type in clients %}
 {% if type.minus < 0 %}
-<tr  style="background-color:#FCF6CF">
+<tr  style="background-color:#FCF6CF" class="user_{{type.id}}">
 {% endif %}
 {% if type.minus > 0 %}
-<tr  style="background-color:#CCFF99">
+<tr  style="background-color:#CCFF99" class="user_{{type.id}}">
 {% endif %}
 {% ifequal type.minus 0 %}
-<tr>
+<tr class="user_null">
 {% endifequal %}
 	<td>{{forloop.counter}}</td>
 	<td>       
@@ -63,7 +85,3 @@
 -->
 	<h2>Різниця (оплати-борги) = {{sum_cred|sub:sum_debt}} грн</h2>
  
-<br>
-<a href="/">Головне меню (HOME)</a>
-<br>
-<a href="/client/add/">Створити нового клієнта (Add)</a>       

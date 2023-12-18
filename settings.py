@@ -72,6 +72,8 @@ TIME_INPUT_FORMATS = (
 )
 #DATETIME_INPUT_FORMATS = 'd/m/Y H:M:S'
 
+#THOUSAND_SEPARATOR = '.'
+
 DEFAULT_CHARSET = 'utf-8'
 
 MINI_HASH_1 = 'rivelo2020casa4kavkazkaSt.'
@@ -257,6 +259,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
                     os.path.join(dirname, 'templates'), 
+                    os.path.join(dirname, 'templates/accounting'),
                  ],
 #        'APP_DIRS': True,
         'OPTIONS': {

@@ -759,7 +759,7 @@ function show_ret(ciid, item) {
 
 
 {% for ticket in workshopTicket  %}
-{% if ticket.status__name = 'Прийнято' %}
+{% if ticket.status__name == 'Прийнято' %}
   <tr bgcolor="#CCFF99" > 
   <script>
   $( "#img_repair" ).unbind(); 

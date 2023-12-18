@@ -478,7 +478,7 @@ class CatalogForm(forms.ModelForm):
     ids = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'size': 30, 'title': 'код товару',}))
     name = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'size': 100, 'title': 'Назва',}))
     manufacturer = forms.ModelChoiceField(queryset = Manufacturer.objects.all(), label='Виробник')
-    type = forms.ModelChoiceField(queryset = Type.objects.all())
+#    type = forms.ModelChoiceField(queryset = Type.objects.all())
     size = forms.ModelChoiceField(queryset = Size.objects.all(), required=False)
     weight = forms.FloatField(min_value=0, required=False, label='Вага (грам)')
     photo = forms.ImageField(required=False)

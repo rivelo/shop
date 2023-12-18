@@ -5,8 +5,7 @@ from django.db import connection
 from django.db.models import Sum, Count, Max, Avg
 
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
-from django.http import HttpResponse
-from django.http import Http404  
+from django.http import HttpResponse, Http404 
 from django.http import JsonResponse
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -17,7 +16,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core import serializers
 from django.core.urlresolvers import resolve
 
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render_to_response, redirect, render
 
 from django.contrib.auth.models import Group
 from django.contrib import auth
@@ -55,6 +54,7 @@ import StringIO, requests, os
 from PIL import Image
 from urlparse import urlsplit
 from _mysql import NULL
+from django.template.context_processors import request
 
 
 def custom_proc(request):
@@ -117,15 +117,10 @@ def logout(request):
     next_page = request.POST['next_page']
     return HttpResponseRedirect("/")
 
-
     
 def auth_group(user, group):
-#    print "****Group  = " + str(group)
-#    print "****USER  = " + str(user)
     if user.groups.filter(name=group).exists():
-#        print "****Group = " + str(user.groups.filter(name=group))
         return True
-#    print "****Group FALSE = " + str(user)
     return False
     #return True if user.groups.filter(name=group) else False
 
@@ -139,11 +134,11 @@ def check_ip(ip_addr):
             return shop
     else:
         return "----"
-     
 
 
 def current_url(request):
     return request.get_full_path()
+
 
 # old function
 def search(request):
@@ -159,6 +154,21 @@ def search(request):
         "results": results,
         "query": query
     })
+
+
+from django.views.generic import ListView
+
+class PhoneStatusListView(ListView):
+    model = PhoneStatus
+    
+#    template_name = 'index.html'
+#    context_object_name = 'latest_question_list'
+
+#    def get_queryset(self):
+#        """Return the last five published questions."""
+#        return Coutry.objects.order_by('-name')[:10]
+
+
 
 
 def del_logging(obj):
@@ -188,22 +198,23 @@ def send_shop_mail(request, mto, w, subject='Наявний товар'):
     msg.send()
     return True #render_to_response("index.html", {'success_data': "Лист відправлено на пошту" + to}, context_instance=RequestContext(request, processors=[custom_proc]))
 
+#old function
+#===============================================================================
+# def prev_url(request):
+#     #referer = request.META.get('HTTP_REFERER', None)
+#     referer = request.META['HTTP_REFERER']
+#     if referer is None:
+#         pass
+#          # do something here
+#     try:
+#         #redirect_to = urlsplit(referer, 'http', False)[2]
+#         redirect_to = refer
+#     except IndexError:
+#         pass
+#          # do another thing here
+#     return redirect_to
+#===============================================================================
 
-def prev_url(request):
-    #referer = request.META.get('HTTP_REFERER', None)
-    referer = request.META['HTTP_REFERER']
-    if referer is None:
-        pass
-         # do something here
-    try:
-        #redirect_to = urlsplit(referer, 'http', False)[2]
-        redirect_to = refer
-    except IndexError:
-        pass
-         # do another thing here
-    return redirect_to
-
-from django.shortcuts import render
 
 #----- Main Page -------------------
 def main_page(request):
@@ -1162,7 +1173,7 @@ def bicycle_sale_list_by_brand(request, year=False, month=False, id=None, all=Fa
             service_summ =  service_summ + 1
     return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ':int(price_summ), 'price_summ_full': int(price_summ_full), 'header_links':header_bike, 'brand_count': brand_count, 'price_opt': price_opt, 'price_opt_eur': price_opt_eur, 'price_opt_dol': price_opt_dol, 'profit_summ':profit_summ, 'service_summ':service_summ, 'year':year, 'month': month, 'brand':brand, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]) )
 
-
+@csrf_exempt
 def bicycle_sale_service(request, id=None):
     if request.user.is_authenticated()==False:
         return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
@@ -1184,11 +1195,9 @@ def bicycle_sale_service(request, id=None):
                     list.save()
                     
                 return HttpResponse(message, content_type="text/plain;charset=UTF-8")
-            
     else:
         message = "Error"
         return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
-
 
 
 def sale_post_bike(token, bike, cash_pay=0, card_pay=0):
@@ -2912,8 +2921,9 @@ def invoice_import(request):
 
 def category_list(request):
     list = Type.objects.all()
-    #return render_to_response('category_list.html', {'categories': list.values_list()})
-    return render_to_response('index.html', {'categories': list, 'weblink': 'category_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'categories': list, 'weblink': 'category_list.html'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def category_get_list(request):
@@ -3167,7 +3177,7 @@ def manufacturer_add(request):
     #return render_to_response('manufacturer.html', {'form': form})
     return render_to_response('index.html', {'form': form, 'weblink': 'manufacturer.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+@csrf_exempt
 def manufacturer_edit(request, id):
     a = Manufacturer.objects.get(pk=id)
     if request.method == 'POST':
@@ -3177,22 +3187,29 @@ def manufacturer_edit(request, id):
             return HttpResponseRedirect('/manufacturer/view/')
     else:
         form = ManufacturerForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'manufacturer.html', 'text': 'Виробник (редагування)', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'manufacturer.html', 'text': 'Виробник (редагування)', 'next': current_url(request)}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def manufaturer_list(request):
     list = Manufacturer.objects.all()
-    #return render_to_response('manufacturer_list.html', {'manufactures': list.values_list()})
-    return render_to_response('index.html', {'manufactures': list, 'weblink': 'manufacturer_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'manufactures': list, 'weblink': 'manufacturer_list.html', }  
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def manufacturer_delete(request, id):
+    if auth_group(request.user, "admin") == False:
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу для редагування ', 'next': current_url(request)}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
     obj = Manufacturer.objects.get(id=id)
     del_logging(obj)
     obj.delete()
     return HttpResponseRedirect('/manufacturer/view/')
 
-
+#@csrf_exempt
 def manufacturer_lookup(request):
     data = []
     if request.method == "POST":
@@ -3563,12 +3580,13 @@ def catalog_import_content(request):
     #list = Catalog.objects.select_related('manufacturer', 'type', 'currency', 'country').filter(Q(ids__in = ids_list))
     return render_to_response('index.html', {'update_list': update_list, 'add_list': add_list, 'ids_list': ids_list, 'weblink': 'catalog_import_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
  
-
-
+@csrf_exempt
 def catalog_add(request):
     if auth_group(request.user, 'seller')==False:
-        return HttpResponse('Error: У вас не має прав для редагування')
-
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу для редагування ', 'next': current_url(request)}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+#        return HttpResponse('Error: У вас не має прав для редагування')
     upload_path = ''
     if request.method == 'POST':
         form = CatalogForm(request.POST, request.FILES, request = request)
@@ -3594,7 +3612,6 @@ def catalog_add(request):
             if photo != None:               
                 upload_path = processUploadedImage(photo, 'catalog/') 
             Catalog(ids=ids, dealer_code=dealer_code, name=name, manufacturer=manufacturer, type=type, size=size, weight=weight, year=year, sale=sale, sale_to=sale_to, color=color, description=description, photo=upload_path, country=country, price=price, currency=currency, count=count, length=length).save()
-            #return HttpResponseRedirect('/catalog/view/')
             return HttpResponseRedirect('/catalog/manufacture/' + str(manufacturer.id) + '/view/5')
     else:
         name = request.GET.get('name')
@@ -3604,8 +3621,9 @@ def catalog_add(request):
         if dealer_code == 'None':
             dealer_code = '' 
         form = CatalogForm(request = request, initial={'ids': ids, 'name': name, 'price': price, 'dealer_code': dealer_code})
-    #return render_to_response('catalog.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'catalog.html', 'next': current_url(request)}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 @csrf_exempt
 def catalog_set(request):
@@ -3699,31 +3717,23 @@ def catalog_set(request):
 
 def catalog_edit(request, id=None):
     a = Catalog.objects.get(pk=id)
-    #url1=request.META['HTTP_REFERER']
     if request.method == 'POST':
-#        manufacturer = form.cleaned_data['manufacturer']
-        
         form = CatalogForm(request.POST, request.FILES, instance=a, request = request)
         if form.is_valid():
 #            if auth_group(request.user, "admin") == False:
 #               return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу для редагування ID товару', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
-
 #            manufacturer = form.cleaned_data['manufacturer']
 #            type = form.cleaned_data['type']
             a.last_update = datetime.datetime.now()
             a.user_update = request.user
             a.save()
             form.save()
-            #return HttpResponseRedirect('/catalog/manufacture/' + str(manufacturer.id) + '/view/5')
-#            return HttpResponseRedirect('/catalog/manufacture/' + str(manufacturer.id) + '/type/'+str(type.id)+'/view')
             return catalog_list(request, id = id)
-            #return HttpResponseRedirect('/catalog/view/')
-            #return HttpResponseRedirect(str(url1))
     else:
         form = CatalogForm(instance=a, request = request)
-    #url=request.META['HTTP_REFERER']
-
-    return render_to_response('index.html', {'form': form, 'weblink': 'catalog.html', 'cat_pk': id, 'catalog_obj': a.get_photos(), 'youtube_list': a.youtube_url.all(), 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'catalog.html', 'cat_pk': id, 'catalog_obj': a.get_photos(), 'youtube_list': a.youtube_url.all()}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def catalog_list(request, id=None):
@@ -3732,8 +3742,7 @@ def catalog_list(request, id=None):
         list = Catalog.objects.all().order_by("-id")[:10]
     else:
         list = Catalog.objects.filter(id=id)
-#    return render_to_response('index.html', {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
-    context = {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}
+    context = {'catalog': list, 'weblink': 'catalog_list.html', }
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
@@ -3924,7 +3933,7 @@ def client_add(request):
         form = ClientForm()
     return render_to_response('index.html', {'form': form, 'weblink': 'client.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+@csrf_exempt
 def client_edit(request, id):
     a = Client.objects.get(pk=id)
     if request.method == 'POST':
@@ -3935,11 +3944,18 @@ def client_edit(request, id):
             return HttpResponseRedirect('/client/result/search/?id='+id)
     else:
         form = ClientEditForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'client.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'client.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def client_join(request, id=None):
     #a = Client.objects.get(pk=id)
+    if auth_group(request.user, "admin") == False:
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу для редагування ', 'next': current_url(request)}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+
     if request.method == 'POST':
         POST = request.POST
         if POST.has_key('client_main') and POST.has_key('client_1'): # and POST.has_key('client_1'):
@@ -3965,12 +3981,20 @@ def client_join(request, id=None):
             
             fc.delete()
             return HttpResponseRedirect('/client/result/search/?id=' + main_id)
-    #else:
-        
-    return render_to_response('index.html', {'weblink': 'client_join.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'weblink': 'client_join.html'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def client_balance_list(request):
+#===============================================================================
+#    query = '''select accounting_client.id as id, accounting_client.name as name, sum(accounting_clientcredits.price) as sum_cred, sum(accounting_clientdebts.price) as sum_deb    
+#            from accounting_client left join accounting_clientcredits on accounting_client.id=accounting_clientcredits.client_id 
+#            left join accounting_clientdebts on  accounting_client.id=accounting_clientdebts.client_id 
+#            group by accounting_clientcredits.client_id, accounting_clientdebts.client_id;
+#            '''
+#                
+#===============================================================================
     query = '''select accounting_client.id as id, accounting_client.name as name, sum(accounting_clientdebts.price) as sum_deb 
             from accounting_client 
             left join accounting_clientdebts on accounting_clientdebts.client_id=accounting_client.id 
@@ -3981,16 +4005,12 @@ def client_balance_list(request):
             left join accounting_clientcredits on accounting_clientcredits.client_id=accounting_client.id 
             group by accounting_client.id order by accounting_client.id;
             '''
-            
-#===============================================================================
-#    query = '''select accounting_client.id as id, accounting_client.name as name, sum(accounting_clientcredits.price) as sum_cred, sum(accounting_clientdebts.price) as sum_deb    
-#            from accounting_client left join accounting_clientcredits on accounting_client.id=accounting_clientcredits.client_id 
-#            left join accounting_clientdebts on  accounting_client.id=accounting_clientdebts.client_id 
-#            group by accounting_clientcredits.client_id, accounting_clientdebts.client_id;
-#            '''
-#                
-#===============================================================================
-            
+
+    if auth_group(request.user, "admin") == False:
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу. Авторизуйтесь на порталі або звеніться до адміністратора.', 'next': current_url(request)}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+
     list = None
     list1 = None
     try:
@@ -4000,11 +4020,8 @@ def client_balance_list(request):
         cursor1 = connection.cursor()
         cursor1.execute(query1)
         list1 = cursor1.fetchall()
-        #list = cursor.execute(sql1, )   
-        
     except TypeError:
         res = "Помилка"
-
 
     for item in list1:
         for key in list:
@@ -4019,7 +4036,6 @@ def client_balance_list(request):
                 except TypeError:
                     key['sum_deb'] = 0
                 key['minus']=key['sum_cred']-key['sum_deb']
-            #item[1]
     s_debt = 0
     s_cred = 0
     for key1 in list[:]:
@@ -4028,9 +4044,9 @@ def client_balance_list(request):
         if (key1['sum_deb']==False) & (key1['sum_cred']==False):
             #key1['minus']=9999
             list.remove(key1)
-            
-    #list = Bicycle_Sale.objects.all().order_by('date')
-    return render_to_response('index.html', {'clients': list, 'sum_debt':s_debt, 'sum_cred':s_cred, 'weblink': 'client_balance_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'clients': list, 'sum_debt':s_debt, 'sum_cred':s_cred, 'weblink': 'client_balance_list.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
             
 
 def client_list(request):
@@ -4081,8 +4097,9 @@ def client_delete(request, id):
 
 def client_data(request, id):
     obj = Client.objects.get(id=id)
-    #return render_to_response('bicycle_list.html', {'bicycles': list.values_list()})
-    return render_to_response('index.html', {'client': obj, 'weblink': 'client_data.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'client': obj, 'weblink': 'client_data.html', } 
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def clientdebts_add(request, id=None):
@@ -4438,12 +4455,12 @@ def client_invoice_edit(request, id):
     context.update(custom_proc(request))     
     return render(request, 'index.html', context )
 
-
+@csrf_exempt
 def client_invoice_set(request):
     if request.is_ajax():
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
-                return HttpResponse('Error: У вас не має прав для редагування')
+                return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain;charset=UTF-8;")
             POST = request.POST  
             if POST.has_key('ids[]'):
                 ids = request.POST.getlist('ids[]')
@@ -4463,11 +4480,6 @@ def client_invoice_set(request):
                         ci.client = Client.objects.get(id = client)
                         ci.update_sale()
                     ci.save()
-                    
-#                if request.user != ci_list.user:
-#                    return HttpResponse('Error: У вас не має прав для редагування')
-                #ci.save()
-                
                 result = 'Виконано'
                 return HttpResponse(result, content_type="text/plain;charset=UTF-8;")
                 
@@ -4596,8 +4608,6 @@ def client_invoice_id(request, id, notpay=False):
     scount = 0
     sprofit = 0
     for item in list:
-#        psum = psum + item['sum']
-#        scount = scount + item['count']
         psum = psum + item.sum
         scount = scount + item.count
         sprofit = sprofit + item.get_profit()[1]  
@@ -4617,8 +4627,9 @@ def client_invoice_id(request, id, notpay=False):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         cinvoices = paginator.page(paginator.num_pages)
-    
-    return render_to_response('index.html', {'buycomponents': cinvoices, 'sumall':psum, 'countall':scount, 'sum_profit':sprofit, 'weblink': 'clientinvoice_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'buycomponents': cinvoices, 'sumall':psum, 'countall':scount, 'sum_profit':sprofit, 'weblink': 'clientinvoice_list.html'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def client_invoice_check(request, param=None):
@@ -4689,7 +4700,7 @@ def client_invioce_return_view(request, limit = None):
         cr_list = ClientReturn.objects.all()
     return render_to_response('index.html', {'return_list': cr_list, 'weblink': 'ci_return_list.html'}, context_instance=RequestContext(request, processors=[custom_proc])) 
 
-
+@csrf_exempt
 def client_invioce_return_add(request, id):
     ci = ClientInvoice.objects.get(id=id)
     now = datetime.datetime.now()
@@ -4724,20 +4735,18 @@ def client_invioce_return_add(request, id):
                         ci.sum = res_count * ci.price
                     ci.pay = res_count * ci.price
                     ci.save()
-                            
     return HttpResponse("ok", content_type="text/plain;charset=UTF-8;")
  
-#    cr_list = ClientReturn.objects.all()
-#    return render_to_response('index.html', {'return_list': cr_list, 'weblink': 'ci_return_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))    
-
 
 def client_order_list(request):
     now = datetime.datetime.now()
     #list = ClientOrder.objects.filter(Q(status = False) | Q(date__year__gt = 2015))
     list = ClientOrder.objects.filter((Q(status = False)) | Q(date__gt=now-datetime.timedelta(days=360)))
-    return render_to_response('index.html', {'c_order': list, 'weblink': 'client_order_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    context = {'c_order': list, 'weblink': 'client_order_list.html'}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)    
 
-
+@csrf_exempt
 def client_order_add(request, cid=None):
     #a = ClientOrder(date=datetime.datetime.today(), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=Catalog.objects.all())
     a = ClientOrder(date=datetime.datetime.today(), pay=0, count=1, currency=Currency.objects.get(id=3))
@@ -4776,9 +4785,11 @@ def client_order_add(request, cid=None):
     else:
         #form = ClientOrderForm(instance = a, catalog_id=cid)
         form = ClientOrderForm(instance = a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'clientorder.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'clientorder.html', 'next': current_url(request)}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def client_order_edit(request, id):
     if request.is_ajax():
         if request.method == 'GET':  
@@ -4820,8 +4831,9 @@ def client_order_edit(request, id):
             form = ClientOrderForm(instance=a, initial={'catalog' : a.catalog.pk, 'client': a.client.pk})
         else:
             form = ClientOrderForm(instance=a, initial={'client': a.client.pk})
-
-    return render_to_response('index.html', {'form': form, 'weblink': 'clientorder.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'clientorder.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def client_order_delete(request, id):
@@ -4869,7 +4881,9 @@ def client_invoice_report(request):
 
 def client_search(request):
     #query = request.GET.get('q', '')
-    return render_to_response('index.html', {'weblink': 'client_search.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'weblink': 'client_search.html', 'next': current_url(request)}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def client_search_result(request):
@@ -4922,11 +4936,14 @@ def client_search_result(request):
     if cred:
         return render_to_response('index.html', {'clients': contacts, 'weblink': 'clientcredits_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))        
     if debt:
-        return render_to_response('index.html', {'clients': contacts, 'weblink': 'clientdebts_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        context = {'clients': contacts, 'weblink': 'clientdebts_list.html'}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context1)
 
     GET_params = request.GET.copy()  
-    return render_to_response('index.html', {'clients':contacts, 'weblink': 'client_list.html', 'c_count': clients.count(), 'GET_params':GET_params, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
-
+    context = {'clients':contacts, 'weblink': 'client_list.html', 'c_count': clients.count(), 'GET_params':GET_params,}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 #----- Виписка клієнта -----
@@ -4939,22 +4956,17 @@ def client_result(request, tdelta = 30, id = None, email=False):
         user = id 
     sql1 = "SELECT sum(price) FROM accounting_clientcredits WHERE client_id = %s;"
     sql2 = "SELECT sum(price) FROM accounting_clientdebts WHERE client_id = %s;"
-    #user = id;
     try:
         cursor = connection.cursor()
         cursor.execute(sql1, [user])   
         credit= cursor.fetchone()
-    
         cursor.execute(sql2, [user])
         debts = cursor.fetchone()
-    
         if (credit[0] is None):
             credit = (0,)
         elif (debts[0] is None):
             debts = (0,)
-    
         res = credit[0] - debts[0]
-        
     except TypeError:
         res = "Такого клієнта не існує, або в нього не має заборгованостей"
     
@@ -5025,17 +5037,13 @@ def client_result(request, tdelta = 30, id = None, email=False):
         
     if (client.id == 1257):
         client.sale = 100
-        
     client.save()
-
-    #list_debt = ClientDebts.objects.filter(client='2').values("client", "price").select_related('client')
-    #list_debt = ClientDebts.objects.filter(client='2').select_related('client')
-    #list_debt = ClientDebts.objects.filter(client='2').annotate(Sum("price"))
-    #return render_to_response('index.html', {'clients': list_credit.values_list(), 'weblink': 'client_result.html'})
-    #return render_to_response('index.html', {'clients': list_debt.values_list(), 'weblink': 'client_result.html'})
     if email == True :
-        return render_to_response('client_result.html', {'clients': res, 'invoice': client_invoice, 'email': email, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta})        
-    return render_to_response('index.html', {'weblink': 'client_result.html', 'clients': res, 'invoice': client_invoice, 'email': email, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta}, context_instance=RequestContext(request, processors=[custom_proc]))
+        context = {'clients': res, 'invoice': client_invoice, 'email': email, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta}
+        return render(request, 'client_result.html', context)
+    context = {'weblink': 'client_result.html', 'clients': res, 'invoice': client_invoice, 'email': email, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta}  
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def client_lookup(request):
@@ -5044,7 +5052,6 @@ def client_lookup(request):
         if request.GET.has_key(u'query'):
             value = request.GET[u'query']
             if len(value) > 2:
-                #model_results = Client.objects.filter(name__icontains=value)
                 model_results = Client.objects.filter(Q(name__icontains = value) | Q(forumname__icontains = value) | Q(phone__icontains = value) | Q(phone1__icontains = value))
                 data = serializers.serialize("json", model_results, fields=('name','id', 'sale', 'forumname', 'phone'))
             else:
@@ -5323,7 +5330,7 @@ def worktype_depence_component_delete(request):
     else:
         return HttpResponse('Error: Щось пішло не так під час запиту')     
     
-
+@csrf_exempt
 def workstatus_add(request):
     text = 'Створити новий статус роботи'
     if request.method == 'POST':
@@ -5335,9 +5342,11 @@ def workstatus_add(request):
             return HttpResponseRedirect('/workstatus/view/')
     else:
         form = WorkStatusForm()
-    return render_to_response('index.html', {'form': form, 'text': text, 'weblink': 'workstatus.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'text': text, 'weblink': 'workstatus.html'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def workstatus_edit(request, id):
     text = 'Редагувати статус виконання роботи'
     a = WorkStatus.objects.get(pk=id)
@@ -5348,7 +5357,9 @@ def workstatus_edit(request, id):
             return HttpResponseRedirect('/workstatus/view/')
     else:
         form = WorkStatusForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'text': text, 'weblink': 'workstatus.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'text': text, 'weblink': 'workstatus.html'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def workstatus_list(request):
@@ -5362,10 +5373,11 @@ def workstatus_list(request):
         return HttpResponse(simplejson.dumps(search), content_type="application/json")
     else:
         message = "Error"
-    
     list = WorkStatus.objects.all()
     plist = PhoneStatus.objects.all()
-    return render_to_response('index.html', {'workstatus': list.values_list(), 'phonestatuslist': plist, 'weblink': 'workstatus_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'workstatus': list.values_list(), 'phonestatuslist': plist, 'weblink': 'workstatus_list.html'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def workstatus_delete(request, id):
@@ -5375,7 +5387,7 @@ def workstatus_delete(request, id):
         obj.delete()
     return HttpResponseRedirect('/workstatus/view/')
 
-
+@csrf_exempt
 def phonestatus_list(request):
     search = None
     if request.is_ajax():
@@ -5388,10 +5400,8 @@ def phonestatus_list(request):
     else:
         message = "Error"
         return message
- #   list = PhoneStatus.objects.all()
-#    return render_to_response('index.html', {'phonestatus': list.values_list(), 'weblink': 'workstatus_list.html'})
 
-
+@csrf_exempt
 def phonestatus_add(request):
     text = 'Додати статус дзвінка'
     if request.method == 'POST':
@@ -5400,12 +5410,14 @@ def phonestatus_add(request):
             name = form.cleaned_data['name']
             description = form.cleaned_data['description']
             PhoneStatus(name=name, description=description).save()
-            return HttpResponseRedirect('/workstatus/view/')
+            return HttpResponseRedirect('/')
     else:
         form = PhoneStatusForm()
-    return render_to_response('index.html', {'form': form, 'text': text, 'weblink': 'workstatus.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'text': text, 'weblink': 'workstatus.html'} 
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def phonestatus_edit(request, id):
     text = 'Редагувати статус дзвінка'
     a = PhoneStatus.objects.get(pk=id)
@@ -5416,7 +5428,9 @@ def phonestatus_edit(request, id):
             return HttpResponseRedirect('/workstatus/view/')
     else:
         form = PhoneStatusForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'text': text, 'weblink': 'workstatus.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'text': text, 'weblink': 'workstatus.html'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def phonestatus_delete(request, id):
@@ -5425,7 +5439,7 @@ def phonestatus_delete(request, id):
     obj.delete()
     return HttpResponseRedirect('/workstatus/view/')
 
-
+@csrf_exempt
 def workticket_add(request, id=None):
     client = None
     if id!=None:
@@ -5445,21 +5459,24 @@ def workticket_add(request, id=None):
             description = form.cleaned_data['description']
  #           user = form.cleaned_data['user']
   #          if user == '' or user == None:
-            user = request.user 
-            WorkTicket(client=client, date=date, end_date=end_date, status=status, description=description, user=user).save()
-#phone_status=phone_status,            
+            user = request.user
+            try:        
+                WorkTicket(client=client, date=date, end_date=end_date, status=status, description=description, user=user).save()
+            except Exception as e:
+                mtext = "Ви не залогувались на порталі. Увійдіть та спробуйте знову. <br>" + str(e) 
+                context = {'weblink': 'error_message.html', 'mtext': mtext}
+                return render(request, 'index.html', context)
             return HttpResponseRedirect('/workticket/view/')
     else:
-        #form = WorkTicketForm()
-
         if client != None:
             form = WorkTicketForm(initial={'client': client.id, 'status': 1})
         else:
             form = WorkTicketForm(initial={'date': datetime.datetime.today(), 'status': 1, 'end_date': datetime.datetime.now()+datetime.timedelta(3)})
-        
-    return render_to_response('index.html', {'form': form, 'weblink': 'workticket.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'workticket.html'}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def workticket_edit(request, id=None):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -5516,7 +5533,9 @@ def workticket_edit(request, id=None):
             return HttpResponseRedirect('/workticket/view/')
     else:
         form = WorkTicketForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'workticket.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'workticket.html'}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def workticket_list(request, year=None, month=None, all=False, status=None):
@@ -5544,8 +5563,9 @@ def workticket_list(request, year=None, month=None, all=False, status=None):
         list = WorkTicket.objects.filter(status__id__in=[status,5]) # Віддано без ремонта 
     if status == '6':
         list = WorkTicket.objects.filter(status__id__in=[status,6]) # Відкладено
-
-    return render_to_response('index.html', {'workticket':list.order_by('-date'), 'sel_year': int(year), 'sel_month':int(month), 'status': status, 'year_ticket': wy, 'weblink': 'workticket_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'workticket':list.order_by('-date'), 'sel_year': int(year), 'sel_month':int(month), 'status': status, 'year_ticket': wy, 'weblink': 'workticket_list.html'} 
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def workticket_delete(request, id):
@@ -5554,13 +5574,14 @@ def workticket_delete(request, id):
     obj.delete()
     return HttpResponseRedirect('/workticket/view/')
 
-
+@csrf_exempt
 def workshop_add(request, id=None, id_client=None):
     if request.user.is_authenticated():
         user = request.user
     else:
-        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
-#        return HttpResponse('Error: У вас не має прав для редагування, або ви не Авторизувались на сайті')
+        context = {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}
+        context.update(custom_proc(request)) 
+        return render(request, 'index.html', context)
     now = datetime.datetime.now()
     work = None
     wclient = None
@@ -5568,13 +5589,10 @@ def workshop_add(request, id=None, id_client=None):
         work = WorkType.objects.get(id=id)
     if id_client!=None:
         wclient = Client.objects.get(id=id_client)
-    
     if request.method == 'POST':
         form = WorkShopForm(request.POST)
-        
         if form.is_valid():
             form.save()
-            #WorkShop(client=client, date=date, work_type=work_type, price=price, description=description, user=user).save()
             return HttpResponseRedirect('/workshop/view/')
     else:
         if work != None:
@@ -5590,8 +5608,10 @@ def workshop_add(request, id=None, id_client=None):
     except:
         wc_name = None
         wc_id = None
-    clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))        
-    return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'client_name': wc_name, 'client_id': wc_id, 'work': work, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))
+    context = {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'client_name': wc_name, 'client_id': wc_id, 'work': work, 'next': current_url(request)}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def workshop_add_formset(request):
@@ -5700,7 +5720,9 @@ def workshop_list(request, year=None, month=None, day=None):
     for item in list:
         sum = sum + item.price
     days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
-    return render_to_response('index.html', {'workshop': list, 'summ':sum, 'sel_year':int(year), 'sel_month':int(month), 'sel_day':int(day), 'month_days': days, 'weblink': 'workshop_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'workshop': list, 'summ':sum, 'sel_year':int(year), 'sel_month':int(month), 'sel_day':int(day), 'month_days': days, 'weblink': 'workshop_list.html', }
+    context.update(custom_proc(request))     
+    return render(request, 'index.html', context)
 
 
 def workshop_delete(request, id=None):
@@ -5755,9 +5777,13 @@ def worktype_lookup(request):
 def workshop_pricelist(request, pprint=False):
     list = WorkType.objects.all().values('name', 'price', 'id', 'description', 'work_group', 'work_group__name', 'plus').order_by('work_group__tabindex')
     if pprint:
-        return render_to_response('workshop_pricelist.html', {'work_list': list, 'pprint': True}, context_instance=RequestContext(request, processors=[custom_proc]))
+        context = {'work_list': list, 'pprint': True} 
+        context.update(custom_proc(request))
+        return render(request, 'workshop_pricelist.html', context)
     else:        
-        return render_to_response('index.html', {'work_list': list, 'weblink': 'workshop_pricelist.html', 'pprint': False}, context_instance=RequestContext(request, processors=[custom_proc]))    
+        context = {'work_list': list, 'weblink': 'workshop_pricelist.html', 'pprint': False}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)    
 
 #------------- Shop operation --------------
 def shopdailysales_add(request):
@@ -6073,7 +6099,7 @@ def shop_price_bysearch_name(request, id, pprint = False):
         return render_to_response('price_list.html', {'catalog': list})
     return render_to_response('index.html', {'catalog': list, 'weblink': 'price_list.html', 'view': True, 'link': url, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
 
-
+@csrf_exempt
 def shop_price_print_add(request, id=None):
     if request.is_ajax():
         if auth_group(request.user, 'seller')==False:
@@ -6103,8 +6129,7 @@ def shop_price_print_add(request, id=None):
                     sp.dcount = 0
                     sp.user = request.user
                     sp.save()
-                return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;")
-
+                return HttpResponse("Виконано.\nДодано цінник \n" + str(sp.catalog) + "\nЦіна - " + str(sp.catalog.price) + " грн.", content_type="text/plain;charset=UTF-8;")
     if request.method == 'POST':
         cat = Catalog.objects.get(id=id)
         sp = ShopPrice()
@@ -6113,10 +6138,7 @@ def shop_price_print_add(request, id=None):
         sp.dcount = 1
         sp.user = request.user
         sp.save()
-    
     return HttpResponseRedirect('/shop/price/print/view/')
-#    list = ShopPrice.objects.all().order_by("-id")
-#    return render_to_response('manual_price_list.html', {'price_list': list})    
 
 
 def shop_price_print_add_invoice(request):
@@ -6212,8 +6234,11 @@ def shop_price_print_list(request, user_id = None, pprint=False):
         plist = paginator.page(paginator.num_pages)
             
     if pprint:
-        return render_to_response('manual_price_list.html', {'price_list': plist, 'view': True}, context_instance=RequestContext(request, processors=[custom_proc]))
-    return render_to_response('index.html', {'weblink': 'mtable_pricelist.html', 'price_list': plist, 'by_user' : by_user}, context_instance=RequestContext(request, processors=[custom_proc]))    
+        context = {'price_list': plist, 'view': True}
+        return render(request, 'manual_price_list.html', context)
+    context = {'weblink': 'mtable_pricelist.html', 'price_list': plist, 'by_user' : by_user}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)    
     
 
 def shop_price_print_delete_all(request, user_id = None):
@@ -6651,7 +6676,7 @@ def workday_delete(request, id):
     obj.delete()
     return HttpResponseRedirect('/workday/user/all/report/')
 
-
+@csrf_exempt
 def clientmessage_add(request):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -6668,7 +6693,7 @@ def clientmessage_add(request):
                 search = ClientMessage.objects.filter(client = c).values('msg')
             return HttpResponse(simplejson.dumps(list(search)))
 
-
+@csrf_exempt
 def clientmessage_set(request, id=None):
     m = None
     if request.is_ajax():
@@ -6691,7 +6716,9 @@ def clientmessage_set(request, id=None):
 
 def clientmessage_list(request):
     client_msg = ClientMessage.objects.all().order_by('date')
-    return render_to_response('index.html', {'msg_list': client_msg, 'weblink': 'client_msg_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))            
+    context = {'msg_list': client_msg, 'weblink': 'client_msg_list.html'}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)            
 
 
 def clientmessage_delete(request, id):
@@ -6700,7 +6727,7 @@ def clientmessage_delete(request, id):
     obj.delete()
     return HttpResponseRedirect('/clientmessage/list/')
 
-
+@csrf_exempt
 def payform(request):
     checkbox_list = [x for x in request.POST if x.startswith('checkbox_')]
     if bool(checkbox_list) == False:
@@ -6776,14 +6803,14 @@ def payform(request):
         except TypeError:
             #res = "Такого клієнта не існує, або в нього не має заборгованостей"    
             res = 0
-     
         bal = res
-        
     url = '/client/result/search/?id=' + str(client.id)
     cmsg = ClientMessage.objects.filter(client__id=user)
-    return render_to_response('index.html', {'messages': cmsg,'checkbox': list_id, 'invoice': ci, 'summ': sum, 'balance':bal, 'client': client, 'chk_list': chk_list, 'error_msg':error_msg, 'weblink': 'payform.html', 'next': url}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'messages': cmsg,'checkbox': list_id, 'invoice': ci, 'summ': sum, 'balance':bal, 'client': client, 'chk_list': chk_list, 'error_msg':error_msg, 'weblink': 'payform.html', 'next': url}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def workshop_payform(request):
     checkbox_list = [x for x in request.POST if x.startswith('checkbox_')]
     if bool(checkbox_list) == False:
@@ -6823,7 +6850,9 @@ def workshop_payform(request):
             res = 0
         bal = res
     cmsg = ClientMessage.objects.filter(client__id=user)
-    return render_to_response('index.html', {'messages': cmsg,'checkbox': list_id, 'invoice': wk, 'summ': sum, 'balance':bal, 'client': client, 'weblink': 'payform.html', 'workshop':True}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'messages': cmsg,'checkbox': list_id, 'invoice': wk, 'summ': sum, 'balance':bal, 'client': client, 'weblink': 'payform.html', 'workshop':True}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def dealer_payform(request):
@@ -6851,7 +6880,7 @@ def dealer_payform(request):
     return HttpResponseRedirect(url)
 #    return render_to_response('index.html', {'weblink': 'payform_dealer.html', 'workshop':True}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+@csrf_exempt
 def client_ws_payform(request):
     user = None            
     if request.user.is_authenticated():
@@ -7060,7 +7089,7 @@ def client_ws_payform(request):
     return HttpResponseRedirect(url)
 
 
-
+@csrf_exempt
 def client_payform(request):
     checkbox_list = [x for x in request.POST if x.startswith('checkbox_')]
     list_id = []
@@ -7113,7 +7142,6 @@ def client_payform(request):
                     return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
        
 #--------- Begin section to send data to CASA ---------
-        
         try: 
             print "\nURL = " + URL + "\n"
             print "PARAM:" + str(PARAMS) + "\n"
@@ -7738,8 +7766,7 @@ def client_card_sendemail(request, id):
 #    return render_to_response("index.html", {"weblink": 'top.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-
-
+@csrf_exempt
 def client_history_cred(request):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -7782,14 +7809,10 @@ def client_history_cred(request):
                     x['date'] = x['date'].strftime("%d/%m/%Y")
 
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
-
-#                search_c = ClientCredits.objects.filter(client = clientId)
-#                data_c = serializers.serialize('json',search_c)
-    
     return HttpResponse(data_c, content_type='application/json')    
-    #return HttpResponse(simplejson.dumps(list(search)))
 
 
+@csrf_exempt
 def client_history_debt(request):
     data_c = None
     if request.is_ajax():
@@ -7819,11 +7842,6 @@ def client_history_debt(request):
                     x['date'] = x['date'].strftime("%d/%m/%Y")
 
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
-    
-#                search_c = ClientDebts.objects.filter(client = clientId).prefetch_related('user__username')
-#                data_c = serializers.serialize('json', search_c)
-                
-    
     return HttpResponse(data_c, content_type='application/json')    
 
 
