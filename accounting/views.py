@@ -3,6 +3,7 @@ from django.db.models import Q
 from django.db.models import F
 from django.db import connection
 from django.db.models import Sum, Count, Max, Avg
+from django.db.models.functions import ExtractDay, ExtractMonth, ExtractYear
 
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.http import HttpResponse, Http404 
@@ -39,6 +40,8 @@ from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoic
 
 from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus, YouTube
 from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm, WorkShopFormset, SalaryForm
+
+
   
 import datetime
 import calendar
@@ -680,7 +683,7 @@ def bicycle_add(request):
     #return render_to_response('bicycle.html', {'form': form})
     return render_to_response('index.html', {'form': form, 'weblink': 'bicycle.html', 'text': 'Велосипед з каталогу (створення)'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+@csrf_exempt
 def bicycle_edit(request, id):
     if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
         return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -717,7 +720,9 @@ def bicycle_edit(request, id):
             return HttpResponseRedirect('/bicycle/view/')
     else:
         form = BicycleForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle.html', 'text': 'Велосипед з каталогу (редагування)'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'bicycle.html', 'text': 'Велосипед з каталогу (редагування)'}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def bicycle_del(request, id):
@@ -770,7 +775,9 @@ def bicycle_list(request, year=None, brand=None, percent=None):
     #bike_year = Bicycle.objects.values('year').annotate(n_year=Count('year__year'))
     bike_year = Bicycle.objects.filter().extra({'yyear':"Extract(year from year)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('yyear')
     #return render_to_response('bicycle_list.html', {'bicycles': list.values_list()})
-    return render_to_response('index.html', {'bicycles': list, 'year': year, 'b_company': bike_company, 'byear': bike_year, 'sale': percent, 'weblink': 'bicycle_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'bicycles': list, 'year': year, 'b_company': bike_company, 'byear': bike_year, 'sale': percent, 'weblink': 'bicycle_list.html'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def bicycle_photo(request, id):
@@ -806,7 +813,7 @@ def bicycle_store_add(request, id=None):
     #return render_to_response('bicycle_store.html', {'form': form})
     return render_to_response('index.html', {'form': form, 'bike': bike, 'weblink': 'bicycle_store.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+@csrf_exempt
 def bicycle_store_edit(request, id=None):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -833,13 +840,14 @@ def bicycle_store_edit(request, id=None):
             return HttpResponseRedirect('/bicycle-store/view/')
     else:
         form = BicycleStoreForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_store.html', 'text': 'Редагувати тип'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'bicycle_store.html', 'text': 'Редагувати тип'}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def bicycle_store_del(request, id):
     if request.user.has_perm('accounting.delete_bicycle_store') == False:
         return HttpResponseRedirect('/.')
-    #    return HttpResponseRedirect('/bicycle-store/view/seller/')
     obj = Bicycle_Store.objects.get(id=id)
     del_logging(obj)
     obj.delete()
@@ -864,7 +872,9 @@ def bicycle_store_list(request, all=False):
     #price_summ = price_summ['average_val']
     bike_sum = list.count()
 #    fsize = FrameSize.objects.all().values('name', 'id')
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_store_list.html', 'price_summ': price_summ, 'price_profit_summ':price_profit_summ, 'bike_summ': bike_summ}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'bicycles': list, 'weblink': 'bicycle_store_list.html', 'price_summ': price_summ, 'price_profit_summ':price_profit_summ, 'bike_summ': bike_summ}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def bicycle_store_list_by_seller(request, all=False, size='all', year='all', brand='all', html=False):
@@ -1119,7 +1129,6 @@ def bicycle_sale_list(request, year=False, month=False, id=None):
 def bicycle_sale_list_by_brand(request, year=False, month=False, id=None, all=False):
     if request.user.is_authenticated()==False:
         return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")   
-
     list = None
     year = year
     month = month
@@ -1131,9 +1140,6 @@ def bicycle_sale_list_by_brand(request, year=False, month=False, id=None, all=Fa
     if all == True:
         list = Bicycle_Sale.objects.filter(model__model__brand=id).order_by('date')
     else:
-        print "\nBIKE BRAND YEAR = " + str(year) + "\n"
-        print "\nBIKE BRAND MONTH = " + str(month) + "\n"
-        print "\nBIKE ID = " + str(id) + "\n"
         if (month == False) & (id <> None):
             list = Bicycle_Sale.objects.filter(model__model__brand=id, date__year=year).order_by('date')
             brand = list[0].model.model.brand.name
@@ -1145,11 +1151,12 @@ def bicycle_sale_list_by_brand(request, year=False, month=False, id=None, all=Fa
             brand = list[0].model.model.brand.name
         if (month == False) & (id == None):
             list = Bicycle_Sale.objects.filter(date__year=year).order_by('date')
-        #list = Bicycle_Sale.objects.filter(model__model__brand=id, date__year=year).order_by('date')
     if id == None:
         brand_count = list.values('model__model__brand__name', 'model__model__brand').annotate(total=Count('model__model__brand')).order_by('total') #order_by('model__model__brand__name')
     
-    header_bike = Bicycle_Sale.objects.filter().extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')       
+    #header_bike = Bicycle_Sale.objects.filter().extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')
+    header_bike = Bicycle_Sale.objects.annotate(year=ExtractYear("date")).values('year').annotate(pk_count = Count('pk')).order_by('year')       
+    #header_bike = Bicycle_Sale.objects.annotate(year = Q('date__year')).values('year').annotate(pk_count = Count('pk')).order_by('year')
     price_summ = 0
     price_summ_full = 0
     price_opt = 0
@@ -1171,7 +1178,9 @@ def bicycle_sale_list_by_brand(request, year=False, month=False, id=None, all=Fa
         profit_summ = profit_summ + item.get_profit()[1]
         if item.service == False:
             service_summ =  service_summ + 1
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ':int(price_summ), 'price_summ_full': int(price_summ_full), 'header_links':header_bike, 'brand_count': brand_count, 'price_opt': price_opt, 'price_opt_eur': price_opt_eur, 'price_opt_dol': price_opt_dol, 'profit_summ':profit_summ, 'service_summ':service_summ, 'year':year, 'month': month, 'brand':brand, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]) )
+    context = {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ':int(price_summ), 'price_summ_full': int(price_summ_full), 'header_links':header_bike, 'brand_count': brand_count, 'price_opt': price_opt, 'price_opt_eur': price_opt_eur, 'price_opt_dol': price_opt_dol, 'profit_summ':profit_summ, 'service_summ':service_summ, 'year':year, 'month': month, 'brand':brand}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 @csrf_exempt
 def bicycle_sale_service(request, id=None):
@@ -1361,7 +1370,7 @@ def save_chek2db_bike(cash, term, bike, shop, request, desc=''):
     return            
 
 
-
+@csrf_exempt
 def bicycle_sale_check_add(request, id):
     if request.user.is_authenticated()==False:
         return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
@@ -1402,11 +1411,7 @@ def bicycle_sale_check_add(request, id):
                     else:
                         message = "CHECKBOX - Error\n" + str(resp.text.encode('utf-8'))
                     return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
-
-
-                    
-                    return 
-                
+#                    return 
                 else:
 #                    base = "http://"+settings.HTTP_MINI_SERVER_IP+":"+settings.HTTP_MINI_SERVER_PORT+"/?"
 #                    data =  {"cmd": "open"}
@@ -1535,8 +1540,9 @@ def bicycle_sale_check(request, id=None, param=None):
             return HttpResponse("<h2>Чек відправлено!</h2>")
         except:
             return HttpResponse("<h2>Сталася помилка при відправленні. Перевірте з'єднання до інтернету.</h2>")
-        
-    return render_to_response('index.html', {'bicycle': list, 'month':month, 'chk_num':chk_num, 'str_number':text, 'weblink': 'bicycle_sale_check.html', 'print':'True', 'printed': printed, 'checkPay': chk_pay, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc])) 
+    context = {'bicycle': list, 'month':month, 'chk_num':chk_num, 'str_number':text, 'weblink': 'bicycle_sale_check.html', 'print':'True', 'printed': printed, 'checkPay': chk_pay,}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context) 
 
 
 def bicycle_sale_search_by_name(request):
@@ -5786,6 +5792,7 @@ def workshop_pricelist(request, pprint=False):
         return render(request, 'index.html', context)    
 
 #------------- Shop operation --------------
+@csrf_exempt
 def shopdailysales_add(request):
     if auth_group(request.user, 'seller')==False:
         return HttpResponse('Error: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
@@ -5856,7 +5863,6 @@ def shopdailysales_add(request):
             other_ci = ci_array.exclude(sum = F('pay'))
         except ClientInvoice.DoesNotExist:
             ci_status = 0
-           
             
         #lastCasa = ShopDailySales.objects.filter(date__year=now.year, date__month=now.month).order_by('-pk')[0]
         #lastCasa = ShopDailySales.objects.filter(date__gt = now - datetime.timedelta(days=int(10))).order_by('-pk')[0]
@@ -5864,7 +5870,9 @@ def shopdailysales_add(request):
                 
         casa = cashCred - cashDeb
         form = ShopDailySalesForm(initial={'cash': casa, 'ocash': cashDeb, 'tcash':TcashCred, 'user': request.user})
-    return render_to_response('index.html', {'form': form, 'weblink': 'shop_daily_sales.html', 'lastcasa': lastCasa, 'ci_status': ci_status, 'other_ci':other_ci, 'unk_cash': unk_cash}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'shop_daily_sales.html', 'lastcasa': lastCasa, 'ci_status': ci_status, 'other_ci':other_ci, 'unk_cash': unk_cash}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def shopmonthlysales_view(request, year=None, month=None):
@@ -5948,7 +5956,9 @@ def shopdailysales_view(request, year, month, day, shop=0):
         deb_sum = deb_sum + d.price
     sel_date = datetime.date(int(year), int(month), int(day))
     strdate = pytils_ua.dt.ru_strftime(u"%d %B %Y", sel_date, inflected=True)
-    return render_to_response('index.html', {'Cdeb': deb, 'Ccred':cred, 'date': strdate, 'sel_date': sel_date, 'd_sum': deb_sum, 'c_sum': cred_sum, 'cash_credsum': cash_credsum, 'cash_debsum':cash_debsum, 'casa':casa, 'shopNumber': shop, 'weblink': 'shop_daily_sales_view.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'Cdeb': deb, 'Ccred':cred, 'date': strdate, 'sel_date': sel_date, 'd_sum': deb_sum, 'c_sum': cred_sum, 'cash_credsum': cash_credsum, 'cash_debsum':cash_debsum, 'casa':casa, 'shopNumber': shop, 'weblink': 'shop_daily_sales_view.html'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def shopdailysales_edit(request, id):
@@ -5979,7 +5989,10 @@ def shopdailysales_edit(request, id):
 
 def shopdailysales_list(request, month=None, year=None):    
     if auth_group(request.user, 'seller')==False:
-        return HttpResponse('Error: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
+        #return HttpResponse('Error: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас не має доступу до даної дії. Можливо ви не авторизувались.', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
     now = datetime.datetime.now()
     if month == None:
         month = now.month
@@ -5988,10 +6001,9 @@ def shopdailysales_list(request, month=None, year=None):
     list = ShopDailySales.objects.filter(date__year=year, date__month=month)
     total_sum = list.aggregate(total_cash=Sum('cash'), total_tcash=Sum('tcash'), total_price=Sum('price'), total_ocash=Sum('ocash'))
     sum = 0 
-#    for item in list:
-#        sum = sum + item.price
-#'summ':sum,
-    return render_to_response('index.html', {'shopsales': list, 'total_sum': total_sum, 'l_month': xrange(1,13), 'sel_month':int(month), 'weblink': 'shop_sales_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'shopsales': list, 'total_sum': total_sum, 'l_month': xrange(1,13), 'sel_month':int(month), 'weblink': 'shop_sales_list.html'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def shopdailysales_delete(request, id):
@@ -6002,11 +6014,6 @@ def shopdailysales_delete(request, id):
     obj.delete()
     return HttpResponseRedirect('/shop/sale/view/')
 
-
-#from reportlab.pdfgen import canvas
-#from reportlab.lib.pagesizes import A4
-#from reportlab.pdfbase import pdfmetrics
-#from reportlab.pdfbase import ttfonts
 
 
 #Стара функція
@@ -9880,9 +9887,8 @@ def casa_prro_xreport(request, token=post_casa_token()):
 #    term_sum_1 = day_cred.get_daily_term_shop1()[2]
     term_sum_2 = day_cred.get_daily_term_shop2()[2]
     term_sum_2 = (round((term_sum_2 or 0)*100) or 0)
-           
-    #return response
-    return render_to_response('index.html', {'weblink': 'report_prro.html', 'JSON': rr, 'format_resp': format_json, 'day_term_sum': term_sum_2, 'error_status': error_msg, 'cashless_sum': cashless_sell_sum, 'res_start_dt': res_start_dt, 'casa_status': casa_status, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'weblink': 'report_prro.html', 'JSON': rr, 'format_resp': format_json, 'day_term_sum': term_sum_2, 'error_status': error_msg, 'cashless_sum': cashless_sell_sum, 'res_start_dt': res_start_dt, 'casa_status': casa_status, } 
+    return render(request, 'index.html', context)
 
 
 def casa_prro_zreport(request):
@@ -10019,24 +10025,41 @@ def casa_checkout(request, id):
         print "Result = " + str(resp)
         print (resp.status_code, resp.reason) #HTTP
     except:
-        return HttpResponse("Connection failed! Перевірте зєднання з комп'ютером")
-    
+        context = {'weblink': 'error_message.html', 'mtext': "Connection failed! Перевірте зєднання з комп'ютером",}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)        
+        #return HttpResponse("Connection failed! Перевірте зєднання з комп'ютером")
+    msg_text = ""
+    lines = []
     response = HttpResponse()
     if resp.status_code == 200:
-        response.write("Status: <br>")
-        res_list = str(resp.reason).split(';') 
-        response.write("Готівка: <b>" + res_list[1] + " грн.</b><br>")
-        response.write("Чек: <b>" + res_list[2] + " грн.</b><br>")
-        response.write("Кредитна карта: <b>" + res_list[3] + "</b><br>")
-        response.write("інший тип 1: <b>" + res_list[4] + "</b><br>")
-        response.write("інший тип 2: <b>" + res_list[5] + "</b><br>")
-        response.write("інший тип 3: <b>" + res_list[6] + "</b><br>")
-        response.write("інший тип 4: - <b>" + res_list[7] + "</b><br>")
-
+        #response.write("Status: <br>")
+        res_list = str(resp.reason).split(';')
+        lines.append("Status: <br>")
+        lines.append("Готівка: <b>" + res_list[1] + " грн.</b><br>")
+        lines.append("Чек: <b>" + res_list[2] + " грн.</b><br>")
+        lines.append("Кредитна карта: <b>" + res_list[3] + "</b><br>")
+        lines.append("інший тип 1: <b>" + res_list[4] + "</b><br>")
+        lines.append("інший тип 2: <b>" + res_list[5] + "</b><br>")
+        lines.append("інший тип 3: <b>" + res_list[6] + "</b><br>")
+        lines.append("інший тип 4: <b>" + res_list[7] + "</b><br>")
+        msg_text = "<br>".join(str(line) for line in lines)
+        #=======================================================================
+        # response.write("Готівка: <b>" + res_list[1] + " грн.</b><br>")
+        # response.write("Чек: <b>" + res_list[2] + " грн.</b><br>")
+        # response.write("Кредитна карта: <b>" + res_list[3] + "</b><br>")
+        # response.write("інший тип 1: <b>" + res_list[4] + "</b><br>")
+        # response.write("інший тип 2: <b>" + res_list[5] + "</b><br>")
+        # response.write("інший тип 3: <b>" + res_list[6] + "</b><br>")
+        # response.write("інший тип 4: - <b>" + res_list[7] + "</b><br>")
+        #=======================================================================
     PARAMS['cmd'] = 'close_port;'
     resp_close = requests.post(url = URL, data = PARAMS)
-    response.write("<br><<< Result >>> <br>" +str(resp.reason) + "<br><<< Result >>><br>" +  str(resp.text))
-    return response
+#    response.write("<br><<< Result >>> <br>" +str(resp.reason) + "<br><<< Result >>><br>" +  str(resp.text))
+    msg_text = msg_text + "<br>" + "<br><<< Result >>> <br>" + str(resp.reason) + "<br><<< Result >>><br>" + str(resp.text)
+    context = {'weblink': 'info_message.html', 'mtext': msg_text,}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)        
 
 
 def casa_prro_check_view(request, chk_uid, type="text"):

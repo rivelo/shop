@@ -51,7 +51,7 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
     {% if group.name == 'admin' %}
 <h5>
 {% for item in header_links %}
-<a href="{% url 'bicycle-sale-by-year' item.0 %}" class="badge badge-warning"> Рік {{item.0}} ({{item.1}})  </a> 
+<a href="{% url 'bicycle-sale-by-year' item.year %}" class="badge badge-warning"> Рік {{item.year}} ({{item.pk_count}})  </a> 
 {% endfor %}
 </h5>
 	{% endif %}

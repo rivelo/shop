@@ -389,7 +389,6 @@ class Catalog(models.Model):
     color = models.CharField(max_length=255, blank=True, null=True)
     price = models.FloatField()
     last_price = models.FloatField(blank=True, null=True)
-    rating = models.FloatField(blank=True, null=True)
     currency = models.ForeignKey(Currency)
     sale = models.FloatField()
     country = models.ForeignKey(Country, null=True)
@@ -408,7 +407,13 @@ class Catalog(models.Model):
     youtube_url = models.ManyToManyField(YouTube, blank=True)
 #    наявність у постачальника
     date = models.DateField(null=True, blank=True) #Строк придатності
-    #url_web_site = models.CharField()  
+    #url_web_site = models.CharField()
+    #mistake =
+    #mistake_status = 
+    #attr = models.ManyToManyField
+    #search_history
+    #change_history
+    rating = models.FloatField(blank=True, null=True)   
 
     def get_discount(self):
         curdate = datetime.date.today()
