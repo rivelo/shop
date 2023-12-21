@@ -1,8 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <head>
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<title>
+Денна касса за {{sel_month}} місяць 
+</title>
 
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" />
 <link type="text/css" rel="stylesheet" href="/media/css/mainstyle.css">
 </head>
@@ -20,7 +23,10 @@ $(document).ready( function() {
 
 
 <body>
-    <h1><span class="badge badge-dark">Денна виручка від продажу товарів </span> <a href="/shop/sale/day/add/" class="badge badge-success" title="Додати" data-toggle="tooltip" data-html="true" data-placement="right"><i class="material-icons md-36" >add_box</i></a></h1>
+    <h1><span class="badge badge-dark">Денна виручка від продажу товарів </span> <span class="badge badge-info">{{shopName}}</span> <a href="/shop/sale/day/add/" class="badge badge-success" title="Додати" data-toggle="tooltip" data-html="true" data-placement="right"><i class="material-icons md-36" >add_box</i></a></h1>
+	{% for shop in ShopList %}
+		<a  href="{% url 'shop_id_dailysales_monthly' shop.pk sel_month %}" class="badge badge-dark ">{{shop.name}}</a>
+	{% endfor %}	     
     <h2>
     За місяць: 
     {% for month in l_month %}
@@ -59,7 +65,7 @@ $(document).ready( function() {
 	 	</a>
 	</td>
 	<td>       
-	<abbr title="{{type.user}} <br> {{type.date|time:"H:i"}} " data-toggle="tooltip" data-html="true" data-placement="top"> {{type.date|date}} </abbr>
+	<abbr title="{{type.user}} <br> {{type.date|time:"H:i"}} <br> {{type.shop}} " data-toggle="tooltip" data-html="true" data-placement="top"> {{type.date|date}} </abbr>
 	</td>
 	<td>       
 	{{type.price}} 

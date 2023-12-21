@@ -6,13 +6,20 @@
 <link rel="stylesheet" type="text/css" href="/media/table.css">
 
 
-<h1>Варіанти оплат <a href="/cashtype/add/">(Додати)</a></h1>
+<h1><span class="badge badge-secondary">Варіанти оплат</span>  
+<a href="/cashtype/add/" data-toggle="tooltip" data-placement="right" title="Додати новий тип" data-html="true">
+    <i class="material-icons">add_circle</i></a>
+</h1>
 
 <table>
 	<tr>
 		<th>#</th>
 		<th>id</th>
 		<th>Назва</th>
+		<th>Магазин</th>
+		<th>Готівка</th>
+		<th>Термінал</th>
+		<th>Враховувати в денній касі</th>
 		<th>Опис</th>
 		<th>Дія</th>
 	</tr>
@@ -21,14 +28,18 @@
 		<td>{{ forloop.counter }}</td>
 		<td><a href="/cashtype/edit/{{ element.id }}">{{ element.id }}</a></td>
 		<td>{{ element }}</td>
+		<td>{{ element.shop }}</td>
+		<td>{{ element.cash }}</td>
+		<td>{{ element.term }}</td>
+		<td>{{ element.pay_status }}</td>
 		<td>{{ element.description }}</td>
 		<td>
 {% if user.is_authenticated %}		
-		<a href="/cashtype/delete/{{ element.id }}" onclick="return confirm('Видалити запис - {{element.name}}?')">delete</a>
+		<a href="/cashtype/delete/{{ element.id }}" onclick="return confirm('Видалити запис - {{element.name}}?')" title="Видалити тип >> [{{element.name}}]"><i class="material-icons">delete_forever</i></a>
 		</td>		
 {% endif %}
 	</tr>
 	{% endfor %}
-	<table>
+</table>
 
 	<br>

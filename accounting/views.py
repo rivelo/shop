@@ -30,15 +30,13 @@ from django.conf import settings
 from django.utils.text import slugify
 
 from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,  FrameSize, Bicycle_Store, Bicycle_Sale, Bicycle_Order, Bicycle_Storage, Bicycle_Photo, Storage_Type, Bicycle_Parts
-from forms import ContactForm, ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm, BicycleStorage_Form, StorageType_Form 
-
 from models import Catalog, Client, ClientDebts, ClientCredits, ClientInvoice, ClientOrder, ClientMessage, ClientReturn, InventoryList
-from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, ClientInvoiceForm, ClientOrderForm, ClientEditForm
-
-from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType, Discount
-from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm, DiscountForm 
-
+from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType, Discount, Shop
 from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus, YouTube
+
+from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, ClientInvoiceForm, ClientOrderForm, ClientEditForm
+from forms import ContactForm, ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm, BicycleStorage_Form, StorageType_Form
+from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm, DiscountForm 
 from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm, WorkShopFormset, SalaryForm
 
 
@@ -67,7 +65,8 @@ def custom_proc(request):
         'app': 'Rivelo catalog',
         'user': request.user,
         'ip_address': request.META['REMOTE_ADDR'],
-        'shop_name': check_ip(request.META['REMOTE_ADDR']),
+#        'shop_name': check_ip(request.META['REMOTE_ADDR']),
+        'shop_name': get_shop_from_ip(request.META['REMOTE_ADDR']),
         'year_now': date.year,
         'month_now': date.month,
         'day_now': date.day,
@@ -135,6 +134,16 @@ def check_ip(ip_addr):
     for shop in dict_shop.keys():
         if dict_shop[shop] == ip:
             return shop
+    else:
+        return "----"
+
+
+def get_shop_from_ip(ip_addr):
+    ip = '.'.join(ip_addr.split('.')[0:3])
+    dict_shop = Shop.objects.filter( ip_addr__contains = ip )
+    print "\nIP = " + str(ip) + " >>>>> dict_shop" + str(dict_shop) 
+    if dict_shop.first():
+        return dict_shop.first()
     else:
         return "----"
 
@@ -275,7 +284,9 @@ def country_list(request):
     current_url = request.get_full_path()
     list = Country.objects.all()
     #return render_to_response('country_list.html', {'countries': list})
-    return render_to_response('index.html', {'countries': list, 'weblink': 'country_list.html', 'next': current_url}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'countries': list, 'weblink': 'country_list.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 # ----------------- Bank --------------------
@@ -322,6 +333,7 @@ def bank_list(request):
 
 
 #--- cash type ---
+@csrf_exempt
 def cashtype_list(request):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -338,32 +350,41 @@ def cashtype_list(request):
             return HttpResponse(json, content_type='application/json')            
 
     list = CashType.objects.all()
-    return render_to_response('index.html', {'list': list, 'weblink': 'cashtype_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'list': list, 'weblink': 'cashtype_list.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def cashtype_add(request):
     a = CashType()
     if request.method == 'POST':
         form = CashTypeForm(request.POST, instance=a)
         if form.is_valid():
-            name = form.cleaned_data['name']
-            description = form.cleaned_data['description']
-            CashType(name=name, description=description).save()
+#            name = form.cleaned_data['name']
+#            description = form.cleaned_data['description']
+#            CashType(name=name, description=description).save()
+            form.save()
             return HttpResponseRedirect('/cashtype/view/')
     else:
         form = CashTypeForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'cashtype.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'cashtype.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def cashtype_del(request, id):
-    if auth_group(request.user, 'admin')==False:
-        return HttpResponseRedirect('/cashtype/view/')
+    if auth_group(request.user, "admin") == False:
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу для видалення/редагування ', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)    
+#    if auth_group(request.user, 'admin')==False:
+#        return HttpResponseRedirect('/cashtype/view/')
     obj = CashType.objects.get(id=id)
     del_logging(obj)
     obj.delete()
     return HttpResponseRedirect('/cashtype/view/')
 
-
+@csrf_exempt
 def cashtype_edit(request, id):
     a = CashType.objects.get(pk=id)
     if request.method == 'POST':
@@ -373,7 +394,9 @@ def cashtype_edit(request, id):
             return HttpResponseRedirect('/cashtype/view/')
     else:
         form = CashTypeForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'cashtype.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'cashtype.html', }
+    context.update(custom_proc(request))        
+    return render(request, 'index.html', context)
 
 # ----------- Bicycle --------------
 def bicycle_type_add(request):
@@ -1126,6 +1149,7 @@ def bicycle_sale_list(request, year=False, month=False, id=None):
     return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'header_links':header_bike, 'price_summ':price_summ, 'profit_summ':profit_summ, 'pay_sum':psum, 'service_summ':service_summ, 'month': month, 'year':year, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
+#Bicycle sale list for all (WORK VERSION)
 def bicycle_sale_list_by_brand(request, year=False, month=False, id=None, all=False):
     if request.user.is_authenticated()==False:
         return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")   
@@ -1153,9 +1177,8 @@ def bicycle_sale_list_by_brand(request, year=False, month=False, id=None, all=Fa
             list = Bicycle_Sale.objects.filter(date__year=year).order_by('date')
     if id == None:
         brand_count = list.values('model__model__brand__name', 'model__model__brand').annotate(total=Count('model__model__brand')).order_by('total') #order_by('model__model__brand__name')
-    
     #header_bike = Bicycle_Sale.objects.filter().extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')
-    header_bike = Bicycle_Sale.objects.annotate(year=ExtractYear("date")).values('year').annotate(pk_count = Count('pk')).order_by('year')       
+    header_bike = Bicycle_Sale.objects.annotate(year=ExtractYear('date')).values('year').annotate(pk_count = Count('pk')).order_by('year')       
     #header_bike = Bicycle_Sale.objects.annotate(year = Q('date__year')).values('year').annotate(pk_count = Count('pk')).order_by('year')
     price_summ = 0
     price_summ_full = 0
@@ -2309,20 +2332,22 @@ def invoice_new_item(request):
     end_date = datetime.date(date.year, 3, 31)    
     di = DealerInvoice.objects.filter(received = False).values_list("id", flat=True)
     nday = 14
-    list_comp = InvoiceComponentList.objects.filter(invoice__date__gt = date - datetime.timedelta(days=int(nday)), invoice__id__in = di).order_by("invoice__id")    
-    return render_to_response('index.html', {'dinvoice_list': list_comp, 'weblink': 'dealer_invoice_new_item.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))  
+    list_comp = InvoiceComponentList.objects.filter(invoice__date__gt = date - datetime.timedelta(days=int(nday)), invoice__id__in = di).order_by("invoice__id")
+    context = {'dinvoice_list': list_comp, 'weblink': 'dealer_invoice_new_item.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)  
 
 
 def invoice_miss_stuff(request):
     date=datetime.date.today()
     start_date = datetime.date(date.year, 1, 1)
     end_date = datetime.date(date.year, 3, 31)    
-    
     di = DealerInvoice.objects.filter(received = False).values_list("id", flat=True)
-    
     nday = 180
-    list_comp = InvoiceComponentList.objects.filter(invoice__date__gt = date - datetime.timedelta(days=int(nday)), invoice__id__in = di).exclude(rcount = F('count')).order_by("invoice__id")    
-    return render_to_response('index.html', {'dinvoice_list': list_comp, 'weblink': 'dealer_invoice_new_item.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))  
+    list_comp = InvoiceComponentList.objects.filter(invoice__date__gt = date - datetime.timedelta(days=int(nday)), invoice__id__in = di).exclude(rcount = F('count')).order_by("invoice__id")
+    context = {'dinvoice_list': list_comp, 'weblink': 'dealer_invoice_new_item.html', }
+    context.update(custom_proc(request))     
+    return render(request, 'index.html', context)  
     
     
 
@@ -2438,7 +2463,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
     years_range  = None
     sale_list = None
     if auth_group(request.user, 'admin')==True:
-        years_range = ClientInvoice.objects.filter(catalog__in=id_list).extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')
+        years_range = ClientInvoice.objects.filter(catalog__in=id_list).extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('yyear')
     if sel_year > 0:
         sale_list = ClientInvoice.objects.filter(catalog__in=id_list, date__year = sel_year).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
         #years_range = ClientInvoice.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id'))
@@ -3937,7 +3962,9 @@ def client_add(request):
             return HttpResponseRedirect('/client/result/search/?id=' + str(a.id))
     else:
         form = ClientForm()
-    return render_to_response('index.html', {'form': form, 'weblink': 'client.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'client.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 @csrf_exempt
 def client_edit(request, id):
@@ -4137,7 +4164,7 @@ def clientdebts_add(request, id=None):
     #return render_to_response('clientdebts.html', {'form': form})
     return render_to_response('index.html', {'form': form, 'weblink': 'clientdebts.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+@csrf_exempt
 def clientdebts_edit(request, id):
     if auth_group(request.user, "admin") == False:
         return HttpResponseRedirect('/')
@@ -4157,7 +4184,9 @@ def clientdebts_edit(request, id):
             return HttpResponseRedirect('/clientdebts/view/')
     else:
         form = ClientDebtsForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'client.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'client.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 #BORG
@@ -4177,8 +4206,9 @@ def clientdebts_list(request):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         debts = paginator.page(paginator.num_pages)
-    
-    return render_to_response('index.html', {'clients': debts, 'weblink': 'clientdebts_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'clients': debts, 'weblink': 'clientdebts_list.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def clientdebts_delete(request, id):
@@ -4268,7 +4298,7 @@ def clientcredits_edit(request, id):
         form = ClientCreditsForm(instance=a)
     return render_to_response('index.html', {'form': form, 'weblink': 'clientcredits.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+@csrf_exempt
 def clientcredits_set(request):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -4345,10 +4375,8 @@ def client_invoice(request, cid=None, id=None):
                     cat.length = cat.length + clen
                 else:
                     cat.length = 0
-            #user = None #form.cleaned_data['user_id']            
             user_id = form.cleaned_data['user']
             if request.user.is_authenticated():
-                #user = request.user
                 user = user_id
             ClientInvoice(client=client, catalog=catalog, count=count, sum=sum, price=price, currency=currency, sale=sale, pay=pay, date=date, description=description, user=user).save()
             
@@ -4363,7 +4391,6 @@ def client_invoice(request, cid=None, id=None):
                 cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
                 cdeb.save()
 
-            #WorkGroup(name=name, description=description).save()
             return HttpResponseRedirect('/client/invoice/view/')
     else:
         form = ClientInvoiceForm(instance = a, catalog_id=cid, request = request)
@@ -4374,11 +4401,9 @@ def client_invoice(request, cid=None, id=None):
     if cat.type.pk == 13:
         b_len = True
         
-    #clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'sale', 'client__name').annotate(num_inv=Count('client'))
-    clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))
+    clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client')).order_by('client__id')
 
     cat_obj = cat.get_discount_item()
-#    return render_to_response('index.html', {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len}, context_instance=RequestContext(request, processors=[custom_proc]))
     context = {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len}
     context.update(custom_proc(request))
     return render(request, 'index.html',  context)
@@ -4679,8 +4704,9 @@ def client_workshop_check(request, param=None):
     sum = sum['price__sum']
     text = pytils_ua.numeral.in_words(int(sum))
     month = pytils_ua.dt.ru_strftime(u"%d %B %Y", wk[0].date, inflected=True)
-
-    w = render_to_response('client_invoice_sale_check.html', {'check_invoice': wk, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'print':param, 'is_workshop': 'True', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'check_invoice': wk, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'print':param, 'is_workshop': 'True', }
+    context.update(custom_proc(request)) 
+    w = render(request, 'client_invoice_sale_check.html', context)
 #    w = render_to_response('client_invoice_sale_check.html', {'check_invoice': ci, 'month':month, 'sum': sum, 'client': client, 'str_number':text})
     if param == 'print':
         return w
@@ -5463,8 +5489,6 @@ def workticket_add(request, id=None):
             status = form.cleaned_data['status']
 #            phone_status = form.cleaned_data['phone_status']
             description = form.cleaned_data['description']
- #           user = form.cleaned_data['user']
-  #          if user == '' or user == None:
             user = request.user
             try:        
                 WorkTicket(client=client, date=date, end_date=end_date, status=status, description=description, user=user).save()
@@ -5546,7 +5570,7 @@ def workticket_edit(request, id=None):
 
 def workticket_list(request, year=None, month=None, all=False, status=None):
     cur_year = datetime.datetime.now().year
-    wy = WorkTicket.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('pk')) #annotate(year_count=Count('date__year'))
+    wy = WorkTicket.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('pk')).order_by('year') #annotate(year_count=Count('date__year'))
     list = None
     if month != None:
         list = WorkTicket.objects.filter(date__year=year, date__month=month)
@@ -5614,7 +5638,7 @@ def workshop_add(request, id=None, id_client=None):
     except:
         wc_name = None
         wc_id = None
-    clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))
+    clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client')).order_by('client_id')
     context = {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'client_name': wc_name, 'client_id': wc_id, 'work': work, 'next': current_url(request)}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
@@ -5761,12 +5785,11 @@ def worktype_ajax(request):
                 message = "It's AJAX!!!"
     else:
         message = "Error"
-
     search = WorkType.objects.filter(id=q).values('price', 'description')
     comp_depence = Type.objects.filter(worktype__pk = q).values('name', 'pk', 'name_ukr')  
     return HttpResponse(simplejson.dumps({'data': list(search), 'dep': list(comp_depence)}), content_type="application/json")
 
-
+@csrf_exempt
 def worktype_lookup(request):
     data = []
     if request.method == "POST":
@@ -5793,11 +5816,21 @@ def workshop_pricelist(request, pprint=False):
 
 #------------- Shop operation --------------
 @csrf_exempt
-def shopdailysales_add(request):
+def shopdailysales_add(request, id=None):
     if auth_group(request.user, 'seller')==False:
-        return HttpResponse('Error: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
+        #return HttpResponse('Error1: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
+        context = {'weblink': 'error_message.html', 'mtext': 'Помилка: У вас не має доступу до <<Денна каса за місяць>>. Можливо ви не авторизувались.', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)            
     lastCasa = None
     now = datetime.datetime.now()
+    shopN = None
+    #shopN = get_shop_from_ip('192.168.1.55')
+    if id != None :
+        shopN = Shop.objects.get(id = id)
+    else: 
+        shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+    sum_casa = shopN.shop_cash_sum_by_day()
     if request.method == 'POST':
         form = ShopDailySalesForm(request.POST)
         if form.is_valid():
@@ -5807,6 +5840,7 @@ def shopdailysales_add(request):
             cash = form.cleaned_data['cash']
             tcash = form.cleaned_data['tcash']
             ocash = form.cleaned_data['ocash']
+            shop = form.cleaned_data['shop']
             if form.cleaned_data['user']:
                 user = form.cleaned_data['user']
             else:
@@ -5814,29 +5848,34 @@ def shopdailysales_add(request):
             date = now
             if request.user.is_authenticated():
                 user = request.user
-            ShopDailySales(date=date, price=price, description=description, user = user, cash=cash, tcash=tcash, ocash=ocash).save()
+            ShopDailySales(date=date, price=price, description=description, user = user, cash=cash, tcash=tcash, ocash=ocash, shop = shop).save()
             return HttpResponseRedirect('/shop/sale/view/')
     else:        
         unknown_client = Client.objects.get(id = settings.CLIENT_UNKNOWN)
-        print "USER - " + str(unknown_client.pk)
-        
+#        print "USER - " + str(unknown_client.pk)
+             
         deb = ClientDebts.objects.filter(date__year=now.year, date__month=now.month, date__day=now.day).order_by()
         cred = ClientCredits.objects.filter(date__year=now.year, date__month=now.month, date__day=now.day).order_by()
 #        cash_credsum = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price"))
-        try:
-            cashCred = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price")).get(cash_type=1)['suma']
-        except ClientCredits.DoesNotExist:
-            cashCred = 0
-        try:
-            #TcashCred = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price")).get(cash_type=2)['suma'] # PRIVAT
-            TcashCred = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price")).get(cash_type=9)['suma'] # PUMB
-        except ClientCredits.DoesNotExist:
-            TcashCred = 0
-        try:
-            cashDeb = deb.values('cash').annotate(suma=Sum("price")).get(cash='True')['suma']
-        except ClientDebts.DoesNotExist:
-            cashDeb = 0
-
+        #=======================================================================
+        # try:
+        #     cashCred = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price")).get(cash_type=1)['suma']
+        # except ClientCredits.DoesNotExist:
+        #     cashCred = 0
+        # try:
+        #     TcashCred = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price")).get(cash_type=9)['suma'] # PUMB
+        # except ClientCredits.DoesNotExist:
+        #     TcashCred = 0
+        # try:
+        #     cashDeb = deb.values('cash').annotate(suma=Sum("price")).get(cash='True')['suma']
+        # except ClientDebts.DoesNotExist:
+        #     cashDeb = 0
+        #=======================================================================
+        
+        cashCred = sum_casa['cashCred'] 
+        TcashCred = sum_casa['termCred']
+        cashDeb = sum_casa['cashDeb']
+        
         cashCred_sum = 0
         cashDeb_sum = 0
         try:
@@ -5863,14 +5902,16 @@ def shopdailysales_add(request):
             other_ci = ci_array.exclude(sum = F('pay'))
         except ClientInvoice.DoesNotExist:
             ci_status = 0
-            
-        #lastCasa = ShopDailySales.objects.filter(date__year=now.year, date__month=now.month).order_by('-pk')[0]
-        #lastCasa = ShopDailySales.objects.filter(date__gt = now - datetime.timedelta(days=int(10))).order_by('-pk')[0]
-        lastCasa = ShopDailySales.objects.latest('date')
-                
+
+#        lastCasa = ShopDailySales.objects.latest('date')
+        lastCasa = ShopDailySales.objects.filter(shop = shopN).latest('date')
         casa = cashCred - cashDeb
-        form = ShopDailySalesForm(initial={'cash': casa, 'ocash': cashDeb, 'tcash':TcashCred, 'user': request.user})
-    context = {'form': form, 'weblink': 'shop_daily_sales.html', 'lastcasa': lastCasa, 'ci_status': ci_status, 'other_ci':other_ci, 'unk_cash': unk_cash}
+        form = ShopDailySalesForm(initial={'cash': casa, 'ocash': cashDeb, 'tcash':TcashCred, 'user': request.user, 'shop': shopN})
+        
+    syear = now.year
+    smonth = now.month
+    sday = now.day
+    context = {'form': form, 'weblink': 'shop_daily_sales.html', 'lastcasa': lastCasa, 'ci_status': ci_status, 'other_ci':other_ci, 'unk_cash': unk_cash, 's_year': syear, 's_month': smonth, 's_day': sday, 'shopname': shopN }
     context.update(custom_proc(request)) 
     return render(request, 'index.html', context)
 
@@ -5897,57 +5938,37 @@ def shopmonthlysales_view(request, year=None, month=None):
                 element['deb']=deb_element['suma']
                 sum_deb = sum_deb + deb_element['suma']
                 #element['balance']=element['sum_catalog'] - element['c_sale']
-            
-#    strdate = pytils_ua.dt.ru_strftime(u"%d %B %Y", datetime.datetime(int(year), int(month), 1), inflected=True)
     date_month = pytils_ua.dt.ru_strftime(u"%B %Y", datetime.datetime(int(year), int(month), 1), inflected=False)
-
-    return render_to_response('index.html', {'sum_cred': sum_cred, 'sum_deb': sum_deb, 'Cdeb': deb, 'Ccred':cred, 'date_month': date_month, 'sel_year': int(year), 'year_list':year_list, 'sel_month':int(month), 'l_month': xrange(1,13), 'weblink': 'shop_monthly_sales_view.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
-
+    context = {'sum_cred': sum_cred, 'sum_deb': sum_deb, 'Cdeb': deb, 'Ccred':cred, 'date_month': date_month, 'sel_year': int(year), 'year_list':year_list, 'sel_month':int(month), 'l_month': xrange(1,13), 'weblink': 'shop_monthly_sales_view.html'}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def shopdailysales_view(request, year, month, day, shop=0):
-#    deb = ClientDebts.objects.values('date__year').annotate(suma=Sum("price"))
-    ip_adr = request.META['REMOTE_ADDR']
-    shopName = check_ip(ip_adr)
-    if shop != 0:
-        shopName = 'shop'+str(shop)    
+#    shopN = get_shop_from_ip('192.168.1.55')
+#    shopN = get_shop_from_ip('10.0.0.1')
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+    payments = shopN.get_deb_cred_in_date(year, month, day)
     cred = None
-    dict_shop_pay = []
-    dict_shop_pay = settings.SHOP1_PAY
-    CASH = settings.SHOP2_PAY_CASH
-    cash_id = CashType.objects.get(id = 6) # Заробітна плата
-    if shopName == 'shop1': 
-    #custom_proc(request)['shop_name'] == 'shop1':
-        dict_shop_pay  = settings.SHOP2_PAY
-        CASH = settings.SHOP1_PAY_CASH
-    print "\nSHOP PAY = " + str(dict_shop_pay) + "\n"
-    dict_shop_pay.append(6)     
-    cash_id = CashType.objects.filter(id__in=dict_shop_pay) # платежі одного магазину
-    
-    if auth_group(request.user, "admin") == False:
-        #cred = ClientCredits.objects.filter(date__year=year, date__month=month, date__day=day).exclude(cash_type = cash_id).order_by()
-        cred = ClientCredits.objects.filter(date__year=year, date__month=month, date__day=day).exclude(cash_type__in=cash_id).order_by()
-    else:    
-        cred = ClientCredits.objects.filter(date__year=year, date__month=month, date__day=day).order_by()        
-
-    deb = ClientDebts.objects.filter(date__year=year, date__month=month, date__day=day).order_by()
-    #cred = ClientCredits.objects.filter(date__year=year, date__month=month, date__day=day).order_by()
+    cred = payments['cred']
+    deb = payments['deb']   
+    if auth_group(request.user, "admin") == True:
+        cred = ClientCredits.objects.filter(date__year=year, date__month=month, date__day=day).order_by()
+        deb = ClientDebts.objects.filter(date__year=year, date__month=month, date__day=day).order_by()
+#    deb = ClientDebts.objects.filter(date__year=year, date__month=month, date__day=day).order_by()
     try:
-        cash_credsum = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price"))
-        #cashCred = cash_credsum.get(cash_type__pk__in = settings.)['suma']
-        #cashCred = cash_credsum.get(cash_type__pk__in = settings.SHOP1_PAY_CASH)['suma']
-        cashCred = cash_credsum.get(cash_type__pk = CASH)['suma']
+        cash_credsum = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price")).order_by('cash_type')
+        cashCred = cash_credsum.filter(cash_type__in = shopN.get_cashtype()).aggregate(suma=Sum("price"))# get(cash_type__pk = CASH)['suma']
     except ClientCredits.DoesNotExist:
         cashCred = 0
     try:
-        cash_debsum = deb.values('cash').annotate(suma=Sum("price"))
+        cash_debsum = deb.values('cash').annotate(suma=Sum("price")).order_by('cash')
         cashDeb = cash_debsum.get(cash='True')['suma']        
     except ClientDebts.DoesNotExist:
         cashDeb = 0
-    casa = cashCred - cashDeb
+#    casa = (cashCred.get('suma') or 0) - cashDeb
 #    if custom_proc(request)['shop_name'] == 'shop2':
-    if shopName == 'shop2':
-        casa = cashCred
+    casa = cashCred['suma']
     deb_sum = 0
     cred_sum = 0
     for c in cred:
@@ -5956,14 +5977,22 @@ def shopdailysales_view(request, year, month, day, shop=0):
         deb_sum = deb_sum + d.price
     sel_date = datetime.date(int(year), int(month), int(day))
     strdate = pytils_ua.dt.ru_strftime(u"%d %B %Y", sel_date, inflected=True)
-    context = {'Cdeb': deb, 'Ccred':cred, 'date': strdate, 'sel_date': sel_date, 'd_sum': deb_sum, 'c_sum': cred_sum, 'cash_credsum': cash_credsum, 'cash_debsum':cash_debsum, 'casa':casa, 'shopNumber': shop, 'weblink': 'shop_daily_sales_view.html'}
+    context = {'Cdeb': deb, 'Ccred':cred, 'date': strdate, 'sel_date': sel_date, 'd_sum': deb_sum, 'c_sum': cred_sum, 'cash_credsum': cash_credsum, 'cash_debsum':cash_debsum, 'casa':casa, 'shopName': shopN, 'weblink': 'shop_daily_sales_view.html'}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def shopdailysales_edit(request, id):
+    if auth_group(request.user, "admin") == False:
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу для редагування. Зверніться до адміністратора.', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+
     now = datetime.datetime.now()
     a = ShopDailySales.objects.get(pk=id)
+    syear = a.date.year
+    smonth = a.date.month
+    sday = a.date.day   
     if request.method == 'POST':
         form = ShopDailySalesForm(request.POST, instance=a)
         if form.is_valid():
@@ -5973,35 +6002,51 @@ def shopdailysales_edit(request, id):
             cash = form.cleaned_data['cash']
             tcash = form.cleaned_data['tcash']
             ocash = form.cleaned_data['ocash']
-            user = form.cleaned_data['user']
-            group = Group.objects.get(name='admin') 
-            if group not in request.user.groups.all():
-                date = now
+            ocash = form.cleaned_data['ocash']
+            shop = form.cleaned_data['shop']
+            #group = Group.objects.get(name='admin') 
+#            if group not in request.user.groups.all():
+#                date = now
             if request.user.is_authenticated():
                 user = request.user
 
-            ShopDailySales(pk=a.pk, date=date, price=price, description=description, user = user, cash=cash, tcash=tcash, ocash=ocash).save()
+            ShopDailySales(pk=a.pk, date=a.date, price=price, description=description, user = user, cash=cash, tcash=tcash, ocash=ocash, shop = shop).save()
             return HttpResponseRedirect('/shop/sale/view/')
     else:
         form = ShopDailySalesForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'shop_daily_sales.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+#    syear = now.year
+#    smonth = now.month
+#    sday = now.day   
+    context = {'form': form, 'weblink': 'shop_daily_sales.html', 's_year': syear, 's_month': smonth, 's_day': sday,}
+    context.update(custom_proc(request))     
+    return render(request, 'index.html', context)
 
 
-def shopdailysales_list(request, month=None, year=None):    
+def shopdailysales_list(request, month=None, year=None, shop_id=None):    
     if auth_group(request.user, 'seller')==False:
         #return HttpResponse('Error: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
         context = {'weblink': 'error_message.html', 'mtext': 'У вас не має доступу до даної дії. Можливо ви не авторизувались.', }
         context.update(custom_proc(request))
         return render(request, 'index.html', context)
+    shopN = None
+    shoplist = None
+    if shop_id == None:
+        shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+    else:
+        shopN = Shop.objects.get(pk = shop_id )
+    
+    if auth_group(request.user, 'admin')==True:
+        shoplist = Shop.objects.all()
+        
     now = datetime.datetime.now()
     if month == None:
         month = now.month
     if year == None:
         year = now.year
-    list = ShopDailySales.objects.filter(date__year=year, date__month=month)
+    list = ShopDailySales.objects.filter(date__year=year, date__month=month, shop=shopN)
     total_sum = list.aggregate(total_cash=Sum('cash'), total_tcash=Sum('tcash'), total_price=Sum('price'), total_ocash=Sum('ocash'))
     sum = 0 
-    context = {'shopsales': list, 'total_sum': total_sum, 'l_month': xrange(1,13), 'sel_month':int(month), 'weblink': 'shop_sales_list.html'}
+    context = {'shopsales': list, 'total_sum': total_sum, 'l_month': xrange(1,13), 'sel_month':int(month), 'weblink': 'shop_sales_list.html', 'shopName': shopN, 'ShopList' : shoplist}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
@@ -6783,7 +6828,9 @@ def payform(request):
         request.session['invoice_id'] = list_id
         check_num = Check.objects.aggregate(Max('check_num'))['check_num__max']+1
         request.session['chk_num'] = check_num
-        return render_to_response('index.html', {'check_invoice': ci, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'check_num':check_num, 'weblink': 'client_invoice_sale_check.html', 'print': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        context = {'check_invoice': ci, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'check_num':check_num, 'weblink': 'client_invoice_sale_check.html', 'print': True, }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
      
     user = client.id
     if user == 138:
@@ -6842,7 +6889,9 @@ def workshop_payform(request):
         month = pytils_ua.dt.ru_strftime(u"%d %B %Y", wk[0].date, inflected=True)
         request.session['invoice_id'] = list_id
         check_num = Check.objects.aggregate(Max('check_num'))['check_num__max'] + 1
-        return render_to_response('index.html', {'weblink': 'client_invoice_sale_check.html', 'check_invoice': wk, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'print':'True', 'is_workshop': 'True', 'check_num':check_num, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))        
+        context = {'weblink': 'client_invoice_sale_check.html', 'check_invoice': wk, 'month':month, 'sum': sum, 'client': client, 'str_number':text, 'print':'True', 'is_workshop': 'True', 'check_num':check_num, }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)        
 
     user = client.id
     if user == 138:
@@ -7931,7 +7980,7 @@ def ajax_price_print(request):
     #return HttpResponse(simplejson.dumps(list(search)), content_type="application/json")
     return HttpResponse(search, content_type="text/plain;charset=UTF-8;")
 
-
+@csrf_exempt
 def invoice_new_edit(request):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -7953,7 +8002,7 @@ def invoice_new_edit(request):
     json = simplejson.dumps(results)
     return HttpResponse(json, content_type='application/json')
     
-
+@csrf_exempt
 def photo_url_add(request):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -7969,13 +8018,11 @@ def photo_url_add(request):
                     c.photo_url.add(photo_select[0])
                     c.save()
                     return HttpResponse("Таке фото вже існує / This photo is present", content_type="text/plain;charset=UTF-8;;")
-                
                 p1 = Photo(url = p_url, date = datetime.datetime.now(), user = request.user, description="")
                 p1.save()
                 c = Catalog.objects.get(id = pid)
                 c.photo_url.add(p1)
                 c.save()
-
     search = "ok"
     return HttpResponse(search, content_type="text/plain;charset=UTF-8;;")
 
@@ -7985,6 +8032,7 @@ def retrieve_image(url):
     if response.status_code != 200:
         print "Error - " + response.status_code
     return StringIO.StringIO(response.content)
+
 
 def save_photo_local(obj, url, d_url, file_path, filename):
     try:
@@ -8021,11 +8069,9 @@ def save_photo_local(obj, url, d_url, file_path, filename):
             obj.save()
 #            print "File save = " + file_path +  filename
             return obj
-        
     except:
         print "EXCEPT save_photo_local - " + filename
         pass
-
     return obj
 
 
@@ -8976,7 +9022,9 @@ def check_list(request, year=None, month=None, day=None, all=False, client=None)
         days = xrange(1, 1)
     else:            
         days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
-    return render_to_response("index.html", {"weblink": 'check_list.html', "check_list": list, "sum_term":sum_term, "sum_cash":sum_cash, "pay_list": listPay, 'sel_day':day, 'sel_month':month, 'sel_year':year, 'month_days':days, 'chk_sum': chk_sum, 'chk_sum_term': chk_sum_term}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {"weblink": 'check_list.html', "check_list": list, "sum_term":sum_term, "sum_cash":sum_cash, "pay_list": listPay, 'sel_day':day, 'sel_month':month, 'sel_year':year, 'month_days':days, 'chk_sum': chk_sum, 'chk_sum_term': chk_sum_term}
+    context.update(custom_proc(request))
+    return render(request, "index.html", context)
 
 
 #************ Друк фіскального чеку на принтері ************** 
@@ -9195,7 +9243,7 @@ def save_chek2db(cash, term, shop, request, ci=None, ws=None, desc=''):
         check.save()
     return            
 
-
+@csrf_exempt
 def shop_sale_check_add(request):
     if request.user.is_authenticated()==False:
         return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
@@ -9291,12 +9339,13 @@ def shop_sale_check_add(request):
         message = "Error. Post is not Ajax!"
         return HttpResponse(message, content_type="text/plain;charset=UTF-8;")
 
-
+@csrf_exempt
 def workshop_sale_check_add(request):
     if request.user.is_authenticated()==False:
-        return HttpResponse("<h2>Для виконання операції, авторизуйтесь</h2>")
+        return HttpResponse("Для виконання операції, авторизуйтесь")
     message = ''
     list_id = request.session['invoice_id']
+#    print ("\nSession >>> "  + str(list_id) + "\n") 
     count = None
     URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
     cmd = 'open_port;1;115200;'
@@ -9313,7 +9362,7 @@ def workshop_sale_check_add(request):
                 term_number =  request.POST.get( 'term' )
                    
                 cw = WorkShop.objects.filter(id__in = list_id)
-                chk_list = Check.objects.filter(catalog__in = cw)
+                chk_list = Check.objects.filter(workshop__in = cw)
                 if chk_list.count() > 0:
                     message = "Даний чек вже існує"
                 #CheckBoX casa
@@ -9770,15 +9819,15 @@ def post_casa_token(xLicenseKey=licenseKey(), pin_code=settings.PIN_CODE):
     url = "https://api.checkbox.ua/api/v1/cashier/signinPinCode"
 
     r = requests.post(url, data=json.dumps(data), headers=headers)
-    print('Status: ' + str(r))
+#    print('Status: ' + str(r))
     if r.status_code <> 200:
-        print "Error: " + r.json()['message'].encode('utf-8') #('cp1251') 
+#        print "Error: " + r.json()['message'].encode('utf-8') #('cp1251') 
         return "Error: " + str(r)
 
     ttoken = r.json()['token_type']
     atoken = r.json()['access_token']
 
-    print "\n'Authorization' : '" + ttoken.title()+ " " + atoken +"'"
+#    print "\n'Authorization' : '" + ttoken.title()+ " " + atoken +"'"
 
     return ttoken + ' ' + atoken
 
@@ -9856,27 +9905,12 @@ def casa_prro_xreport(request, token=post_casa_token()):
         }  
         r = requests.get(url, data=json.dumps(data), headers=headers)
         casa_status = r.json()
-        print "\nCasa id="+ str(casa_status['id']) +" OPEN in : " + str(casa_status['opened_at'])
-    #===========================================================================
-    # d_str_start = rr['created_at']
-    # print "DATE FIRST time: " + str(d_str_start)
-    # dt_start = datetime.datetime.strptime(d_str_start,"%Y-%m-%dT%H:%M:%S.%f+00:00")
-    # res_start_dt = dt_start # + t_h2
-    # print "\nDATE time: " + dt_start.isoformat()
-    #===========================================================================
-    
     try:
-        #print "DATE FIRST time: " + str(rr['sell_receipts_count'])
-        #d_str_start = rr['created_at']
         d_str_start = casa_status['opened_at']
-        print "DATE FIRST time: " + str(d_str_start)
         dt_start = datetime.datetime.strptime(d_str_start,"%Y-%m-%dT%H:%M:%S.%f+00:00")
         res_start_dt = dt_start  + t_h3
-        print "\nDATE time: " + dt_start.isoformat()
         for i in rr['payments']:
-#            print "\nPAYMENTS [type]: " + str(i["type"])
             if i['type'] == "CASHLESS":
-#                print "\nPayments[sell_sum]: " + str(i["sell_sum"])
                 cashless_sell_sum = i["sell_sum"]
     except:
         pass
@@ -9887,7 +9921,9 @@ def casa_prro_xreport(request, token=post_casa_token()):
 #    term_sum_1 = day_cred.get_daily_term_shop1()[2]
     term_sum_2 = day_cred.get_daily_term_shop2()[2]
     term_sum_2 = (round((term_sum_2 or 0)*100) or 0)
-    context = {'weblink': 'report_prro.html', 'JSON': rr, 'format_resp': format_json, 'day_term_sum': term_sum_2, 'error_status': error_msg, 'cashless_sum': cashless_sell_sum, 'res_start_dt': res_start_dt, 'casa_status': casa_status, } 
+    jbalance = rr['balance']
+    context = {'weblink': 'report_prro.html', 'JSON': rr, 'format_resp': format_json, 'day_term_sum': term_sum_2, 'error_status': error_msg, 'cashless_sum': cashless_sell_sum, 'res_start_dt': res_start_dt, 'casa_status': casa_status, 'JsonBalance': jbalance, 'shop': 2}
+    context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
 
@@ -10002,7 +10038,45 @@ def casa_prro_in_out(request, sum=0, inout='-'):
         res_list = str(resp.reason).split(';')
     response.write("<br><<< Result: >>> <br>" +str(resp.json()) + "<br><<< Result text >>><br>" +  str(resp.text.encode('utf-8')))
     return response
+
+
+def casa_rro_xreport(request, token=post_casa_token()):
+    URL = ''
+    URL = "http://" + settings.HTTP_MINI_SERVER_IP + ":" + settings.HTTP_MINI_SERVER_PORT +"/"
+    cmd = 'open_port;1;115200;'
+    PARAMS = {'address':URL, 'cmd': cmd, 
+              'hash': settings.MINI_HASH_1, 
+              'user': request.user.username,
+              }
+    resp = None
+    try:
+        resp_open = requests.post(url = URL, data = PARAMS)
+        PARAMS['cmd'] = 'get_cashbox_sum;'
+        resp = requests.post(url = URL, data = PARAMS)
+    except:
+        context = {'weblink': 'error_message.html', 'mtext': "Connection failed! Перевірте зєднання з комп'ютером",}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)        
+    if resp.status_code == 200:
+        res_list = str(resp.reason).split(';')
+    PARAMS['cmd'] = 'close_port;'
+    resp_close = requests.post(url = URL, data = PARAMS)
     
+    res_start_dt = ''
+    error_msg = ''
+    casa_status = "<br><<< Result >>> <br>" + str(resp.reason) + "<br><<< Result >>><br>" + str(resp.text) #None # responce for other request
+    cashless_sell_sum = float(res_list[3]) * 100 # копійки
+    jbalance = float(res_list[1]) * 100 # копійки
+    
+    day_cred=ClientCredits.objects.all().first()
+    term_sum_1 = day_cred.get_daily_term_shop1()[2]
+#    term_sum_2 = day_cred.get_daily_term_shop2()[2]
+#    term_sum_2 = (round((term_sum_2 or 0)*100) or 0)
+    term_sum_1 = (round((term_sum_1 or 0)*100) or 0)
+    context = {'weblink': 'report_prro.html', 'day_term_sum': term_sum_1, 'error_status': error_msg, 'cashless_sum': cashless_sell_sum, 'res_start_dt': res_start_dt, 'casa_status': casa_status, 'JsonBalance': jbalance, 'shop': 1}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
+
 
 def casa_checkout(request, id):
     URL = ''
@@ -10015,15 +10089,14 @@ def casa_checkout(request, id):
               'hash': settings.MINI_HASH_1, 
               'user': request.user.username,
               }
- 
     resp = None
     # sending post request and saving response as response object 
     try:
         resp_open = requests.post(url = URL, data = PARAMS)
         PARAMS['cmd'] = 'get_cashbox_sum;'
         resp = requests.post(url = URL, data = PARAMS)
-        print "Result = " + str(resp)
-        print (resp.status_code, resp.reason) #HTTP
+#        print "Result = " + str(resp)
+#        print (resp.status_code, resp.reason) #HTTP
     except:
         context = {'weblink': 'error_message.html', 'mtext': "Connection failed! Перевірте зєднання з комп'ютером",}
         context.update(custom_proc(request))
@@ -10031,11 +10104,11 @@ def casa_checkout(request, id):
         #return HttpResponse("Connection failed! Перевірте зєднання з комп'ютером")
     msg_text = ""
     lines = []
-    response = HttpResponse()
+    #response = HttpResponse()
     if resp.status_code == 200:
         #response.write("Status: <br>")
         res_list = str(resp.reason).split(';')
-        lines.append("Status: <br>")
+        lines.append("<h2>Кавказька: </h2><br>")
         lines.append("Готівка: <b>" + res_list[1] + " грн.</b><br>")
         lines.append("Чек: <b>" + res_list[2] + " грн.</b><br>")
         lines.append("Кредитна карта: <b>" + res_list[3] + "</b><br>")
@@ -10093,7 +10166,7 @@ def casa_prro_check_view(request, chk_uid, type="text"):
     response.write("" + r.text.encode('utf-8'))
     return response
     
-   
+@csrf_exempt
 def casa_command(request, id):
     URL = ''
     if id == '1':
@@ -10169,8 +10242,12 @@ def casa_command(request, id):
 #        print "Result = " + str(resp)
 #        print (resp.status_code, resp.reason) #HTTP
     except:
-        print  "Error - Connection failed!"
-        return HttpResponse("Connection failed! Перевірте зєднання з комп'ютером")
+        context = {'weblink': 'error_message.html', 'mtext': "Connection failed! Перевірте зєднання з комп'ютером",}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)        
+        
+#        print  "Error - Connection failed!"
+#        return HttpResponse("Connection failed! Перевірте зєднання з комп'ютером")
     
 #    print "\nStatus code = " + str(type(resp)) + "\n"
 #    print "Content:" + str(dir(resp))
@@ -10182,7 +10259,9 @@ def casa_command(request, id):
     resp_close = requests.post(url = URL, data = PARAMS)
 
     #return HttpResponse("Status - " + str(resp.reason) + " <br><<< Result >>>" + str(resp.text))
-    return render_to_response('index.html', {'weblink': 'casa_cmd_list.html', 'id': id, 'next': current_url}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'weblink': 'casa_cmd_list.html', 'id': id, }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def casa_getstatus(request, id):
@@ -10214,28 +10293,54 @@ def casa_getstatus(request, id):
     except:
         return HttpResponse("Connection failed! Перевірте зєднання з комп'ютером")
     
-    response = HttpResponse()
+    msg_text = ""
+    lines = []
+#    response = HttpResponse()
     if resp.status_code == 200:
-        response.write("Status: <br>")
-        res_list = str(resp.reason).split(';') 
-        response.write("Касир № <b>" + res_list[1] + "</b><br>")
-        response.write("Зміна № <b>" + res_list[2] + "</b><br>")
-        response.write("Стан чеку - <b>" + res_list[3] + "</b><br>")
-        response.write("Тривалість зміни (0 - менше 23 годин / 1 - більше 23 годин) - <b>" + res_list[9] + "</b><br>")
-        response.write("Тривалість зміни (0 - менше 24 годин / 1 - більше 24 годин) - <b>" + res_list[10] + "</b><br>")
-        response.write("Дата початку зміни - <b>" + res_list[11] + "</b><br>")
-        response.write("Час початку зміни - <b>" + res_list[12] + "</b><br>")
-        response.write("Номер закритого чеку в даній зміні - <b>" + res_list[15] + "</b><br>")
-        response.write("Номер закритого чеку в попередній зміні - <b>" + res_list[16] + "</b><br>")
-        response.write("Кількість касирів - <b>" + res_list[19] + "</b><br>")
-        response.write("Блокування при не передачі даних протягом 72 годин - <b>" + res_list[22] + "</b><br>")
-        response.write("Точка блокування 72 години (дата)  - <b>" + res_list[23] + "</b><br>")
-        response.write("Точка блокування 72 години (час)  - <b>" + res_list[24] + "</b><br>")
+        res_list = str(resp.reason).split(';')
+        lines.append("<h2>Кавказька <СТАТУС КАСОВОГО>: </h2><br>")
+        lines.append("Касир № <b>" + res_list[1] + "</b><br>")
+        lines.append("Зміна № <b>" + res_list[2] + "</b><br>")
+        lines.append("Стан чеку - <b>" + res_list[3] + "</b> ( 0 - Чек закритий; 1 - Чек відкритий для продажу; 2 - чек відкритий для оплати; 3 - чек відкритий для повернення; )<br>")
+        lines.append("Тривалість зміни - <b>" + res_list[9] + "</b> (0 - менше 23 годин / 1 - більше 23 годин)<br>")
+        lines.append("Тривалість зміни - <b>" + res_list[10] + "</b> (0 - менше 24 годин / 1 - більше 24 годин)<br>")
+        lines.append("Дата початку зміни - <b>" + res_list[11] + "</b><br>")
+        lines.append("Час початку зміни - <b>" + res_list[12] + "</b><br>")
+        lines.append("Номер закритого чеку в даній зміні - <b>" + res_list[15] + "</b><br>")
+        lines.append("Номер закритого чеку в попередній зміні - <b>" + res_list[16] + "</b><br>")
+        lines.append("Кількість касирів - <b>" + res_list[19] + "</b><br>")
+        lines.append("Блокування при не передачі даних протягом 72 годин - <b>" + res_list[22] + "</b> // 0 - розблокований; 1 - заблокований;<br>")
+        lines.append("Точка блокування 72 години (дата)  - <b>" + res_list[23] + "</b> <br>")
+        lines.append("Точка блокування 72 години (час)  - <b>" + res_list[24] + "</b> <br>")
+        msg_text = "<br>".join(str(line) for line in lines)
+        #=======================================================================
+        # response.write("Status: <br>")
+        # res_list = str(resp.reason).split(';') 
+        # response.write("Касир № <b>" + res_list[1] + "</b><br>")
+        # response.write("Зміна № <b>" + res_list[2] + "</b><br>")
+        # response.write("Стан чеку - <b>" + res_list[3] + "</b><br>")
+        # response.write("Тривалість зміни (0 - менше 23 годин / 1 - більше 23 годин) - <b>" + res_list[9] + "</b><br>")
+        # response.write("Тривалість зміни (0 - менше 24 годин / 1 - більше 24 годин) - <b>" + res_list[10] + "</b><br>")
+        # response.write("Дата початку зміни - <b>" + res_list[11] + "</b><br>")
+        # response.write("Час початку зміни - <b>" + res_list[12] + "</b><br>")
+        # response.write("Номер закритого чеку в даній зміні - <b>" + res_list[15] + "</b><br>")
+        # response.write("Номер закритого чеку в попередній зміні - <b>" + res_list[16] + "</b><br>")
+        # response.write("Кількість касирів - <b>" + res_list[19] + "</b><br>")
+        # response.write("Блокування при не передачі даних протягом 72 годин - <b>" + res_list[22] + "</b><br>")
+        # response.write("Точка блокування 72 години (дата)  - <b>" + res_list[23] + "</b><br>")
+        # response.write("Точка блокування 72 години (час)  - <b>" + res_list[24] + "</b><br>")
+        #=======================================================================
 
     PARAMS['cmd'] = 'close_port;'
     resp_close = requests.post(url = URL, data = PARAMS)
-    response.write("<br><<< Result >>> <br>" +str(resp.reason) + "<br><<< Result >>><br>" +  str(resp.text))
-    return response
+#    response.write("<br><<< Result >>> <br>" +str(resp.reason) + "<br><<< Result >>><br>" +  str(resp.text))
+#    return response
+    msg_text = msg_text + "<br>" + "<br><<< Result >>> <br>" + str(resp.reason) + "<br><<< Result >>><br>" + str(resp.text)
+    context = {'weblink': 'info_message.html', 'mtext': msg_text,}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)        
+
+
 
 
 def casa_z_report(request, id):

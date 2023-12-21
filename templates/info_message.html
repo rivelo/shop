@@ -1,0 +1,43 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Помилка</title>
+
+<style type="text/css">
+#error_div {
+	padding:2px 4px;
+	margin:0px;
+	border:solid 1px #FBD3C6;
+	background:#FDE4E1;
+	color:#CB4721;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:14px;
+	font-weight:bold;
+	text-align:left;
+}
+
+body{
+    font-family:Arial, Helvetica, sans-serif; 
+    font-size:13px;
+}
+.info_message {
+    border: 1px solid;
+    margin: 10px 0px;
+    padding:15px 10px 15px 60px;
+    background-repeat: no-repeat;
+    background-position: 5px center;
+    color: black;
+    font-weight:bold;
+    background-color: #77c9c5;
+<!--    background-image: url('/media/images/error.png'); -->
+}
+</style>
+
+<body>
+
+<div class="info_message">
+{% autoescape off %}
+{{ mtext }} 
+{% endautoescape %}
+</div>
+
+</body>

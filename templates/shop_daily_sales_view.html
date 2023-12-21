@@ -49,10 +49,8 @@ $(document).ready(function() {
 <div class="d-flex">
 <div class="mr-auto">
 	<h1> 
-	<span class="badge badge-secondary">Оборот коштів на {{date}} року </span>
-	{% if shopNumber != 0 %}
-	<span class="badge badge-success">shop{{shopNumber}}</span>
-	{% endif %}
+	<span class="badge badge-secondary">Оборот коштів на {{date}} року </span><span class="badge badge-info">{{shopName}}</span>
+{#	<span class="badge badge-success">shop{{shopNumber}}</span> #}
 	<span style="color: red; font-size: x-large;" >Каса: {{casa}} грн.</span> 
 	</h1>
 </div>
@@ -205,6 +203,13 @@ $(document).ready(function() {
 	</tr>	
 	</table>	
 
+
+
+
+
+
+{% comment %}
+
 <h4><a href="{% url 'shop-daily-sales-by-shop' sel_date.year sel_date.month sel_date.day 1 %}"><span class="badge badge-secondary">Shop1 - Кавказька</span></a></h4>
 <div class="text-light bg-dark" >
 {% for itm in Ccred.0.get_daily_pay_shop1.0 %}	
@@ -258,4 +263,4 @@ $(document).ready(function() {
 <h3><span class="badge badge-success">{{Ccred.0.get_daily_term_shop2.2}}</span></h3>
 
 	
-		
+{% endcomment %}		

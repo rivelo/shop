@@ -61,9 +61,17 @@ function true_false(obj){
 <div class="p-3 mb-2 bg-success text-white"><h2><a href="/casa/prro/create/" class="text-white font-weight-bold" >Відкрити зміну</a></h2></div>
 {% else %}
 
+{% endif %}
+
 <p>
-<b><span>Готівка в касі: </span></b> {{JSON.balance|div:100}} грн. <a href='/casa/prro/{{JSON.balance}}/out/'>({{JSON.balance}})</a>
-<a href="/casa/prro/{{JSON.balance}}/out/" title="Вилучити готівку з каси " data-toggle="tooltip" data-placement="right"><i class="material-icons">remove_circle</i></a> {#add_circle#}
+<b><span>Готівка в касі: </span></b> {{JsonBalance|div:100}} грн.
+{% if shop == 2 %}
+<a href="{% url 'prro_out' JsonBalance %}">({{JsonBalance}})</a>
+<a href="{% url 'prro_out' JsonBalance %}" title="Вилучити готівку з каси " data-toggle="tooltip" data-placement="right">
+<i class="material-icons">remove_circle</i>
+</a> {#add_circle#}
+{% endif %}
+
 </p>
 
 <p>
@@ -72,6 +80,7 @@ function true_false(obj){
 <b><span>Дата/час відкриття зміни: </span></b> {{res_start_dt|date:"d M Y H:i"}}
 </p>
 
+{% if JSON %}
 {% for i in JSON.payments %}
 <b><span>В касі {{i.type}}: </span></b> {{i.sell_sum|div:100.0}}  грн.
 <br>
@@ -80,19 +89,35 @@ function true_false(obj){
 <b><span>Вилучено з каси {{i.type}}: </span></b> {{i.service_out|div:100.0}} грн.
 <br>   
 {% endfor %}
+{% endif %}
 
 <h3><span class="badge badge-light">Термінал: {{day_term_sum|div:100.0}} грн.</span></h3>
-<h3><span class="badge badge-light">ПРРО: {{cashless_sum|div:100.0}} грн.</span></h3>  
+
+<h3><span class="badge badge-light">
+{% if shop == 2 %}
+ПРРО:
+{% endif %}
+{% if shop == 1 %}
+РРО:
+{% endif %} 
+{{cashless_sum|div:100.0}} грн.</span></h3>
+  
 <h3><span class="badge badge-warning">Потрібно надрукувати товари на суму: {{day_term_sum|sub:cashless_sum|div:100.0}} грн.</span></h3>
 
 <br>
 
+{% if shop == 2 %}
 {% if request.user|has_group:"admin" %}
 <h3><a href="{% url 'prro-zreport' %}" class="badge badge-success" onclick="return confirm('Виконати З-звіт в магазині Рівело, вул.Міцкевича 7?')">Z-звіт</a></h3>
 {% endif %}
-
-
 {% endif %}
+
+{% if shop == 1 %}
+<h3><a href="{% url 'rro-zreport' '1' %}" class="badge badge-success" onclick="return confirm('Виконати З-звіт в магазині Рівело, вул.Міцкевича 7?')">Z-звіт</a></h3>
+{% endif %}
+
+
+
 
 <br><br>
 

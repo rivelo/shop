@@ -275,7 +275,7 @@ urlpatterns = [
     
 #delete    url(r'^client/result/$', catalog.search_client_id'),
     url(r'^client/invoice/view/$', catalog.client_invoice_view),
-    url(r'^client/invoice/view/notpay/$', catalog.client_invoice_view, {'notpay': True}),
+    url(r'^client/invoice/view/notpay/$', catalog.client_invoice_view, {'notpay': True}, name="clientinvoice_now_notpay"),
     url(r'^client/invoice/set/$', catalog.client_invoice_set),
     url(r'^client/invoice/(?P<id>\d+)/edit/$', catalog.client_invoice_edit, name="client_invoice_edit"),
     url(r'^client/invoice/add/$', catalog.client_invoice_add),
@@ -421,15 +421,16 @@ urlpatterns = [
     url(r'^casa/prro/check/(?P<chk_uid>[\w-]+)/view/$', catalog.casa_prro_check_view, name='prro_check_text_view'),
     url(r'^casa/prro/check/(?P<chk_uid>[\w-]+)/view/pdf/$', catalog.casa_prro_check_view, {'type':'pdf'}, name='prro_check_pdf_view'),
     url(r'^casa/prro/check/(?P<chk_uid>[\w-]+)/view/html/$', catalog.casa_prro_check_view, {'type':'html'}, name='prro_check_html_view'),
-    url(r'^casa/prro/(?P<sum>\d+)/in/$', catalog.casa_prro_in_out, {'inout':"+"}),
-    url(r'^casa/prro/(?P<sum>\d+)/out/$', catalog.casa_prro_in_out, {'inout':"-"}),
+    url(r'^casa/prro/(?P<sum>\d+)/in/$', catalog.casa_prro_in_out, {'inout':"+"}, name = 'prro_in'),
+    url(r'^casa/prro/(?P<sum>\d+)/out/$', catalog.casa_prro_in_out, {'inout':"-"}, name = 'prro_out'),
     url(r'^casa/prro/xreport/$', catalog.casa_prro_xreport),
     url(r'^casa/prro/create/$', catalog.casa_prro_create),
     url(r'^casa/prro/zreport/$', catalog.casa_prro_zreport, name='prro-zreport'),
     url(r'^casa/(?P<id>\d+)/view/$', catalog.casa_checkout),
     url(r'^casa/(?P<id>\d+)/status/$', catalog.casa_getstatus),
-    url(r'^casa/(?P<id>\d+)/zreport/$', catalog.casa_z_report),
+    url(r'^casa/(?P<id>\d+)/zreport/$', catalog.casa_z_report, name='rro-zreport'),
     url(r'^casa/(?P<id>\d+)/cmd/$', catalog.casa_command),
+    url(r'^casa/rro/xreport/$', catalog.casa_rro_xreport, name='rro_xreport'),
 
 #)
 #urlpatterns += patterns('',
@@ -571,6 +572,7 @@ urlpatterns = [
     url(r'^storage/box/rename/$', catalog.storage_box_rename),
 
     url(r'^shop/sale/day/add/$', catalog.shopdailysales_add, name='shop-sale-day-add'),
+    url(r'^shop/(?P<id>\d+)/sale/day/add/$', catalog.shopdailysales_add, name='shop-id-sale-day-add-by-id'),
     url(r'^shop/sale/month/(?P<month>\d+)/view/$', catalog.shopmonthlysales_view),    
     url(r'^shop/sale/year/(?P<year>\d+)/month/(?P<month>\d+)/view/$', catalog.shopmonthlysales_view),    
     url(r'^shop/sale/month/view/$', catalog.shopmonthlysales_view),
@@ -578,8 +580,9 @@ urlpatterns = [
     url(r'^shop/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/shop/(?P<shop>\d+)/view/$', catalog.shopdailysales_view, name="shop-daily-sales-by-shop"), # day CASA by SHOP
     url(r'^shop/sale/day/edit/(?P<id>\d+)/$', catalog.shopdailysales_edit),
     url(r'^shop/sale/view/year/(?P<year>\d+)/month/(?P<month>\d+)/$', catalog.shopdailysales_list),    
-    url(r'^shop/sale/view/month/(\d+)/$', catalog.shopdailysales_list),
-    url(r'^shop/sale/view/$', catalog.shopdailysales_list),
+    url(r'^shop/sale/view/month/(\d+)/$', catalog.shopdailysales_list, name="shop_dailysales_monthly"),
+    url(r'^shop/(?P<shop_id>\d+)/sale/view/month/(\d+)/$', catalog.shopdailysales_list, name="shop_id_dailysales_monthly"),
+    url(r'^shop/sale/view/$', catalog.shopdailysales_list, name="shop_dailysales_monthly_cur"),
     url(r'^shop/sale/day/(?P<id>\d+)/delete/$', catalog.shopdailysales_delete),
 
     url(r'^inventory/list/$', catalog.inventory_list),

@@ -21,6 +21,8 @@ from django.db.models import Q
 from django.utils.translation.trans_real import catalog
 from __builtin__ import True
 from django.template.defaultfilters import default
+from datetime import date
+#from Scripts.pilprint import description
 
 
 # Group Type = Group for Component category 
@@ -37,20 +39,6 @@ class GroupType(models.Model):
 
     class Meta:
         ordering = ["name"]    
-
-
-
-# --- види грошових надходжень
-class CashType(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, null=True)
-
-    def __unicode__(self):
-        return self.name
-
-    class Meta:
-        ordering = ["name",]    
-
 
 
 class Schedules(models.Model):
@@ -71,7 +59,6 @@ class Schedules(models.Model):
         ordering = ["start_date", "start_week_day"]    
 
 
-
 class Shop(models.Model):
     name = models.CharField(max_length=200)
     phone = models.CharField(max_length=100, blank = False, null = False)
@@ -83,8 +70,8 @@ class Shop(models.Model):
     map_point = models.TextField(blank = True, null = True)
     ip_addr = models.GenericIPAddressField(protocol='IPv4', blank = True, null = True)
     status = models.BooleanField(default = True) # Work status
-    shop_pay_cash = models.ManyToManyField(CashType, blank = True, related_name='Shop_Cash_Pay')
-    shop_pay_term = models.ManyToManyField(CashType, blank = True, related_name='Shop_Term_Pay')
+#    shop_pay_cash = models.ManyToManyField(CashType, blank = True, related_name='Shop_Cash_Pay')
+#    shop_pay_term = models.ManyToManyField(CashType, blank = True, related_name='Shop_Term_Pay')
     casa_server_ip =  models.GenericIPAddressField(protocol='IPv4', blank = True, null = True)
     casa_server_port = models.PositiveSmallIntegerField(default = 8123, null=True)
     casa_hash = models.CharField(max_length=255, blank=True, null=True)
@@ -93,8 +80,69 @@ class Shop(models.Model):
     PIN_CODE = models.CharField(max_length=255, blank=True, null=True)
     work_schedule = models.ManyToManyField(Schedules, blank=True) 
     user_list = models.ManyToManyField(User, blank=True)
-    description = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, blank=True)
+    #color = models.CharField(max_length=50, blank=True, , related_name='color (hex value) to show shop in table') 
 
+ 
+    def get_deb_cred_in_date(self, year, month, day):
+        ndate = datetime.date(int(year), int(month), int(day))
+        cashtype_list = self.cashtype_set.all()
+#        type_cash = cashtype_list.filter(pay_status='True', cash='True') 
+#        type_term = cashtype_list.filter(pay_status='True', term='True')
+        deb = ClientDebts.objects.filter(date__year=ndate.year, date__month=ndate.month, date__day=ndate.day).order_by('date')
+        cred = ClientCredits.objects.filter(date__year=ndate.year, date__month=ndate.month, date__day=ndate.day, cash_type__in = cashtype_list).order_by('date')
+        res_dict = {}
+        res_dict['deb'] = deb
+        res_dict['cred'] = cred
+        return res_dict
+
+
+    def get_cashtype(self):
+        return self.cashtype_set.all().filter(pay_status='True', cash='True')
+    
+    def get_termtype(self):
+        return self.cashtype_set.all().filter(pay_status='True', term='True')
+
+    def shop_cash_sum_by_day(self):
+        #return self.cashtype_set
+#        print "\nCASHtype = [ " + str(self._meta.get_fields()) + " ]\n"
+        cashtype_list = self.cashtype_set.all()
+#        print "\ntypeLIST = "
+#        for obj in cashtype_list:
+#             print (str(obj.id) + "; ") 
+#        print (">>>\n")
+        
+        type_cash = cashtype_list.filter(pay_status='True', cash='True') 
+        type_term = cashtype_list.filter(pay_status='True', term='True')
+
+ #       for obj in type_cash:
+ #           print "\nCASHtype = [ " + str(obj.id) + " ]\n"
+ #       for obj in type_term:
+ #           print "\nTermtype >> [ " + str( obj.id ) + " ]\n"
+
+        ndate = datetime.datetime.now()
+            
+        deb = ClientDebts.objects.filter(date__year=ndate.year, date__month=ndate.month, date__day=ndate.day)#.order_by()
+        cred = ClientCredits.objects.filter(date__year=ndate.year, date__month=ndate.month, date__day=ndate.day)#.order_by()
+
+        cashCred = cred.filter(cash_type__in = type_cash).aggregate(suma=Sum("price")) # Cash
+        termCred = cred.filter(cash_type__in = type_term).aggregate(suma=Sum("price")) # Term
+        cashDeb = deb.filter(cash='True').aggregate(suma=Sum("price"))
+#        print "\nCashSUM = " + str(cashCred)
+#        print "\nTermSUM = " + str(termCred)
+            
+#        try:
+#            cashDeb = deb.filter(cash='True').aggregate(suma=Sum("price"))
+#        except ClientDebts.DoesNotExist:
+#            cashDeb = 0
+
+        res_dict = {}
+        res_dict['cashCred'] = cashCred.get('suma') or 0
+        res_dict['termCred'] = termCred.get('suma') or 0
+        res_dict['cashDeb'] = cashDeb.get('suma') or 0
+        return res_dict
+        #return self.cashtype_set.all()
+        
 
     def __unicode__(self):
         return u'%s' % (self.name)
@@ -104,12 +152,28 @@ class Shop(models.Model):
         ordering = ["name", "address"]    
 
 
-
 #class FOP(models.Model):
 #    FOP =
 #    IBAN = 
 #    bank_data = 
  
+
+# --- види грошових надходжень
+class CashType(models.Model):
+    name = models.CharField(max_length=100, verbose_name="Назва для типу оплати")
+    description = models.TextField(blank=True, null=True)
+    pay_status = models.BooleanField(default = False, verbose_name="Платіжний тип. Враховується в оплатах")
+    cash = models.BooleanField(default = False, verbose_name="Готівка")
+    term = models.BooleanField(default = False, verbose_name="Термінали або будь-який екваєринг. Враховується у касовому обліку.")
+    shop = models.ForeignKey(Shop, blank=True, null=True, on_delete=models.SET_NULL)
+    
+    #def get_sum_by_day(): 
+
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        ordering = ["name",]    
 
     
     
@@ -811,13 +875,14 @@ class ClientDebts(models.Model):
     price = models.FloatField()
     cash = models.BooleanField(default=False, verbose_name="Каса?")
     description = models.TextField()
-    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)    
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    shop = models.ForeignKey(Shop, blank=True, null=True)    
     
     def __unicode__(self):
         return u"[%s] - %s (%s)" % (self.date, self.client, self.description)
 
     class Meta:
-        unique_together = ["client", "date", "price", "cash", "description"]
+#        unique_together = ["client", "date", "price", "cash", "description"]
         ordering = ["client", "date"]    
 
 
@@ -829,7 +894,9 @@ class ClientCredits(models.Model):
     cash_type = models.ForeignKey(CashType, blank=True, null=True, on_delete=models.SET_NULL) 
     description = models.TextField()
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    shop = models.ForeignKey(Shop, blank=True, null=True)
 
+#old function
     def get_daily_pay_shop1(self):
         curdate = datetime.date.today()
         daySum = ClientCredits.objects.filter(date__year = curdate.year, date__month = curdate.month, date__day = curdate.day) #, date__gte = curdate)
@@ -837,7 +904,7 @@ class ClientCredits(models.Model):
         cash_list = daySum.filter(cash_type__pk__in = pay_lst)
         cashtype_sum_day = cash_list.values('cash_type__pk', 'cash_type__name').annotate(cash_sum=Sum('price'), cash_count=Count('price'))
         return [cash_list, cashtype_sum_day]
-
+#old function
     def get_daily_pay_shop2(self):
         curdate = datetime.date.today()
         daySum = ClientCredits.objects.filter(date__year = curdate.year, date__month = curdate.month, date__day = curdate.day) #, date__gte = curdate)
@@ -845,7 +912,7 @@ class ClientCredits(models.Model):
         cash_list = daySum.filter(cash_type__pk__in = pay_lst)
         cashtype_sum_day = cash_list.values('cash_type__pk', 'cash_type__name').annotate(cash_sum=Sum('price'), cash_count=Count('price'))
         return [cash_list, cashtype_sum_day]
-
+#old function
     def get_daily_term_shop1(self):
         curdate = datetime.date.today()
         daySum = ClientCredits.objects.filter(date__year = curdate.year, date__month = curdate.month, date__day = curdate.day) #, date__gte = curdate)
@@ -857,7 +924,7 @@ class ClientCredits(models.Model):
         cashtype_sum_day = cash_list.values('cash_type__pk', 'cash_type__name').annotate(cash_sum=Sum('price'), cash_count=Count('price'))
         term_sum = cash_list.aggregate(all_sum = Sum('price'))
         return [cash_list, cashtype_sum_day, term_sum['all_sum']]
-
+#old function
     def get_daily_term_shop2(self):
         curdate = datetime.date.today()
         daySum = ClientCredits.objects.filter(date__year = curdate.year, date__month = curdate.month, date__day = curdate.day) #, date__gte = curdate)
@@ -1489,10 +1556,13 @@ class WorkTicket(models.Model):
     description = models.TextField(blank=True, null=True)
     phone_status = models.ForeignKey(PhoneStatus, blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
-    #estimate_time = Hours
+    #estimate_time = models.PositiveIntegerField(, related_name="Прогнозований час в ГОДИНАХ") # Hours
+    #history = models.TextField(blank=True, null=True)
+    #bicycle = models.CharField(max_length=255, blank=True, null=True) 
+    #bike_part = models.CharField(max_length=255, blank=True, null=True)
     #change_status_dateTime =
     #user_work 
-        
+    #shop = models.ForeignKey(Shop, blank=True, null=True)
     
     def __unicode__(self):
         return self.description
@@ -1509,7 +1579,9 @@ class ShopDailySales(models.Model):
     cash = models.FloatField() #Готівка
     tcash = models.FloatField() #Термінал
     ocash = models.FloatField() #Взято з каси
-    #shop =  
+    shop = models.ForeignKey(Shop, blank=True, null=True)
+    #history
+    #
 
     def day_sale(self):
         r = ShopDailySales.objects.filter(date__lt = self.date).latest('date')
@@ -1517,7 +1589,7 @@ class ShopDailySales(models.Model):
         return int(round(res, 0))
     
     def __unicode__(self):
-        return "[%s] - %s" % self.date, self.price 
+        return "[%s] - %s" % (self.date, self.price) 
 
     class Meta:
         ordering = ["date", "price"]

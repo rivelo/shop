@@ -28,9 +28,13 @@ $('#id_ocash').attr('readonly','true')
 })
 </script>
 
-    <h1>Денна каса за {% now "jS F Y" %} 
-<a href="/shop/year/{% now "Y" %}/month/{% now "m" %}/day/{% now "d" %}/view/">    
-[Детально] 
+    <h1><span class="badge badge-secondary">Денна каса за {{s_day}}.{{s_month}}.{{s_year}} {# {% now "jS F Y" %} #} 
+{#    <span class="badge badge-info">Shop - {{shopname.shop_cash_sum_by_day.0.name}}</span> #}
+    <span class="badge badge-info">{{shopname}}</span>
+    </span>
+{# <a href="/shop/year/{% now "Y" %}/month/{% now "m" %}/day/{% now "d" %}/view/"  class="badge badge-success"> #}    
+<a href="{% url 'shop-daily-sales' s_year s_month s_day %}"  class="badge badge-success">
+Детально
 </a>
 
 {% if unk_cash > 0 %}
@@ -44,12 +48,19 @@ $('#id_ocash').attr('readonly','true')
 {% endif %}
 
 {% if other_ci %}
+<div class="alert alert-danger" role="alert">
+<a href="{% url 'clientinvoice_now_notpay' %}" >
 	У вас є не проведені товари:
-	<h3 style='color:red'>{{other_ci}}</h3>
+</a>
+</div>
+{% for ci in other_ci %}
+{#	<h3 style='color:red'>{{other_ci.0.catalog.name}} -- {{other_ci.0.sum}} грн.</h3> #}
+	<h4 style='color:red'>{{ci.catalog.name}} -- {{ci.sum}} грн.</h4>
+{% endfor %}
 {% endif %}
 
+	</h1>
 
-</h1>
     <form action="" method="POST" enctype="multipart/form-data">
         <table>
             {{ form.as_table }}

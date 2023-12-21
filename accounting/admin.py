@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 from catalog.accounting.models import Type, Size, Exchange, Manufacturer, Catalog, Country, Dealer, DealerManager, Currency, Rent, Wheel_Size, Bicycle_Storage, Bicycle_Photo, GroupType, YouTube, PhoneStatus, Bicycle_Parts
-from catalog.accounting.models import CheckPay, Check, Schedules, Shop, CashType, Bank, Discount, FrameSize
+from catalog.accounting.models import CheckPay, Check, Schedules, Shop, CashType, Bank, Discount, FrameSize, ShopDailySales
 
 
 
@@ -164,4 +164,8 @@ admin.site.register(FrameSize, FrameSizeAdmin)
 
 
 admin.site.register(DealerManager)
+
+admin.site.register(ShopDailySales)
+
+
 

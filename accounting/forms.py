@@ -715,11 +715,11 @@ class ClientOrderForm(forms.ModelForm):
 
 
 class CashTypeForm(forms.ModelForm):
-    name = forms.CharField(max_length=100)
-    description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255)    
+#    name = forms.CharField(max_length=100)
+#    description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255)    
  
     class Meta:
-        model = CostType
+        model = CashType
         fields = '__all__'        
 
 
@@ -881,7 +881,7 @@ class PhoneStatusForm(forms.ModelForm):
     
 
 class ShopDailySalesForm(forms.ModelForm):
-    #date = forms.DateTimeField(initial=datetime.date.today)
+    #date = forms.DateTimeField( input_formats=['%d.%m.%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d.%m.%Y %H:%M:%S'), label="Дата" )
     date = forms.DateTimeField(initial=datetime.datetime.today, input_formats=['%d.%m.%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d.%m.%Y %H:%M:%S'), label="Дата")
     price = forms.FloatField(initial=0, label="Сума в касі")    
     description = forms.CharField(label='Опис', widget=forms.Textarea(), required=False)
