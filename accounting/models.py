@@ -89,7 +89,7 @@ class Shop(models.Model):
         cashtype_list = self.cashtype_set.all()
 #        type_cash = cashtype_list.filter(pay_status='True', cash='True') 
 #        type_term = cashtype_list.filter(pay_status='True', term='True')
-        deb = ClientDebts.objects.filter(date__year=ndate.year, date__month=ndate.month, date__day=ndate.day).order_by('date')
+        deb = ClientDebts.objects.filter(date__year=ndate.year, date__month=ndate.month, date__day=ndate.day, shop=self).order_by('date')
         cred = ClientCredits.objects.filter(date__year=ndate.year, date__month=ndate.month, date__day=ndate.day, cash_type__in = cashtype_list).order_by('date')
         res_dict = {}
         res_dict['deb'] = deb
@@ -104,45 +104,23 @@ class Shop(models.Model):
         return self.cashtype_set.all().filter(pay_status='True', term='True')
 
     def shop_cash_sum_by_day(self):
-        #return self.cashtype_set
-#        print "\nCASHtype = [ " + str(self._meta.get_fields()) + " ]\n"
         cashtype_list = self.cashtype_set.all()
-#        print "\ntypeLIST = "
-#        for obj in cashtype_list:
-#             print (str(obj.id) + "; ") 
-#        print (">>>\n")
-        
         type_cash = cashtype_list.filter(pay_status='True', cash='True') 
         type_term = cashtype_list.filter(pay_status='True', term='True')
 
- #       for obj in type_cash:
- #           print "\nCASHtype = [ " + str(obj.id) + " ]\n"
- #       for obj in type_term:
- #           print "\nTermtype >> [ " + str( obj.id ) + " ]\n"
-
         ndate = datetime.datetime.now()
             
-        deb = ClientDebts.objects.filter(date__year=ndate.year, date__month=ndate.month, date__day=ndate.day)#.order_by()
+        deb = ClientDebts.objects.filter(date__year=ndate.year, date__month=ndate.month, date__day=ndate.day, shop = self)#.order_by()
         cred = ClientCredits.objects.filter(date__year=ndate.year, date__month=ndate.month, date__day=ndate.day)#.order_by()
-
         cashCred = cred.filter(cash_type__in = type_cash).aggregate(suma=Sum("price")) # Cash
         termCred = cred.filter(cash_type__in = type_term).aggregate(suma=Sum("price")) # Term
         cashDeb = deb.filter(cash='True').aggregate(suma=Sum("price"))
-#        print "\nCashSUM = " + str(cashCred)
-#        print "\nTermSUM = " + str(termCred)
-            
-#        try:
-#            cashDeb = deb.filter(cash='True').aggregate(suma=Sum("price"))
-#        except ClientDebts.DoesNotExist:
-#            cashDeb = 0
 
         res_dict = {}
         res_dict['cashCred'] = cashCred.get('suma') or 0
         res_dict['termCred'] = termCred.get('suma') or 0
         res_dict['cashDeb'] = cashDeb.get('suma') or 0
         return res_dict
-        #return self.cashtype_set.all()
-        
 
     def __unicode__(self):
         return u'%s' % (self.name)
@@ -959,6 +937,7 @@ class ClientInvoice(models.Model):
     description = models.TextField(blank = True, null = True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     chk_del = models.BooleanField(default=False, verbose_name="Мітка на видалення")    
+    shop = models.ForeignKey(Shop, blank=True, null=True) 
 
     def update_sale(self):
         if (self.catalog.sale == 0) and (self.client.sale > self.catalog.sale):
