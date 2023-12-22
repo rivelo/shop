@@ -144,7 +144,6 @@ class CashType(models.Model):
     cash = models.BooleanField(default = False, verbose_name="Готівка")
     term = models.BooleanField(default = False, verbose_name="Термінали або будь-який екваєринг. Враховується у касовому обліку.")
     shop = models.ForeignKey(Shop, blank=True, null=True, on_delete=models.SET_NULL)
-    
     #def get_sum_by_day(): 
 
     def __unicode__(self):
@@ -814,10 +813,10 @@ class DealerPayment(models.Model):
 #Client database
 class Client(models.Model):
     name = models.CharField(max_length=255)
-    forumname = models.CharField(max_length=255)
+    forumname = models.CharField(max_length=255, blank = True, null = True)
     country = models.ForeignKey(Country)
     city = models.CharField(max_length=255)
-    email = models.CharField(max_length=100)
+    email = models.CharField(max_length=100, blank = True, null = True)
     phone = models.CharField(max_length=100)
     phone1 = models.CharField(max_length=100, blank = True, null = True)
     sale = models.IntegerField("how many percent for sale", default=0)
@@ -825,7 +824,11 @@ class Client(models.Model):
     birthday = models.DateField(auto_now_add=False, blank = True, null = True)
     sale_on = models.BooleanField(default=True, verbose_name="Знижка включена")
     description = models.TextField(blank = True, null = True)
-    #reg_date = models.DateField()
+    #reg_date = models.DateField(auto_now_add=True, blank = True, null = True)
+    #reg_shop = models.ForeignKey(Shop, blank=True, null=True)
+    #reg_user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    #cashback = models.FloatField(default=0)
+    #cashback_out_date = models.DateField(blank = True, null = True)
     #bicycle_service = 
 
     def show_str_phone1(self):
@@ -1600,10 +1603,11 @@ class CheckPay(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL) 
     description = models.CharField(max_length=255)
-    #shop
+    #shop = models.ForeignKey(Shop, blank=True, null=True)
     #UID
     #url_dps
     #print_status
+    #fiskal =
     
     def __unicode__(self):
         return u'%s / [%s / %s]' % (self.check_num, self.cash, self.term)
@@ -1629,14 +1633,18 @@ class Check(models.Model):
     description = models.CharField(max_length=255, blank=True, null=True)
     print_status = models.BooleanField(default=False)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
-    #shop =     
-    #fiskal = 
+ 
     
     def __unicode__(self):
         return u'[%s] %s %s' % (self.check_num, self.catalog, self.bicycle)
 
     class Meta:
         ordering = ["date", "check_num"]    
+
+
+#class Check_Registration(models.Model):
+#    pass
+#    class Meta:
 
 
 class PreOrder(models.Model):

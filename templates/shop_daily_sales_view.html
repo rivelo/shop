@@ -78,7 +78,7 @@ $(document).ready(function() {
 	<td>
 	<a href="/clientcredits/edit/{{cred.id}}">{{cred.id}}</a>
 	</td>
-	<td data-toggle="tooltip" data-placement="right" title="[{{cred.user.username}}]" data-html="false">
+	<td data-toggle="tooltip" data-placement="right" title="[{{cred.user.username}}] >> [{{cred.shop}}]" data-html="false">
 		<abbr title="[{{cred.user.username}}]">
 		{{cred.date|time:"H:i"}}
 		</abbr>	
@@ -152,12 +152,13 @@ $(document).ready(function() {
 	{{deb.id}}
 {% endif %}
 	
-	</td>
-	<td>
+	
+<td data-toggle="tooltip" data-placement="right" title="[{{deb.user.username}}] >> [{{deb.shop}}]" data-html="false">
 		<abbr title="[{{deb.user.username}}]">
 		{{deb.date|time:"H:i"}}
 		</abbr>	
-	</td>
+	</td>	
+	
 	<td>
 	<a href="/client/result/search/?id={{deb.client.id}}">
 	{{deb.client}}

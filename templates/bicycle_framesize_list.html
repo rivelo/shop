@@ -2,6 +2,8 @@
 {# <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+<title>Розміри рам</title>
+
 {% load poll_extras %}
 
 
@@ -16,8 +18,11 @@
 	<tr align="center">
 		<th>ID</th>
 		<th>Назва</th>
+		<th>Розмір літера</th>
 		<th>Розмір (см)</th>
 		<th>Розмір (дюйми)</th>
+		<th>Зріст людини (см)</th>
+		<th>Standover рами</th>
 		<th>Звіт</th>
 		<th>Дія</th>
 	</tr>
@@ -28,8 +33,11 @@
 		<td><a href="/bicycle/framesize/edit/{{ type.id }}">{{type.id}}</a>
 		</td>
 		<td>{{type.name}}</td>
+		<td>{{type.letter}}</td>
 		<td>{{type.cm}}</td>
 		<td>{{type.inch}}</td>
+		<td>{{type.rider_height_min}} - {{type.rider_height_max}}</td>
+		<td>{{type.standover}}</td>
 		<td align="center" title="Наявні велосипеди">
 			<a href="/bicycle/store/report/bysize/{{ type.id }}/"><i class="material-icons">list_alt</i></a>
 		</td>

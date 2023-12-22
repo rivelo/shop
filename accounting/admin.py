@@ -2,9 +2,14 @@
 
 from django.contrib import admin
 from catalog.accounting.models import Type, Size, Exchange, Manufacturer, Catalog, Country, Dealer, DealerManager, Currency, Rent, Wheel_Size, Bicycle_Storage, Bicycle_Photo, GroupType, YouTube, PhoneStatus, Bicycle_Parts
-from catalog.accounting.models import CheckPay, Check, Schedules, Shop, CashType, Bank, Discount, FrameSize, ShopDailySales
+from catalog.accounting.models import CheckPay, Check, Schedules, Shop, CashType, Bank, Discount, FrameSize, ShopDailySales, ClientInvoice, DealerInvoice, Client, WorkTicket
+from django.contrib.admin.options import ModelAdmin
 
 
+def mark_shop_K(ModelAdmin, request, queryset):
+    queryset.update(shop=Shop.objects.get(name = 'Кавказька'))
+    #queryset.update(description = 'test mark K')
+mark_shop_K.short_description = "Mark selected. Shop = Кавказька"
 
 class TypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'description')
@@ -27,7 +32,6 @@ class DealerAdmin(admin.ModelAdmin):
     list_display = ('name','country', 'city', 'street', 'www', 'description', 'director')
     ordering = ('-name',)
     search_fields = ('name',)
-
 admin.site.register(Dealer, DealerAdmin)
 
 
@@ -92,8 +96,31 @@ class SchedulesAdmin(admin.ModelAdmin):
 admin.site.register(Schedules, SchedulesAdmin)
 
 
+def an_action(modeladmin, request, queryset):
+    for obj in queryset:
+        obj.description = obj.description.upper()
+        obj.save()
+   #pass
+an_action.short_description = 'my label'
+
+#@admin.register(Wheel_Size)
 class Wheel_SizeAdmin(admin.ModelAdmin):
-    pass 
+#    actions = ["uppercase", "lowercase"] # Necessary 
+    actions = [an_action]
+#    @admin.action(description='Make selected persons uppercase')
+    def uppercase(modeladmin, request, queryset):
+        for obj in queryset:
+            obj.description = obj.description.upper()
+            obj.save()
+            messages.success(request, "Successfully made uppercase!")
+
+#    @admin.action(description='Make selected persons lowercase')
+    def lowercase(modeladmin, request, queryset):
+        for obj in queryset:
+            obj.description = obj.description.lower()
+            obj.save()
+            messages.success(request, "Successfully made lowercase!")
+  
 
 admin.site.register(Wheel_Size, Wheel_SizeAdmin)
 
@@ -144,6 +171,8 @@ admin.site.register(CheckPay, CheckPayAdmin)
 
 
 class CashTypeAdmin(admin.ModelAdmin):
+    list_display = ['name', 'description', 'shop', 'pay_status', 'cash', 'term']
+    actions = [mark_shop_K]
     pass
 admin.site.register(CashType, CashTypeAdmin)
 
@@ -162,10 +191,31 @@ class FrameSizeAdmin(admin.ModelAdmin):
     pass
 admin.site.register(FrameSize, FrameSizeAdmin)
 
+admin.site.register(Client)
+admin.site.register(WorkTicket)
 
 admin.site.register(DealerManager)
 
 admin.site.register(ShopDailySales)
 
+admin.site.register(DealerInvoice)
+
+def mark_K(modeladmin, request, queryset):
+    queryset.update(shop=Shop.objects.get(name = 'Кавказька'))
+    queryset.update(description = 'test mark K')
+mark_K.short_description = "Mark selected client invoice to shop = Кавказька"
+
+def mark_M(modeladmin, request, queryset):
+    queryset.update(shop=Shop.objects.get(name = 'Міцкевича'))
+    queryset.update(description = 'test mark K')
+mark_M.short_description = "Mark selected client invoice to shop = Міцкевича"
+
+class ClientInvoiceAdmin(admin.ModelAdmin):
+    list_display = ['catalog', 'client', 'shop']
+    ordering = ['-date',]
+    search_fields = ['catalog__ids', 'client__name',]
+    actions = [mark_K, mark_M]
+    
+admin.site.register(ClientInvoice, ClientInvoiceAdmin)
 
 

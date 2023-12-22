@@ -439,22 +439,25 @@ def bicycle_type_list(request):
     list = Bicycle_Type.objects.all()
     return render_to_response('index.html', {'types': list, 'weblink': 'bicycle_type_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+@csrf_exempt
 def bicycle_framesize_add(request):
     a = FrameSize()
     if request.method == 'POST':
         form = BicycleFrameSizeForm(request.POST, instance=a)
         if form.is_valid():
-            name = form.cleaned_data['name']
-            cm = form.cleaned_data['cm']
-            inch = form.cleaned_data['inch']
-            FrameSize(name=name, cm=cm, inch=inch).save()
+#            name = form.cleaned_data['name']
+#            cm = form.cleaned_data['cm']
+#            inch = form.cleaned_data['inch']
+            #FrameSize(name=name, cm=cm, inch=inch).save()
+            form.save()
             return HttpResponseRedirect('/bicycle-framesize/view/')
     else:
         form = BicycleFrameSizeForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_framesize.html', 'text': 'Створення нового розміру рами'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'bicycle_framesize.html', 'text': 'Створення нового розміру рами'}
+    context.update(custom_proc(request))   
+    return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def bicycle_framesize_edit(request, id):
     a = FrameSize.objects.get(pk=id)
     if request.method == 'POST':
@@ -464,7 +467,9 @@ def bicycle_framesize_edit(request, id):
             return HttpResponseRedirect('/bicycle-framesize/view/')
     else:
         form = BicycleFrameSizeForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_framesize.html', 'text': 'Розмір рами (редагування)'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'bicycle_framesize.html', 'text': 'Розмір рами (редагування)'} 
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def bicycle_framesize_del(request, id):
@@ -479,7 +484,9 @@ def bicycle_framesize_del(request, id):
 def bicycle_framesize_list(request):
     list = FrameSize.objects.all()
     #return render_to_response('bicycle_framesize_list.html', {'framesizes': list.values_list()})
-    return render_to_response('index.html', {'framesizes': list, 'weblink': 'bicycle_framesize_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'framesizes': list, 'weblink': 'bicycle_framesize_list.html'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def processUploadedImage(file, dir=''): 
@@ -650,8 +657,7 @@ def bicycle_part_add(request):
             response = JsonResponse(d)
             return response            
     
-
-
+@csrf_exempt
 def bicycle_add(request):
     if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
         return HttpResponseRedirect('/bicycle/view/')
@@ -703,8 +709,9 @@ def bicycle_add(request):
 #        form = BicycleForm(instance=a)
         form = BicycleForm()        
 
-    #return render_to_response('bicycle.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle.html', 'text': 'Велосипед з каталогу (створення)'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'bicycle.html', 'text': 'Велосипед з каталогу (створення)'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 @csrf_exempt
 def bicycle_edit(request, id):
@@ -794,7 +801,7 @@ def bicycle_list(request, year=None, brand=None, percent=None):
         list = Bicycle.objects.filter(year__year=year, brand=brand)
         if percent!=None:
             Bicycle.objects.filter(year__year=year, brand=brand).update(sale=percent)
-    bike_company = Bicycle.objects.filter(year__year=year).values('brand', 'brand__name').annotate(num_company=Count('model'))
+    bike_company = Bicycle.objects.filter(year__year=year).values('brand', 'brand__name').annotate(num_company=Count('model')).order_by('num_company')
     #bike_year = Bicycle.objects.values('year').annotate(n_year=Count('year__year'))
     bike_year = Bicycle.objects.filter().extra({'yyear':"Extract(year from year)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('yyear')
     #return render_to_response('bicycle_list.html', {'bicycles': list.values_list()})
@@ -938,7 +945,9 @@ def bicycle_store_simple_list(request):
 
 
 def bicycle_store_search(request):
-    return render_to_response('index.html', {'weblink': 'frame_search.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'weblink': 'frame_search.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def bicycle_store_search_result(request, all=False):
@@ -956,7 +965,9 @@ def bicycle_store_search_result(request, all=False):
             price_summ = price_summ + item.price * item.count 
         real_summ = real_summ + item.realization
         bike_summ = bike_summ + item.count
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_store_list_by_seller.html', 'price_summ': price_summ, 'real_summ': real_summ, 'bike_summ': bike_summ, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'bicycles': list, 'weblink': 'bicycle_store_list_by_seller.html', 'price_summ': price_summ, 'real_summ': real_summ, 'bike_summ': bike_summ, }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def bicycle_store_price(request, pprint=False):
@@ -969,8 +980,11 @@ def bicycle_store_price(request, pprint=False):
     else: 
         list = Bicycle_Store.objects.filter(count=1)
     if pprint:
-        return render_to_response('bicycle_shop_price_list.html', {'bicycles': list, 'view':False})    
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_shop_price_list.html', 'view':True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        context = {'bicycles': list, 'view':False}
+        return render(request, 'bicycle_shop_price_list.html', context)
+    context = {'bicycles': list, 'weblink': 'bicycle_shop_price_list.html', 'view':True, }
+    context.update(custom_proc(request))    
+    return render(request, 'index.html', context)
 
 
 def bicycle_store_price_print(request):
@@ -1569,7 +1583,9 @@ def bicycle_sale_check(request, id=None, param=None):
 
 
 def bicycle_sale_search_by_name(request):
-    return render_to_response('index.html', {'weblink': 'bicycle_sale_search_by_name.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'weblink': 'bicycle_sale_search_by_name.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def bsale_search_by_name_result(request, all=False):
@@ -1586,7 +1602,9 @@ def bsale_search_by_name_result(request, all=False):
     for item in list:
         price_summ = price_summ + item.price 
         price_summ_full = price_summ_full + item.price
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ': price_summ, 'price_summ_full': int(price_summ_full), 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'price_summ': price_summ, 'price_summ_full': int(price_summ_full), }
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def dictfetchall(cursor):
@@ -1610,27 +1628,26 @@ def bicycle_sale_report(request):
         cursor.execute(query)
         list = dictfetchall(cursor)
         #list = cursor.execute(sql1, )   
-        
     except TypeError:
         res = "Помилка"
-        
     sum = 0
     bike_sum = 0
     for month in list:
          sum = sum + month['s_price']
          bike_sum = bike_sum + month['bike_count']
 
-    #list = Bicycle_Sale.objects.all().order_by('date')
-    return render_to_response('index.html', {'bicycles': list, 'all_sum': sum, 'bike_sum': bike_sum, 'weblink': 'bicycle_sale_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'bicycles': list, 'all_sum': sum, 'bike_sum': bike_sum, 'weblink': 'bicycle_sale_report.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def bicycle_sale_report_by_brand(request):
-    #list = Bicycle_Order.objects.annotate(bcount=Count("model")) 
     list = Bicycle_Sale.objects.values('model__model__brand__name', 'model__model__brand', 'model__model__brand__id').annotate(bcount=Count("model__model__model")).order_by('-bcount') #("model__model__brand")
-#    objects.filter(date__year=now.year, date__month=now.month).extra(select={'year': "EXTRACT(year FROM date)", 'month': "EXTRACT(month from date)", 'day': "EXTRACT(day from date)"}).values('year', 'month', 'day').annotate(suma=Sum("price")).order_by()    
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_report_bybrand.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]) )    
+    context = {'bicycles': list, 'weblink': 'bicycle_sale_report_bybrand.html', }
+    context.update(custom_proc(request))    
+    return render(request, 'index.html', context)    
 
-
+@csrf_exempt
 def bicycle_order_add(request):
     if auth_group(request.user, 'seller') == False:
         return HttpResponse('Для виконання дій авторизуйтесь', content_type="text/plain;charset=UTF-8;")
@@ -1664,15 +1681,20 @@ def bicycle_order_add(request):
             return HttpResponseRedirect('/bicycle/order/view/')
     else:
         form = BicycleOrderForm(instance = a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_order.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    
+    context = {'form': form, 'weblink': 'bicycle_order.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html',  context)
     
 
 def bicycle_order_list(request):
     #list = Bicycle_Order.objects.all().order_by("-date")
     list = Bicycle_Order.objects.all().order_by("-date").values('model__id', 'model__model', 'model__brand__name', 'model__year', 'model__color', 'model__type__type', 'client__id', 'client__name', 'client__forumname', 'size', 'price', 'prepay', 'sale', 'date', 'done', 'id', 'currency__name', 'description', 'user')
-    return render_to_response('index.html', {'order': list, 'weblink': 'bicycle_order_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'order': list, 'weblink': 'bicycle_order_list.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
     
-
+@csrf_exempt
 def bicycle_order_edit(request, id):
     a = Bicycle_Order.objects.get(pk=id)
     if request.method == 'POST':
@@ -1682,7 +1704,8 @@ def bicycle_order_edit(request, id):
             return HttpResponseRedirect('/bicycle/order/view/')
     else:
         form = BicycleOrderForm(instance=a, initial={'client_id': a.client.pk, 'model_id': a.model.pk})
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_order.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'bicycle_order.html'}
+    return render(request, 'index.html', context)
 
 
 def bicycle_order_del(request, id):
@@ -1691,7 +1714,7 @@ def bicycle_order_del(request, id):
     obj.delete()
     return HttpResponseRedirect('/bicycle/order/view/')    
 
-
+@csrf_exempt
 def bicycle_order_done(request, id=None):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -1734,6 +1757,7 @@ def bicycle_lookup_ajax(request):
 def ValuesQuerySetToDict(vqs):
     return [item for item in vqs]
 
+@csrf_exempt
 def bike_lookup(request):
     data = None
     cur_year = datetime.datetime.now().year
@@ -1743,7 +1767,7 @@ def bike_lookup(request):
             value = request.POST[u'query']
             if len(value) > 2:
                 model_results = Bicycle.objects.filter(year__gte=datetime.datetime(cur_year-2, 1, 1)).filter(Q(model__icontains = value) | Q(brand__name__icontains = value)).order_by('-year')
-                data = serializers.serialize("json", model_results, fields = ('id', 'model', 'type', 'brand', 'color', 'price', 'year', 'sale'), use_natural_keys=False)
+                data = serializers.serialize("json", model_results, fields = ('id', 'model', 'type', 'brand', 'color', 'price', 'year', 'sale')) #, use_natural_keys=False)
             else:
                 data = []
                 
@@ -2052,7 +2076,7 @@ def dealer_payment_list(request):
     list = DealerPayment.objects.all()
     return render_to_response('index.html', {'dealer_payment': list, 'weblink': 'dealer_payment_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+@csrf_exempt
 def dealer_invoice_add(request):
     a = DealerInvoice(date=datetime.date.today())
     if request.method == 'POST':
@@ -2072,7 +2096,9 @@ def dealer_invoice_add(request):
             return HttpResponseRedirect('/dealer/invoice/view/')
     else:
         form = DealerInvoiceForm(instance = a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'dealer_invoice.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'dealer_invoice.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def dealer_invoice_edit(request, id):
@@ -4084,7 +4110,7 @@ def client_balance_list(request):
 
 def client_list(request):
     list = Client.objects.all()
-    paginator = Paginator(list, 25)
+    paginator = Paginator(list, 100)
     page = request.GET.get('page')
     if page == None:
         page = 1
@@ -4096,8 +4122,9 @@ def client_list(request):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         contacts = paginator.page(paginator.num_pages)
-    
-    return render_to_response('index.html', {'clients': contacts, 'weblink': 'client_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'clients': contacts, 'weblink': 'client_list.html', }
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def client_email_list(request):
@@ -9070,7 +9097,9 @@ def check_print(request, num):
     request.session['chk_num'] = num
     check_num = num
     p_msg = "Роздрукований"
-    return render_to_response('index.html', {'check_invoice': ci, 'month': month, 'sum': sum, 'client': client, 'str_number': text, 'check_num': check_num, 'checkPay': chk_pay, 'chk_lst': list, 'weblink': 'client_invoice_sale_check.html', 'print': True, 'printed': p_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'check_invoice': ci, 'month': month, 'sum': sum, 'client': client, 'str_number': text, 'check_num': check_num, 'checkPay': chk_pay, 'chk_lst': list, 'weblink': 'client_invoice_sale_check.html', 'print': True, 'printed': p_msg, }
+    context.update(custom_proc(request))    
+    return render(request, 'index.html', context)
     
 #    return render_to_response("index.html", {"weblink": 'check_list.html', "check_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
 
@@ -9892,6 +9921,7 @@ def casa_prro_xreport(request, token=post_casa_token()):
         }
     resp = requests.post(url, data=json.dumps(data), headers=headers)
     response = HttpResponse()
+    print "\nRESP JSON =" + str(type(resp.json()))
     jsonString = json.dumps(resp.json(), indent=4)
     rr = resp.json() # responce JSON
     casa_status = None # responce for other request
@@ -9901,6 +9931,7 @@ def casa_prro_xreport(request, token=post_casa_token()):
     error_msg = None
     if resp.status_code == 400:
         error_msg = rr['message'].encode('utf-8')
+        print "Error MSG = " + error_msg 
     else:
         url = "https://api.checkbox.ua/api/v1/cashier/shift"
         data = ""
@@ -9911,6 +9942,7 @@ def casa_prro_xreport(request, token=post_casa_token()):
         }  
         r = requests.get(url, data=json.dumps(data), headers=headers)
         casa_status = r.json()
+    
     try:
         d_str_start = casa_status['opened_at']
         dt_start = datetime.datetime.strptime(d_str_start,"%Y-%m-%dT%H:%M:%S.%f+00:00")
@@ -9922,12 +9954,17 @@ def casa_prro_xreport(request, token=post_casa_token()):
         pass
 
     format_json = jsonString.replace('\n', '<br />').encode('utf-8')
-    
     day_cred=ClientCredits.objects.all().first()
 #    term_sum_1 = day_cred.get_daily_term_shop1()[2]
     term_sum_2 = day_cred.get_daily_term_shop2()[2]
     term_sum_2 = (round((term_sum_2 or 0)*100) or 0)
-    jbalance = rr['balance']
+    jbalance = 0
+    try:
+        jbalance = rr['balance']
+    except:
+        pass
+        #error_msg = rr['message'].encode('utf-8')
+        
     context = {'weblink': 'report_prro.html', 'JSON': rr, 'format_resp': format_json, 'day_term_sum': term_sum_2, 'error_status': error_msg, 'cashless_sum': cashless_sell_sum, 'res_start_dt': res_start_dt, 'casa_status': casa_status, 'JsonBalance': jbalance, 'shop': 2}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
