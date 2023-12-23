@@ -1012,17 +1012,20 @@ def store_report_bytype(request, id):
         return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_store_list.html', 'text': text, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
     return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_store_list_by_seller.html', 'text': text, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+@csrf_exempt
 def bicycle_sale_add(request, id=None):
-#    a = Bicycle_Sale(currency = Currency.objects.get(pk = 3))
+    if not request.user.is_authenticated():
+        context = {'weblink': 'error_message.html', 'mtext': 'Авторизуйтесь щоб виконати дану функцію', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
     bike = None
     serial_number = ''
     if id != None:
         bike = Bicycle_Store.objects.get(id=id)
         serial_number = bike.serial_number
-        
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])        
     if request.method == 'POST':
-        form = BicycleSaleForm(request.POST, initial={'currency': 3, 'date': datetime.date.today()})
+        form = BicycleSaleForm(request.POST, initial={'currency': 3, 'date': datetime.date.today(), 'shop': shopN })
         if form.is_valid():
             model = form.cleaned_data['model']
             client = form.cleaned_data['client']
@@ -1033,11 +1036,9 @@ def bicycle_sale_add(request, id=None):
             date = form.cleaned_data['date']
             service = form.cleaned_data['service']
             description = form.cleaned_data['description']
-            user = None             
-            if request.user.is_authenticated():
-                user = request.user            
-            
-            bs = Bicycle_Sale(model = model, client=client, price = price, currency = currency, sale=sale, date=date, service=service, description=description, user=user, sum=sum)
+            shop = form.cleaned_data['shop']
+            user = request.user            
+            bs = Bicycle_Sale(model = model, client=client, price = price, currency = currency, sale=sale, date=date, service=service, description=description, user=user, sum=sum, shop=shop)
             bs.save()
             
             update_bicycle = Bicycle_Store.objects.get(id=model.id)
@@ -1060,16 +1061,17 @@ def bicycle_sale_add(request, id=None):
             redirect = "/client/result/search/?id="+str(client.id)
             return HttpResponseRedirect(redirect)
     else:
+        
         if bike != None:
-            form = BicycleSaleForm(initial={'model': bike.id, 'price': bike.model.price, 'currency': bike.model.currency.id, 'sale': bike.model.sale, 'date': datetime.date.today()})
-#            form = BicycleSaleForm()
+            form = BicycleSaleForm(initial={'model': bike.id, 'price': bike.model.price, 'currency': bike.model.currency.id, 'sale': bike.model.sale, 'date': datetime.date.today(), 'shop': shopN })
         else:
-            form = BicycleSaleForm(initial={'currency': 3})
-#            form = BicycleSaleForm(instance=a)
-    
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_sale.html', 'serial_number': serial_number, 'bike_id': bike.id, 'text': 'Продаж велосипеду', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+            form = BicycleSaleForm(initial={'currency': 3, 'shop': shopN})
+            
+    context = {'form': form, 'weblink': 'bicycle_sale.html', 'serial_number': serial_number, 'bike_id': bike.id, 'text': 'Продаж велосипеду', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def bicycle_sale_edit(request, id):
     a = Bicycle_Sale.objects.get(pk=id)
     user = None             
@@ -1091,12 +1093,12 @@ def bicycle_sale_edit(request, id):
             service = form.cleaned_data['service']
             description = form.cleaned_data['description']
             sum = form.cleaned_data['sum']
+            shop = form.cleaned_data['shop']
             form.save()
             
             cdeb_price = price * (1 - sale/100.0)
             try:
                 cdeb = ClientDebts.objects.get(pk=a.debt.id)
-                #cdeb.client=client
                 cdeb.price=cdeb_price
                 cdeb.description=""+str(model)
                 cdeb.user=user
@@ -1109,8 +1111,10 @@ def bicycle_sale_edit(request, id):
         form = BicycleSaleForm(instance=a, bike_id=a.model.model.id)
         
     serial_number = a.model.serial_number
-    #serial_number = "test number"
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_sale.html', 'text': 'Редагувати проданий велосипед', 'serial_number': serial_number, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    bike_id = a.id
+    context = {'form': form, 'weblink': 'bicycle_sale.html', 'text': 'Редагувати проданий велосипед', 'serial_number': serial_number, 'bike_id': bike_id}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def bicycle_sale_del(request, id):
@@ -2827,7 +2831,9 @@ def invoice_cat_id_list(request, cid=None, limit=0):
         psum = psum + (item.catalog.price * item.count)
         scount = scount + item.count
         optsum = optsum + (item.get_uaprice() * item.count)
-    return render_to_response('index.html', {'list': list, 'allpricesum':psum, 'countsum': scount, 'alloptsum':optsum, 'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'list': list, 'allpricesum':psum, 'countsum': scount, 'alloptsum':optsum, 'weblink': 'invoice_component_report.html', }
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def invoice_import_form(request):
@@ -2996,20 +3002,21 @@ def category_get_list(request):
     json = simplejson.dumps(dictionary)
     return HttpResponse(json, content_type='application/json')
 
-   
+@csrf_exempt   
 def category_lookup(request):
     data = None
     if request.is_ajax():
+        
         if request.method == "POST":
             if request.POST.has_key(u'query'):
                 value = request.POST[u'query']
+                print "\n>>> A WORK A <<<" + str(data) + " | " + str(value)
                 if len(value) > 2:
                     model_results = Type.objects.filter(Q(name__icontains = value) | Q(name_ukr__icontains = value)).order_by('name')
-                    data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name'), use_natural_keys=False)
+                    data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name') )
                 else:
                     model_results = Type.objects.all().order_by('name')
-                    data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name'), use_natural_keys=False)                    
-#                    data = []
+                    data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name') )                    
     return HttpResponse(data)                
 
 
@@ -3266,7 +3273,7 @@ def manufacturer_delete(request, id):
     obj.delete()
     return HttpResponseRedirect('/manufacturer/view/')
 
-#@csrf_exempt
+@csrf_exempt
 def manufacturer_lookup(request):
     data = []
     if request.method == "POST":
@@ -3965,6 +3972,7 @@ def catalog_get_locality(request):
 
 
 # ------------- Clients -------------
+@csrf_exempt
 def client_add(request):
     if request.method == 'POST':
         form = ClientForm(request.POST)
@@ -5520,14 +5528,25 @@ def workticket_add(request, id=None):
             status = form.cleaned_data['status']
 #            phone_status = form.cleaned_data['phone_status']
             description = form.cleaned_data['description']
+            shop = form.cleaned_data['shop']
+            estimate_time = form.cleaned_data['estimate_time']
+            bicycle = form.cleaned_data['bicycle']
+            bike_part_type = form.cleaned_data['bike_part_type'] 
             user = request.user
+            if shop == None:
+                shop = get_shop_from_ip(request.META['REMOTE_ADDR'])
+                
             try:        
-                WorkTicket(client=client, date=date, end_date=end_date, status=status, description=description, user=user).save()
+#                print "\n>>>> TRY WORK!!!"
+                WorkTicket(client=client, date=date, end_date=end_date, status=status, description=description, user=user, shop=shop, estimate_time = estimate_time, bicycle = bicycle, bike_part_type = bike_part_type).save()
             except Exception as e:
                 mtext = "Ви не залогувались на порталі. Увійдіть та спробуйте знову. <br>" + str(e) 
                 context = {'weblink': 'error_message.html', 'mtext': mtext}
                 return render(request, 'index.html', context)
             return HttpResponseRedirect('/workticket/view/')
+        else:
+            pass
+#            print "\n>>>> Form not valid!!!"
     else:
         if client != None:
             form = WorkTicketForm(initial={'client': client.id, 'status': 1})
@@ -5580,6 +5599,7 @@ def workticket_edit(request, id=None):
     a = WorkTicket.objects.get(pk=id)
     if request.method == 'POST':
         form = WorkTicketForm(request.POST, instance=a)
+#        print ("\nFORM dir =  " + str(dir(form.fields['bike_part_type'])) )
         if form.is_valid():
             client = form.cleaned_data['client']
             date = form.cleaned_data['date']
@@ -5588,9 +5608,18 @@ def workticket_edit(request, id=None):
 #            phone_status = form.cleaned_data['phone_status']
             description = form.cleaned_data['description']
 #            user = form.cleaned_data['user']
+            shop = form.cleaned_data['shop']
+            estimate_time = form.cleaned_data['estimate_time']
+            bicycle = form.cleaned_data['bicycle']
+            bike_part_type = form.cleaned_data['bike_part_type'] 
+
             if request.user.is_authenticated():
                 user = request.user
-            WorkTicket(id = id, client=client, date=date, end_date=end_date, status=status, description=description, user=user).save()
+            print "\nSHOP = " + str(shop)
+            if shop == None:
+                shop = get_shop_from_ip(request.META['REMOTE_ADDR'])   
+            
+            WorkTicket(id = id, client=client, date=date, end_date=end_date, status=status, description=description, user=user, shop=shop, estimate_time=estimate_time, bicycle=bicycle, bike_part_type=bike_part_type).save()
             return HttpResponseRedirect('/workticket/view/')
     else:
         form = WorkTicketForm(instance=a)
@@ -5624,6 +5653,7 @@ def workticket_list(request, year=None, month=None, all=False, status=None):
         list = WorkTicket.objects.filter(status__id__in=[status,5]) # Віддано без ремонта 
     if status == '6':
         list = WorkTicket.objects.filter(status__id__in=[status,6]) # Відкладено
+
     context = {'workticket':list.order_by('-date'), 'sel_year': int(year), 'sel_month':int(month), 'status': status, 'year_ticket': wy, 'weblink': 'workticket_list.html'} 
     context.update(custom_proc(request)) 
     return render(request, 'index.html', context)
@@ -8026,11 +8056,10 @@ def invoice_new_edit(request):
                 obj = InvoiceComponentList.objects.get(id = id)
                 obj.user = request.user
                 obj.rcount = p
+                obj.shop = get_shop_from_ip(request.META['REMOTE_ADDR'])
                 obj.save()
-
                 c = InvoiceComponentList.objects.filter(id = id).values('rcount', 'user__username', 'id')
                 #return HttpResponse(c, content_type='text/plain;charset=UTF-8;')
-            
     results = {'value': c[0]['rcount'], 'user': c[0]['user__username'], 'id':c[0]['id']}
     json = simplejson.dumps(results)
     return HttpResponse(json, content_type='application/json')
@@ -9690,7 +9719,7 @@ def youtube_url_add(request, id=None):
             response = JsonResponse(d)
             return response
 
-
+@csrf_exempt
 def discount_add(request):
     if auth_group(request.user, 'seller')==True:
     #if request.user.is_authenticated():
@@ -9729,9 +9758,11 @@ def discount_add(request):
             return HttpResponseRedirect('/discount/list/')
     else:
         form = DiscountForm(instance = a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'discount.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'discount.html'}
+    context.update(custom_proc(request))         
+    return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def discount_edit(request, id):
     if auth_group(request.user, 'seller')==True:
     #if request.user.is_authenticated():
@@ -9761,7 +9792,9 @@ def discount_edit(request, id):
             return HttpResponseRedirect('/discount/list/')
     else:
         form = DiscountForm(instance = a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'discount.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'discount.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
     
 
 def discount_list(request, year = None):
@@ -9770,7 +9803,9 @@ def discount_list(request, year = None):
         year = datetime.datetime.now().year
 #    list = Discount.objects.all()#exclude( (Q(url = '') | Q (catalog = None)) )
     list = Discount.objects.filter(date_start__year = year).all()#exclude( (Q(url = '') | Q (catalog = None)) )
-    return render_to_response('index.html', {'weblink': 'discount_list.html', 'list': list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'weblink': 'discount_list.html', 'list': list, }
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def discount_delete(request):

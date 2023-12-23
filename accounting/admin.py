@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from django.contrib import admin
-from catalog.accounting.models import Type, Size, Exchange, Manufacturer, Catalog, Country, Dealer, DealerManager, Currency, Rent, Wheel_Size, Bicycle_Storage, Bicycle_Photo, GroupType, YouTube, PhoneStatus, Bicycle_Parts
-from catalog.accounting.models import CheckPay, Check, Schedules, Shop, CashType, Bank, Discount, FrameSize, ShopDailySales, ClientInvoice, DealerInvoice, Client, WorkTicket
+from catalog.accounting.models import Type, Size, Exchange, Manufacturer, Catalog, Country, Dealer, DealerManager, Currency, Rent, Wheel_Size, Bicycle_Storage, Bicycle_Photo, YouTube, PhoneStatus, Bicycle_Parts
+from catalog.accounting.models import CheckPay, Check, Schedules, Shop, CashType, Bank, Discount, FrameSize, ShopDailySales, ClientInvoice, DealerInvoice, Client, WorkTicket, CostType, Costs, ClientMessage, Bicycle_Store
+from catalog.accounting.models import GroupType
 from django.contrib.admin.options import ModelAdmin
 
 
@@ -193,6 +194,10 @@ admin.site.register(FrameSize, FrameSizeAdmin)
 
 admin.site.register(Client)
 admin.site.register(WorkTicket)
+admin.site.register(Costs)
+admin.site.register(CostType)
+admin.site.register(ClientMessage)
+
 
 admin.site.register(DealerManager)
 
@@ -218,4 +223,10 @@ class ClientInvoiceAdmin(admin.ModelAdmin):
     
 admin.site.register(ClientInvoice, ClientInvoiceAdmin)
 
-
+class BicycleStoreAdmin(admin.ModelAdmin):
+    list_display = ['model', 'count', 'shop']
+    search_fields = ['model__model', 'model__brand__name',]
+    ordering = ['-count', ]
+    actions = [mark_K, mark_M]
+    
+admin.site.register(Bicycle_Store, BicycleStoreAdmin)

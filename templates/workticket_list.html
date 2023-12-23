@@ -180,8 +180,10 @@ $('.phone').editable('/workticket/edit/', {
     <table id="iTable" class = "table table-bordered table-hover table-condensed" >
     <tr>
     	<th>№</th>
-    	<th>ID</th>
+    	<th></th>
     	<th>Клієнт</th>
+    	<th>Магазин</th>
+    	<th>Велосипед/Запчастина</th>
     	<th>Дата створення</th>
 {#    	<th data-toggle="tooltip" data-placement="right" title="Користувач">User</th> #}
     	<th>Дата завершення</th>
@@ -213,7 +215,7 @@ $('.phone').editable('/workticket/edit/', {
 	{{forloop.counter}}
 	</td>
 	<td>       
-	<a href="/workticket/edit/{{ type.id }}" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="right"> {{type.id}}</a>
+	<a href="/workticket/edit/{{ type.id }}" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="right"> <i class="material-icons">create</i></a> {# {type.id} #}
 	</td>
 	<td>       
 <!--	<a href="/workshop/done/client/{{ type.client.id }}/"> -->  
@@ -221,25 +223,33 @@ $('.phone').editable('/workticket/edit/', {
 	{{type.client.name}} {% if type.client.forumname %} ({{type.client.forumname}}) {% endif %}   
 	</a>
 	</td>
-	<td data-toggle="tooltip" data-html="true" data-placement="right" title="Створено користувачем <br> <b>{{type.user.username}}</b> ">       
+	<td class="text-center">
+	{{ type.shop|default_if_none:"--" }}
+	</td>
+	<td class="text-center">
+	{{ type.bicycle|default_if_none:"--" }}
+	</td>	
+	<td data-toggle="tooltip" data-html="true" data-placement="right" title="Створено користувачем <br> <b>{{type.user.username}}</b> " class="text-center">       
 	{{type.date|date}}
 	</td>
 {#	<td>	{{type.user.username}}	</td> #}
-	<td >       
+	<td class="text-center">       
 	{{type.end_date|date}}
+	<br>
+	({{type.estimate_time}} годин)
 	</td>	
-	<td>
+	<td class="text-center">
 	<span class="wt_editable" id="{{type.status.id}}" id_workticket="{{type.id}}" >       
-	{{type.status}}
+	{{type.status }}
 	</span>
 	</td>
-	<td class="phone" id_workticket="{{type.id}}">       
-	{{type.phone_status}}
+	<td class="phone" id_workticket="{{type.id}}" class="text-center">       
+	{{type.phone_status|default_if_none:"-"}}
 	</td>
 	{% if type.phone_user.username %}
-		<td title={{type.phone_user.username}} align="center">
+		<td title={{type.phone_user.username}} class="text-center">
 	{% else %}
-		<td align="center">
+		<td class="text-center">
 	{% endif %}       
 	{{type.phone_date|date:'d-m-Y H:i'}}
 	</td>
@@ -247,7 +257,7 @@ $('.phone').editable('/workticket/edit/', {
 	<td class="w_desc" id_workticket="{{type.id}}">       
 	{{type.description|linebreaks}}
 	</td>
-	<td>
+	<td class="text-center">
     <a href="/workticket/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')"><i class="material-icons">delete_forever</i></a>
     </td>
 </tr>

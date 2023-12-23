@@ -96,7 +96,7 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 	<thead class="thead-light">
 	<tr>
 		<th>№</th>
-		<th>ID</th>
+		<th></th>
 		<th>Велосипед</th>
 		<th>Номер рами</th>
 		<th>Клієнт</th>
@@ -112,13 +112,14 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 {% endfor %}		
 		<th>Сервіс</th>
 		<th>Опис</th>
+		<th>Магазин</th>
 		<th>Дія</th>
 	</tr>
 	</thead>
 	{% for type in bicycles %}
 	<tr>
 		<td title="{{type.user}}">{{forloop.counter}}</td>
-		<td title="Редагувати"><a href="/bicycle/sale/edit/{{ type.id }}">{{type.id}}</a></td>
+		<td title="Редагувати"><a href="{% url 'bicycle-sale-edit' type.id %}"><i class="material-icons">create</i></a></td>
 <!-- 		<td title="{{type.model.size}}"><a href="/bicycle/photo/{{type.model.model.id}}">{{type.model}}</a></td>
  -->
 {% if request.user|has_group:"admin" %}
@@ -149,14 +150,16 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 {% endif %}		
 
 		</td>
-		</td>
+{#		</td> #}
 		<td>{{type.description}}</td>
+		<td>{{type.shop}}</td>
 		<td><a href="/bicycle/sale/{{ type.id }}/check" title="Чек на велосипед"><i class="material-icons">receipt</i></a>
 		<a href="/bicycle/sale/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')" title="Видалити"><i class="material-icons">delete_forever</i></a></td>
 	</tr>
 	{% endfor %}
 
 	<tr>
+		<th></th>
 		<th></th>
 		<th></th>
 		<th></th>
@@ -181,6 +184,7 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 {#		{{pay_sum|floatformat:"0"}} #} 
 		</th>
 {% else %}
+		<th></th>
 		<th></th>
 		<th></th>
 		<th></th>

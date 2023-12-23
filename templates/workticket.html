@@ -7,8 +7,8 @@
 	<script type="text/javascript" src="/media/jquery-ui.min.js"></script>	
 
 <script type="text/javascript">
-$(function() {
-	var sale = $('#id_sale').val();
+ $(function() {
+//	var sale = $('#id_sale').val();
         $( "#s_client" ).autocomplete({
             source: function( request, response ) {
                 $.ajax({
@@ -42,7 +42,7 @@ $(function() {
 
 //      $(".ac_input").focus();
 //  		$('#id_client').hide();
-});      
+});       
 
 
 //$('#s_client').bind('change', 
@@ -68,15 +68,71 @@ function id2name(){
 
 $(document).ready(function() {
 	
-	$("#s_client").val($("#id_client").val());
+	$('#bike_part_type').val($('#id_bike_part_type :selected').text());
 	
+	$("#s_client").val($("#id_client").val());	
 	if ($("#s_client").val() != '') {
 		id2name();
 	}
 	
-	$("#id_client").parents('tr').hide();
+//	$("#id_client").parents('tr').hide();
 	
 	//$("textarea").addClass("w-100");
+	
+	
+	$( "#bike_part_type" ).autocomplete({
+	      source: function( request, response ) {
+	        $.ajax({
+	          type: "POST",
+	          url: "/category/lookup/",
+	          dataType: "json",
+	          data: {
+	            query: $("#bike_part_type").val()
+	          },
+	          success: function( data ) {
+	            response( $.map( data, function( item ) {
+	              return {
+	                label: item.fields.name + ": [" + item.fields.name_ukr + "] - " + item.fields.name_ukr,
+	                value: item.fields.name,
+//	                sale: item.fields.name,
+	                pk_id: item.pk                       
+	              }
+	            }));
+	          }
+	        });
+	      },
+	      minLength: 3,
+	      select: function( event, ui ) {
+	      	var sel = ui.item.pk_id;
+	      	$("#id_bike_part_type [value = '"+sel+"']").attr("selected", "selected");
+	      	
+/* 	      	if (ui.item.sale >= 5) {
+		      	//glob_c_sale = ui.item.sale;
+		      	glob_c_sale = 5;
+	      	}
+	      	else{
+	      		glob_c_sale = 0;
+	      	}
+	      	//if ((ui.item.sale >= 5) && (ui.item.sale > $('#id_sale').val())) {
+	      	if ((ui.item.sale >= 5) && (ui.item.sale > glob_b_sale)) {
+	      		$('#id_sale').val(5);
+	      		$('#id_sale').change();
+	      	}
+	      	else{
+	      	//if ((ui.item.sale < 5) && (ui.item.sale < $('#id_sale').val())) {
+	      		$('#id_sale').val(float2int(glob_b_sale));
+	      		$('#id_sale').change();
+	      	};
+ */	      	
+	      },
+	      open: function() {
+	        $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+	      },
+	      close: function() {
+	        $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+	      }
+	    });	
+	
 	
 });
 </script>
@@ -90,7 +146,7 @@ $(document).ready(function() {
 <div class="container mw-100">
   <div class="row justify-content-between">
 
-<div class="col-md-12 col-lg-8">    
+<div class="col-md-12 col-lg-7 col-sm-12">    
     <form action="./" method="POST" enctype="multipart/form-data">
         <table>
 <tr>        
@@ -99,7 +155,7 @@ $(document).ready(function() {
     <span class="input-group-text font-weight-bold" id="basic-addon1">Клієнт</span>
   </div>
   {{ form.client }}
-  <input type="text" id="s_client" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="Прізвище, імя клієнта" aria-label="Username" aria-describedby="basic-addon1">
+  <input type="text" id="s_client" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="Прізвище, імя клієнта або телефон" aria-label="Username" aria-describedby="basic-addon1">
   <div class="input-group-prepend">
     <span class="input-group-text font-weight-bold" id="basic-addon1"><a href="/client/add/"> Створити клієнта </a></span>
   </div>
@@ -123,12 +179,18 @@ $(document).ready(function() {
 </div>
 </tr>            
 
+
 <tr>
 <div class="input-group mt-2 mb-2">
   <div class="input-group-prepend">
-    <span class="input-group-text font-weight-bold">Статус</span>
+    <span class="input-group-text font-weight-bold">Велосипед</span>
   </div>
-  {{ form.status |add_attr:"class:form-control" }}
+ {{ form.bicycle}}  
+</div>
+ 
+
+
+<div class="input-group mt-2 mb-2">
   <div class="input-group-prepend">
     <span class="input-group-text font-weight-bold">Дата</span>
   </div>
@@ -138,7 +200,37 @@ $(document).ready(function() {
   </div>
   {{ form.end_date |add_attr:"class:form-control" }}
 </div>
-</tr>        
+
+
+<div class="input-group mt-2 mb-2">
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Запчастина велосипеду</span>
+  </div>
+
+  <input type="text" id="bike_part_type" class="form-control {% if form.bike_part_type.errors %}  is-invalid {% endif %}" placeholder="{{ form.bike_part_type.value }}" aria-label="BikeParts" aria-describedby="basic-addon1">
+  {{ form.bike_part_type }}
+  
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Орієнтовний час на виконання (години)</span>
+  </div>
+  {{ form.estimate_time }}
+</div>
+
+
+<div class="input-group mt-2 mb-2">
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Статус</span>
+  </div>
+  {{ form.status |add_attr:"class:form-control" }}
+    <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Shop</span>
+  </div>
+  {{ form.shop |add_attr:"class:form-control" }}
+</div>
+
+
+</tr>
+
 
         </table>
 <div class="row">

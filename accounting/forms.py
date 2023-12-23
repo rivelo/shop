@@ -4,6 +4,7 @@ from django.forms import ModelForm
 from models import Manufacturer, Country, Type, Bicycle_Type, Bicycle, Currency, FrameSize, Bicycle_Store, Catalog, Size, Bicycle_Sale, Bicycle_Order, Wheel_Size, Storage_Type, Bicycle_Storage, Bicycle_Photo 
 from models import DealerManager, DealerPayment, DealerInvoice, Dealer, Bank, ShopDailySales, PreOrder, InvoiceComponentList, ClientOrder, InventoryList, Discount
 from models import Client, ClientDebts, CostType, Costs, ClientCredits, WorkGroup, WorkType, WorkShop, WorkTicket, WorkStatus, Rent, ClientInvoice, CashType, Exchange, Type, ClientMessage, WorkDay, PhoneStatus
+from models import Shop
 
 from django.contrib.auth.models import User
 import datetime
@@ -848,6 +849,12 @@ class WorkTicketForm(forms.ModelForm):
     end_date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))
     status = forms.ModelChoiceField(queryset = WorkStatus.objects.all(), label='Статус')
     description = forms.CharField(label='Опис', widget=forms.Textarea(attrs={'class': 'form-control'}))
+    shop = forms.ModelChoiceField(queryset = Shop.objects.all(), label = 'Магазин', required=False)
+    bicycle = forms.CharField(label='Велосипед', widget=forms.TextInput(attrs={'class': 'form-control'}), required=False )
+    bike_part_type = forms.ModelChoiceField(queryset = Type.objects.all(), label = "Запчастина", required=False, widget=forms.Select(attrs = {'hidden': '',}) )
+    #bike_part_type = forms.ModelChoiceField(queryset = Type.objects.all(), label = "Запчастина", widget=forms.Select(attrs={'class': 'form-control'}))
+    estimate_time = forms.NumberInput( )
+    #estimate_time = forms.NumberInput(widget=forms.NumberInput(attrs={'class': 'form-control'}) , label="Орієнтовний час виконання (години)")
 
     def clean_client(self):
         data = self.cleaned_data['client']
@@ -861,14 +868,19 @@ class WorkTicketForm(forms.ModelForm):
         #res = desc.replace('\n', '<br>').strip()
         res = desc.strip()
         if not res:
-            raise forms.ValidationError("Клієнт з таким ПІБ або номером телефону не існує!")
+            raise forms.ValidationError("Заповніть форму на ремонт!")
         return res
 
+#    def clean_shop(self):
+#        print ("\nCLEAN SHOP = " + str(self) )
+#        if not self:
+#            raise forms.ValidationError("Магазин не вибраний")
+#        return self
     
     class Meta:
         model = WorkTicket
         fields = '__all__'
-        exclude = ['phone_date', 'phone_user', 'phone_status', 'user']
+        exclude = ['phone_date', 'phone_user', 'phone_status', 'user', 'history', ]
 
 
 class PhoneStatusForm(forms.ModelForm):

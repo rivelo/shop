@@ -42,7 +42,7 @@ urlpatterns = [
     url(r'^manufacturer/add/$', catalog.manufacturer_add),
     url(r'^manufacturer/edit/(?P<id>\d+)/$', catalog.manufacturer_edit),    
     url(r'^manufacturer/delete/(?P<id>\d+)/$', catalog.manufacturer_delete),
-    url(r'^manufacturer/lookup/$', catalog.manufacturer_lookup), # old function
+    url(r'^manufacturer/lookup/$', catalog.manufacturer_lookup), 
 
     # Country operation
     url(r'^country/add/$', catalog.country_add),
@@ -121,7 +121,7 @@ urlpatterns = [
     url(r'^bicycle/sale/brand/(?P<id>\d+)/year/(?P<year>\d+)/month/(?P<month>\d+)/view/$', catalog.bicycle_sale_list_by_brand, name='bicycle_year_month_sale_by_brand'),    
     url(r'^bicycle/sale/brand/(?P<id>\d+)/year/(?P<year>\d+)/view/$', catalog.bicycle_sale_list_by_brand, name="bicycle_year_sale_by_brand"),
     url(r'^bicycle/sale/brand/(?P<id>\d+)/all/$', catalog.bicycle_sale_list_by_brand, {'all': True, },  name="bicycle_sale_all_by_brand" ),
-    url(r'^bicycle/sale/edit/(?P<id>\d+)/$', catalog.bicycle_sale_edit),    
+    url(r'^bicycle/sale/edit/(?P<id>\d+)/$', catalog.bicycle_sale_edit, name='bicycle-sale-edit'),    
     url(r'^bicycle/sale/delete/(?P<id>\d+)/$', catalog.bicycle_sale_del),
     url(r'^bicycle/sale/report/month/$', catalog.bicycle_sale_report),
     url(r'^bicycle/sale/service/(?P<id>\d+)/$', catalog.bicycle_sale_service),
@@ -389,7 +389,7 @@ urlpatterns = [
     url(r'^workstatus/edit/(?P<id>\d+)$', catalog.workstatus_edit),
     url(r'^workstatus/delete/(?P<id>\d+)$', catalog.workstatus_delete),
 
-    url(r'^workticket/add/$', catalog.workticket_add),
+    url(r'^workticket/add/$', catalog.workticket_add, name="workshop-ticket-create"),
     url(r'^workticket/add/client/(?P<id>\d+)/$', catalog.workticket_add),    
     url(r'^workticket/view/$', catalog.workticket_list),
     url(r'^workticket/edit/$', catalog.workticket_edit),

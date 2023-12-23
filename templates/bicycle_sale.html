@@ -1,5 +1,5 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Велосипеди - Магазин</title> 
+<title>Продати/Редагувати велосипед </title> 
 
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
 <script type="text/javascript" src="/media/jquery-ui.min.js"></script>
@@ -64,7 +64,7 @@ glob_c_sale = 0;
           success: function( data ) {
             response( $.map( data, function( item ) {
               return {
-                label: item.fields.name + ": [" + item.fields.forumname + "] ",
+                label: item.fields.name + ": [" + item.fields.forumname + "] - " + item.fields.phone,
                 value: item.fields.name,
                 sale: item.fields.sale,
                 pk_id: item.pk                       
@@ -114,8 +114,9 @@ $('.click').editable('/bicycle-store/edit/', {
       	 	return retval;
       	 },
          submitdata : function() {
-      	 	return {id : $(this).attr('id_serial'),
-      	 			};
+      	 				return {
+      	 						id : $(this).attr('id_serial'),
+			      	 			};
     	 },
          indicator : 'Saving...',
          tooltip   : 'Click to edit...',
@@ -133,41 +134,153 @@ $('.click').editable('/bicycle-store/edit/', {
 
 <body  onload="document.getElementById('client').focus()">
 
-<h1> {{text}}
+<h1> {{text}}. 
 <font color="red" id="s_number">
 
 {% if user.is_authenticated %} 
-<b class="click" style="display: inline" id_serial="{{ bike_id }}" title="Doubleclick to edit...">({{serial_number}})</b> </font>
+S/N: <b class="click" style="display: inline" id_serial="{{ bike_id }}" title="Doubleclick to edit...">({{serial_number}})</b> </font>
 {% else %}
-<b id_serial="{{ bike_id }}" title="Doubleclick to edit...">({{serial_number}})</b> </font>
+S/N: <b id_serial="{{ bike_id }}" >({{serial_number}})</b> </font>
 {% endif %}
 
 </h1>
+
+{% load poll_extras %}
+
+<div class="container mw-100">
 <form action="." method="POST" enctype="multipart/form-data">
-<div class="ui-widget">
-  <label for="client">Клієнт: </label>
-  <input id="client" style="width: 550px;"  />
+{% csrf_token %}
+
+
+
+<div class="row ">
+<div class="col-12">
+<div class="input-group mb-3 ">
+   
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold" title="Клієнт " data-toggle="tooltip" data-placement="top">Клієнт </span>
+  </div>
+<input type="text" id="client" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="Прізвище, імя клієнта або телефон" aria-label="Username" aria-describedby="basic-addon1">
+  
+{# <div class="ui-widget class="col-10"> #}  
+{#  	<input id="client"  class="10" /> #}
+{# </div> #}
+
+
+</div>
+</div>
 </div>
 
+
+<div class="row ">
+    <div class="col">
+<div class="input-group mb-3">    
+{#      <input type="text" class="form-control" placeholder="Велосипед"> #}
+      {{ form.model |add_attr:"class:form-control" }}
+</div>      
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+	<div class="input-group mb-3">    
+      {{ form.client |add_attr:"class:form-control" }}
+	</div>
+    </div>
+</div>
+
+<div class="row ">
+<div class="col-12 ">
+<div class="input-group mb-3">
+
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold" title="Кількість" data-toggle="tooltip" data-placement="top">Ціна</span>
+  </div>
+	{{form.price|add_attr:"class:form-control"}}
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Грн.</span>
+  </div>
+    <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Знижка</span>
+  </div>
+{% if form.sale.errors %}   {{ form.sale|add_attr:"class:form-control is-invalid" }} {% else %} {{ form.sale|add_attr:"class:form-control" }} {% endif %}
+<div class="invalid-feedback">
+	{{ form.sale.errors }}1
+</div>
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">%</span>
+  </div>
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Сума</span>
+  </div>
+{% if form.sum.errors %}   {{ form.sum|add_attr:"class:form-control is-invalid" }} {% else %} {{ form.sum|add_attr:"class:form-control" }} {% endif %}
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Грн.</span>
+  </div>
+ <div class="invalid-feedback">
+	{{ form.sum.errors }}
+ </div>
+ </div>
+
+</div>
+</div>
+
+<div class="row ">
+    <div class="col">
+	<div class="input-group mb-3">    
+    <div class="input-group-prepend">
+    	<span class="input-group-text font-weight-bold" title="Дата" data-toggle="tooltip" data-placement="top">Дата продажу</span>
+  	</div>
+      {{ form.date |add_attr:"class:form-control" }}
+    <div class="input-group-prepend">
+    	<span class="input-group-text font-weight-bold" title="Перший сервіс" data-toggle="tooltip" data-placement="top">Перший сервіс</span>
+  	</div>
+  {{ form.service |add_attr:"class:form-control" }} 
+  {{ form.shop |add_attr:"class:form-control" }} 	      
+	</div>
+    </div>
+</div>
+
+<div class="row">
+<div class="col-12 my-2">
+<div class="input-group">
+  <div class="input-group-prepend">
+    <span class="input-group-text font-weight-bold">Опис</span>
+  </div>
+  {{ form.description |add_attr:"class:form-control" }}
+</div>
+</div>
+</div>    
+
+<div class="row">
+    <div class="col-12 my-2">
+      <button type="submit" class="btn btn-primary w-100">Продати</button>
+    </div>
+</div>
+
+
+
+ <div class="alert alert-dark" role="alert">
+    <h3 id="result" style="color:white; font-weight: bold;"}> Сума грн.</h3>
+ </div>
+
+{% comment %}
+
 <table>
-	{% csrf_token %}
+	
 	{{ form.as_ul }}
 	<p><input type="submit" value="Save"></p>
 </table>
 
-<!--  
-<div class="ui-widget" style="margin-top: 2em; font-family: Arial;">
-  Result:
-  <div id="log" style="height: 200px; width: 300px; overflow: auto;" class="ui-widget-content"></div>
-</div>
- -->
- 
-    <h3 id="result" style="color:red; background-color:#CCCCCC"}>Сума грн.</h3>
-</form>
 
-<a href="/bicycle-store/view/">Список велосипедів у магазині</a>
-<br>
-<a href="/">HOME</a>
+{% endcomment %}
+
+ 
+ 
+</form>
+</div>
+
+<h4><span class="badge badge-pill badge-primary"><a href="/bicycle-store/view/ ">Список велосипедів у магазині</a></span></h4>
+
 
 </body>
 

@@ -188,8 +188,6 @@ class Type(models.Model):
             return dateDiscount
         else:
            return 0
-        #return (max_sale, dateDiscount.values('name', 'sale'))         
-        #return (max_sale, dateDiscount[0])
     
     def __unicode__(self):
         return u'%s / %s' % (self.name, self.name_ukr)
@@ -215,7 +213,8 @@ class Size(models.Model):
 # Country table (Country)
 class Country(models.Model):
     name = models.CharField(max_length=255)
-    #ukr_name = models.CharField(max_length=255)
+    ukr_name = models.CharField(max_length=255, blank = True, null = True)
+    
     
     def __unicode__(self):
         return self.name
@@ -302,8 +301,8 @@ class Manufacturer(models.Model):
     logo = models.ImageField(upload_to = 'upload/brandlogo/', blank=True, null=True)
     country = models.ForeignKey(Country, null=True)
     description = models.TextField(blank=True, null=True)    
-    #bikecompany = models.BooleanField()
-    #component types
+    bikecompany = models.BooleanField(default = False, blank = True, verbose_name="Компанія яка виготовляє велосипеди?")
+    component = models.BooleanField(default = False, blank = True, verbose_name="Компанія яка виготовляє компоненти?")
 
     def get_discount(self):
         max_sale = None
@@ -344,6 +343,7 @@ class Photo(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     description = models.TextField(blank=True, null=True)
+    check_del = models.BooleanField(default = False, blank = True, verbose_name="Перевірити перед видаленням?")
     #goo_url = models.CharField(max_length=255)
 
     def image_local_exists(self):
@@ -641,7 +641,6 @@ class FrameSize(models.Model):
 
     class Meta:
         ordering = ["inch","name"]    
-    
 
 
 # postach Dealer (Ukraine)
@@ -650,7 +649,7 @@ class Dealer(models.Model):
     country = models.ForeignKey(Country)
     city = models.CharField(max_length=255)
     street = models.CharField(max_length=255, blank=True, null=True)
-#    brand = models.ManyToManyFields(Manufacturer)
+    brand_list = models.ManyToManyField(Manufacturer, blank=True)
     www = models.URLField(null=True, blank=True)
     description = models.TextField(blank=True, null=True)
     director = models.CharField(max_length=255, null=True, blank=True)
@@ -733,6 +732,7 @@ class InventoryList(models.Model):
     real_count = models.IntegerField()
     check_all = models.BooleanField(default=False, verbose_name="Загальна кількість?")
     chk_del = models.BooleanField(default=False, verbose_name="Мітка на видалення")
+    shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин") 
 
     def get_last_year_check(self):
         nday = 360
@@ -758,6 +758,7 @@ class InvoiceComponentList(models.Model):
     rcount = models.IntegerField(blank = True, null = True)
     description = models.TextField(blank = True, null = True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин") 
             
     def get_uaprice(self, sdate=None):
         if sdate == None:
@@ -1019,6 +1020,7 @@ class ClientOrder(models.Model):
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)    
     status = models.BooleanField(default=False, verbose_name="Статус?")
     credit = models.ForeignKey(ClientCredits, blank=True, null=True)
+    shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин") 
             
     def __unicode__(self):
         return "%s (%s) - %s шт." % (self.catalog, self.description, self.count) 
@@ -1209,7 +1211,7 @@ class Bicycle_Store(models.Model):
     #dealer_id = models.CharField(max_length=60, blank = True, null = True)
     #status = models.BooleanField(default=False)  #box shop 
     #user_assembly = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
-    #shop
+    shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин") 
     #checked date = models.DateField(auto_now_add=True) # Shop checked date
     #user_check_state = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     #user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
@@ -1300,8 +1302,8 @@ class Bicycle_Sale(models.Model):
     description = models.TextField(blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     sum = models.FloatField(blank=True, null=True)
-    #debt = models.ForeignKey(ClientDebts, blank=True, null=True, on_delete=models.SET_NULL)
     debt = models.ForeignKey(ClientDebts, blank=True, null=True)
+    shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин") 
 
     def get_profit(self):
         profit = 0
@@ -1347,14 +1349,17 @@ class Bicycle_Order(models.Model):
     client = models.ForeignKey(Client)
     model = models.ForeignKey(Bicycle)
     size = models.CharField(max_length=50)
-    price = models.FloatField()
-    sale = models.IntegerField()
-    prepay = models.FloatField()
+    price = models.FloatField(default = 0)
+    sale = models.IntegerField(default = 0)
+    prepay = models.FloatField(default = 0)
     currency = models.ForeignKey(Currency)
     date = models.DateField(auto_now_add=True)
     done = models.BooleanField(default = False) 
     description = models.TextField(blank=True, null=True)
-    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)    
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин")    
+
+    #def convert_to_ua(self):
     
     def __unicode__(self):
         #return self.model
@@ -1398,6 +1403,7 @@ class Bicycle_Storage(models.Model):
     currency = models.ForeignKey(Currency, blank=True, null=True, on_delete=models.SET_NULL)
     description = models.TextField(blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)    
+    shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин")  
 
     def __unicode__(self):
         return u'%s -> %s [%s]' % (self.client ,self.model, self.serial_number)
@@ -1423,6 +1429,17 @@ class Bicycle_Photo(models.Model):
  
     class Meta:
         ordering = ["bicycle"]    
+
+
+class PhoneStatus(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        ordering = ["name"]
 
             
 class WorkGroup(models.Model):
@@ -1479,6 +1496,43 @@ class WorkType(models.Model):
 
     class Meta:
         ordering = ["work_group", "name"]
+
+
+class WorkStatus(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    
+    def __unicode__(self):
+        return self.name
+
+    class Meta:
+        ordering = ["name"]
+
+
+class WorkTicket(models.Model):
+    client = models.ForeignKey(Client)
+    date = models.DateField()
+    end_date = models.DateField()
+    status = models.ForeignKey(WorkStatus)
+    phone_date = models.DateTimeField(blank=True, null=True)
+    phone_user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='p_user') 
+    description = models.TextField(blank=True, null=True)
+    phone_status = models.ForeignKey(PhoneStatus, blank=True, null=True)
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    estimate_time = models.PositiveIntegerField(default = 0, verbose_name="Прогнозований час в ГОДИНАХ") # Hours
+    history = models.TextField(blank=True, null=True)
+    bicycle = models.CharField(max_length=255, blank=True, null=True)
+    bike_part_type = models.ForeignKey(Type, blank=True, null=True) 
+#    bike_part = models.CharField(max_length=255, blank=True, null=True)
+    #change_status_dateTime =
+    #user_work 
+    shop = models.ForeignKey(Shop, blank=True, null=True)
+    
+    def __unicode__(self):
+        return self.description
+
+    class Meta:
+        ordering = ["date", "status"]
      
     
 class WorkShop(models.Model):
@@ -1489,9 +1543,10 @@ class WorkShop(models.Model):
     pay = models.BooleanField(default = False, verbose_name="Оплачено?")
     description = models.TextField(blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
-    #bike =
-    #time = 
-    #ticket = 
+    shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин")  
+    time = models.PositiveIntegerField(default = 0, verbose_name='Витрачено часу. (Хвилини)')
+    ticket = models.ForeignKey(WorkTicket, blank = True, null = True, verbose_name = 'Заявка до якої відноситься робота')
+    #bike = 
 
     def check_depence_category(self):
         if self.work_type.component_type.exists():
@@ -1505,52 +1560,6 @@ class WorkShop(models.Model):
     class Meta:
         ordering = ["date", "client"]
 
-
-class WorkStatus(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
-    
-    def __unicode__(self):
-        return self.name
-
-    class Meta:
-        ordering = ["name"]
-
-       
-class PhoneStatus(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
-    
-    def __unicode__(self):
-        return self.name
-
-    class Meta:
-        ordering = ["name"]
-       
-
-class WorkTicket(models.Model):
-    client = models.ForeignKey(Client)
-    date = models.DateField()
-    end_date = models.DateField()
-    status = models.ForeignKey(WorkStatus)
-    phone_date = models.DateTimeField(blank=True, null=True)
-    phone_user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='p_user') 
-    description = models.TextField(blank=True, null=True)
-    phone_status = models.ForeignKey(PhoneStatus, blank=True, null=True)
-    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
-    #estimate_time = models.PositiveIntegerField(, related_name="Прогнозований час в ГОДИНАХ") # Hours
-    #history = models.TextField(blank=True, null=True)
-    #bicycle = models.CharField(max_length=255, blank=True, null=True) 
-    #bike_part = models.CharField(max_length=255, blank=True, null=True)
-    #change_status_dateTime =
-    #user_work 
-    #shop = models.ForeignKey(Shop, blank=True, null=True)
-    
-    def __unicode__(self):
-        return self.description
-
-    class Meta:
-        ordering = ["date", "status"]
 
 
 class ShopDailySales(models.Model):
@@ -1603,7 +1612,7 @@ class CheckPay(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL) 
     description = models.CharField(max_length=255)
-    #shop = models.ForeignKey(Shop, blank=True, null=True)
+    shop = models.ForeignKey(Shop, blank=True, null=True)
     #UID
     #url_dps
     #print_status
@@ -1633,7 +1642,6 @@ class Check(models.Model):
     description = models.CharField(max_length=255, blank=True, null=True)
     print_status = models.BooleanField(default=False)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
- 
     
     def __unicode__(self):
         return u'[%s] %s %s' % (self.check_num, self.catalog, self.bicycle)
@@ -1646,7 +1654,7 @@ class Check(models.Model):
 #    pass
 #    class Meta:
 
-
+# ----------  Perspective future function -------------------- 
 class PreOrder(models.Model):
     date = models.DateField(auto_now_add=True)
     date_pay = models.DateField(auto_now_add=False)
@@ -1680,6 +1688,9 @@ class Rent(models.Model):
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     description = models.TextField(blank = True, null = True)
     cred = models.ForeignKey(ClientCredits, blank=True, null=True)
+    shop_giving = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин видав", related_name='shop_give')
+    shop_return = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин прийняв", related_name='shop_retun')
+    user_return = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='ureturn')
                 
     def __unicode__(self):
         return self.catalog 
@@ -1716,6 +1727,7 @@ class WorkDay(models.Model):
     user = models.ForeignKey(User, blank=False, null=False)
     status = models.IntegerField(default = 0) # 0 - absant; 1 - present; 2 - half-time 
     description = models.TextField(blank = True, null = True)    
+    shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин") 
     
     def __unicode__(self):
         return u"[%s] - %s - (%s)" % self.date, self.user, self.description
@@ -1753,6 +1765,7 @@ class ClientReturn(models.Model):
     date = models.DateTimeField(auto_now_add=True, blank=False, null=False)
     user = models.ForeignKey(User, blank=False, null=False)
     cash = models.BooleanField(blank=False, null=False, default = True)
+    shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин") 
     
     def __unicode__(self):
         return u'%s' % self.msg
