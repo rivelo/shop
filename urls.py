@@ -397,6 +397,7 @@ urlpatterns = [
     url(r'^workticket/delete/(?P<id>\d+)/$', catalog.workticket_delete),
     url(r'^workticket/year/(?P<year>\d+)/month/(?P<month>\d+)/view/$', catalog.workticket_list),
     url(r'^workticket/status/(?P<status>\d+)/view/$', catalog.workticket_list),
+    url(r'^workticket/shop/(?P<shop>\d+)/view/$', catalog.workticket_list, name="workticket-byshop-cur-month"),
     url(r'^workticket/all/view/$', catalog.workticket_list, {'all': True}),
 
     url(r'^workshop/price/list/print/$', catalog.workshop_pricelist, {'pprint': True}),

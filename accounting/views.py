@@ -3006,17 +3006,23 @@ def category_get_list(request):
 def category_lookup(request):
     data = None
     if request.is_ajax():
-        
+        print "\n>>> AJAX WORK AJAX <<<" + str(data) 
         if request.method == "POST":
             if request.POST.has_key(u'query'):
                 value = request.POST[u'query']
-                print "\n>>> A WORK A <<<" + str(data) + " | " + str(value)
+
                 if len(value) > 2:
                     model_results = Type.objects.filter(Q(name__icontains = value) | Q(name_ukr__icontains = value)).order_by('name')
                     data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name') )
                 else:
                     model_results = Type.objects.all().order_by('name')
-                    data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name') )                    
+                    data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name') )
+            if request.POST.has_key(u'id'):
+                value = request.POST[u'id']
+                print "\n>>> WORK - ID <<<" + str(data) + " | " + str(value)
+                model_results = Type.objects.filter( Q(pk = value) ).order_by('name')
+                data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name') )
+                    
     return HttpResponse(data)                
 
 
@@ -3285,6 +3291,11 @@ def manufacturer_lookup(request):
                 data = serializers.serialize("json", results, fields=('name','id', 'country', 'www'))
             else:
                 data = []
+        if request.POST.has_key(u'id'):
+            value = request.POST[u'id']
+            results = Manufacturer.objects.filter(id = value)
+            data = serializers.serialize("json", results, fields=('name','id', 'country', 'www'))
+
     return HttpResponse(data)    
 
 
@@ -5628,31 +5639,37 @@ def workticket_edit(request, id=None):
     return render(request, 'index.html', context)
 
 
-def workticket_list(request, year=None, month=None, all=False, status=None):
+def workticket_list(request, year=None, month=None, all=False, status=None, shop=None):
     cur_year = datetime.datetime.now().year
     wy = WorkTicket.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('pk')).order_by('year') #annotate(year_count=Count('date__year'))
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+    if shop:
+        shopN = Shop.objects.filter(id = shop)
+    
     list = None
+    WTiketlist = None
+    WTiketlist = WorkTicket.objects.filter(shop = shopN[0])
+    
     if month != None:
-        list = WorkTicket.objects.filter(date__year=year, date__month=month)
+        list = WTiketlist.filter(date__year=year, date__month=month)
     if (year == None) and (month == None):
         month = datetime.datetime.now().month
         year = datetime.datetime.now().year
-        list = WorkTicket.objects.filter(date__year=year, date__month=month)
+        list = WTiketlist.filter(date__year=year, date__month=month)
     if all == True:
-        list = WorkTicket.objects.filter(date__year=cur_year)
+        list = WTiketlist.filter(date__year=cur_year)
     if status == '1':
-        #ws = WorkStatus.objects.get(id=status)
-        list = WorkTicket.objects.filter(status__id__in=[status,1]) # Прийнято
+        list = WTiketlist.filter(status__id__in=[status,1]) # Прийнято
     if status == '2':
-        list = WorkTicket.objects.filter(status__id__in=[status,2]) # Ремонтується       
+        list = WTiketlist.filter(status__id__in=[status,2]) # Ремонтується       
     if status == '3':
-        list = WorkTicket.objects.filter(status__id__in=[status,3]) # Виконано       
+        list = WTiketlist.filter(status__id__in=[status,3]) # Виконано       
     if status == '4':
-        list = WorkTicket.objects.filter(status__id__in=[status,4]) # Виконано невидано 
+        list = WTiketlist.filter(status__id__in=[status,4]) # Виконано невидано 
     if status == '5':
-        list = WorkTicket.objects.filter(status__id__in=[status,5]) # Віддано без ремонта 
+        list = WTiketlist.filter(status__id__in=[status,5]) # Віддано без ремонта 
     if status == '6':
-        list = WorkTicket.objects.filter(status__id__in=[status,6]) # Відкладено
+        list = WTiketlist.filter(status__id__in=[status,6]) # Відкладено
 
     context = {'workticket':list.order_by('-date'), 'sel_year': int(year), 'sel_month':int(month), 'status': status, 'year_ticket': wy, 'weblink': 'workticket_list.html'} 
     context.update(custom_proc(request)) 
@@ -9833,7 +9850,7 @@ def discount_delete(request):
     else:
         return HttpResponse('Error: Щось пішло не так під час запиту')     
 
-
+@csrf_exempt
 def discount_lookup(request):
     data = None
     cur_date = datetime.date.today()
@@ -9843,7 +9860,7 @@ def discount_lookup(request):
                 value = request.POST[u'query']
                 if len(value) > 2:
                     model_results = Discount.objects.filter(Q(name__icontains = value), Q(date_end__gt = cur_date) ).order_by('date_start', 'name')
-                    data = serializers.serialize("json", model_results, fields = ('id', 'name', 'date_start', 'date_end'), use_natural_keys=False)
+                    data = serializers.serialize("json", model_results, fields = ('id', 'name', 'date_start', 'date_end'), )
 #                else:
 #                    model_results = Type.objects.all().order_by('name')
 #                    data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name'), use_natural_keys=False)                    

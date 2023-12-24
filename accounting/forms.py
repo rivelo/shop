@@ -184,7 +184,7 @@ class BicycleSaleForm(forms.ModelForm):
     class Meta:
         model = Bicycle_Sale
         fields = '__all__'
-        exclude = ['debt']
+        exclude = ['debt', ]
 
 
 class BicycleSaleEditForm(forms.ModelForm):

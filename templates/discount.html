@@ -16,6 +16,43 @@
 </style>
 
 <script type="text/javascript">
+
+function id2name_category(){
+    $.ajax({
+        type: "POST",
+        url: "/category/lookup/",
+        data: { id: $("#s_category").val() },
+        dataType: "json",
+        success:function(msg){
+        	$.each(msg,function(index,item){
+        	$("#s_category").val(item.fields.name + ' - ' + item.fields.name_ukr)    
+            });
+        },
+        error:function(){
+            alert("Щось пішло не так!");
+        }
+    });      
+};
+
+
+function id2name_manufacture(){
+    $.ajax({
+        type: "POST",
+        url: "/manufacturer/lookup/",
+        data: { id: $("#s_manufacture").val() },
+        dataType: "json",
+        success:function(msg){
+        	$.each(msg,function(index,item){
+        	$("#s_manufacture").val(item.fields.name)    
+            });
+        },
+        error:function(){
+            alert("Щось пішло не так!");
+        }
+    });      
+};
+
+
 jQuery(document).ready(function ($) {
 	
 $('[data-toggle="tooltip"]').tooltip();	
@@ -168,9 +205,15 @@ $( "#id_name" ).autocomplete({
 $('#id_sale').val(parseInt($('#id_sale').val()));
 $("#id_name").focus();
 
-$( "#s_manufacture" ).val($('#id_manufacture_id').val());
-$( "#s_category" ).val($('#id_type_id').val());
+if ($('#id_manufacture_id').val() != 0 ) {
+	$( "#s_manufacture" ).val($('#id_manufacture_id').val());
+	id2name_manufacture();
+}
 
+if ($('#id_type_id').val() != 0 ) {
+	$( "#s_category" ).val($('#id_type_id').val());
+	id2name_category();
+}
 
 });
 </script>

@@ -196,6 +196,7 @@ S/N: <b id_serial="{{ bike_id }}" >({{serial_number}})</b> </font>
     <span class="input-group-text font-weight-bold" title="Кількість" data-toggle="tooltip" data-placement="top">Ціна</span>
   </div>
 	{{form.price|add_attr:"class:form-control"}}
+	{{form.currency|add_attr:"class:form-control"}}
   <div class="input-group-prepend">
     <span class="input-group-text font-weight-bold">Грн.</span>
   </div>
@@ -263,10 +264,10 @@ S/N: <b id_serial="{{ bike_id }}" >({{serial_number}})</b> </font>
     <h3 id="result" style="color:white; font-weight: bold;"}> Сума грн.</h3>
  </div>
 
-{% comment %}
 
-<table>
-	
+
+{% comment %}
+<table >
 	{{ form.as_ul }}
 	<p><input type="submit" value="Save"></p>
 </table>
