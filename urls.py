@@ -403,7 +403,7 @@ urlpatterns = [
     url(r'^workshop/price/list/print/$', catalog.workshop_pricelist, {'pprint': True}),
     url(r'^workshop/price/list/$', catalog.workshop_pricelist, {'pprint': False}),
     url(r'^workshop/add/(?P<id>\d+)/$', catalog.workshop_add),
-    url(r'^workshop/add/client/(?P<id_client>\d+)/$', catalog.workshop_add),
+    url(r'^workshop/add/client/(?P<id_client>\d+)/$', catalog.workshop_add, name='workshop-add-to-client'),
     url(r'^workshop/add/$', catalog.workshop_add),
     url(r'^workshop/add/formset/$', catalog.workshop_add_formset),
     url(r'^workshop/edit/(?P<id>\d+)/$', catalog.workshop_edit),

@@ -300,11 +300,41 @@ function percentPrice(p){
   </div>
   {{form.date}}
     <div class="input-group-prepend">
+    <span class="input-group-text">Магазин</span>
+    </div>
+  {{form.shop}}
+    <div class="input-group-prepend">
     <span class="input-group-text">Користувач</span>
     </div>
   {{form.user}}
-</div>
+</div>  
+</div>  
 </tr>            
+
+<tr>
+<div class="input-group mb-3 mt-2">
+  <div class="input-group-prepend">
+    <span class="input-group-text">Витрачено часу</span>
+  </div>
+  {#{form.time}#}
+    <div class="input-group-prepend">
+    <span class="input-group-text">Години</span>
+    </div>
+  {#{form.ticket}#}
+  <input type="text" id="s_hour" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="Години" aria-label="Username" aria-describedby="basic-addon1">
+    <div class="input-group-prepend">
+    <span class="input-group-text">Хвилини</span>
+    </div>
+  <input type="text" id="s_minutes" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="Хвилини" aria-label="minutes" aria-describedby="basic-addon1">
+     <div class="input-group-prepend">
+    <span class="input-group-text">Заявка</span>
+    </div>
+    <input type="text" id="s_ticket" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="заявка клієнта в стані ремонтується" aria-label="Username" aria-describedby="basic-addon1">
+    {#{form.ticket}#}
+</div>  
+</div>  
+</tr>            
+
 
 <tr>        
 <div class="input-group">

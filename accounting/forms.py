@@ -777,6 +777,7 @@ class WorkShopForm(forms.ModelForm):
     #pay = forms.BooleanField(initial=False, required=False, label="Оплачено?")
     description = forms.CharField(label='Опис', widget=forms.Textarea(), max_length=255, required=False)
     user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True), required=True, label='Користувач')
+    shop = forms.ModelChoiceField(queryset = Shop.objects.all(), required=False, label='Магазин')
 
     def clean_client(self):
         data = self.cleaned_data['client']
@@ -827,7 +828,7 @@ class WorkShopForm(forms.ModelForm):
     class Meta:
         model = WorkShop
         fields = '__all__'
-        exclude = ['pay']
+        exclude = ['pay', 'time', 'ticket']
 
 WorkShopFormset = formset_factory(WorkShopForm, extra=1)
 

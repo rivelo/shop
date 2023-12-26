@@ -5690,6 +5690,7 @@ def workshop_add(request, id=None, id_client=None):
         context = {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}
         context.update(custom_proc(request)) 
         return render(request, 'index.html', context)
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
     now = datetime.datetime.now()
     work = None
     wclient = None
@@ -5704,11 +5705,11 @@ def workshop_add(request, id=None, id_client=None):
             return HttpResponseRedirect('/workshop/view/')
     else:
         if work != None:
-            form = WorkShopForm(initial={'work_type': work.id, 'price': work.get_sale_price, 'user': request.user})
+            form = WorkShopForm(initial={'work_type': work.id, 'price': work.get_sale_price, 'user': request.user, 'shop': shopN})
         elif wclient != None:
-            form = WorkShopForm(initial={'client': wclient.id, 'user': request.user})
+            form = WorkShopForm(initial={'client': wclient.id, 'user': request.user, 'shop': shopN})
         else:        
-            form = WorkShopForm(initial={'user': request.user})
+            form = WorkShopForm(initial={'user': request.user, 'shop': shopN})
     nday = 7
     try:
         wc_name = wclient.name
@@ -5760,10 +5761,13 @@ def workshop_add_formset(request):
     clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))        
     return render_to_response('index.html', { 'formset': formset, 'weblink': 'workshop_formset.html', 'clients_list':clients_list, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+@csrf_exempt
 def workshop_edit(request, id):
     if not request.user.is_authenticated():    
-        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
+        context = {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'},
+        context.update(custom_proc(request)) 
+        return render(request, 'index.html', context)
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
     now = datetime.datetime.now()
     a = WorkShop.objects.get(pk=id)
     work = a.work_type
@@ -5783,29 +5787,18 @@ def workshop_edit(request, id):
             pay = a.pay #form.cleaned_data['pay']
             #user = request.user 
             user = form.cleaned_data['user']
-#            if (request.user == owner) or (auth_group(request.user, 'admin')==True):
-#                user = form.cleaned_data['user']
-#            else:
-#                user = owner
-#                cur_date_renew = datetime.datetime.now()
-            WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay = pay).save()                 
-            #===================================================================
-            # if (pay == False) or (auth_group(request.user, 'admin') == True):
-            #     #WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay = pay).save()
-            #     WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay = pay).save()
-            # else:
-            #     a.price = old_p 
-            #     a.date = cur_date_renew
-            #     a.description = description
-            #     a.user = user
-            #     a.save()
-            #===================================================================
+            shop = form.cleaned_data['shop']
+            if shop == None:
+                shop = shopN
+                            
+            WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay = pay, shop=shop).save()                 
             return HttpResponseRedirect('/workshop/view/')
     else:
         form = WorkShopForm(instance=a)
     nday = 7
-    clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))        
-    return render_to_response('index.html', {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'client_name': a.client, 'work': work}, context_instance=RequestContext(request, processors=[custom_proc]))
+    clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client')).order_by('client__id')
+    context = {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'client_name': a.client, 'work': work}
+    return render(request, 'index.html', context)
 
 
 def workshop_list(request, year=None, month=None, day=None):
