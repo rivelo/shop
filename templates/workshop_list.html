@@ -136,6 +136,7 @@ $(".w_del").click(function(){
 {#    	<th>ID</th> #}
     	<th>Клієнт</th>
     	<th>Дата завершення</th>
+    	<th>Майстерня</th>
     	<th>Робота</th>
     	<th>Ціна (грн.)</th>
     	<th>Опис</th>
@@ -160,8 +161,11 @@ $(".w_del").click(function(){
 	</a>
 	</td>
 	<td align='center'>       
-	{{type.date|date:'d-m-Y H:i' }}
+	{{type.date|date:'d-m-Y H:i' }} ({{type.time}} хвилин)
 	</td>
+	<td align='center'>       
+	{{type.shop.name }} 
+	</td>	
 	<td>       
 	<span class="badge badge-success" title="Додати роботу <br> {{type.work_type}}" data-toggle="tooltip" data-html="true" data-placement="top"><a href="/workshop/add/{{ type.work_type.id }}/" >
 	<i class="material-icons">build</i>
@@ -232,6 +236,7 @@ $(".w_del").click(function(){
 
 <tr>
 {#    	<th></th> #}
+    	<th></th>
     	<th></th>
     	<th></th>
     	<th></th>

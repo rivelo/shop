@@ -1501,6 +1501,10 @@ class WorkType(models.Model):
 class WorkStatus(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
+#    color = models.CharField(blank = True, null = True)
+#    disable = models.BooleanField()
+#    show_cur_month = models.BooleanField()
+#    order = models.PositiveIntegerField(default = 0, verbose_name="Порядок сортування статусів. 0 - не сортувати")
     
     def __unicode__(self):
         return self.name

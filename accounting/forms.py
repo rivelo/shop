@@ -778,6 +778,18 @@ class WorkShopForm(forms.ModelForm):
     description = forms.CharField(label='Опис', widget=forms.Textarea(), max_length=255, required=False)
     user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True), required=True, label='Користувач')
     shop = forms.ModelChoiceField(queryset = Shop.objects.all(), required=False, label='Магазин')
+    hour = forms.IntegerField(initial = 0, required=False, label='Витрачені (Години)')
+#    minutes = forms.IntegerField(required=False, label='Витрачені (Хвилини)')
+    time = forms.IntegerField(initial = 0, required=False, label='Витрачені (Хвилини)')
+    
+    def clean_time(self):
+        #dh = self.cleaned_data['hour']
+        dm = self.cleaned_data['time']
+        #if int(dm) > 60:
+        #    raise forms.ValidationError("Час в хвилинах більше 60 хвилин") 
+        #res = int(dm) - (60 * (int(dm) / 60))
+        res = dm
+        return res
 
     def clean_client(self):
         data = self.cleaned_data['client']
@@ -795,12 +807,15 @@ class WorkShopForm(forms.ModelForm):
             raise forms.ValidationError("Такої роботи не існує або ви її не вибрали!")
         return res[0]
 
-#===============================================================================
-#     def clean(self):
-#         cleaned_data = super(WorkShopForm, self).clean()
-#         cc_client = cleaned_data.get("client")
-#         work = cleaned_data.get("work_type")
-# 
+    def clean(self):
+        cleaned_data = super(WorkShopForm, self).clean()
+        htime = cleaned_data.get("hour")
+        mtime = cleaned_data.get("time")
+        res = int(htime) * 60 + int(mtime)
+        self.time = 111
+        cleaned_data['time'] = res
+        return cleaned_data 
+ 
 #         try:
 #             data = self.cleaned_data['client']
 #             res = Client.objects.filter(pk = data)
@@ -816,19 +831,17 @@ class WorkShopForm(forms.ModelForm):
 #             return False
 #===============================================================================
 
-    #===========================================================================
-    # def save(self, commit=True):
-    #     client = Client.objects.get(id = self.cleaned_data['client'])
-    #     work = WorkType.objects.get(id = self.cleaned_data['work_type'])
-    #     self.cleaned_data['client'] = client.id
-    #     self.cleaned_data['work_type'] = work.id
-    #     return super(WorkShopForm, self).save(commit)
-    #===========================================================================
+    def save(self, commit=True):
+#        client = Client.objects.get(id = self.cleaned_data['client'])
+#        work = WorkType.objects.get(id = self.cleaned_data['work_type'])
+        self.time = self.cleaned_data['time']
+        #self.time = int(self.cleaned_data['hour']) *60 + int(self.time)  
+        return super(WorkShopForm, self).save(commit)
     
     class Meta:
         model = WorkShop
         fields = '__all__'
-        exclude = ['pay', 'time', 'ticket']
+        exclude = ['pay', 'ticket']  # 'time',
 
 WorkShopFormset = formset_factory(WorkShopForm, extra=1)
 

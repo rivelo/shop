@@ -5645,10 +5645,20 @@ def workticket_list(request, year=None, month=None, all=False, status=None, shop
     shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
     if shop:
         shopN = Shop.objects.filter(id = shop)
+        shop = int(shop)
+    else:
+        try:
+            shop = int(shopN.id)
+        except:
+            context = {'weblink': 'error_message.html', 'mtext': 'Не правильний id/ip магазину ' + str(request.META['REMOTE_ADDR']), }
+            context.update(custom_proc(request))
+            return render(request, 'index.html', context)
     
     list = None
     WTiketlist = None
-    WTiketlist = WorkTicket.objects.filter(shop = shopN[0])
+    WTiketlist = WorkTicket.objects.filter(shop = shop)
+    if shop == 0:
+        WTiketlist = WorkTicket.objects.all()
     
     if month != None:
         list = WTiketlist.filter(date__year=year, date__month=month)
@@ -5658,20 +5668,27 @@ def workticket_list(request, year=None, month=None, all=False, status=None, shop
         list = WTiketlist.filter(date__year=year, date__month=month)
     if all == True:
         list = WTiketlist.filter(date__year=cur_year)
-    if status == '1':
-        list = WTiketlist.filter(status__id__in=[status,1]) # Прийнято
-    if status == '2':
-        list = WTiketlist.filter(status__id__in=[status,2]) # Ремонтується       
-    if status == '3':
-        list = WTiketlist.filter(status__id__in=[status,3]) # Виконано       
-    if status == '4':
-        list = WTiketlist.filter(status__id__in=[status,4]) # Виконано невидано 
-    if status == '5':
-        list = WTiketlist.filter(status__id__in=[status,5]) # Віддано без ремонта 
-    if status == '6':
-        list = WTiketlist.filter(status__id__in=[status,6]) # Відкладено
+    if status == '0':
+        list = WTiketlist #filter(status__id__in=[status,1]) # All
+    if int(status or 0) > 0:
+        list = WTiketlist.filter(status__id= status)
+    #===========================================================================
+    #     
+    # if status == '2':
+    #     list = WTiketlist.filter(status__id__in=[status,2]) # Ремонтується       
+    # if status == '3':
+    #     list = WTiketlist.filter(status__id__in=[status,3]) # Виконано       
+    # if status == '4':
+    #     list = WTiketlist.filter(status__id__in=[status,4]) # Виконано невидано 
+    # if status == '5':
+    #     list = WTiketlist.filter(status__id__in=[status,5]) # Віддано без ремонта 
+    # if status == '6':
+    #     list = WTiketlist.filter(status__id__in=[status,6]) # Відкладено
+    #===========================================================================
 
-    context = {'workticket':list.order_by('-date'), 'sel_year': int(year), 'sel_month':int(month), 'status': status, 'year_ticket': wy, 'weblink': 'workticket_list.html'} 
+    shops = Shop.objects.all()
+    ws_list = WorkStatus.objects.all()
+    context = {'workticket':list.order_by('-date'), 'sel_year': int(year), 'sel_month':int(month), 'status': int(status or 0), 'year_ticket': wy, 'weblink': 'workticket_list.html', 'shops': shops, 'wstatus_list': ws_list, 'shop' : shop} 
     context.update(custom_proc(request)) 
     return render(request, 'index.html', context)
 
@@ -5701,6 +5718,7 @@ def workshop_add(request, id=None, id_client=None):
     if request.method == 'POST':
         form = WorkShopForm(request.POST)
         if form.is_valid():
+            
             form.save()
             return HttpResponseRedirect('/workshop/view/')
     else:
@@ -5788,10 +5806,13 @@ def workshop_edit(request, id):
             #user = request.user 
             user = form.cleaned_data['user']
             shop = form.cleaned_data['shop']
+            time = form.cleaned_data['time']
+            #hour = form.cleaned_data['hour']
+            #time = int(time) + int(hour) * 60
             if shop == None:
                 shop = shopN
                             
-            WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay = pay, shop=shop).save()                 
+            WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay = pay, shop=shop, time = time).save()                 
             return HttpResponseRedirect('/workshop/view/')
     else:
         form = WorkShopForm(instance=a)

@@ -137,16 +137,22 @@ $('.phone').editable('/workticket/edit/', {
 <h2 id="b_year">
     За рік: 
     {% for year in year_ticket %}
-    {% if sel_year == year.0 and status == None %} 
-    	<a class="badge badge-success select" href="/workticket/year/{{year.0}}/month/1/view">{{year.0}}
+    {# if sel_year == year.0 and status == None #} 
+    {% if sel_year == year.0 %}
+{#    	<a class="badge badge-success select" href="/workticket/year/{{year.0}}/month/1/view">{{year.0}} #}
+    	<a class="badge badge-success select" href="{% url 'workticket-list-by-month-by-shop' year.0 1 shop %}">{{year.0}}
     	{% if request.user|has_group:"admin" %} 
-    	<sup><span class="badge badge-light">{{year.1}}</span></sup>
+    	<sup>
+    	<span class="badge badge-light">{{year.1}}</span></sup>
     	{% endif %}
     	</a>
     {% else %}
-    	<a class="badge badge-success" href="/workticket/year/{{year.0}}/month/1/view" data-count="{{year.1}}">{{year.0}}
+{#    	<a class="badge badge-success" href="/workticket/year/{{year.0}}/month/1/view" data-count="{{year.1}}">{{year.0}} #}
+    	<a class="badge badge-success" href="{% url 'workticket-list-by-month-by-shop' year.0 1 shop %}" data-count="{{year.1}}">{{year.0}}
+    	
     	{% if request.user|has_group:"admin" %} 
-    	<sup><span class="badge badge-light">{{year.1}}</span></sup>
+    	<sup>
+    	<span class="badge badge-light">{{year.1}}</span></sup>
     	{% endif %}
     	</a>
     {% endif %} 
@@ -155,26 +161,64 @@ $('.phone').editable('/workticket/edit/', {
 	За місяць: 
 	{% for i in "123456789012" %}
 	{% ifequal forloop.counter sel_month %}
-    <a href="/workticket/year/{{sel_year}}/month/{{forloop.counter}}/view" class="badge badge-success select">{{forloop.counter}}</a>
+	<a href="{% url 'workticket-list-by-month-by-shop' sel_year forloop.counter shop %}" class="badge badge-success select">{{forloop.counter}}</a>		
+{#    <a href="/workticket/year/{{sel_year}}/month/{{forloop.counter}}/view" class="badge badge-success select">{{forloop.counter}}</a> #}
     {% else %}
-    <a href="/workticket/year/{{sel_year}}/month/{{forloop.counter}}/view" class="badge badge-success">{{forloop.counter}}</a>
+    {# <a href="/workticket/year/{{sel_year}}/month/{{forloop.counter}}/view" class="badge badge-success">{{forloop.counter}}</a> #}
+    <a href="{% url 'workticket-list-by-month-by-shop' sel_year forloop.counter shop %}" class="badge badge-success">{{forloop.counter}}</a>
     {% endifequal %}
 	{% endfor %}
 	
+{% if request.user|has_group:"admin" %}  
 	<a href="/workticket/all/view" class="badge badge-pill badge-light" title="Заявки за поточний рік">Всі</a>
+{% endif %}	
+
+{% for wstatus in wstatus_list %}
+{# 	<a href="{% url 'workticket-list-by-status' wstatus.id %}" class="w_true badge badge-pill badge-success">{{wstatus.name}}</a> #}
+{% if wstatus.id == status %} 
+	<a href="{% url 'workticket-list-by-status-by-shop' wstatus.id shop %}" class="w_true badge badge-pill badge-success select">{{wstatus.name}}</a>
+{% else %}	
+	<a href="{% url 'workticket-list-by-status-by-shop' wstatus.id shop %}" class="w_true badge badge-pill badge-success">{{wstatus.name}}</a>
+{% endif %}	
+{% endfor %}
+
+{% comment %}
 	<a href="/workticket/status/1/view/" class="w_true badge badge-pill badge-success">Прийняті</a>
 	<a href="/workticket/status/4/view/" class="badge badge-pill badge-secondary">Невидані</a>
 	<a href="/workticket/status/2/view/" class="badge badge-pill badge-warning">Ремонтуються</a>
 	<a href="/workticket/status/5/view/" class="badge badge-pill badge-danger">Без ремонта</a>
+	<a href="{% url 'workticket-list-by-status' '0' %}" class="badge badge-pill badge-danger">Інші</a>
+{% endcomment %}	
 </h2>    
 
 
         <link rel="stylesheet" type="text/css" href="/media/table.css">
 
-	<h1>Замовлення на ремонт
-
+	<h1>Замовлення на ремонт 
 <a href="/workticket/add/" class="badge badge-pill badge-light">Створити заявку на ремонт</a>
 
+
+{% for shop_obj in shops %}
+{% if shop_obj.id == shop %} 
+<div class="badge bg-primary text-wrap" title="Показати заявки в майстерні на {{shop_obj.name}}">
+{% else %}
+<div class="badge bg-secondary text-wrap" title="Показати заявки в майстерні на {{shop_obj.name}}">
+{% endif %}
+<a href="{% url 'workticket-byshop-cur-month' shop_obj.id %}">{{shop_obj.name}}</a>
+</div>
+{% endfor %}
+
+{% if shop == 0 %}
+<div class="badge bg-primary text-wrap select" title="Показати заявки з обох магазинів">
+<a href="{% url 'workticket-byshop-cur-month' 0 %}">Всі</a>
+</div>
+{% else %}
+<div class="badge bg-secondary text-wrap" title="Показати заявки з обох магазинів">
+<a href="{% url 'workticket-byshop-cur-month' 0 %}">Всі</a>
+</div>
+{% endif %}
+<sup>
+</sup>
 	</h1>
     	
     <table id="iTable" class = "table table-bordered table-hover table-condensed" >
