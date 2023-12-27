@@ -128,6 +128,8 @@ $('.click').editable('/bicycle-store/edit/', {
      });
     
 
+$("#id_currency").hide(); //attr('hidden');
+		
 });
 
 </script>
@@ -210,18 +212,22 @@ S/N: <b id_serial="{{ bike_id }}" >({{serial_number}})</b> </font>
   <div class="input-group-prepend">
     <span class="input-group-text font-weight-bold">%</span>
   </div>
-  <div class="input-group-prepend">
+
+ </div>
+
+</div>
+</div>
+<div class="row ">
+    <div class="col">
+  <div class="input-group-prepend mb-3">
     <span class="input-group-text font-weight-bold">Сума</span>
-  </div>
+
 {% if form.sum.errors %}   {{ form.sum|add_attr:"class:form-control is-invalid" }} {% else %} {{ form.sum|add_attr:"class:form-control" }} {% endif %}
-  <div class="input-group-prepend">
     <span class="input-group-text font-weight-bold">Грн.</span>
   </div>
  <div class="invalid-feedback">
 	{{ form.sum.errors }}
  </div>
- </div>
-
 </div>
 </div>
 
@@ -232,10 +238,12 @@ S/N: <b id_serial="{{ bike_id }}" >({{serial_number}})</b> </font>
     	<span class="input-group-text font-weight-bold" title="Дата" data-toggle="tooltip" data-placement="top">Дата продажу</span>
   	</div>
       {{ form.date |add_attr:"class:form-control" }}
+{% comment %}
     <div class="input-group-prepend">
     	<span class="input-group-text font-weight-bold" title="Перший сервіс" data-toggle="tooltip" data-placement="top">Перший сервіс</span>
   	</div>
-  {{ form.service |add_attr:"class:form-control" }} 
+  {{ form.service |add_attr:"class:form-control" }}
+{% endcomment %}   
   {{ form.shop |add_attr:"class:form-control" }} 	      
 	</div>
     </div>

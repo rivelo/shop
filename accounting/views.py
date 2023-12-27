@@ -3863,7 +3863,9 @@ def catalog_manufacture_list(request, id=None):
 def catalog_part_list(request, id, num=5):
     list = Catalog.objects.filter(manufacturer=id).order_by("-id")[:num]
     #return render_to_response('catalog_list.html', {'catalog': list.values_list()})
-    return render_to_response('index.html', {'catalog': list, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'catalog': list, 'weblink': 'catalog_list.html',}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def catalog_manu_type_list(request, id, tid):
@@ -3888,7 +3890,9 @@ def catalog_delete(request, id):
 
 
 def catalog_search_id(request):
-    return render_to_response('index.html', {'weblink': 'catalog_search_id.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'weblink': 'catalog_search_id.html',}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def catalog_search_locality(request):
