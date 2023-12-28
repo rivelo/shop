@@ -3789,7 +3789,7 @@ def catalog_set(request):
     else :
            return HttpResponse('Error: Щось пішло не так')
     
-
+@csrf_exempt
 def catalog_edit(request, id=None):
     a = Catalog.objects.get(pk=id)
     if request.method == 'POST':
@@ -4778,17 +4778,20 @@ def client_workshop_check(request, param=None):
     return w    
 
 
-def client_invioce_return_view(request, limit = None):
+def client_invioce_return_view(request, limit = None, shop=None):
     cr_list = None
     if limit != None:
         cr_list = ClientReturn.objects.all().order_by('-id')[:limit]
     else:
         cr_list = ClientReturn.objects.all()
-    return render_to_response('index.html', {'return_list': cr_list, 'weblink': 'ci_return_list.html'}, context_instance=RequestContext(request, processors=[custom_proc])) 
+    context = {'return_list': cr_list, 'weblink': 'ci_return_list.html'}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context) 
 
 @csrf_exempt
 def client_invioce_return_add(request, id):
     ci = ClientInvoice.objects.get(id=id)
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
     now = datetime.datetime.now()
     if request.is_ajax():
         if request.method == 'POST':  
@@ -4804,10 +4807,10 @@ def client_invioce_return_add(request, id):
                     res_count = 0
                     sum = ci.sum / ci.count * int(count)
                 if cash == "false":
-                    ClientCredits(client=ci.client, date=now, price=sum, description="Повернення/обмін: " + str(ci.catalog), cash_type=CashType.objects.get(name=u"Повернення"), user=request.user).save()
+                    ClientCredits(client=ci.client, date=now, price=sum, description="Повернення/обмін: " + str(ci.catalog), cash_type=CashType.objects.get(name=u"Повернення"), user=request.user, shop=shopN).save()
                 if cash == "true":
-                    ClientCredits(client=ci.client, date=now, price=sum, description="Повернення/обмін: " + str(ci.catalog), cash_type=CashType.objects.get(name=u"Повернення"), user=request.user).save() 
-                    ClientDebts(client=ci.client, date=now, price=sum, description="Повернення/обмін: " + str(ci.catalog), cash=True, user=request.user).save() 
+                    ClientCredits(client=ci.client, date=now, price=sum, description="Повернення/обмін: " + str(ci.catalog), cash_type=CashType.objects.get(name=u"Повернення"), user=request.user, shop=shopN).save() 
+                    ClientDebts(client=ci.client, date=now, price=sum, description="Повернення/обмін: " + str(ci.catalog), cash=True, user=request.user, shop=shopN).save() 
                 cat = Catalog.objects.get(id = ci.catalog.id)
                 cat.count = cat.count + int(count)
                 cat.save() 
@@ -4820,6 +4823,7 @@ def client_invioce_return_add(request, id):
                     if ci.sale <> 100:
                         ci.sum = res_count * ci.price
                     ci.pay = res_count * ci.price
+                    ci.shop = shopN
                     ci.save()
     return HttpResponse("ok", content_type="text/plain;charset=UTF-8;")
  
@@ -8012,7 +8016,7 @@ def client_history_debt(request):
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
     return HttpResponse(data_c, content_type='application/json')    
 
-
+@csrf_exempt
 def client_history_invoice(request):
     now = datetime.datetime.now()
     if request.is_ajax():
@@ -8030,7 +8034,6 @@ def client_history_invoice(request):
                     x['date'] = x['date'].strftime("%d/%m/%Y")
 
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
-            
     return HttpResponse()#result, content_type='application/json')
 
 
