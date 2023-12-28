@@ -13,11 +13,21 @@ from django.db.models import Q
 
 from django.forms import formset_factory
 
-TOPIC_CHOICES = (
-    ('general', 'General enquiry'),
-    ('bug', 'Bug report'),
-    ('suggestion', 'Suggestion'),
-)
+#TOPIC_CHOICES = (
+#    ('general', 'General enquiry'),
+#    ('bug', 'Bug report'),
+#    ('suggestion', 'Suggestion'),
+#)
+
+def get_shop_from_ip(ip_addr):
+    ip = '.'.join(ip_addr.split('.')[0:3])
+    dict_shop = Shop.objects.filter( ip_addr__contains = ip )
+#    print "\nIP = " + str(ip) + " >>>>> dict_shop" + str(dict_shop) 
+    if dict_shop.first():
+        return dict_shop.first()
+    else:
+        return "----"
+
 
 class JQuerySelect(forms.Select):
     class Media:
@@ -464,14 +474,14 @@ class InvoiceComponentForm(forms.ModelForm):
         fields = '__all__'
 
   
-class ContactForm(forms.ModelForm):
-    topic = forms.ChoiceField(choices=TOPIC_CHOICES)
-    message = forms.CharField(widget=forms.Textarea())
-    sender = forms.EmailField(required=False)
-    
-    class Meta:
-        model = ClientMessage
-        fields = '__all__'
+#class ContactForm(forms.ModelForm):
+#    topic = forms.ChoiceField(choices=TOPIC_CHOICES)
+#    message = forms.CharField(widget=forms.Textarea())
+#    sender = forms.EmailField(required=False)
+#   
+#    class Meta:
+#        model = ClientMessage
+#        fields = '__all__'
 
 
 # --------- Product Catalog ------------
@@ -779,8 +789,30 @@ class WorkShopForm(forms.ModelForm):
     user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True), required=True, label='Користувач')
     shop = forms.ModelChoiceField(queryset = Shop.objects.all(), required=False, label='Магазин')
     hour = forms.IntegerField(initial = 0, required=False, label='Витрачені (Години)')
-#    minutes = forms.IntegerField(required=False, label='Витрачені (Хвилини)')
     time = forms.IntegerField(initial = 0, required=False, label='Витрачені (Хвилини)')
+    ticket = forms.ModelChoiceField(queryset = WorkTicket.objects.all(), required=False, label='Заявка на ремонт')
+    #ticket = forms.ModelChoiceField(queryset = WorkTicket.objects.filter(status = WorkStatus.objects.filter( name='Ремонтується' )), required=False, label='Заявка на ремонт')    
+
+    def __init__(self, *args, **kwargs):
+        cid = kwargs.pop('client_id', None)
+        wt_id = kwargs.pop('wticket_id', None)
+        try:
+            self.request = kwargs.pop("request")
+        except:
+            pass
+        super(WorkShopForm, self).__init__(*args, **kwargs)
+        stat_id = WorkStatus.objects.filter( name='Ремонтується' ).first()
+        if cid:
+            self.fields['ticket'].queryset = WorkTicket.objects.filter(client = cid.id, status =  stat_id)
+        if wt_id:
+#            print "\nEDIT WORKSHOP - " + str(cid.id)
+            #self.fields['ticket'].queryset = WorkTicket.objects.filter(id = wt_id.id)
+            self.fields['ticket'].queryset = WorkTicket.objects.filter(Q(client = cid.id, status =  stat_id) | Q(id = wt_id.id))
+        if (cid == None) and (wt_id == None):
+            shopN = get_shop_from_ip(self.request.META['REMOTE_ADDR'])
+            self.fields['ticket'].queryset = WorkTicket.objects.filter(status = WorkStatus.objects.filter( name='Ремонтується' ), shop = shopN.id)
+            if not self.fields['ticket'].queryset:
+                self.fields['ticket'].queryset = WorkTicket.objects.filter(status = WorkStatus.objects.filter( name='Ремонтується' ))
     
     def clean_time(self):
         #dh = self.cleaned_data['hour']
@@ -811,8 +843,17 @@ class WorkShopForm(forms.ModelForm):
         cleaned_data = super(WorkShopForm, self).clean()
         htime = cleaned_data.get("hour")
         mtime = cleaned_data.get("time")
+        ticket = cleaned_data.get("ticket")
+        client = cleaned_data.get("client")
+        get_client = Client.objects.get(pk = client.pk)
+        get_ticket = WorkTicket.objects.get(pk = ticket.pk)
+        if get_client.id != get_ticket.client.id:
+            self.add_error('client', "Клієнт не підходить під заявку. Виберіть іншого клієнта або заявку")
+            #self.add_error('client', "Клієнт підходить")
+        
+#        print "\nChange field Time!!!" + str(self.has_changed())
         res = int(htime) * 60 + int(mtime)
-        self.time = 111
+#        self.time = 111
         cleaned_data['time'] = res
         return cleaned_data 
  
@@ -841,7 +882,7 @@ class WorkShopForm(forms.ModelForm):
     class Meta:
         model = WorkShop
         fields = '__all__'
-        exclude = ['pay', 'ticket']  # 'time',
+        exclude = ['pay', ]  # 'time', 'ticket'
 
 WorkShopFormset = formset_factory(WorkShopForm, extra=1)
 

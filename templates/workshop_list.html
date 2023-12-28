@@ -114,7 +114,24 @@ $(".w_del").click(function(){
    <div class="mr-auto">
    <h1><span class="badge badge-dark">Виконані роботи за {{sel_day}}.{{sel_month}}.{{sel_year}} року</span> <span class="badge badge-info" id="show_date">{{sel_day}}/{{sel_month}}/{{sel_year}}</span> 
    <a href="/workshop/add/" class="badge badge-secondary" data-toggle="tooltip" data-html="true" data-placement="right" title="Додати роботу"><i class="material-icons">add_circle_outline</i></a> </h1>
-   </div>
+
+   </div> 
+
+ <div class="mr-auto"> 
+<h2>
+{% for shop_obj in shops %}
+{% if shop_obj.id == shop %} 
+<a class="badge badge-success select" title="Показати роботи в майстерні на {{shop_obj.name}}" href="{% url 'workshop-day-byshop' shop_obj.id sel_year sel_month sel_day %}">{{shop_obj.name}} </a>
+{% else %}
+<a class="badge badge-success" title="Показати роботи в майстерні на {{shop_obj.name}}" href="{% url 'workshop-day-byshop' shop_obj.id sel_year sel_month sel_day %}">{{shop_obj.name}} </a>
+{% endif %}
+
+{# <a href="{% url 'workticket-byshop-cur-month' shop_obj.id %}">{{shop_obj.name}}</a> #}
+
+{% endfor %}
+</h2>
+</div>
+
    
  <div class="ml-auto">
   <div class="input-group ">
@@ -166,6 +183,7 @@ $(".w_del").click(function(){
 	<td align='center'>       
 	{{type.shop.name }} 
 	</td>	
+
 	<td>       
 	<span class="badge badge-success" title="Додати роботу <br> {{type.work_type}}" data-toggle="tooltip" data-html="true" data-placement="top"><a href="/workshop/add/{{ type.work_type.id }}/" >
 	<i class="material-icons">build</i>
@@ -175,7 +193,6 @@ $(".w_del").click(function(){
 <a data-toggle="collapse" href="#work-{{forloop.counter}}" {# data-target="#collapseExample" #} aria-expanded="false" aria-controls="collapseExample">
 	<i class="material-icons">expand_more</i>
 </a>
-	
 <div class="collapse" id="work-{{forloop.counter}}">
   <div class="card card-body">
 <b>Категорії товарів:</b>
@@ -189,8 +206,9 @@ $(".w_del").click(function(){
   </div>
 </div>
 {% endif %}
-	
+	<span class="badge badge-success" title="Заявка: {{type.ticket}}">{{type.ticket.id}}</span>
 	</td>	
+	
 	<td align='center'>       
 	{{type.price}}
 	</td>

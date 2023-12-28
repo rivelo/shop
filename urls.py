@@ -411,6 +411,7 @@ urlpatterns = [
     url(r'^workshop/edit/(?P<id>\d+)/$', catalog.workshop_edit),
     url(r'^workshop/view/$', catalog.workshop_list, name='workshop_list'),
     url(r'^workshop/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/view/$', catalog.workshop_list, name='workshop_day'),
+    url(r'^workshop/shop/(?P<shop>\d+)/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/view/$', catalog.workshop_list, name='workshop-day-byshop'),
     url(r'^workshop/year/(?P<year>\d+)/month/(?P<month>\d+)/view/$', catalog.workshop_list, {'day': "all"}),
     url(r'^workshop/year/(?P<year>\d+)/view/$', catalog.workshop_list),
     url(r'^workshop/delete/(?P<id>\d+)/$', catalog.workshop_delete),    

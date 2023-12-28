@@ -206,7 +206,11 @@ function percentPrice(p){
 
 <body>
 
-<h1><span class="badge badge-success">Рахунок на виконані роботи</span> {{shop_name}} {% if client_name %} >>>  <a href="/client/result/search/?id={{client_name.id}}" class="badge badge-secondary">{{ client_name }}</a> {% endif %}</h1>
+<h1>
+<span class="badge badge-success">Рахунок на виконані роботи</span> 
+<span class="badge badge-secondary"> {{shop_name}} </span> 
+{% if client_name %}<span class="badge badge-info">>>></span>  <a href="/client/result/search/?id={{client_id}}" class="badge badge-secondary">{{ client_name }}</a> {% endif %}
+</h1>
   
 <div class="container mw-100">
   <div class="row justify-content-between">
@@ -309,7 +313,8 @@ function percentPrice(p){
     </div>
   {{form.user}}
 </div>  
-  
+
+
 </tr>            
 
 <tr>
@@ -336,15 +341,24 @@ function percentPrice(p){
     </div>
     
 
-    
+{% comment %}    
 {#  <input type="text" id="s_minutes" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="Хвилини" aria-label="minutes" aria-describedby="basic-addon1"> #}
      <div class="input-group-prepend">
     <span class="input-group-text">Заявка</span>
     </div>
-    <input type="text" id="s_ticket" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="заявка клієнта в стані ремонтується" aria-label="Ticket" aria-describedby="basic-addon1">
-    {#{form.ticket}#}
-</div>  
-</div>  
+    <input type="text" id="s_ticket1" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="заявка клієнта в стані ремонтується" aria-label="Ticket" aria-describedby="basic-addon1">
+{% endcomment %}    
+    
+</div>
+
+<div class="input-group mb-3 mt-2">
+  <div class="input-group-prepend">
+    <span class="input-group-text">Заявка</span>
+  </div>
+  {{form.ticket|add_attr:"class:form-control "}}
+</div>      
+
+
 </tr>            
 
 

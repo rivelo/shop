@@ -1531,9 +1531,19 @@ class WorkTicket(models.Model):
     #change_status_dateTime =
     #user_work 
     shop = models.ForeignKey(Shop, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        str_history = ""
+        if self.pk is not None:
+            str_history = WorkTicket.objects.get(pk = self.pk)
+            #print "\nHistory = " +  str(self.history.to_python(value))
+        #str_history = self.history 
+#        self.history = str_history.history + "<br>[" + str(self.user) + "] - [" + str(self.date) + "] - " +  self.status.name + "\n" 
+        super(WorkTicket, self).save(*args, **kwargs)
     
     def __unicode__(self):
-        return self.description
+        return u"[%s] Велосипед: %s - %s [%s] (%s)" % (self.date, self.bicycle, self.description, self.status, self.client) 
+#        return "[%s](%s) Велосипед: %s - %s [%s] (%s)" % (self.date, self.user, self.bicycle, self.description, self.status, self.client)
 
     class Meta:
         ordering = ["date", "status"]

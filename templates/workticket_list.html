@@ -13,6 +13,8 @@
 {# <link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" /> #}
 {#<script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script>#}
 
+{#<link rel="stylesheet" type="text/css" href="/media/table.css"> #}
+
 <style>
 
 .badge-warning{
@@ -182,19 +184,11 @@ $('.phone').editable('/workticket/edit/', {
 {% endif %}	
 {% endfor %}
 
-{% comment %}
-	<a href="/workticket/status/1/view/" class="w_true badge badge-pill badge-success">Прийняті</a>
-	<a href="/workticket/status/4/view/" class="badge badge-pill badge-secondary">Невидані</a>
-	<a href="/workticket/status/2/view/" class="badge badge-pill badge-warning">Ремонтуються</a>
-	<a href="/workticket/status/5/view/" class="badge badge-pill badge-danger">Без ремонта</a>
-	<a href="{% url 'workticket-list-by-status' '0' %}" class="badge badge-pill badge-danger">Інші</a>
-{% endcomment %}	
 </h2>    
 
 
-        <link rel="stylesheet" type="text/css" href="/media/table.css">
-
-	<h1>Замовлення на ремонт 
+<h1>
+<span class="badge badge-secondary">Замовлення на ремонт</span> 
 <a href="/workticket/add/" class="badge badge-pill badge-light">Створити заявку на ремонт</a>
 
 
@@ -228,13 +222,14 @@ $('.phone').editable('/workticket/edit/', {
     	<th>Клієнт</th>
     	<th>Магазин</th>
     	<th>Велосипед/Запчастина</th>
+    	<th>Опис</th>
     	<th>Дата створення</th>
 {#    	<th data-toggle="tooltip" data-placement="right" title="Користувач">User</th> #}
     	<th>Дата завершення</th>
     	<th>Статус</th>
     	<th>Повідомлення</th>
     	<th>Дата повідомлення</th>
-    	<th>Опис</th>
+    	
     	<th>Дія</th>
     </tr>
       
@@ -258,7 +253,7 @@ $('.phone').editable('/workticket/edit/', {
 	<td>
 	{{forloop.counter}}
 	</td>
-	<td>       
+	<td class="text-center">       
 	<a href="/workticket/edit/{{ type.id }}" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="right"> <i class="material-icons">create</i></a> {# {type.id} #}
 	</td>
 	<td>       
@@ -271,7 +266,11 @@ $('.phone').editable('/workticket/edit/', {
 	{{ type.shop|default_if_none:"--" }}
 	</td>
 	<td class="text-center">
-	{{ type.bicycle|default_if_none:"--" }}
+	{{ type.bicycle|default_if_none:"--" }} -
+	{{ type.bike_part_type|default_if_none:"--" }}
+	</td>	
+	<td class="w_desc" id_workticket="{{type.id}}">       
+	{{type.description|linebreaks}}
 	</td>	
 	<td data-toggle="tooltip" data-html="true" data-placement="right" title="Створено користувачем <br> <b>{{type.user.username}}</b> " class="text-center">       
 	{{type.date|date}}
@@ -298,9 +297,7 @@ $('.phone').editable('/workticket/edit/', {
 	{{type.phone_date|date:'d-m-Y H:i'}}
 	</td>
 	
-	<td class="w_desc" id_workticket="{{type.id}}">       
-	{{type.description|linebreaks}}
-	</td>
+	
 	<td class="text-center">
     <a href="/workticket/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')"><i class="material-icons">delete_forever</i></a>
     </td>

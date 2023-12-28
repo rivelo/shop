@@ -35,7 +35,7 @@ from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerIn
 from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus, YouTube
 
 from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, ClientInvoiceForm, ClientOrderForm, ClientEditForm
-from forms import ContactForm, ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm, BicycleStorage_Form, StorageType_Form
+from forms import ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm, BicycleStorage_Form, StorageType_Form
 from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm, DiscountForm 
 from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm, WorkShopFormset, SalaryForm
 
@@ -141,7 +141,7 @@ def check_ip(ip_addr):
 def get_shop_from_ip(ip_addr):
     ip = '.'.join(ip_addr.split('.')[0:3])
     dict_shop = Shop.objects.filter( ip_addr__contains = ip )
-    print "\nIP = " + str(ip) + " >>>>> dict_shop" + str(dict_shop) 
+#    print "\nIP = " + str(ip) + " >>>>> dict_shop" + str(dict_shop) 
     if dict_shop.first():
         return dict_shop.first()
     else:
@@ -5584,6 +5584,8 @@ def workticket_edit(request, id=None):
                 obj = WorkTicket.objects.get(pk = id)
                 obj.status = WorkStatus.objects.get(pk = p)
                 obj.end_date = datetime.date.today()
+                obj.user = request.user
+                obj.history = obj.history +  "[" + str(request.user) + "] - [" + str(obj.date) + "] - " +  obj.status.name + " - change Ticket Status\n" 
                 obj.save() 
                 c = WorkTicket.objects.filter(pk = id).values_list('status__name', flat=True)
                 return HttpResponse(c)
@@ -5594,6 +5596,7 @@ def workticket_edit(request, id=None):
                 obj.phone_status = PhoneStatus.objects.get(pk = p)
                 obj.phone_date = datetime.datetime.today()
                 obj.phone_user = request.user
+                obj.history = obj.history +  "[" + str(request.user) + "] - [" + str(obj.date) + "] - " +  obj.phone_status.name + " - change Phone Status\n" 
                 obj.save() 
                 c = WorkTicket.objects.filter(pk = id).values_list('phone_status__name', flat=True)
                 return HttpResponse(c)
@@ -5604,7 +5607,9 @@ def workticket_edit(request, id=None):
                 desc = desc.replace('<br>', '\n')
                 desc = desc.lstrip()
                 desc = desc.rstrip()
-                obj.description = re.sub('<[^<]+?>', '', desc) 
+                obj.description = re.sub('<[^<]+?>', '', desc)
+                obj.user = request.user 
+                obj.history = obj.history + "[" + str(request.user) + "] - [" + str(obj.date) + "] - " +  obj.status.name + " - change Description\n" 
                 obj.save() 
                 c = WorkTicket.objects.filter(pk = id).values_list('description', flat=True)
                 return HttpResponse(c)
@@ -5614,7 +5619,6 @@ def workticket_edit(request, id=None):
     a = WorkTicket.objects.get(pk=id)
     if request.method == 'POST':
         form = WorkTicketForm(request.POST, instance=a)
-#        print ("\nFORM dir =  " + str(dir(form.fields['bike_part_type'])) )
         if form.is_valid():
             client = form.cleaned_data['client']
             date = form.cleaned_data['date']
@@ -5630,11 +5634,21 @@ def workticket_edit(request, id=None):
 
             if request.user.is_authenticated():
                 user = request.user
-            print "\nSHOP = " + str(shop)
+#            print "\nSHOP = " + str(shop)
             if shop == None:
                 shop = get_shop_from_ip(request.META['REMOTE_ADDR'])   
+            history_wt = a #WorkTicket.objects.get(pk = id)
+            history = ""
+            if form.has_changed():
+#                print ("\n>>> The following fields changed: %s" % ", ".join(form.changed_data))
+                for field_name in form.changed_data:
+#                    print "Field [%s] = %s" % (field_name, form.fields[field_name])
+                    history = history + "Field name[%s] = %s;\n" %  (field_name, request.POST.get(field_name)) #form.fields[field_name])
+                user_date_str = "[%s](%s)\n" % (date, user)
+                history = history_wt.history + user_date_str + history + "\n"
+                
             
-            WorkTicket(id = id, client=client, date=date, end_date=end_date, status=status, description=description, user=user, shop=shop, estimate_time=estimate_time, bicycle=bicycle, bike_part_type=bike_part_type).save()
+            WorkTicket(id = id, client=client, history=history, date=date, end_date=end_date, status=status, description=description, user=user, shop=shop, estimate_time=estimate_time, bicycle=bicycle, bike_part_type=bike_part_type).save()
             return HttpResponseRedirect('/workticket/view/')
     else:
         form = WorkTicketForm(instance=a)
@@ -5676,19 +5690,6 @@ def workticket_list(request, year=None, month=None, all=False, status=None, shop
         list = WTiketlist #filter(status__id__in=[status,1]) # All
     if int(status or 0) > 0:
         list = WTiketlist.filter(status__id= status)
-    #===========================================================================
-    #     
-    # if status == '2':
-    #     list = WTiketlist.filter(status__id__in=[status,2]) # Ремонтується       
-    # if status == '3':
-    #     list = WTiketlist.filter(status__id__in=[status,3]) # Виконано       
-    # if status == '4':
-    #     list = WTiketlist.filter(status__id__in=[status,4]) # Виконано невидано 
-    # if status == '5':
-    #     list = WTiketlist.filter(status__id__in=[status,5]) # Віддано без ремонта 
-    # if status == '6':
-    #     list = WTiketlist.filter(status__id__in=[status,6]) # Відкладено
-    #===========================================================================
 
     shops = Shop.objects.all()
     ws_list = WorkStatus.objects.all()
@@ -5720,18 +5721,17 @@ def workshop_add(request, id=None, id_client=None):
     if id_client!=None:
         wclient = Client.objects.get(id=id_client)
     if request.method == 'POST':
-        form = WorkShopForm(request.POST)
+        form = WorkShopForm(request.POST, client_id=wclient, request = request)
         if form.is_valid():
-            
             form.save()
             return HttpResponseRedirect('/workshop/view/')
     else:
         if work != None:
-            form = WorkShopForm(initial={'work_type': work.id, 'price': work.get_sale_price, 'user': request.user, 'shop': shopN})
+            form = WorkShopForm(initial={'work_type': work.id, 'price': work.get_sale_price, 'user': request.user, 'shop': shopN}, client_id=wclient)
         elif wclient != None:
-            form = WorkShopForm(initial={'client': wclient.id, 'user': request.user, 'shop': shopN})
+            form = WorkShopForm(initial={'client': wclient.id, 'user': request.user, 'shop': shopN, }, client_id=wclient, request = request)
         else:        
-            form = WorkShopForm(initial={'user': request.user, 'shop': shopN})
+            form = WorkShopForm(initial={'user': request.user, 'shop': shopN,  }, request = request)
     nday = 7
     try:
         wc_name = wclient.name
@@ -5799,7 +5799,7 @@ def workshop_edit(request, id):
         return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не є влаником даної роботи або не залогувались на порталі. Робота створена користувачем - <b>' + str(owner)+ '</b>'}, context_instance=RequestContext(request, processors=[custom_proc]))             
     
     if request.method == 'POST':
-        form = WorkShopForm(request.POST, instance=a)
+        form = WorkShopForm(request.POST, instance=a, wticket_id=a.ticket, request = request, client_id=a.client)
         if form.is_valid():
             client = form.cleaned_data['client']
             date = form.cleaned_data['date']
@@ -5811,23 +5811,37 @@ def workshop_edit(request, id):
             user = form.cleaned_data['user']
             shop = form.cleaned_data['shop']
             time = form.cleaned_data['time']
+            ticket = form.cleaned_data['ticket']
             #hour = form.cleaned_data['hour']
             #time = int(time) + int(hour) * 60
             if shop == None:
                 shop = shopN
                             
-            WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay = pay, shop=shop, time = time).save()                 
+            WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description, user=user, pay = pay, shop=shop, time = time, ticket = ticket).save()                 
             return HttpResponseRedirect('/workshop/view/')
     else:
-        form = WorkShopForm(instance=a)
+        form = WorkShopForm(instance=a, request = request, wticket_id=a.ticket, client_id=a.client, )
     nday = 7
     clients_list = WorkShop.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client')).order_by('client__id')
     context = {'form': form, 'weblink': 'workshop.html', 'clients_list':clients_list, 'client_name': a.client, 'work': work}
+    context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
 
-def workshop_list(request, year=None, month=None, day=None):
+def workshop_list(request, year=None, month=None, day=None, shop=None):
     now = datetime.datetime.now()
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+    if shop:
+        shopN = Shop.objects.filter(id = shop)
+        shop = int(shop)
+    else:
+        try:
+            shop = int(shopN.id)
+        except:
+            context = {'weblink': 'error_message.html', 'mtext': 'Не правильний id/ip магазину ' + str(request.META['REMOTE_ADDR']), }
+            context.update(custom_proc(request))
+            return render(request, 'index.html', context)
+    
     if year == None:
         year = now.year
     if month == None:
@@ -5835,22 +5849,23 @@ def workshop_list(request, year=None, month=None, day=None):
     
     if day == None:
         day = now.day
-        list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date")
+        list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day, shop=shop).order_by("-date")
     else:
         if day == 'all':
-            list = WorkShop.objects.filter(date__year=year, date__month=month).order_by("-date")
+            list = WorkShop.objects.filter(date__year=year, date__month=month, shop=shop).order_by("-date")
             day = 0
         else:
-            list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date")
+            list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day, shop=shop).order_by("-date")
     sum = 0 
     for item in list:
         sum = sum + item.price
     days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
-    context = {'workshop': list, 'summ':sum, 'sel_year':int(year), 'sel_month':int(month), 'sel_day':int(day), 'month_days': days, 'weblink': 'workshop_list.html', }
+    shops = Shop.objects.all()
+    context = {'workshop': list, 'summ':sum, 'sel_year':int(year), 'sel_month':int(month), 'sel_day':int(day), 'month_days': days, 'weblink': 'workshop_list.html', 'shops': shops, 'shop': shop}
     context.update(custom_proc(request))     
     return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def workshop_delete(request, id=None):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -5866,7 +5881,6 @@ def workshop_delete(request, id=None):
         return HttpResponse("Роботу видалено", content_type="text/plain;charset=UTF-8;")
     else:
         return HttpResponse("Роботу не можливо видалити, можливо це не ваша робота, або ви не залогувались на портал", status=401)
-    #return HttpResponseRedirect('/workshop/view/')
 
 
 # lookup workshop price
