@@ -846,9 +846,12 @@ class WorkShopForm(forms.ModelForm):
         ticket = cleaned_data.get("ticket")
         client = cleaned_data.get("client")
         get_client = Client.objects.get(pk = client.pk)
-        get_ticket = WorkTicket.objects.get(pk = ticket.pk)
-        if get_client.id != get_ticket.client.id:
-            self.add_error('client', "Клієнт не підходить під заявку. Виберіть іншого клієнта або заявку")
+        try:
+            get_ticket = WorkTicket.objects.get(pk = ticket.pk)
+            if get_client.id != get_ticket.client.id:
+                self.add_error('client', "Клієнт не підходить під заявку. Виберіть іншого клієнта або заявку")
+        except:
+            pass
             #self.add_error('client', "Клієнт підходить")
         
 #        print "\nChange field Time!!!" + str(self.has_changed())
