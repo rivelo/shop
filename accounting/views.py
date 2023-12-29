@@ -813,7 +813,9 @@ def bicycle_list(request, year=None, brand=None, percent=None):
 def bicycle_photo(request, id):
     obj = Bicycle.objects.get(id=id)
     #return render_to_response('bicycle_list.html', {'bicycles': list.values_list()})
-    return render_to_response('index.html', {'bicycle': obj, 'weblink': 'bicycle_photo.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'bicycle': obj, 'weblink': 'bicycle_photo.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def bicycle_store_add(request, id=None):
@@ -870,7 +872,14 @@ def bicycle_store_edit(request, id=None):
             return HttpResponseRedirect('/bicycle-store/view/')
     else:
         form = BicycleStoreForm(instance=a)
-    context = {'form': form, 'weblink': 'bicycle_store.html', 'text': 'Редагувати тип'}
+
+    #if auth_group(request.user, "admin") == False:
+    if auth_group(request.user, "seller") == False:
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу для редагування ', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+                
+    context = {'form': form, 'weblink': 'bicycle_store.html', 'text': 'Редагувати тип', 'bikeStore' : a }
     context.update(custom_proc(request)) 
     return render(request, 'index.html', context)
 
@@ -2442,7 +2451,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
         id = request.GET['id']
         try:
             id_res = re.search(r"(?<=rivelo.com.ua/component/)[0-9]+", id).group()
-            list = InvoiceComponentList.objects.filter(Q(catalog__id=id_res)).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')            
+            ist = InvoiceComponentList.objects.filter(Q(catalog__id=id_res)).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').order_by('catalog')            
         except:
             try:
                 re.search('^ +$', id).group()
@@ -2495,10 +2504,10 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
     if auth_group(request.user, 'admin')==True:
         years_range = ClientInvoice.objects.filter(catalog__in=id_list).extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('yyear')
     if sel_year > 0:
-        sale_list = ClientInvoice.objects.filter(catalog__in=id_list, date__year = sel_year).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
+        sale_list = ClientInvoice.objects.filter(catalog__in=id_list, date__year = sel_year).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count')).order_by('catalog')
         #years_range = ClientInvoice.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id'))
     else:
-        sale_list = ClientInvoice.objects.filter(catalog__in=id_list).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count'))
+        sale_list = ClientInvoice.objects.filter(catalog__in=id_list).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count')).order_by('catalog')
 
     cat_list = Catalog.objects.filter(pk__in=id_list).values('type__name_ukr', 'description', 'locality', 'id', 'manufacturer__id', 'manufacturer__name', 'photo_url', 'youtube_url', 'last_update', 'user_update__username')        
 #    arrive_list = Catalog.objects.filter(pk__in = id_list).new_arrival()
@@ -4807,14 +4816,16 @@ def client_invioce_return_add(request, id):
                     res_count = 0
                     sum = ci.sum / ci.count * int(count)
                 if cash == "false":
+                    cash = False
                     ClientCredits(client=ci.client, date=now, price=sum, description="Повернення/обмін: " + str(ci.catalog), cash_type=CashType.objects.get(name=u"Повернення"), user=request.user, shop=shopN).save()
                 if cash == "true":
+                    cash = True
                     ClientCredits(client=ci.client, date=now, price=sum, description="Повернення/обмін: " + str(ci.catalog), cash_type=CashType.objects.get(name=u"Повернення"), user=request.user, shop=shopN).save() 
                     ClientDebts(client=ci.client, date=now, price=sum, description="Повернення/обмін: " + str(ci.catalog), cash=True, user=request.user, shop=shopN).save() 
                 cat = Catalog.objects.get(id = ci.catalog.id)
                 cat.count = cat.count + int(count)
                 cat.save() 
-                ClientReturn(client = ci.client, catalog = ci.catalog, sum = sum, buy_date = ci.date, buy_user = ci.user, user = request.user, date=now, msg=msg, count=count).save()
+                ClientReturn(client = ci.client, catalog = ci.catalog, sum = sum, buy_date = ci.date, buy_user = ci.user, user = request.user, date=now, msg=msg, count=count, cash=cash).save()
                 
                 if res_count == 0:
                     ci.delete()
@@ -8188,7 +8199,7 @@ def save_photo_local(obj, url, d_url, file_path, filename):
         pass
     return obj
 
-
+@csrf_exempt
 def photo_url_get(request, id=None):
     if request.is_ajax():
         if request.method == 'POST':  

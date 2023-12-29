@@ -1,27 +1,73 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+{# <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
 
-<h1>Клієнт: {{client.name}} ({{client.forumname}})</h1>
+<h1><span class="badge badge-dark">Клієнт:</span> 
+{# <span ><a class="badge badge-success" href="/client/result/search/?id={{client.id}}">{{client.name}} ({{client.forumname}})</a></span> #}
+<span ><a class="badge badge-success" href="{% url 'client-card-byid' client.id %}">{{client.name}} ({{client.forumname}})</a></span>
+
+<a href="{% url 'client-edit' client.id %}" class="badge badge-success" title="Редагувати дані клієнта"><i class="material-icons">create</i></a>
+</h1>
 
 
-<br>
+<dl class="row ml-2">
+  <dt class="col-sm-1">Країна:</dt>
+  <dd class="col-sm-11">{{client.country}}</dd>
+
+  <dt class="col-sm-1">Місто:</dt>
+  <dd class="col-sm-11">{{client.city}}</dd>
+
+  <dt class="col-sm-1">Телефон:</dt>
+  <dd class="col-sm-11">
+    <p><a href="tel:{{client.phone}}" class="badge badge-pill badge-light " title="зателефонувати клієнту за номером {{client.phone}}">{{client.phone}}</a></p>
+    <p>{{client.phone1|default_if_none:"---"}}</p> 
+  </dd>
+
+  <dt class="col-sm-1">E-mail:</dt>
+  <dd class="col-sm-11">{{client.email}}</dd>
+
+  <dt class="col-sm-1">Знижка:</dt>
+  <dd class="col-sm-11">{{client.sale}} %</dd>
+
+  <dt class="col-sm-1">Примітки:</dt>
+  <dd class="col-sm-11">{{client.descrioption}} %</dd>
+
+  <dt class="col-sm-2">Сума з накопиченням:</dt>
+  <dd class="col-sm-10"><b>{{client.summ}} грн.</b></dd>
+
+
+</dl>
+
+{% comment %}
+
+<div class="ml-3">
+<p>
 Країна: {{client.country}}
+</p>
+<p>
+<b>Місто:</b> {{client.city}}
+</p>
+<p class="fs-1">
+<b>Телефон:</b> <a href="tel:{{client.phone}}" class="badge badge-pill badge-light ">{{client.phone}}</a>
 <br>
-Місто: {{client.city}}
-
-<br>
-Телефон: {{client.phone}}
-<br>
-E-mail: {{client.email}}
-
-<br>
+<b>Телефон:</b> {{client.phone1|default_if_none:"---"}}www 
+</p>
+<p>
+<b>E-mail:</b> {{client.email}}
+</p>
+<p><b>Знижка:</b> {{client.sale}} %</p>
+<p>
 <b>Опис:</b>
 {{Client.description}}
-<br>
+</p>
+<p>
 <b>Сума з накопиченням: {{client.summ}} грн.</b>
+</p>
 
-<br>
+</div>
+
+{% endcomment %}
+
 <h2>
 <a href="/client/result/search/?id={{client.id}}" class="badge badge-info">Операції по клієнту</a>
 </h2>

@@ -19,22 +19,129 @@ $(document).ready(function() {
 })
 </script>
 
+{% load poll_extras %}
 
 <body>
 
-<h1><p class="badge badge-success">Додати <a href="{% url 'bicycle-photo' form.model.value %}" class="badge badge-light">{{bike}}</a> в магазин</p></h1>
-<form action="." method="POST" enctype="multipart/form-data">
-<table>
-	{{ form.as_ul }}
-</table>
-<p><input type="submit" value="Save"></p>
+<h1><p class="badge badge-success">Додати <a href="{% url 'bicycle-photo' form.model.value %}" class="badge badge-light">{{bikeStore}}</a> в магазин</p></h1>
+
+<form action="." method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+<div class="form-row">
+
+<div class="col-md-12 mb-3">
+      <label for="validationTooltip01">Модель</label>
+{#      <input type="text" class="form-control" id="validationTooltip01" value="Mark" required> #}
+		{{form.model|add_attr:"class:form-control"}}
+      <div class="valid-tooltip">
+        Looks good!
+      </div>
+</div>
+    <div class="col-md-6 mb-3">
+      <label for="validationTooltip02">Серійний номер</label>
+{#      <input type="text" class="form-control" id="validationTooltip02" value="Otto" required> #}
+		{{form.serial_number|add_attr:"class:form-control"}}
+      <div class="valid-tooltip">
+        Looks good!
+      </div>
+    </div>
+    <div class="col-md-6 mb-3">
+      <label for="validationTooltip02">Розмір рами</label>
+{#      <input type="text" class="form-control" id="validationTooltip02" value="Otto" required> #}
+		{{form.size|add_attr:"class:form-control"}}
+      <div class="valid-tooltip">
+        Looks good!
+      </div>
+    </div>
+    
+  </div>
+
+{% if request.user|has_group:"admin" %}
+<div class="form-row">
+    <div class="col-md-6 mb-3">
+      <label for="validationTooltip03">Ціна</label>
+      {{form.price|add_attr:"class:form-control"}}
+{#       <input type="text" class="form-control" id="validationTooltip03" required> #}
+      <div class="invalid-tooltip">
+        Please provide a valid city.
+      </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+      <label for="validationTooltip04">Валюта</label>
+		{{form.currency|add_attr:"class:form-control"}}
+
+      <div class="invalid-tooltip">
+        Please select a valid state.
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <label for="validationTooltip05">Кількість</label>
+      		{{form.count|add_attr:"class:form-control"}}
+{#      <input type="text" class="form-control" id="validationTooltip05" required> #}
+      <div class="invalid-tooltip">
+        Please provide a valid zip.
+      </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="form-row">
+<div class="col-md-12 mb-3">
+      <label for="validationTooltip01">Примітки</label>
+{#      <input type="text" class="form-control" id="validationTooltip01" value="Mark" required> #}
+		{{form.description|add_attr:"class:form-control"}}
+      <div class="valid-tooltip">
+        Looks good!
+      </div>
+</div>
+</div>
+
+<div class="form-row">
+
+    <div class="col-md-3 mb-3">
+      <label for="validationTooltip04">Магазин</label>
+		{{form.shop|add_attr:"class:form-control"}}
+
+      <div class="invalid-tooltip">
+        Please select a valid state.
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <label for="validationTooltip05">Дата</label>
+      		{{form.date|add_attr:"class:form-control"}}
+{#      <input type="text" class="form-control" id="validationTooltip05" required> #}
+      <div class="invalid-tooltip">
+        Please provide a valid zip.
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label for="validationTooltip03">Реалізація</label>
+      {{form.realization|add_attr:"class:form-control"}}
+{#       <input type="text" class="form-control" id="validationTooltip03" required> #}
+      <div class="invalid-tooltip">
+        Please provide a valid city.
+      </div>
+    </div>
+
+</div>
+
+<div class="form-row">	
+
+
+{# <p><input type="submit" value="Save"></p> #}
+ <button type="submit" class="btn btn-primary w-100">Зберегти</button>
+
+{#{ form.as_table }#}
+
+</div>
 </form>
 
 
 
 
 <h1>
-<button type="submit" class="badge badge-dark w-100"><b>Ціна: {{bike.price}} грн.</b></button>
+<button type="submit" class="badge badge-dark w-100"><b>Ціна: {{bikeStore.model.price}} грн.</b></button>
 <a href="/bicycle-store/view/" class="badge badge-info w-100">Велосипеди в магазині</a>
 </h1>
 

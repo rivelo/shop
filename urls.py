@@ -258,16 +258,17 @@ urlpatterns = [
     url(r'^catalog/search/$', catalog.catalog_search_by_ids), # POST AJAX
 
     # Client
-    url(r'^client/(?P<id>\d+)$', catalog.client_data),
+    url(r'^client/(?P<id>\d+)$', catalog.client_data, name="client-data"),
     url(r'^clients/balance/$', catalog.client_balance_list),
     url(r'^client/add/$', catalog.client_add),
-    url(r'^client/edit/(?P<id>\d+)$', catalog.client_edit),
+    url(r'^client/edit/(?P<id>\d+)$', catalog.client_edit, name="client-edit"),
     url(r'^client/view/$', catalog.client_list),
     url(r'^client/email/view/$', catalog.client_email_list),
     url(r'^client/delete/(?P<id>\d+)$', catalog.client_delete),
     url(r'^client/search/$', catalog.client_search),
     url(r'^client/search/result/$', catalog.client_search_result),
     url(r'^client/result/search/$', catalog.client_result),
+    url(r'^client/(?P<id>\d+)/card/$', catalog.client_result, name="client-card-byid"),
     url(r'^client/lookup/$', catalog.client_lookup),
     url(r'^client/lookup/byid/$', catalog.client_lookup_by_id),
     url(r'^client/join/$', catalog.client_join),
