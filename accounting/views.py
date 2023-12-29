@@ -5600,7 +5600,10 @@ def workticket_edit(request, id=None):
                 obj.status = WorkStatus.objects.get(pk = p)
                 obj.end_date = datetime.date.today()
                 obj.user = request.user
-                obj.history = obj.history +  "[" + str(request.user) + "] - [" + str(obj.date) + "] - " +  obj.status.name + " - change Ticket Status\n" 
+                print ("\nUSER = " + str(request.user))
+                print ("\nOBJECT = " + str(obj.date) + " - " + obj.status.name)
+                hist = (obj.history or "")
+                obj.history = hist +  "[" + str(request.user) + "] - [" + str(obj.date) + "] - " +  obj.status.name + " - change Ticket Status\n" 
                 obj.save() 
                 c = WorkTicket.objects.filter(pk = id).values_list('status__name', flat=True)
                 return HttpResponse(c)

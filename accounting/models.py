@@ -1341,7 +1341,7 @@ class Bicycle_Sale(models.Model):
         return u'%s' % (self.model)
 
     class Meta:
-        ordering = ["client", "model", "date"]
+        ordering = ["-date", "client", "model", ]
 
         
 # Bicycle ORDER for client
