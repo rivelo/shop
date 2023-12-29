@@ -10,7 +10,11 @@
 {% load template_math %}    
 
 {% if dinvoice.origin_id %}
-    <h1><span class="badge badge-success">Список наявного товару по накладній: </span> <span class="badge badge-info">{{dinvoice.origin_id}} ({{dinvoice.company}})</span> <a href="{% url 'dealear_invoice_set_status' dinvoice.id %}" ><span class="badge badge-success">Status - {{status_delivery}}</span></a></h1>
+    <h1>
+    <span class="badge badge-success">Список наявного товару по накладній: </span> <span class="badge badge-info">{{dinvoice.origin_id}} ({{dinvoice.company}})</span>
+     <a href="{% url 'dealear_invoice_set_status' dinvoice.id %}" title="Змінити статус ОТРИМАННЯ"><span class="badge 
+     {% if status_delivery %} badge-success {% else %} badge-warning {% endif %}">Status - {{status_delivery}}</span></a>
+    </h1>
 {% else %}
 	<h1>Надходження товару: <br> [{{list.0.catalog.ids}} / {{list.0.catalog.dealer_code}}] {{list.0.catalog.name}} </h1>
 {% endif %}
@@ -67,7 +71,7 @@
 	<td align="center">       
 	<a href="/client/invoice/catalog/{{type.catalog.id}}/add">{{type.count}} </a>
 	</td>
-	<td align="center"><abbr title="{{type.user.username}}"> {{type.rcount}}  </abbr></td>
+	<td align="center" title="{{type.user.username}} - {{type.shop}}"><abbr title="{{type.user.username}} - {{type.shop}}"> {{type.rcount}}  </abbr></td>
 	<td>       
 	{{type.catalog.price}}
 	</td>
@@ -154,7 +158,7 @@
 	<td align="center">       
 	<a href="/client/invoice/catalog/{{type.catalog.id}}/add">{{type.count}} </a>
 	</td>
-	<td align="center"><abbr title="{{type.user.username}}"> {{type.rcount}}  </abbr></td>
+	<td align="center"><abbr title="{{type.user.username}} - {{type.shop}}"> {{type.rcount}} </abbr></td>
 	<td>       
 	{{type.catalog.price}}
 	</td>

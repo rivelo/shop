@@ -648,6 +648,7 @@ class ClientInvoiceForm(forms.ModelForm):
     length = forms.FloatField(initial=0, label="Довжина", widget=forms.HiddenInput())
     #user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True), required=True, label='Користувач')
     user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True), required=True, label='Користувач')
+    shop = forms.ModelChoiceField(queryset = Shop.objects.all(), required=False, label='Магазин')
 
     def __init__(self, *args, **kwargs):
         cid = kwargs.pop('catalog_id', None)

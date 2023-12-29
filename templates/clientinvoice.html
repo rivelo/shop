@@ -434,7 +434,7 @@ $('[data-toggle="tooltip"]').tooltip();
   <span class="input-group-text font-weight-bold">Користувач</span>
   </div>
 	{{form.user|add_attr:"class:form-control"}}
-
+	{{form.shop|add_attr:"class:form-control"}}
   <div class="input-group-append">
 {#    <button class="btn btn-outline-secondary" type="button">Оплатити готівкою</button> #}
     <button class="btn btn-outline-success" type="button" id="bpay" onclick="payed()" value="Оплатити">Оплатити готівкою</button>
@@ -444,7 +444,7 @@ $('[data-toggle="tooltip"]').tooltip();
 </tr>      
 
 <tr>
-{{ form.catalog }}
+{{form.catalog}}
 {{form.pay}}
 {{form.length}}
 </tr>

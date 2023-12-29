@@ -1581,15 +1581,15 @@ class ShopDailySales(models.Model):
     price = models.FloatField() #В касі на кінець дня
     description = models.TextField(blank=True, null=True)
     user = models.ForeignKey(User, blank=False, null=False)
-    cash = models.FloatField() #Готівка
-    tcash = models.FloatField() #Термінал
-    ocash = models.FloatField() #Взято з каси
+    cash = models.FloatField(verbose_name = 'Готівка') #Готівка
+    tcash = models.FloatField(verbose_name = 'Термінал') #Термінал
+    ocash = models.FloatField(verbose_name = 'Видано з каси') #Взято з каси
     shop = models.ForeignKey(Shop, blank=True, null=True)
     #history
     #
 
     def day_sale(self):
-        r = ShopDailySales.objects.filter(date__lt = self.date).latest('date')
+        r = ShopDailySales.objects.filter(date__lt = self.date, shop = self.shop).latest('date')
         res = r.price + self.cash - self.price
         return int(round(res, 0))
     

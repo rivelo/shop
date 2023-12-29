@@ -275,7 +275,7 @@ urlpatterns = [
     url(r'^client/(?P<id>\d+)/sendcard/', catalog.client_card_sendemail),
     
 #delete    url(r'^client/result/$', catalog.search_client_id'),
-    url(r'^client/invoice/view/$', catalog.client_invoice_view),
+    url(r'^client/invoice/view/$', catalog.client_invoice_view, name="clientinvoice-view"),
     url(r'^client/invoice/view/notpay/$', catalog.client_invoice_view, {'notpay': True}, name="clientinvoice_now_notpay"),
     url(r'^client/invoice/set/$', catalog.client_invoice_set),
     url(r'^client/invoice/(?P<id>\d+)/edit/$', catalog.client_invoice_edit, name="client_invoice_edit"),

@@ -148,6 +148,20 @@ def get_shop_from_ip(ip_addr):
         return "----"
 
 
+def get_shop_from_request(request):
+    ip_addr = request.META['REMOTE_ADDR']
+    ip = '.'.join(ip_addr.split('.')[0:3])
+    dict_shop = Shop.objects.filter( ip_addr__contains = ip )
+    if dict_shop.first():
+        return dict_shop.first()
+    else:
+        context = {'weblink': 'error_message.html', 'mtext': 'Магазин не ідентифікований у таблиці магазинів', }
+        context.update(custom_proc(request))
+        list_res = (request, 'index.html', context)
+        return list_res
+        #return render(request, 'index.html', context)
+
+
 def current_url(request):
     return request.get_full_path()
 
@@ -2127,7 +2141,9 @@ def dealer_invoice_edit(request, id):
             return HttpResponseRedirect('/dealer/invoice/year/'+str(yyy)+'/month/'+str(mmm)+'/view/')
     else:
         form = DealerInvoiceForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'dealer_invoice.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'dealer_invoice.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
  
 def dealer_invoice_del(request, id):
@@ -2337,7 +2353,7 @@ def dealer_invoice_search_result(request):
     return render_to_response('index.html', {'dealer_invoice': list, 'exchange': exchange, 'exchange_d': exchange_d, 'year_list' :yearlist, 'search_text': num, 'company_list': company_list, 'exchange_e': exchange_e, 'summ': summ, 'summ_debt': summ_debt, 'sel_year':now.year, 'weblink': 'dealer_invoice_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
 
 
-
+@csrf_exempt
 def dealer_invoice_set(request, id = None):
     if auth_group(request.user, 'admin')==False:
         #return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain;charset=UTF-8;charset=UTF-8")
@@ -2545,7 +2561,6 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
 #            element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
 #        if element['balance'] == 0:
 #            print "Element = " + str(element)
-
     
 # update count field in catalog table            
         #upd = Catalog.objects.get(pk = element['catalog'])
@@ -2564,7 +2579,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
 #    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
     return render(request, 'index.html', vars)
 
-
+@csrf_exempt
 def invoicecomponent_print(request):
     list = None
     id_list=[]
@@ -2578,12 +2593,9 @@ def invoicecomponent_print(request):
     else:
         return HttpResponse("Не вибрано жодного товару", content_type="text/plain;charset=UTF-8;")
     response = HttpResponse()
-    
 #    result_str = u'Назва: '
-        
 #    response.write(u"<table>")
 #    response.write(u"<tr> <td>Артикул</td> <td>Виробник</td> <td>Назва</td> <td>Ціна</td> <td>Знижка %</td> <td>Нова ціна</td> </tr>")
-
     for i in list:
 #        response.write("<tr>")
         new_price = float(i['price']) / 100.0 * (100 - int(i['sale']))
@@ -2593,17 +2605,16 @@ def invoicecomponent_print(request):
         result_str = result_str + u'Товар: '
         result_str =  result_str + "[" + i['ids'] + "] ("  + i['manufacturer__name']+ ") " + i['name'] + "\n"
         if int(i['sale']) == 0:
-            result_str = result_str + u"Ціна: " + str(i['price']) + "\n"
+            result_str = result_str + u"Ціна: " + str(i['price']) + u" грн. \n"
         else:
-            result_str = result_str + u"Ціна: " + str(i['price']) + "\n"    
-            result_str = result_str + u"Нова ціна: " + str(new_price) + "\n" 
+            result_str = result_str + u"Ціна: " + str(i['price']) + u" грн. \n"    
+            result_str = result_str + u"Нова ціна: " + str(new_price) + u" грн. \n" 
         result_str = result_str + '\n'
     #response.write("</table>")
     response.write(result_str)
 #    response = response.replace("<", "[")
 #    response = response.replace(">", "]")
     return response
-#    return render_to_response("POST done!!!")
 
 
 def invoicecomponent_manufacturer_html(request, mid):
@@ -2816,7 +2827,8 @@ def invoice_id_list(request, id=None, limit=0):
     if scount == rcount:
         status_delivery = True
     dinvoice = DealerInvoice.objects.get(id=id)    
-    context = {'list': list, 'dinvoice':dinvoice, 'allpricesum':psum, 'alloptsum':optsum, 'ua_optsum':uaoptsum, 'countsum': scount, 'status_delivery': status_delivery, 'weblink': 'invoice_component_report.html'}
+    invoice_status_delivery =  dinvoice.received
+    context = {'list': list, 'dinvoice':dinvoice, 'allpricesum':psum, 'alloptsum':optsum, 'ua_optsum':uaoptsum, 'countsum': scount, 'status_delivery': invoice_status_delivery, 'weblink': 'invoice_component_report.html'}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
@@ -4402,6 +4414,7 @@ def client_invoice_shorturl(request, cid=None):
 
 @csrf_exempt
 def client_invoice(request, cid=None, id=None):
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
     cat = Catalog.objects.get(id = cid)
     if not request.user.is_authenticated():
         context = {'weblink': 'guestinvoice.html', 'cat': cat}
@@ -4432,6 +4445,7 @@ def client_invoice(request, cid=None, id=None):
             date = form.cleaned_data['date']
             description = form.cleaned_data['description']
             clen = form.cleaned_data['length']
+            shop = form.cleaned_data['shop']            
             if (clen is not None) and (cat.type.pk == 13):
                 description = description + '\nlength:' + str(clen)
                 if cat.length is not None:
@@ -4441,7 +4455,7 @@ def client_invoice(request, cid=None, id=None):
             user_id = form.cleaned_data['user']
             if request.user.is_authenticated():
                 user = user_id
-            ClientInvoice(client=client, catalog=catalog, count=count, sum=sum, price=price, currency=currency, sale=sale, pay=pay, date=date, description=description, user=user).save()
+            ClientInvoice(client=client, catalog=catalog, count=count, sum=sum, price=price, currency=currency, sale=sale, pay=pay, date=date, description=description, user=user, shop=shopN).save()
             
             cat.count = cat.count - count
             cat.save()
@@ -4485,8 +4499,6 @@ def client_invoice_edit(request, id):
     
     now = datetime.datetime.now()
     old_count = a.count
-#    print "OLD count = " + str(old_count)
-#    old_length = 0
     cat_id = a.catalog.id
     cat = Catalog.objects.get(id = cat_id)
     if request.method == 'POST':
@@ -4502,6 +4514,8 @@ def client_invoice_edit(request, id):
             pay = form.cleaned_data['pay']
             date = form.cleaned_data['date']
             clen = form.cleaned_data['length']
+            shop = form.cleaned_data['shop']
+            user = form.cleaned_data['user']
             description = form.cleaned_data['description']
             if (clen is not None) and (cat.type.pk == 13):
                 if a.description.find('length:')>=0:
@@ -4511,18 +4525,19 @@ def client_invoice_edit(request, id):
                 else:
                     cat.length = 0 - float(old_length) + float(clen)
                 description = description + '\nlength:' + str(clen)
-#            print "NEW count = " + str(count)
-#            print "CAT count = " + str(cat.count)
-#            if old_count > count:
-                #cat.count = cat.count - (old_count - count)*-1
             cat.count = cat.count + (old_count - count)
-#            else: 
-#                cat.count = cat.count - (old_count - count)
             cat.save()
-            user = a.user
-            if request.user.is_authenticated():
+            inst_user = a.user
+            print "\nUSER EQUAL = " + str(a.user.id)
+            print "\nUSER Form = " + str(user.id)
+            print "\nUSER Request = " + str(request.user.id)
+            
+            if (request.user.is_authenticated()) and (request.user.id == a.user.id):
+                print "\nUSER EQUAL = " + a.user
+                print "\nUSER Form = " + user
+            else:
                 user = request.user
-            ClientInvoice(id=id, client=client, catalog=catalog, count=count, sum=sum, price=price, currency=currency, sale=sale, pay=pay, date=date, description=description, user=user).save()
+            ClientInvoice(id=id, client=client, catalog=catalog, count=count, sum=sum, price=price, currency=currency, sale=sale, pay=pay, date=date, description=description, user=user, shop=shop).save()
 
             if pay == sum:
                 desc = catalog.name
@@ -4543,7 +4558,7 @@ def client_invoice_edit(request, id):
         b_len = True
         if a.description.find('length:')>=0:
             dlen = a.description.split('\n')[-1].split(':')[1]
-    clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client'))
+    clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client')).order_by('client__id')
     cat_obj = cat.get_discount_item()    
     context = {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len, 'desc_len':dlen,}
     context.update(custom_proc(request))     
@@ -4626,14 +4641,12 @@ def client_invoice_delete(request, id=None):
     return HttpResponseRedirect('/client/invoice/view/')
 
 
-def client_invoice_view(request, month=None, year=None, day=None, id=None, notpay=False):
+def client_invoice_view(request, month=None, year=None, day=None, id=None, notpay=False, shop=None):
     # upd = ClientInvoice.objects.filter(sale = None).update(sale=0) # update recors with sale = 0
-    
     if year == None:
         year = datetime.datetime.now().year
     if month == None:
         month = datetime.datetime.now().month
-
     if day == None:
         day = datetime.datetime.now().day
 #        list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date", "-id").values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
@@ -5600,8 +5613,6 @@ def workticket_edit(request, id=None):
                 obj.status = WorkStatus.objects.get(pk = p)
                 obj.end_date = datetime.date.today()
                 obj.user = request.user
-                print ("\nUSER = " + str(request.user))
-                print ("\nOBJECT = " + str(obj.date) + " - " + obj.status.name)
                 hist = (obj.history or "")
                 obj.history = hist +  "[" + str(request.user) + "] - [" + str(obj.date) + "] - " +  obj.status.name + " - change Ticket Status\n" 
                 obj.save() 
@@ -5956,7 +5967,8 @@ def shopdailysales_add(request, id=None):
     if id != None :
         shopN = Shop.objects.get(id = id)
     else: 
-        shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+        #shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+        shopN = get_shop_from_ip('192.168.1.7')
     sum_casa = shopN.shop_cash_sum_by_day()
     if request.method == 'POST':
         form = ShopDailySalesForm(request.POST)
@@ -6158,7 +6170,12 @@ def shopdailysales_list(request, month=None, year=None, shop_id=None):
     shopN = None
     shoplist = None
     if shop_id == None:
-        shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+        #shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+        shopN = get_shop_from_request(request)
+        try:
+            return render(shopN[0], shopN[1], shopN[2]) 
+        except: #Shop.DoesNotExist:
+            pass
     else:
         shopN = Shop.objects.get(pk = shop_id )
     
@@ -8972,6 +8989,7 @@ def catalog_join(request,id1=None, id2=None, ids=None):
     return HttpResponseRedirect('/invoice/search/result/?name=&id='+c1.ids)
 
 
+@csrf_exempt
 def catalog_sale_edit(request, ids=None):
     if request.is_ajax():
         if request.method == 'POST':  

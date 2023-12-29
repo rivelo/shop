@@ -219,6 +219,61 @@ cursor: pointer;
 {% load poll_extras %}
         
 <script type="text/javascript">
+
+
+function copy2clipboard() {
+	  var copyText = document.getElementById("print_container").innerText;
+	  var copyTextInput = document.getElementById("inputLink");
+	  copyTextInput.value = copyText;
+
+	    /* Select the text field */
+	    copyTextInput.select();
+	    copyTextInput.setSelectionRange(0, 99999); /*For mobile devices*/
+
+	    /* Copy the text inside the text field */
+	    document.execCommand("copy");
+	    console.log("copied!\n" + copyTextInput.value);	  
+
+/*	  var elem = document.createElement("textarea_clipboard");
+	  document.body.appendChild(elem);
+	  elem.value = copyText; */
+//	  copyText.select();  
+//	  document.execCommand("copy"); 
+	  //document.body.removeChild(elem);
+	  alert("Copied the text");
+	}
+
+
+"use strict";
+
+function copyToClipboard(elem) {
+  var target = elem;
+  // select the content
+  var currentFocus = document.activeElement;
+  target.focus();
+  target.setSelectionRange(0, target.value.length);
+  // copy the selection
+  var succeed;
+  try {
+    succeed = document.execCommand("copy");
+  } catch (e) {
+    console.warn(e);
+    succeed = false;
+  }
+  // Restore original focus
+  if (currentFocus && typeof currentFocus.focus === "function") {
+    currentFocus.focus();
+  }
+  if (succeed) {
+	  alert("Copied the text");
+/*    $(".copied").animate({ top: -25, opacity: 0 }, 700, function() {
+      $(this).css({ top: 0, opacity: 1 });
+    });*/
+  }
+  return succeed;
+}
+
+
 jQuery(document).ready(function ($) {
 	
 	$("div.price_tag").hide();		
@@ -267,6 +322,13 @@ function update_enddate(pk, date) {
 	    }
 	 });
 };
+
+
+
+$("#copyButton, #copyTarget").on("click", function() {
+  copyToClipboard(document.getElementById("copyTarget"));
+});
+
 
 });
 
@@ -1501,10 +1563,13 @@ $("body").on('click', '#print_phpbb', function() {
 //    alert( "Data Loaded: " + data );
 		//data = data.replace(/</g, "[");
 		//data = data.replace(/>/g, "]");
+		//data = data.replace(/\n/g, "<br>");
+		data_plaintext = data
 		data = data.replace(/\n/g, "<br>");
 		console.log("replace = " + data );	
     $("#dialog_print").dialog("open");
     $("#print_container").html(data);
+    document.getElementById("copyTarget").value = data_plaintext
   	});
 
 });
@@ -1854,8 +1919,18 @@ function show_tr_year(obj){
 
 <!-- Dialog print PHPbb -->
 	<div id="dialog_print" title="Текст для повідомлень">
-	<div id="print_container">
+
+	{# <div id="print_container"> #}
+	<div id="print_container" onclick="copy2clipboard()" hidden>
 	</div>
+	<input type="text" id="inputLink" value="" style="display:none" >
+
+<textarea id="copyTarget" class="w-100">
+
+</textarea>
+	<span id="copyButton" class="input-group-addon btn" title="Click to copy">
+      <i class="material-icons">content_copy</i> 
+    </span>
 	</div>
 
 
