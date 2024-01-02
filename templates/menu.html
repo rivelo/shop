@@ -303,14 +303,15 @@ $(document).ready(function() {
 		
 		<a class="dropdown-item" href="{% url 'shop-sale-day-add' %}"><i class="material-icons">query_builder</i> Денна каса</a>
 		<a class="dropdown-item" href="{% url 'shop_dailysales_monthly_cur' %}">Денна каса (за місяць)</a>
+{% if shop_name == 'Кавказька' %}
 		<div class="dropdown-divider"></div>
-	 			<a class="dropdown-item" href="/casa/1/view/">Сума в касовому Кавказька</a>
+	 			<a class="dropdown-item" href="/casa/1/view/">Сума в касовому Кавказька {{shop_name}}</a>
 	 			<a class="dropdown-item" href="{% url 'rro_xreport' %}">X-звіт Кавказька</a>
 {% if request.user|has_group:"manager" %}
 			<div class="dropdown-divider"></div>
 			<a class="dropdown-item" href="/casa/1/zreport/" onclick="return confirm('Виконати Z звіт в магазині на вул.Кавказька?')">Z звіт РРО №1</a>
 {% endif %} 			
-		
+{% endif %}		
 		
 		
 {% comment %}		

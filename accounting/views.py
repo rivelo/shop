@@ -5967,8 +5967,8 @@ def shopdailysales_add(request, id=None):
     if id != None :
         shopN = Shop.objects.get(id = id)
     else: 
-        #shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
-        shopN = get_shop_from_ip('192.168.1.7')
+        shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+        #shopN = get_shop_from_ip('192.168.1.7')
     sum_casa = shopN.shop_cash_sum_by_day()
     if request.method == 'POST':
         form = ShopDailySalesForm(request.POST)
@@ -7579,8 +7579,12 @@ def user_invoice_report(request, month=None, year=None, day=None, user_id=None):
 
     if request.user.is_authenticated() and user_id == None:
         user_id = request.user.id
-    if user_id == '0':
-        user_id = None
+    if user_id == None: #'0':
+#        user_id = None
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу. Авторизуйтесь на порталі.', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+        
 #    else:
 #        user_id = None
     
@@ -7622,8 +7626,9 @@ def user_invoice_report(request, month=None, year=None, day=None, user_id=None):
         user = User.objects.get(id=user_id)
     except:
         user = None
-            
-    return render_to_response('index.html', {'sel_user':user, 'sel_year':year, 'sel_month':month, 'sel_day':day, 'month_days':days, 'buycomponents': cinvoices, 'sumall':psum, 'sum_salary':psum*0.05, 'countall':scount, 'weblink': 'report_clientinvoice_byuser.html', 'view': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'sel_user':user, 'sel_year':year, 'sel_month':month, 'sel_day':day, 'month_days':days, 'buycomponents': cinvoices, 'sumall':psum, 'sum_salary':psum*0.05, 'countall':scount, 'weblink': 'report_clientinvoice_byuser.html', 'view': True, }
+    context.update(custom_proc(request))        
+    return render(request, 'index.html', context)
 
 
 
@@ -7714,11 +7719,20 @@ def user_workshop_report(request,  month=None, year=None, day=None, user_id=None
         cinvoices = paginator.page(paginator.num_pages)
 
     user = User.objects.get(id=user_id)
-            
-    return render_to_response('index.html', {'sel_user':user, 'sel_year':year, 'sel_month':month, 'sel_day':day, 'month_days':days, 'workshop': cinvoices, 'sumall':psum, 'sum_salary':psum*0.4, 'countall':scount, 'weblink': 'report_workshop_byuser.html', 'view': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'sel_user':user, 'sel_year':year, 'sel_month':month, 'sel_day':day, 'month_days':days, 'workshop': cinvoices, 'sumall':psum, 'sum_salary':psum*0.4, 'countall':scount, 'weblink': 'report_workshop_byuser.html', 'view': True,}
+    context.update(custom_proc(request))         
+    return render(request, 'index.html', context)
 
+
+from django.db.models.functions import Extract
+from django.db.models.functions import ExtractYear
 
 def all_user_salary_report(request, month=None, year=None, day=None, user_id=None):
+    if auth_group(request.user, "admin") == False:
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу. Зверніться до адміністратора. ', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+    
     qwsum = None
     res = None
     l = 0
@@ -7731,17 +7745,17 @@ def all_user_salary_report(request, month=None, year=None, day=None, user_id=Non
 
     if day == None:
         day = datetime.datetime.now().day
-        w_list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username', 'user').annotate(total_price=Sum('price'))
-        c_list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum'))
-        b_list = Bicycle_Sale.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum'))
+        w_list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username',).annotate(total_price=Sum('price')).order_by('user')
+        c_list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum')).order_by('user')
+        b_list = Bicycle_Sale.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum')).order_by('user')
     else:
         if day == 'all':
-            w_list = WorkShop.objects.filter(date__year=year, date__month=month).values('user', 'user__username', 'user').annotate(total_price=Sum('price'))
-            c_list = ClientInvoice.objects.filter(date__year=year, date__month=month).values('user', 'user__username').annotate(total_price=Sum('sum'))
-            b_list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).values('user', 'user__username').annotate(total_price=Sum('sum'))
+            w_list = WorkShop.objects.filter(date__year=year, date__month=month).values('user', 'user__username', ).annotate(total_price=Sum('price')).order_by('user')
+            c_list = ClientInvoice.objects.filter(date__year=year, date__month=month).values('user', 'user__username').annotate(total_price=Sum('sum')).order_by('user')
+            b_list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).values('user', 'user__username').annotate(total_price=Sum('sum')).order_by('user')
             qwsum = WorkShop.objects.filter(date__year=year, date__month=month, user__in = users).values('user', 'user__username', 'user').annotate(total_price=Sum('price')).order_by('user')
-            qcsum = ClientInvoice.objects.filter(date__year=year, date__month=month, user__in = users).values('user', 'user__username').annotate(total_price=Sum('sum'))
-            qbsum = Bicycle_Sale.objects.filter(date__year=year, date__month=month, user__in = users).values('user', 'user__username').annotate(total_price=Sum('sum'))
+            qcsum = ClientInvoice.objects.filter(date__year=year, date__month=month, user__in = users).values('user', 'user__username').annotate(total_price=Sum('sum')).order_by('user')
+            qbsum = Bicycle_Sale.objects.filter(date__year=year, date__month=month, user__in = users).values('user', 'user__username').annotate(total_price=Sum('sum')).order_by('user')
             qbsum1 = Bicycle_Sale.objects.filter(date__year=year, date__month=month, user__in = users).exclude(user=4).aggregate(total_price=Sum('sum'))
             
             d = {}
@@ -7755,7 +7769,8 @@ def all_user_salary_report(request, month=None, year=None, day=None, user_id=Non
                 t.append(qbsum.filter(user = u.id))
                 dic['bicycle'] =  qbsum.filter(user = u.id)
                 if dic['workshop'].count() == 0 and dic['client_inv'].count() == 0 and dic['bicycle'].count() == 0:
-                    print 'EMPTY ' +  str(type(dic['workshop'])) + str(dic['client_inv']) + str(dic['bicycle'])
+                    #print 'EMPTY ' +  str(type(dic['workshop'])) + str(dic['client_inv']) + str(dic['bicycle'])
+                    pass
                 else:
                     #print 'DICT = ' + str(dic['workshop'].count()) + str(dic['client_inv'].count()) + str(dic['bicycle'].count())
                     d[u.id] = dic
@@ -7766,13 +7781,9 @@ def all_user_salary_report(request, month=None, year=None, day=None, user_id=Non
             except:
                 qbsum1 = 0
         else:
-            w_list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username', 'user').annotate(total_price=Sum('price'))
-            c_list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum'))
-            b_list = Bicycle_Sale.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum'))
-
-#    user_list = User.objects.filter(is_active = True)
-#    request.user.points_set.all()
-
+            w_list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username', 'user').annotate(total_price=Sum('price')).order_by('user')
+            c_list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum')).order_by('user')
+            b_list = Bicycle_Sale.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum')).order_by('user')
     bsum = 0
     csum = 0
     wsum = 0
@@ -7782,8 +7793,12 @@ def all_user_salary_report(request, month=None, year=None, day=None, user_id=Non
         csum = csum + c['total_price']
     for w in w_list:
         wsum = wsum + w['total_price']
-    
-    return render_to_response('index.html', {'sel_year':year, 'sel_month':month, 'workshop':w_list, 'cinvoice': c_list, 'bicycle_list':b_list, 'qwsum': qbsum1,  'll':l, 'res': res, 'bike_sum': bsum, 'c_sum': csum, 'w_sum': wsum, 'weblink': 'report_salary_all_user.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    year_list = Bicycle_Sale.objects.values('date').annotate(count=Count('pk'))
+
+    #annotate(year=Extract('date','year')).values('year').annotate(total_bike=Count('year')).order_by('date')  #all().values('model', 'date').annotate(total_bike=Count('date')).order_by('date__year')
+    context = {'sel_year':year, 'sel_month':int(month), 'workshop':w_list, 'cinvoice': c_list, 'bicycle_list':b_list, 'qwsum': qbsum1,  'll':l, 'res': res, 'bike_sum': bsum, 'c_sum': csum, 'w_sum': wsum, 'weblink': 'report_salary_all_user.html', 'year_list': year_list}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def rent_add(request):
@@ -8515,7 +8530,7 @@ def catalog_set_type(request):
     return HttpResponse(simplejson.dumps(list(cat)), content_type="application/json")
 #    return HttpResponse(cat[0][0], content_type="text/plain;charset=UTF-8;")
 
-
+@csrf_exempt
 def bicycle_price_set(request):
     if request.is_ajax():
         if request.method == 'POST':  

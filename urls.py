@@ -474,12 +474,12 @@ urlpatterns = [
 
     url(r'^report/workshop/byuser/$', catalog.user_workshop_report, {'day':"all"}),
     url(r'^report/workshop/(?P<user_id>\d+)/byuser/$', catalog.user_workshop_report, {'day':"all"}, name='report_workshop_by_user_currentmonth'),
-    url(r'^report/workshop/byuser/year/(?P<year>\d+)/month/(?P<month>\d+)/$', catalog.user_workshop_report, {'day':"all"}),
+    url(r'^report/workshop/byuser/year/(?P<year>\d+)/month/(?P<month>\d+)/$', catalog.user_workshop_report, {'day':"all"}, name='report_user_workshop_year_month'),
     url(r'^report/workshop/byuser/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/$', catalog.user_workshop_report),
     url(r'^report/workshop/(?P<user_id>\d+)/byuser/year/(?P<year>\d+)/month/(?P<month>\d+)/$', catalog.user_workshop_report, {'day':"all"}, name='report_workshop_by_user_month'),
     url(r'^report/workshop/(?P<user_id>\d+)/byuser/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/$', catalog.user_workshop_report, name='report_workshop_by_user_day'),
-    url(r'^report/salary/all_user/$', catalog.all_user_salary_report, {'day':"all"}),
-    url(r'^report/salary/all_user/year/(?P<year>\d+)/month/(?P<month>\d+)/$', catalog.all_user_salary_report, {'day':"all"}),
+    url(r'^report/salary/all_user/$', catalog.all_user_salary_report, {'day':"all"}, name='user_salary_report'),
+    url(r'^report/salary/all_user/year/(?P<year>\d+)/month/(?P<month>\d+)/$', catalog.all_user_salary_report, {'day':"all"}, name='user_salary_report_by_year_month'),
     url(r'^salary/add/$', catalog.salary_add),
 
     url(r'^shop/price/lastadded/(?P<id>\d+)/view/$', catalog.shop_price_lastadd, name="shop-price-last-added"),    
