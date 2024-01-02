@@ -258,7 +258,8 @@ $(function() {
             $.ajax({
                 type: "POST",
                 url: "/client_history/cred/",
-                data: { client_id: Id, cred_month: $(this).attr("cred_month"), cred_year: $(this).attr("cred_year"), cred_day: $(this).attr("cred_day")},
+//                data: { client_id: Id, cred_month: $(this).attr("cred_month"), cred_year: $(this).attr("cred_year"), cred_day: $(this).attr("cred_day")},
+                data: { clientId: Id, cred_month: $(this).attr("cred_month"), cred_year: $(this).attr("cred_year"), cred_day: $(this).attr("cred_day")},
                 dataType: "json",
                 success:function(msg){
                 	if ($("#1month_cred").attr("cred_day") == 0) {

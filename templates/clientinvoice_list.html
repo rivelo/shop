@@ -143,7 +143,6 @@ $( "#dialog_return" ).dialog({
 			calc_sum();
 		}
 		});
-		
 	},
     buttons: {
     "Створити": function() {
@@ -165,13 +164,14 @@ $( "#dialog_return" ).dialog({
         var td_count = $("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"'] td.tcount"); 
         var td_sum = $("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"'] td.tsum");
         var td_pay = $("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"'] td.tpay");
-        var rcount = td_count.html() - $("#sp_count").val();
-        td_sum.html(td_sum.html() / td_count.html() * rcount);
+        var rcount = td_count.attr('start_count') - $("#sp_count").val();
+        td_sum.html(td_sum.html() / td_count.attr('start_count') * rcount);
         td_pay.html(td_sum.html());
         td_count.html(rcount);
         $("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"']").css("background-color","#99FF33");
        	if (td_count.html() == 0) { 
        		$("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"']").hide();
+       		$("tr[ci_id ='"+$('#dialog_return').attr('id_target')+"']").show();
        	}
       	
        },
@@ -183,7 +183,7 @@ $( "#dialog_return" ).dialog({
       	$( this ).dialog( "close" );
 	}
 	else {
-	alert("Введіть причину обміну/повернення");
+		alert("Введіть причину обміну/повернення");
 	}
 		
     },
@@ -391,8 +391,12 @@ $("#show_date").click(function(){
 function show_ret(ciid, item) {
 	//iid = $(this).attr("tvalue");
 	iid = ciid
-	console.log("Catalog = " + $(item).parents('tr').find('td.cat_name').html())// > td.cat_name').html() );
+//	console.log("Catalog = " + $(item).parents('tr').find('td.cat_name').html())// > td.cat_name').html() );
 	$("#dialog_return").attr("id_target", iid);
+//	$("#dialog_return").attr("price", 100);
+	var pr =  $(item).parents('tr').find('td.tprice').attr('sale')
+	$("#dialog_return").attr("price", pr);
+	console.log("Catalog Price = " + pr );
 	$("#dialog_return").dialog("open");
 	//$("ui-id-2").attr("html", "New title");
 	//document.getElementById("ui-id-2").innerHTML = "Повернення: " + ""
@@ -527,9 +531,10 @@ $.ajax({
 </div>
 
 
-<div id="dialog_return" title="Повернення/Обмін" id_target="">
+<div id="dialog_return" title="Повернення/Обмін" id_target="" price="1">
 <label>Введіть причину відмови/повернення</label>
-<textarea  name="dreturn" id="msg_return" value="" wrap="soft" cols="42" rows="7"></textarea>
+{# <textarea  name="dreturn" id="msg_return" value="" wrap="soft" cols="42" rows="7"></textarea> #}
+<textarea  name="dreturn" id="msg_return" value="" class="w-100" rows="9"></textarea>
 <br>
 <label>Введіть кількість</label>
 <input id="sp_count" value="1" max="5">
@@ -598,10 +603,10 @@ $.ajax({
 	{% endif %}
 		{{type.catalog.name}}
 	</td>
-	<td align="center" class="tcount" data-toggle="tooltip" data-placement="top" title="Переглянути попередні продажі" data-html="true">       
+	<td align="center" class="tcount" data-toggle="tooltip" data-placement="top" title="Переглянути попередні продажі" data-html="true" ci_id="{{type.id}}" start_count="{{type.count}}">       
 	<a href="{% url 'client_catalog_sale' type.catalog.id %}" >{{type.count|floatformat}}</a>
 	</td>
-	<td class="tprice">       
+	<td class="tprice" price="{{type.price}}" sale="{{type.get_sale_price}}" ci_id="{{type.id}}">       
 	{{type.price}}
 	</td>
 	<td class="profit" data-toggle="tooltip" data-placement="top" title="(Ціна в гривні / сума профіту)" data-html="true">
@@ -609,7 +614,7 @@ $.ajax({
 	({{type.get_profit.0|floatformat:"2"}} / {{type.get_profit.1|floatformat:"0"}})
     {% endif %}
 	</td>
-	<td class="tsum">       
+	<td class="tsum" ci_id="{{type.id}}">       
 	{{type.sum}}  
 	{% if request.user|has_group:"admin" %}
 	{% if type.pay != type.sum %}   

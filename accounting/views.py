@@ -65,8 +65,9 @@ def custom_proc(request):
         'app': 'Rivelo catalog',
         'user': request.user,
         'ip_address': request.META['REMOTE_ADDR'],
-#        'shop_name': check_ip(request.META['REMOTE_ADDR']),
         'shop_name': get_shop_from_ip(request.META['REMOTE_ADDR']),
+#        'shop_name': get_shop_from_ip('192.168.1.1'),
+#        'shop_name': get_shop_from_ip('10.0.0.1'),
         'year_now': date.year,
         'month_now': date.month,
         'day_now': date.day,
@@ -126,7 +127,7 @@ def auth_group(user, group):
     return False
     #return True if user.groups.filter(name=group) else False
 
-
+#check from SETTING file
 def check_ip(ip_addr):
     ip = '.'.join(ip_addr.split('.')[0:3])
     #request.META['REMOTE_ADDR']
@@ -137,7 +138,7 @@ def check_ip(ip_addr):
     else:
         return "----"
 
-
+#check from DB table
 def get_shop_from_ip(ip_addr):
     ip = '.'.join(ip_addr.split('.')[0:3])
     dict_shop = Shop.objects.filter( ip_addr__contains = ip )
@@ -2577,6 +2578,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
 #    vars.update({'type_obj': categ})
     
 #    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    vars.update(custom_proc(request))
     return render(request, 'index.html', vars)
 
 @csrf_exempt
@@ -4823,6 +4825,8 @@ def client_invioce_return_add(request, id):
                 count = request.POST.get('count')
                 cash = request.POST.get('cash')
                 sum = ci.sum / ci.count * int(count)
+                if int(count) > ci.count:
+                    return HttpResponse("Error. Return count bigger then real", content_type="text/plain;charset=UTF-8;")
                 res_count = ci.count - int(count)
                 if res_count < 0:
                     count = ci.count
@@ -4845,8 +4849,8 @@ def client_invioce_return_add(request, id):
                 else:
                     ci.count = res_count
                     if ci.sale <> 100:
-                        ci.sum = res_count * ci.price
-                    ci.pay = res_count * ci.price
+                        ci.sum = res_count * ci.get_sale_price()
+                    ci.pay = res_count * ci.get_sale_price()
                     ci.shop = shopN
                     ci.save()
     return HttpResponse("ok", content_type="text/plain;charset=UTF-8;")
@@ -6927,7 +6931,9 @@ def clientmessage_delete(request, id):
 def payform(request):
     checkbox_list = [x for x in request.POST if x.startswith('checkbox_')]
     if bool(checkbox_list) == False:
-        return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        context = {'weblink': 'error_manyclients.html',}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
     list_id = []
     for id in checkbox_list:
         list_id.append( int(id.replace('checkbox_', '')) )
@@ -6954,7 +6960,9 @@ def payform(request):
         if inv.check_pay() and ('send_check' not in request.POST):
             if (auth_group(request.user, 'admin') == False):
                 error_msg = "Вибрані позиції вже оплачені"
-                return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+                context = {'weblink': 'error_manyclients.html', 'error_msg':error_msg, }
+                context.update(custom_proc(request))
+                return render(request, 'index.html', context)
         
         client = inv.client
         #inv.pay = inv.sum
@@ -6965,7 +6973,9 @@ def payform(request):
         if inv.check_pay() == False:
             if (auth_group(request.user, 'admin') == False):
                 error_msg = "Вибрані позиції ще не оплачені і на них не можна друкувати фіскальний чек"
-                return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+                context = {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}
+                context.update(custom_proc(request))
+                return render(request, 'index.html',  context)
         
         text = pytils_ua.numeral.in_words(int(sum))
         month = pytils_ua.dt.ru_strftime(u"%d %B %Y", ci[0].date, inflected=True)
@@ -7724,9 +7734,6 @@ def user_workshop_report(request,  month=None, year=None, day=None, user_id=None
     return render(request, 'index.html', context)
 
 
-from django.db.models.functions import Extract
-from django.db.models.functions import ExtractYear
-
 def all_user_salary_report(request, month=None, year=None, day=None, user_id=None):
     if auth_group(request.user, "admin") == False:
         context = {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу. Зверніться до адміністратора. ', }
@@ -7781,22 +7788,22 @@ def all_user_salary_report(request, month=None, year=None, day=None, user_id=Non
             except:
                 qbsum1 = 0
         else:
-            w_list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username', 'user').annotate(total_price=Sum('price')).order_by('user')
+            w_list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('price')).order_by('user')
             c_list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum')).order_by('user')
             b_list = Bicycle_Sale.objects.filter(date__year=year, date__month=month, date__day=day).values('user', 'user__username').annotate(total_price=Sum('sum')).order_by('user')
     bsum = 0
     csum = 0
     wsum = 0
     for b in b_list:
-        bsum = bsum + b['total_price']
+        bsum = bsum + (b['total_price'] or 0)
     for c in c_list:
         csum = csum + c['total_price']
     for w in w_list:
         wsum = wsum + w['total_price']
-    year_list = Bicycle_Sale.objects.values('date').annotate(count=Count('pk'))
-
+    #year_list = Bicycle_Sale.objects.filter().extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')
+    year_list = Bicycle_Sale.objects.annotate(year=ExtractYear('date')).values('year').annotate(pk_count = Count('pk')).order_by('year') 
     #annotate(year=Extract('date','year')).values('year').annotate(total_bike=Count('year')).order_by('date')  #all().values('model', 'date').annotate(total_bike=Count('date')).order_by('date__year')
-    context = {'sel_year':year, 'sel_month':int(month), 'workshop':w_list, 'cinvoice': c_list, 'bicycle_list':b_list, 'qwsum': qbsum1,  'll':l, 'res': res, 'bike_sum': bsum, 'c_sum': csum, 'w_sum': wsum, 'weblink': 'report_salary_all_user.html', 'year_list': year_list}
+    context = {'sel_year': int(year), 'sel_month':int(month), 'workshop':w_list, 'cinvoice': c_list, 'bicycle_list':b_list, 'qwsum': qbsum1,  'll':l, 'res': res, 'bike_sum': bsum, 'c_sum': csum, 'w_sum': wsum, 'weblink': 'report_salary_all_user.html', 'year_list': year_list}
     context.update(custom_proc(request)) 
     return render(request, 'index.html', context)
 
@@ -8009,16 +8016,18 @@ def client_history_cred(request):
         
             if 'clientId' in request.POST and request.POST['clientId']:
                 clientId = request.POST['clientId']
+                cday = request.POST['cred_day']
+                n_day = int(cday) - 30;
                 p_cred_month = None
-                cash_id = CashType.objects.get(id = 6)
+                cash_id = CashType.objects.get(id = 6) # заробітна плата
                 if auth_group(request.user, "admin") == False:
                     client_name = Client.objects.values('name', 'forumname', 'id', 'phone', 'birthday', 'email').get(id = clientId)
-                    if str(request.user.username) == str(client_name['forumname']):
-                        p_cred_month = ClientCredits.objects.filter(client = clientId).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
-                    else:    
-                        p_cred_month = ClientCredits.objects.filter(client = clientId).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id').exclude(cash_type = cash_id)
+                    if str(request.user.username).lower() == str(client_name['forumname'].lower()):
+                        p_cred_month = ClientCredits.objects.filter(client = clientId, date__gt=now-datetime.timedelta(days=int(cday)), date__lt=now-datetime.timedelta(days=n_day)).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
+                    else:
+                        p_cred_month = ClientCredits.objects.filter(client = clientId, date__gt=now-datetime.timedelta(days=int(cday)), date__lt=now-datetime.timedelta(days=n_day)).exclude(cash_type = cash_id).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
                 else: 
-                    p_cred_month = ClientCredits.objects.filter(client = clientId).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
+                    p_cred_month = ClientCredits.objects.filter(client = clientId, date__gt=now-datetime.timedelta(days=int(cday)), date__lt=now-datetime.timedelta(days=n_day)).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
                 
                 #p_cred_month = ClientCredits.objects.filter(client = clientId).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
                 #p_cred_month = ClientCredits.objects.filter(client = cid, date__month = cmonth, date__year = cyear).values('id', 'price', 'description', 'user', 'user__username', 'date')

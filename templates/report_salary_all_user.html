@@ -1,8 +1,10 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-<link type="text/css" rel="stylesheet" href="/media/paginator.css">
-<link type="text/css" rel="stylesheet" href="/media/table.css">
+{# <link type="text/css" rel="stylesheet" href="/media/paginator.css"> #}
+{# <link type="text/css" rel="stylesheet" href="/media/table.css"> #}
+<link type="text/css" rel="stylesheet" href="/media/css/mainstyle.css">
+
 
 <script language="JavaScript">
 $(document).ready(function() {
@@ -29,13 +31,13 @@ $('.client_13').each(function() {
 })
 
 $('.user').each(function() { 
-	console.log("USER id = "  + parseFloat($(this).attr('uid')) )
+//	console.log("USER id = "  + parseFloat($(this).attr('uid')) )
 	var id = parseFloat($(this).attr('uid'));
 	var cl = 0;
 	$('.cl_'+id).each(function() { 
 		cl += parseFloat($(this).html()); 
 	})	
-	console.log("SUM = "  + cl )
+//	console.log("SUM = "  + cl )
 	$('#zsum_'+id).html(cl.toFixed(2).toString() + ' грн.');
 })
 
@@ -53,10 +55,27 @@ $('#client_13').html(c9.toFixed(2) + ' грн.');
 <body onLoad="">
 
 
+
+<h3><span class="badge badge-secondary">Рік:</span>
+{% for year in year_list %}
+	{% if year.year == sel_year %}
+    <a href="{% url 'user_salary_report_by_year_month' year.year sel_month %}" class="badge badge-success select">{{year.year}}</a>
+    {% else %}
+    <a href="{% url 'user_salary_report_by_year_month' year.year sel_month %}" class="badge badge-success">{{year.year}}</a> 
+	{% endif %}
+{% endfor %}
+</h3>
+
 <h2 class="p-2">
     За місяць: 
     {% for month in 1|mrange:13 %}
-    <a href="/report/salary/all_user/year/{{sel_year}}/month/{{month}}" class="badge badge-success">{{month}}</a>
+    {% if sel_month == month %}
+    <a href="{% url 'user_salary_report_by_year_month' sel_year month %}" class="badge badge-success select">{{month}}</a>
+{#    	<a href="/report/salary/all_user/year/{{sel_year}}/month/{{month}}" class="badge badge-success select">{{month}}</a> #}
+    {% else %}
+    	<a href="{% url 'user_salary_report_by_year_month' sel_year month %}" class="badge badge-success">{{month}}</a>
+{#	    <a href="/report/salary/all_user/year/{{sel_year}}/month/{{month}}" class="badge badge-success">{{month}}</a> #}
+    {% endif %}
     {% endfor %}
 </h2>    
 
@@ -66,18 +85,24 @@ $('#client_13').html(c9.toFixed(2) + ' грн.');
 <div class="container-fluid">
 <div class="row">
 <div class="col-auto">
-<table class="table table-striped table-hover table-sm ">
+<table class="table table-striped table-hover table-sm table-bordered">
     <tr>
     	<th>user_Id</th>
     	<th>Користувач</th>
     	<th>Сума</th>
-    	<th>Зарплата</th>
+    	<th title="50% від виконаних робіт">Зарплата</th>
     </tr>
  
 {% for element in workshop %}
 <tr class='client_{{element.user}}' val='{{element.total_price|mul:0.5}}'>	
-	<td>
-	<a href="{% url 'report_workshop_by_user_currentmonth' element.user %}">{{element.user}}</a>       
+	<td title="Переглянути роботи які виконав користувач {{element.user}} за місяць {{sel_month}}">
+{#	<a href="{% url 'report_workshop_by_user_currentmonth' element.user %}">{{element.user}}</a> #}
+{% if element.user %}
+	<a href="{% url 'report_workshop_by_user_month' element.user sel_year sel_month %}">{{element.user}}</a>
+{% else %}
+	<a>{{element.user}}</a>
+{% endif %}
+	       
 	</td>
 	<td>       
 	{{element.user__username}}
@@ -85,7 +110,7 @@ $('#client_13').html(c9.toFixed(2) + ' грн.');
 	<td>       
 	{{element.total_price}}
 	</td>
-	<td>
+	<td align="center">
 	{{element.total_price|mul:0.5}}
 	</td>
 </tr>	
@@ -110,18 +135,18 @@ $('#client_13').html(c9.toFixed(2) + ' грн.');
 <div class="row">
 <div class="col-auto">
 
-<table class="table table-striped table-hover table-sm ">
+<table class="table table-striped table-hover table-sm table-bordered">
     <tr>
     	<th>user_Id</th>
     	<th>Користувач</th>
     	<th>Сума</th>
-    	<th>Зарплата</th>
+    	<th title="5% від проданих товарів">Зарплата</th>
     </tr>
  
 {% for element in cinvoice %}
 <tr class='client_{{element.user}}' val='{{element.total_price|mul:0.05}}'>	
 	<td>
-	{% if element.user = None %}
+	{% if element.user == None %}
 		<a href="{% url 'report_sales_by_user_currentmonth' 0 %}"> {{element.user}}</a>
 	{% else %}
 		<a href="{% url 'report_sales_by_user_currentmonth' element.user %}"> {{element.user}}</a>
@@ -135,11 +160,11 @@ $('#client_13').html(c9.toFixed(2) + ' грн.');
 	<td>       
 	{{element.user__username}}
 	</td>
-	<td>       
+	<td >       
 	{{element.total_price}}
 	</td>
-	<td>
-	{{element.total_price|mul:0.05}}
+	<td align="center">
+	{{element.total_price|mul:0.05|floatformat}}
 	</td>
 </tr>
 {% endfor %}
@@ -157,9 +182,13 @@ $('#client_13').html(c9.toFixed(2) + ' грн.');
 </div>
 
 
-    <h1>Звіт по велосипедах за {{sel_month}} місяць {{sel_year}} року</h1>
+   <h1><span class="badge badge-secondary">Звіт по велосипедах за {{sel_month}} місяць {{sel_year}} року</span></h1>
 
-<table border="1">
+<div class="container-fluid">
+<div class="row">
+<div class="col-auto">
+
+<table class="table table-striped table-hover table-sm table-bordered">
     <tr>
     	<th>user_Id</th>
     	<th>Користувач</th>
@@ -178,7 +207,7 @@ $('#client_13').html(c9.toFixed(2) + ' грн.');
 	<td>       
 	{{element.total_price}}
 	</td>
-	<td>
+	<td align="center">
 	{{element.total_price|mul:0.05}}
 	</td>
 </tr>	
@@ -186,15 +215,20 @@ $('#client_13').html(c9.toFixed(2) + ' грн.');
 
 <tr>
     	<th></th>
-    	<th></th>
     	<th>Сума</th>
     	<th>{{bike_sum}}</th>
+    	<th></th>
 </tr> 
 </table>
+</div>
+</div>
+</div>
 
-<h1>Зарплата за {{sel_month}} місяць {{sel_year}} року</h1>
+
+<h1><span class="badge badge-secondary">Зарплата за {{sel_month}} місяць {{sel_year}} року</span></h1>
+
+{% comment %}
 <table border="1">
-
     <tr>
     	<th>user_Id</th>
     	<th>Користувач</th>
@@ -227,19 +261,18 @@ $('#client_13').html(c9.toFixed(2) + ' грн.');
     </tr>
     
 </table>
+{% endcomment %}
 
 
-
-<br>
 <div class="container-fluid">
 <div class="row">
 <div class="col-auto">
     
-USER COUNT = {{ll}} <br>
-BIKES = {{qwsum}} <br> 
-
 {# RES = {{res}} <br> #}
-<table class="table table-striped table-hover table-sm ">
+
+{# <table class="table table-striped table-hover table-sm "> #}
+<table class="table table-striped table-hover table-sm table-bordered">
+
 <tr>
 <th ROWSPAN="2">id</th>
 <th ROWSPAN="2">user</th>
@@ -263,7 +296,12 @@ BIKES = {{qwsum}} <br>
 <tr class='user' uid="{{item.1.client_inv.0.user}}">
 {# *** {{item.1.client_inv.0.user}} - {{item.1.client_inv.0.user__username}}<br> #}
 <td>{{item.1.client_inv.0.user}}</td>
+{% if item.1.client_inv.0.user__username %}
 <td>{{item.1.client_inv.0.user__username}}</td>
+{% else %}
+<td>{{item.1.workshop.0.user__username}}</td>
+{% endif %}
+
 {% if  item.1.workshop.0.total_price %}
 <td align="center">{{item.1.workshop.0.total_price|floatformat:0}} </td>
 <td align="center" class='cl_{{item.1.client_inv.0.user}}'> {{item.1.workshop.0.total_price|mul:0.5|floatformat:0}}</td>
@@ -292,6 +330,11 @@ BIKES = {{qwsum}} <br>
 </table>    
 </div>
 </div>
+
+USER COUNT = {{ll}} <br>
+BIKES = {{qwsum}} <br> 
+
 </div>
+
 
     

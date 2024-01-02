@@ -998,7 +998,10 @@ class ClientInvoice(models.Model):
             self.sale = 0
             self.save()
         return res 
-            
+    
+    def get_sale_price(self):
+        return self.price * (100 - self.sale)*0.01
+                
     def __unicode__(self):
         return u"%s - %s шт." % (self.catalog.name, self.count) 
         #return self.origin_id 

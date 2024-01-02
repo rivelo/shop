@@ -9,6 +9,7 @@ import requests
 import re
 import datetime
 from django.http import HttpRequest
+from catalog.accounting.models import Shop
 
 register = template.Library()
 
@@ -20,7 +21,7 @@ def mul(value, arg):
 
 @register.filter(name='mul')
 def mul(value, arg):
-    return value * arg
+    return (value or 0) * (arg or 0)
 
 
 @register.filter
@@ -159,6 +160,15 @@ def has_group(user, group_name):
     group = Group.objects.get(name=group_name) 
     return True if group in user.groups.all() else False
     #return user.groups.filter(name=group_name).exists()
+
+
+@register.filter(name='has_shop') 
+def has_shop(shop, shop_name): 
+#    getshop = Shop.objects.get(name=shop_name)
+    if shop.name == shop_name:
+        return True
+    else:
+        return False
 
     
 @register.filter(name='date_left') 

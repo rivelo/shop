@@ -85,28 +85,29 @@ a.css3dbutton.red:hover {
 $(document).ready(function() {
 	$("#dialog_msg").hide();
 	$('#pay_status').val(1);
-	
-	{% if shop_name == 'shop1' %}	
+	{#% if shop_name|has_shop:"Кавказька" %#}
+	{% if shop_name.name == 'Кавказька' %}
 		$('.shop2').hide();
 		$('#shop2_cashless').hide();
 		$('#shop2_cash').hide();
 		$('#shop1').prop( "checked", true );
-	{% elif shop_name ==  'shop2'%}
+	{#% elif shop_name ==  'Міцкевича'%#}
+	{% elif shop_name|has_shop:"Міцкевича" %}	
 		$('.shop1').hide();
 		$('#shop1_cashless').hide();
 		$('#shop1_cash').hide();
 		$('#shop2').prop( "checked", true );
 		$("#shop_debt").insertAfter("#shop2_cashless");
 	{% endif %}
-	
+
 	{% if request.user|has_group:"admin" %}
 		$('.shop1').show();
-		$('#shop1_cashless').show();
-		$('#shop1_cash').show();
+//		$('#shop1_cashless').show();
+//		$('#shop1_cash').show();
 		$('.shop2').show();
-		$('#shop2_cashless').show();
-		$('#shop2_cash').show();
-		$("#shop_debt").insertAfter("#shop1_cashless");
+//		$('#shop2_cashless').show();
+//		$('#shop2_cash').show();
+//		$("#shop_debt").insertAfter("#shop1_cashless");
 	{% endif %}
 	
 	
@@ -130,6 +131,22 @@ $(document).ready(function() {
         }  		
   		});
 	});
+
+$('#shop2').click(function() {
+	$('#shop2_cashless').show();
+	$('#shop2_cash').show();
+	$('#shop1_cashless').hide();
+	$('#shop1_cash').hide();
+});
+
+
+$('#shop1').click(function() {
+	$('#shop1_cashless').show();
+	$('#shop1_cash').show();
+	$('#shop2_cashless').hide();
+	$('#shop2_cash').hide();
+});
+
 	
 $('#client_debt_but').click(function() {
 	$('#client_debt_but').off("click");
