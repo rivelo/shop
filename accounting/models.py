@@ -70,6 +70,7 @@ class Shop(models.Model):
     map_point = models.TextField(blank = True, null = True)
     ip_addr = models.GenericIPAddressField(protocol='IPv4', blank = True, null = True)
     status = models.BooleanField(default = True) # Work status
+    #show = models.BooleanField(default = True) # Show status in SHOPs list
 #    shop_pay_cash = models.ManyToManyField(CashType, blank = True, related_name='Shop_Cash_Pay')
 #    shop_pay_term = models.ManyToManyField(CashType, blank = True, related_name='Shop_Term_Pay')
     casa_server_ip =  models.GenericIPAddressField(protocol='IPv4', blank = True, null = True)
@@ -166,6 +167,7 @@ class Type(models.Model):
     synonym = models.CharField(max_length=255, blank=True, null=True)
     synonym_ukr = models.CharField(max_length=255, blank=True, null=True)
     ico_status = models.BooleanField(default=False, verbose_name="Наявність іконки")
+    # одиниці вимірювання чи коефіцієнт
 #    ranking = models.FloatField()
 #    icon = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
 #    icon_select = models.ImageField(upload_to = 'upload/icon/', blank=True, null=True)
@@ -631,16 +633,16 @@ class FrameSize(models.Model):
 #    FORK LENGTH
 #    STACK = 
     wheelbase = models.PositiveIntegerField("Wheelbase size in mm", default=0, blank=True)
-
+    #user_update = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
 #    brand =  
 #    model = models.ManyToManyField( , blank=True)
     def __unicode__(self):
-        if self.letter == None:
-            return self.name
-        return '%s [ %s cm -  %s " ]' % (self.letter, self.cm, self.inch)
+#        if self.letter == None:
+#            return self.name
+        return '%s - %s [ %s cm -  %s " ]' % (self.name, self.letter, self.cm, self.inch, )
 
     class Meta:
-        ordering = ["inch","name"]    
+        ordering = ["name", "inch", "cm", "letter"]    
 
 
 # postach Dealer (Ukraine)

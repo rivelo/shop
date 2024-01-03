@@ -194,9 +194,9 @@ $('.phone').editable('/workticket/edit/', {
 
 {% for shop_obj in shops %}
 {% if shop_obj.id == shop %} 
-<div class="badge bg-primary text-wrap" title="Показати заявки в майстерні на {{shop_obj.name}}">
+<div class="badge bg-primary text-wrap" title="Показати заявки в майстерні: {{shop_obj.name}}" data-toggle="tooltip">
 {% else %}
-<div class="badge bg-secondary text-wrap" title="Показати заявки в майстерні на {{shop_obj.name}}">
+<div class="badge bg-secondary text-wrap" title="Показати заявки в майстерні: {{shop_obj.name}}" data-toggle="tooltip">
 {% endif %}
 <a href="{% url 'workticket-byshop-cur-month' shop_obj.id %}">{{shop_obj.name}}</a>
 </div>

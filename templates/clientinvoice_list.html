@@ -460,23 +460,32 @@ $.ajax({
     За місяць: 
 	{% for i in "123456789012" %}
 	{% ifequal forloop.counter sel_month %}
-	<a href="/client/invoice/year/{{sel_year}}/month/{{forloop.counter}}/view" class="badge badge-success select">{{forloop.counter}}</a>
+	{# <a href="/client/invoice/year/{{sel_year}}/month/{{forloop.counter}}/view" class="badge badge-success select">{{forloop.counter}}</a> #}
+	<a href="{% url 'client-invoice-month-by-shop' shop sel_year forloop.counter %}" class="badge badge-success select">{{forloop.counter}}</a> 
+{#	<a href="{% url 'client-invoice-month-by-shop' shop sel_year 1 %}" class="badge badge-success select">{{forloop.counter}}</a> #}
     {% else %}
-	<a href="/client/invoice/year/{{sel_year}}/month/{{forloop.counter}}/view" class="badge badge-success">{{forloop.counter}}</a>
+	{# <a href="/client/invoice/year/{{sel_year}}/month/{{forloop.counter}}/view" class="badge badge-success">{{forloop.counter}}</a> #}
+	<a href="{% url 'client-invoice-month-by-shop' shop sel_year forloop.counter %}" class="badge badge-success">{{forloop.counter}}</a> 
+{#	<a href="{% url 'client-invoice-month-by-shop' 1 sel_year 1 %}" class="badge badge-success">{{forloop.counter}}</a> #}
     {% endifequal %}
 	{% endfor %}    
 </h2>    
 
+{% comment %}
+{% endcomment %}    
 <h2>
 	За день:
 	{% for day in month_days %}		 
 	{% ifequal day sel_day %}
-    <a class="badge badge-success select" href="/client/invoice/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view">{{day}}</a>
+    {# <a class="badge badge-success select" href="/client/invoice/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view">{{day}}</a> #}
+    <a class="badge badge-success select" href="{% url 'client-invoice-day-by-shop' shop sel_year sel_month day %}">{{day}}</a>
     {% else %}
-	<a class="badge badge-success" href="/client/invoice/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view" >{{day}}</a>
+	{# <a class="badge badge-success" href="/client/invoice/year/{{sel_year}}/month/{{sel_month}}/day/{{day}}/view" >{{day}}</a> #}
+	<a class="badge badge-success" href="{% url 'client-invoice-day-by-shop' shop sel_year sel_month day %}" >{{day}}</a>
     {% endifequal %}
     {% endfor %}
-</h2>    
+</h2>
+
 {% endif %}
 
 <form action="/payform/" method="post" name="formSum">
@@ -487,8 +496,39 @@ $.ajax({
    <h1>
    <span class="badge badge-dark">Список проданого товару</span> <span class="badge badge-info" id="show_date">{{sel_day}}/{{sel_month}}/{{sel_year}}</span> 
    <span id="clear_basket"><img src="/media/images/Ecommerce Return.ico" title="видалити всі відмічені" width="32" height="32" data-toggle="tooltip" data-html="true" data-placement="right"> </span>
-   <a href="/workshop/playsound/" ><span class="badge badge-dark mt-250"><i class="material-icons" style="font-size: 28px" >notification_important</i></span></a>
+{#   <a href="/workshop/playsound/" ><span class="badge badge-dark mt-250"><i class="material-icons" style="font-size: 28px" >notification_important</i></span></a> #}
    <a href="notpay/" ><span class="badge badge-dark mt-250"><i class="material-icons" style="font-size: 28px" >check_box</i></span></a>
+
+{% for shop_obj in shops %}
+	{% if shop_obj.id == shop %} 
+	<div class="badge bg-primary text-wrap" title="Продажі в магазині: {{shop_obj.name}}" data-toggle="tooltip">
+	{% else %}
+	<div class="badge bg-secondary text-wrap" title="Продажі в магазині: {{shop_obj.name}}" data-toggle="tooltip">
+	{% endif %}
+{% if sel_day == 'all' %}
+	<a href="{% url 'client-invoice-month-by-shop' shop_obj.id sel_year sel_month %}">{{shop_obj.name}}</a>
+{% else %}
+	<a href="{% url 'client-invoice-day-by-shop' shop_obj.id sel_year sel_month sel_day %}">{{shop_obj.name}}</a>  	
+{% endif %}
+</div>
+{% endfor %}
+
+
+{% if shop == 0 %}
+<div class="badge bg-primary text-wrap" title="Продажі у всіх магазинах" data-toggle="tooltip">
+{% else %}
+<div class="badge bg-secondary text-wrap" title="Продажі у всіх магазинах" data-toggle="tooltip">
+{% endif %}
+{% if sel_day == 'all' %}
+	<a href="{% url 'client-invoice-month' sel_year sel_month %}">Всі</a>
+
+{% else %}
+<a href="{% url 'client-invoice-day' sel_year sel_month sel_day %}">Всі</a>
+{% endif %}  	
+</div>
+
+
+
    </h1>
    </div>
    
@@ -582,7 +622,7 @@ $.ajax({
 <tr class="reserv" ci_id="{{type.id}}" cat_id="{{type.catalog.pk}}" count="{{type.count}}">
 {% endifequal %}
 
-	<td data-toggle="tooltip" data-placement="right" title="Створено користувачем <br> {{type.user.username}}" data-html="true">
+	<td data-toggle="tooltip" data-placement="right" title="Створено користувачем <br> {{type.user.username}} <br> Магазин >>> {{type.shop}}" data-html="true">
 	{{forloop.counter}}
 <!-- 
 	<abbr title="Створено користувачем {{type.user.username}}" rel="tooltip">
@@ -604,7 +644,7 @@ $.ajax({
 		{{type.catalog.name}}
 	</td>
 	<td align="center" class="tcount" data-toggle="tooltip" data-placement="top" title="Переглянути попередні продажі" data-html="true" ci_id="{{type.id}}" start_count="{{type.count}}">       
-	<a href="{% url 'client_catalog_sale' type.catalog.id %}" >{{type.count|floatformat}}</a>
+	<a href="{% url 'client-catalog-sale' type.catalog.id %}" >{{type.count|floatformat}}</a>
 	</td>
 	<td class="tprice" price="{{type.price}}" sale="{{type.get_sale_price}}" ci_id="{{type.id}}">       
 	{{type.price}}

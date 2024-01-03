@@ -976,7 +976,7 @@ function show_ret(ciid, item) {
 	{% for inv in invoice %}
 	<tr class="tr_inv" ci_id="{{inv.id}}" count="{{inv.count}}" cat_id={{inv.catalog.pk}} cat_name="{{inv.catalog}}">
 	<td title="{{inv.user}} - {{inv.date|time:"H:i"}}" data-toggle="tooltip" data-placement="top">
-	<a href="{% url 'client_invoice_day' inv.date.year inv.date.month inv.date.day%}" >{{inv.date}}</a>
+	<a href="{% url 'client-invoice-day' inv.date.year inv.date.month inv.date.day%}" >{{inv.date}}</a>
 	</td>
 	<td class="cat_name">
 	<div class="d-flex">
@@ -984,19 +984,19 @@ function show_ret(ciid, item) {
   	<div class="ml-auto p-2">
 
 	{% if inv.pay != inv.sum %}
-	<a href="{% url 'client_invoice_edit' inv.pk %}" title="Редагувати" data-toggle="tooltip" data-placement="right"><i class="material-icons" >edit</i></a>
+	<a href="{% url 'client-invoice-edit' inv.pk %}" title="Редагувати" data-toggle="tooltip" data-placement="right"><i class="material-icons" >edit</i></a>
 	{% endif %}
 
 	{% if request.user|has_group:"admin" %}
 	{% if inv.pay != inv.sum %}
-	<a href="{% url 'client_invoice_delete' inv.pk %}" onclick="return confirm('Видалити товар {{inv.catalog}}?')" title="Видалити" data-toggle="tooltip" data-placement="right"><i class="material-icons" >delete</i></a>
+	<a href="{% url 'client-invoice-delete' inv.pk %}" onclick="return confirm('Видалити товар {{inv.catalog}}?')" title="Видалити" data-toggle="tooltip" data-placement="right"><i class="material-icons" >delete</i></a>
 	{% endif %}
 	{% endif %}
 	
 	{% if inv.pay == inv.sum %}
 	<a href="#" onclick="show_ret(ciid={{inv.id}}, this);return false" title="Обмін/Повернення" data-toggle="tooltip" data-placement="right"><i class="material-icons" >undo</i></a> 
 {#	<a href="#" onclick="show_ret();return false" title="Обмін/Повернення" data-toggle="tooltip" data-placement="right"><i class="material-icons" >undo</i></a> #}
-	{% if request.user|has_group:"admin" %} <a href="{% url 'client_invoice_edit' inv.pk %}" title="Редагувати" data-toggle="tooltip" data-placement="right"><i class="material-icons" >edit</i></a> {% endif %}
+	{% if request.user|has_group:"admin" %} <a href="{% url 'client-invoice-edit' inv.pk %}" title="Редагувати" data-toggle="tooltip" data-placement="right"><i class="material-icons" >edit</i></a> {% endif %}
 	{% endif %}
 	
 	</div>

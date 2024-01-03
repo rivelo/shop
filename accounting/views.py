@@ -146,7 +146,8 @@ def get_shop_from_ip(ip_addr):
     if dict_shop.first():
         return dict_shop.first()
     else:
-        return "----"
+        return Shop()
+        #return "----"
 
 
 def get_shop_from_request(request):
@@ -832,7 +833,7 @@ def bicycle_photo(request, id):
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def bicycle_store_add(request, id=None):
     bike = None
     if id != None:
@@ -858,7 +859,10 @@ def bicycle_store_add(request, id=None):
         else:
             form = BicycleStoreForm()
     #return render_to_response('bicycle_store.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'bike': bike, 'weblink': 'bicycle_store.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    #return render_to_response('index.html', {'form': form, 'bike': bike, 'weblink': 'bicycle_store.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'bike': bike, 'weblink': 'bicycle_store.html', }
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 @csrf_exempt
 def bicycle_store_edit(request, id=None):
@@ -3011,7 +3015,7 @@ def category_list(request):
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def category_get_list(request):
     list = Type.objects.all().values_list("id", "name", "name_ukr")
     dictionary = {}
@@ -4490,6 +4494,7 @@ def client_invoice(request, cid=None, id=None):
 @csrf_exempt
 def client_invoice_edit(request, id):
     a = ClientInvoice.objects.get(id=id)
+    s_user = a.user
     cat = Catalog.objects.get(id = a.catalog.id)
     if not request.user.is_authenticated():
         context = {'weblink': 'guestinvoice.html', 'cat': cat}
@@ -4529,16 +4534,14 @@ def client_invoice_edit(request, id):
                 description = description + '\nlength:' + str(clen)
             cat.count = cat.count + (old_count - count)
             cat.save()
-            inst_user = a.user
-            print "\nUSER EQUAL = " + str(a.user.id)
-            print "\nUSER Form = " + str(user.id)
-            print "\nUSER Request = " + str(request.user.id)
-            
-            if (request.user.is_authenticated()) and (request.user.id == a.user.id):
-                print "\nUSER EQUAL = " + a.user
-                print "\nUSER Form = " + user
+
+            if (request.user.is_authenticated()) and (request.user.id == s_user.id):
+                user = user
             else:
-                user = request.user
+                if auth_group(request.user, "admin") == True:
+                    user = user
+                else:
+                    user = s_user
             ClientInvoice(id=id, client=client, catalog=catalog, count=count, sum=sum, price=price, currency=currency, sale=sale, pay=pay, date=date, description=description, user=user, shop=shop).save()
 
             if pay == sum:
@@ -4661,20 +4664,28 @@ def client_invoice_view(request, month=None, year=None, day=None, id=None, notpa
 #            list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date", "-id").values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
             list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date", "-id")            
             day = int(day)
-            
     psum = 0
     scount = 0
     sprofit = 0
+
+    if (shop and shop <> '0'):
+        list = list.filter(shop = shop)
+
+    if notpay == True:    
+        list = list.exclude(sum = F('pay'))
+   
     for item in list:
 #        scount = scount + item['count']
         psum = psum + item.sum
         scount = scount + item.count
         sprofit = sprofit + item.get_profit()[1]        
     days = xrange(1, calendar.monthrange(int(year), int(month))[1]+1)
-
-    if notpay == True:    
-        list = list.exclude(sum = F('pay'))
-    
+    shops = Shop.objects.all()
+    if shop == None:
+        shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+        shop = shopN.id or 0
+        list = list.filter(shop = shop)
+        
     paginator = Paginator(list, 15)
     page = request.GET.get('page')
     if page == None:
@@ -4687,7 +4698,8 @@ def client_invoice_view(request, month=None, year=None, day=None, id=None, notpa
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         cinvoices = paginator.page(paginator.num_pages)
-    context = {'sel_year':year, 'sel_month':int(month), 'month_days':days, 'sel_day':day, 'buycomponents': cinvoices, 'sumall':psum, 'sum_profit':sprofit, 'countall':scount, 'weblink': 'clientinvoice_list.html', 'view': True, 'next': current_url(request)} 
+        
+    context = {'sel_year':year, 'sel_month':int(month), 'month_days':days, 'sel_day':day, 'buycomponents': cinvoices, 'shops': shops, "shop": int(shop), 'sumall':psum, 'sum_profit':sprofit, 'countall':scount, 'weblink': 'clientinvoice_list.html', 'view': True,} 
     custom_dict = custom_proc(request)
     context.update(custom_dict)
     return render(request, 'index.html', context)
@@ -5641,8 +5653,11 @@ def workticket_edit(request, id=None):
                 desc = desc.lstrip()
                 desc = desc.rstrip()
                 obj.description = re.sub('<[^<]+?>', '', desc)
-                obj.user = request.user 
-                obj.history = obj.history + "[" + str(request.user) + "] - [" + str(obj.date) + "] - " +  obj.status.name + " - change Description\n" 
+                obj.user = request.user
+                try:
+                    obj.history = obj.history + "[" + str(request.user) + "] - [" + str(obj.date) + "] - " +  obj.status.name + " - change Description\n"
+                except TypeError:
+                    obj.history = "[" + str(request.user) + "] - [" + str(obj.date) + "] - " +  obj.status.name + " - change Description\n"
                 obj.save() 
                 c = WorkTicket.objects.filter(pk = id).values_list('description', flat=True)
                 return HttpResponse(c)

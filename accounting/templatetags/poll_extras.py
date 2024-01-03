@@ -165,10 +165,13 @@ def has_group(user, group_name):
 @register.filter(name='has_shop') 
 def has_shop(shop, shop_name): 
 #    getshop = Shop.objects.get(name=shop_name)
-    if shop.name == shop_name:
-        return True
-    else:
-        return False
+    try:
+        if shop.name == shop_name:
+            return True
+        else:
+            return False
+    except:
+        pass
 
     
 @register.filter(name='date_left') 
