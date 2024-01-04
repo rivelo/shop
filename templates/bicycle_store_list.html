@@ -290,8 +290,8 @@ $("body").on("click", ".change_sale", function(e){
 		{% endifequal %}
 		
 		<td>{{type.date|date:"D d M Y"}}</td>
-		<td><a href="/bicycle-store/edit/{{ type.id }}">edit</a> <br>
-		<a href="/bicycle-store/delete/{{ type.id }}">delete</a></td>
+		<td><a href="/bicycle-store/edit/{{ type.id }}" title="Редагувати"><i class="material-icons">create</i></a> <br>
+		<a href="/bicycle-store/delete/{{ type.id }}" title="Видалити" onclick="return confirm('Видалити запис?')" data-toggle="tooltip" data-placement="top"><i class="material-icons">delete_forever</i></a></td>
 		<td align="center">
 		<input type="checkbox" id="bikeid_{{type.model.id}}" value="{{type.model.id}}" name="checkbox_{{ type.id }}"/ onclick="">	
 		</td>

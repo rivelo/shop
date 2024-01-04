@@ -240,11 +240,14 @@ class Currency(models.Model):
     ids = models.CharField("code", max_length=50)
     ids_char = models.CharField("code", unique=True, max_length=5) #поле скорочена назва валюти
     name = models.CharField("currency name", max_length=50)
+    #symbol
     country = models.ForeignKey(Country)
 
 #    def avg_currency(self):
 #        self.filter(currency = self.currency).aggregate(average_val = Avg('value')) #annotate(avgval = Avg('value'))
 #        return 
+    def short_str(self):
+        return u"%s" % (self.ids_char)
     
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.ids_char)
@@ -636,6 +639,18 @@ class FrameSize(models.Model):
     #user_update = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
 #    brand =  
 #    model = models.ManyToManyField( , blank=True)
+    def letter_str(self):
+        str_res = '' 
+        print ">>> Letter %s ; cm = %s ; inch = %s" % (self.letter, self.cm, self.inch)
+        if self.letter:
+            str_res = self.letter
+        elif (self.cm == 0 and self.inch == 0):
+            str_res = '%s' % (self.name, )
+        elif (self.letter == '' or self.letter == None) and (self.cm != 0 or self.inch != 0):
+            str_res = '[%s"] - %s см' % (self.inch, self.cm)
+             
+        return str_res
+    
     def __unicode__(self):
 #        if self.letter == None:
 #            return self.name

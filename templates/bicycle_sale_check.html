@@ -269,12 +269,13 @@ $(document).ready(function() {
 </p>
 
 {% if print %}
-/ <a href="/bicycle/sale/{{bicycle.id}}/check/print">Версія для друку (принтер)</a> / 
-<a href="/bicycle/sale/{{bicycle.id}}/check/email">Відправити на Email</a> / 
-<a href="#" id="print_chk" >Друк чеку (фіскальний)</a> /
+<h3>
+<a href="/bicycle/sale/{{bicycle.id}}/check/print" class="badge badge-info">Версія для друку (принтер)</a>  
+{# <a href="/bicycle/sale/{{bicycle.id}}/check/email">Відправити на Email</a> / #} 
+<a href="#" id="print_chk" class="badge badge-info">Друк чеку (фіскальний)</a> 
 <!--   <h3 id="print_chk">Друкувати чек (фіскальний)</h3>
  href="/bicycle/sale/{{bicycle.id}}/check/add/"
  -->
- <br> <span class="badge badge-light">{{shop_name}}</span>
+</h3> 
 {% endif %}
 

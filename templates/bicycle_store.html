@@ -16,6 +16,43 @@ input:focus-visible {
 <script type="text/javascript">
 $(document).ready(function() {
 	$("#id_serial_number").focus();
+	
+	
+	$( "#bike_size" ).autocomplete({
+	      source: function( request, response ) {
+	        $.ajax({
+	          type: "POST",
+	          url: "{% url 'frame-size-lookup' %}", //"/bicycle-framesize/lookup/",
+	          dataType: "json",
+	          data: {
+	            query: $("#bike_size").val()
+	          },
+	          success: function( data ) {
+	            response( $.map( data, function( item ) {
+	              return {
+	                label: item.fields.name + ": [" + item.fields.letter + "] - " + item.fields.cm + "cm / " + item.fields.inch + " inch",
+	                value: item.fields.name,
+//	                sale: item.fields.name,
+	                pk_id: item.pk                       
+	              }
+	            }));
+	          }
+	        });
+	      },
+	      minLength: 3,
+	      select: function( event, ui ) {
+	      	var sel = ui.item.pk_id;
+	      	$("#id_size [value = '"+sel+"']").attr("selected", "selected");
+	      	
+	      },
+	      open: function() {
+	        $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+	      },
+	      close: function() {
+	        $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+	      }
+	    });	
+	
 })
 </script>
 
@@ -51,6 +88,9 @@ $(document).ready(function() {
       <div class="valid-tooltip">
         Looks good!
       </div>
+      <input type="text" id="bike_size" class="form-control {% if form.size.errors %}  is-invalid {% endif %}" placeholder="{{ form.size.value }}" aria-label="BikeParts" aria-describedby="basic-addon1">
+  	{#{ form.size }#}
+      
     </div>
     
   </div>

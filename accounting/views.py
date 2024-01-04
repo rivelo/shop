@@ -490,7 +490,10 @@ def bicycle_framesize_edit(request, id):
 
 def bicycle_framesize_del(request, id):
     if auth_group(request.user, 'admin') == False:
-        return HttpResponseRedirect('/bicycle-framesize/view/')
+        #return HttpResponseRedirect('/bicycle-framesize/view/')
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу для видалення. Авторизуйтеся або зверніться до адміністратора.', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
     obj = FrameSize.objects.get(id=id)
     del_logging(obj)
     obj.delete()
@@ -503,6 +506,28 @@ def bicycle_framesize_list(request):
     context = {'framesizes': list, 'weblink': 'bicycle_framesize_list.html'}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
+
+@csrf_exempt
+def framesize_lookup(request):
+    data = None
+    if request.is_ajax():
+#        print "\n>>> AJAX WORK AJAX <<<" + str(data) 
+        if request.method == "POST":
+            if request.POST.has_key(u'query'):
+                value = request.POST[u'query']
+                if len(value) > 2:
+                    model_results = FrameSize.objects.filter(Q(name__icontains = value) | Q(description__icontains = value)).order_by('name', 'letter')
+    #                data = serializers.serialize("json", model_results, fields = ('id', 'name', 'cm', 'inch', 'letter') )
+                else:
+                    model_results = Type.objects.all().order_by('name')
+#                    data = serializers.serialize("json", model_results, fields = ('id', 'name', 'cm', 'inch', 'letter') )
+            if request.POST.has_key(u'id'):
+                value = request.POST[u'id']
+#                print "\n>>> WORK - ID <<<" + str(data) + " | " + str(value)
+                model_results = FrameSize.objects.filter( Q(pk = value) ).order_by('name')
+                #data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name') )
+    data = serializers.serialize("json", model_results, fields = ('id', 'name', 'cm', 'inch', 'letter') )                
+    return HttpResponse(data)         
 
 
 def processUploadedImage(file, dir=''): 
@@ -962,9 +987,12 @@ def bicycle_store_list_by_seller(request, all=False, size='all', year='all', bra
             price_summ = price_summ + item.price * item.count 
         real_summ = real_summ + item.realization
         bike_summ = bike_summ + item.count
-    frames = FrameSize.objects.all()
-    bike_company = Bicycle_Store.objects.filter(count=1).values('model__brand', 'model__brand__name').annotate(num_company=Count('count'))
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_store_list_by_seller.html', 'price_summ': price_summ, 'real_summ': real_summ, 'bike_summ': bike_summ, 'sizes': frames, 'b_company': bike_company, 'html': html, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+#    frames = FrameSize.objects.all()
+#    bike_company = Bicycle_Store.objects.filter(count=1).values('model__brand', 'model__brand__name').annotate(num_company=Count('count'))
+#'sizes': frames, 'b_company': bike_company,
+    context = {'bicycles': list, 'weblink': 'bicycle_store_list_by_seller.html', 'price_summ': price_summ, 'real_summ': real_summ, 'bike_summ': bike_summ,  'html': html,}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def bicycle_store_simple_list(request):
@@ -997,7 +1025,7 @@ def bicycle_store_search_result(request, all=False):
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def bicycle_store_price(request, pprint=False):
     if request.method == 'POST':    
         checkbox_list = [x for x in request.POST if x.startswith('checkbox_')]
@@ -1786,14 +1814,13 @@ def bicycle_lookup_ajax(request):
     #search = Bicycle.objects.filter(id=q).values('price', 'sale')
     return HttpResponse(simplejson.dumps(list(search)), content_type="application/json")
 
-def ValuesQuerySetToDict(vqs):
-    return [item for item in vqs]
+#def ValuesQuerySetToDict(vqs):
+#    return [item for item in vqs]
 
 @csrf_exempt
 def bike_lookup(request):
     data = None
     cur_year = datetime.datetime.now().year
-
     if request.method == "POST":
         if request.POST.has_key(u'query'):
             value = request.POST[u'query']
@@ -1802,7 +1829,6 @@ def bike_lookup(request):
                 data = serializers.serialize("json", model_results, fields = ('id', 'model', 'type', 'brand', 'color', 'price', 'year', 'sale')) #, use_natural_keys=False)
             else:
                 data = []
-                
     if request.is_ajax():
         if request.method == 'POST':  
             POST = request.POST  
@@ -1812,7 +1838,6 @@ def bike_lookup(request):
                 data = search.model
     else:
         message = "Error"
-                
     return HttpResponse(data)                
 
 
@@ -3033,7 +3058,7 @@ def category_get_list(request):
 def category_lookup(request):
     data = None
     if request.is_ajax():
-        print "\n>>> AJAX WORK AJAX <<<" + str(data) 
+#        print "\n>>> AJAX WORK AJAX <<<" + str(data) 
         if request.method == "POST":
             if request.POST.has_key(u'query'):
                 value = request.POST[u'query']
@@ -3046,10 +3071,9 @@ def category_lookup(request):
                     data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name') )
             if request.POST.has_key(u'id'):
                 value = request.POST[u'id']
-                print "\n>>> WORK - ID <<<" + str(data) + " | " + str(value)
+#                print "\n>>> WORK - ID <<<" + str(data) + " | " + str(value)
                 model_results = Type.objects.filter( Q(pk = value) ).order_by('name')
                 data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name') )
-                    
     return HttpResponse(data)                
 
 
