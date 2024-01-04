@@ -252,8 +252,10 @@ $("body").on("click", ".change_sale", function(e){
 	<td><span class="f_type">{{type.model.type.type}}</span></td>
 	<td><span class="f_brand">{{type.model.brand.name}}</span></td>
 	<td><a href="/bicycle/photo/{{type.model.id}}">
-	{{type.model.model}} ({{type.model.color}})
-	</a></td>
+	{{type.model.model}} ({{type.model.color}}) 
+	</a> 
+	{{type.size.rider_height_str}}
+	</td>
 	<td><span class="f_year">{{type.model.year|date:"Y"}}</span></td>
 	<td class="serial_edit" id_serial="{{ type.id }}"> {{type.serial_number}}</td>  
 	<td><span class="f_size">{{type.size.inch}}" / {{type.size.cm}}cm</span></td>
@@ -308,14 +310,17 @@ $("body").on("click", ".change_sale", function(e){
 	<td><a href="/">{{type.id}}</a></td>
 	<td><span class="f_type">{{type.model.type.type}}</span></td>
 	<td><span class="f_brand">{{type.model.brand.name}}</span></td>
-	<td><a href="/bicycle/photo/{{type.model.id}}">
+	<td >
+	<a href="/bicycle/photo/{{type.model.id}}">
 	{{type.model.model}} ({{type.model.color}})
-	</a></td>
+	</a>
+	{{type.size.rider_height_str}}
+	</td>
 	<td><span class="f_year">{{type.model.year|date:"Y"}}</span></td>
 	<td class="serial_edit" id_serial="{{ type.id }}"> {{type.serial_number}}</td>  
 	
-	<td><span class="f_size">{{type.size.inch}}" / {{type.size.cm}}cm</span></td>
-	<td><span class="frame_letter_size">{{type.size.letter}}</span></td>		
+	<td align="center"><span class="f_size">{{type.size.inch}}" / {{type.size.cm}}cm</span></td>
+	<td align="center"><span class="frame_letter_size">{{type.size.letter}}</span></td>		
 	
 		
 <!-- 		<td class="change_price" id_price="{{type.model.id}}">{{type.model.price}}</td>

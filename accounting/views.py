@@ -906,13 +906,35 @@ def bicycle_store_edit(request, id=None):
                 #c = "ajax work"
                 return HttpResponse(c)
             else:
-                return HttpResponse("dont work ajax")
+                return HttpResponse("Ajax dont work ")
     
     a = Bicycle_Store.objects.get(pk=id)
+    start_ins = Bicycle_Store.objects.get(pk=id)
     if request.method == 'POST':
         form = BicycleStoreForm(request.POST, instance=a)
+        print ("\nFORM PRE valid!")
+        print ("\nPrice = %s; Currency = %s" % (a.price, a.currency))
         if form.is_valid():
-            form.save()
+            print ("\nFORM - SAVE")
+            print ("\nFORM price = %s" % form.fields['price'])
+            if auth_group(request.user, "admin") == False:
+                serial_number = form.cleaned_data['serial_number']
+                size = form.cleaned_data['size']
+                description = form.cleaned_data['description']
+                shop = form.cleaned_data['shop']
+                price = form.cleaned_data['price']
+                a.serial_number = serial_number
+                a.size = size
+                a.description = description
+                a.shop = shop
+                a.price = start_ins.price
+                a.currency = start_ins.currency
+                a.count = start_ins.count
+                print ("\n>> Price = %s; Currency = %s <<\n" % (start_ins.price, start_ins.currency))
+                a.save()
+            else:
+                form.save()
+#            count = form.cleaned_data['count']
             return HttpResponseRedirect('/bicycle-store/view/')
     else:
         form = BicycleStoreForm(instance=a)

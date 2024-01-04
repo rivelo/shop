@@ -159,12 +159,43 @@ class BicycleStoreForm(forms.ModelForm):
     model = forms.ModelChoiceField(queryset = Bicycle.objects.all(), required=False)
     serial_number = forms.CharField(max_length=50)
     size = forms.ModelChoiceField(queryset = FrameSize.objects.all())
-    price = forms.FloatField()
-    currency = forms.ModelChoiceField(queryset = Currency.objects.all())
-    count = forms.IntegerField(min_value=0, initial = 1)
+    price = forms.FloatField(required=False)
+    currency = forms.ModelChoiceField(queryset = Currency.objects.all(), required=False)
+    count = forms.IntegerField(min_value=0, initial = 1, required=False)
     realization = forms.BooleanField(required=False)
     date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))
     description = forms.CharField(label='Description', widget=forms.Textarea(), required=False)
+
+  #  def clean_count(self):
+  #      data = self.cleaned_data['count']
+  #      print "\nCLEAN count = %s" % data
+  #      return 1
+
+    def is_valid(self):
+#        print "\nVALID def is Work - %s" % self.errors
+        """Return True if the form has no errors, or False otherwise."""
+        return self.is_bound and not self.errors
+
+    def clean(self):
+        super(BicycleStoreForm, self).clean()
+        return self.cleaned_data
+    
+        #return self
+#===============================================================================
+#     def clean_price(self):
+#         data = self.cleaned_data['pk']
+#         ins = Bicycle_Store.objects.filter(pk = data)
+#         if not ins:
+#             raise forms.ValidationError("Такого велосипеду не існує!")
+#         return ins[0].price
+# 
+#     def clean_currency(self):
+#         data = self.id #cleaned_data['pk']
+#         ins = Bicycle_Store.objects.filter(pk = data)
+#         if not ins:
+#             raise forms.ValidationError("Такого велосипеду в магазині не існує!")
+#         return ins[0].currency
+#===============================================================================
     
     class Meta:
         model = Bicycle_Store
@@ -912,7 +943,7 @@ class WorkTicketForm(forms.ModelForm):
     bicycle = forms.CharField(label='Велосипед', widget=forms.TextInput(attrs={'class': 'form-control'}), required=False )
     bike_part_type = forms.ModelChoiceField(queryset = Type.objects.all(), label = "Запчастина", required=False, widget=forms.Select(attrs = {'hidden': '',}) )
     #bike_part_type = forms.ModelChoiceField(queryset = Type.objects.all(), label = "Запчастина", widget=forms.Select(attrs={'class': 'form-control'}))
-    estimate_time = forms.NumberInput( )
+    estimate_time = forms.NumberInput()
     #estimate_time = forms.NumberInput(widget=forms.NumberInput(attrs={'class': 'form-control'}) , label="Орієнтовний час виконання (години)")
 
     def clean_client(self):

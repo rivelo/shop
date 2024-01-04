@@ -639,9 +639,18 @@ class FrameSize(models.Model):
     #user_update = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
 #    brand =  
 #    model = models.ManyToManyField( , blank=True)
+
+    def rider_height_str(self):
+        str_res = ''
+        if self.rider_height_min == 0 and self.rider_height_max == 0:
+            str_res = ''
+        else:
+            str_res = "[%s - %s cm]" % (self.rider_height_min, self.rider_height_max) 
+        return str_res
+    
     def letter_str(self):
         str_res = '' 
-        print ">>> Letter %s ; cm = %s ; inch = %s" % (self.letter, self.cm, self.inch)
+#        print ">>> Letter %s ; cm = %s ; inch = %s" % (self.letter, self.cm, self.inch)
         if self.letter:
             str_res = self.letter
         elif (self.cm == 0 and self.inch == 0):

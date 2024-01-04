@@ -68,7 +68,8 @@ function id2name(){
 
 $(document).ready(function() {
 	
-	$('#bike_part_type').val($('#id_bike_part_type :selected').text());
+//	$('#bike_part_type').val($('#id_bike_part_type :selected').text());
+	$('#bike_part_type').attr( 'placeholder', $('#id_bike_part_type :selected').text());
 	
 	$("#s_client").val($("#id_client").val());	
 	if ($("#s_client").val() != '') {
