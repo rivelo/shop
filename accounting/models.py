@@ -204,6 +204,7 @@ class Size(models.Model):
     name = models.CharField(max_length=100)
     width = models.IntegerField() 
     hight = models.IntegerField()
+    #length = models.IntegerField(default = 0, blank = True, null = True)
     
     def __unicode__(self):
         return self.name
@@ -650,19 +651,15 @@ class FrameSize(models.Model):
     
     def letter_str(self):
         str_res = '' 
-#        print ">>> Letter %s ; cm = %s ; inch = %s" % (self.letter, self.cm, self.inch)
         if self.letter:
             str_res = self.letter
         elif (self.cm == 0 and self.inch == 0):
             str_res = '%s' % (self.name, )
         elif (self.letter == '' or self.letter == None) and (self.cm != 0 or self.inch != 0):
             str_res = '[%s"] - %s см' % (self.inch, self.cm)
-             
         return str_res
     
     def __unicode__(self):
-#        if self.letter == None:
-#            return self.name
         return '%s - %s [ %s cm -  %s " ]' % (self.name, self.letter, self.cm, self.inch, )
 
     class Meta:
@@ -1815,4 +1812,28 @@ class ClientReturn(models.Model):
 
     class Meta:
         ordering = ["-date", "client"]
-    
+        
+#===============================================================================
+# 
+# class StorageBox(models.Model):
+#     catalog = models.ForeignKey(Catalog)
+#     box_name = models.CharField(max_length=255, blank=True, null=True)
+#     count = models.FloatField(default = 0, blank=True, null=True) #IntegerField()
+#     count_real = models.FloatField(default = 0, blank=True, null=True) #IntegerField()
+#     price = models.FloatField(blank = True, null = True)
+#     sale = models.IntegerField(blank = True, null = True, validators=[ MaxValueValidator(100), MinValueValidator(0) ]) 
+#     date_create = models.DateTimeField(auto_now_add = False, blank=False, null=False)    
+#     date_update = models.DateTimeField(auto_now_add = False, blank=False, null=False)
+#     description = models.TextField(blank = True, null = True)
+#     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+#     mark_del = models.BooleanField(default=False, verbose_name="Мітка на видалення")    
+#     history = models.TextField(blank = True, null = True)
+#     shop = models.ForeignKey(Shop, blank=True, null=True) 
+#         
+#     def __unicode__(self):
+#         return u'%s' % self.box_name
+# 
+#     class Meta:
+#         ordering = ["box_name", "-date_create", "catalog"]
+#     
+#===============================================================================

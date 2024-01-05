@@ -5177,7 +5177,7 @@ def client_result(request, tdelta = 30, id = None, email=False):
         client_workshop_sum = client_workshop_sum + a.price
             
     b_bike = Bicycle_Sale.objects.filter(client=user).values('model__model__model', 'model__model__brand__name', 'model__serial_number', 'model__size__name', 'date', 'service', 'id')
-    workshop_ticket = WorkTicket.objects.filter(client=user).values('id', 'date', 'description', 'status__name', 'phone_status__name', 'phone_user__username', 'phone_date').order_by('-date')
+    workshop_ticket = WorkTicket.objects.filter(client=user).values('id', 'date', 'description', 'status__name', 'phone_status__name', 'phone_user__username', 'phone_date', 'bike_part_type', 'bicycle', 'shop__name', 'user__username').order_by('-date')
     messages = ClientMessage.objects.filter(client=user).values('msg', 'status', 'date', 'user__username', 'id')
     status_msg = messages.values('status').filter(status=False).exists()
     rent = Rent.objects.filter(client=user)
@@ -5739,7 +5739,10 @@ def workticket_edit(request, id=None):
 #                    print "Field [%s] = %s" % (field_name, form.fields[field_name])
                     history = history + "Field name[%s] = %s;\n" %  (field_name, request.POST.get(field_name)) #form.fields[field_name])
                 user_date_str = "[%s](%s)\n" % (date, user)
-                history = history_wt.history + user_date_str + history + "\n"
+                try:
+                    history = history_wt.history + user_date_str + history + "\n"
+                except TypeError:
+                    history = user_date_str + history + "\n"
                 
             
             WorkTicket(id = id, client=client, history=history, date=date, end_date=end_date, status=status, description=description, user=user, shop=shop, estimate_time=estimate_time, bicycle=bicycle, bike_part_type=bike_part_type).save()

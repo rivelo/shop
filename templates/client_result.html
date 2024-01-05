@@ -788,8 +788,14 @@ function show_ret(ciid, item) {
 {% else %}
   <tr bgcolor="#FFFFFF">
 {% endif %}  
-  <td>{{ticket.date}}</td>
-  <td>{{ticket.description}}
+  <td title="Майстерня: {{ticket.shop__name}}" data-toggle="tooltip" data-placement="top">{{ticket.date}}</td>
+  <td title="Створив заявку: {{ticket.user__username}}" data-toggle="tooltip" data-placement="top">
+  {% if ticket.bicycle %}
+  Велосипед: {{ticket.bicycle}}.
+  {% elif bike_part_type %}  
+  Запчастина: {{bike_part_type}}. 
+  {% endif %} 
+   {{ticket.description}}. 
   <a style="text-align: right;" href="{% url 'workticket_edit' ticket.id %}" title="Редагувати заявку"  data-toggle="tooltip" data-placement="right"><i class="material-icons">edit</i></a>
   </td>
   <td class="edit_workstatus" id_workticket={{ticket.id}}>
@@ -1139,6 +1145,7 @@ function show_ret(ciid, item) {
 </form>
 	</div>
 
+{# Заявки на ремонт #}
 {% if email == False %}
 <div id="tabs-3" onClick='$("#tabs-3").append($("#t_workticket"))'>
 </div>
