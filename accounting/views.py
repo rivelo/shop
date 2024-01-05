@@ -7020,7 +7020,9 @@ def payform(request):
     for inv in ci:
         if client!=inv.client:
             error_msg = "Вибрані позиції різних клієнтів"
-            return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+            context = {'weblink': 'error_manyclients.html', 'error_msg':error_msg, }
+            context.update(custom_proc(request))
+            return render(request, 'index.html', context)
         if inv.check_pay() and ('send_check' not in request.POST):
             if (auth_group(request.user, 'admin') == False):
                 error_msg = "Вибрані позиції вже оплачені"

@@ -461,6 +461,7 @@ $.ajax({
 	{% for i in "123456789012" %}
 	{% ifequal forloop.counter sel_month %}
 	{# <a href="/client/invoice/year/{{sel_year}}/month/{{forloop.counter}}/view" class="badge badge-success select">{{forloop.counter}}</a> #}
+	
 	<a href="{% url 'client-invoice-month-by-shop' shop sel_year forloop.counter %}" class="badge badge-success select">{{forloop.counter}}</a> 
 {#	<a href="{% url 'client-invoice-month-by-shop' shop sel_year 1 %}" class="badge badge-success select">{{forloop.counter}}</a> #}
     {% else %}
@@ -521,9 +522,10 @@ $.ajax({
 {% endif %}
 {% if sel_day == 'all' %}
 	<a href="{% url 'client-invoice-month' sel_year sel_month %}">Всі</a>
-
 {% else %}
-<a href="{% url 'client-invoice-day' sel_year sel_month sel_day %}">Всі</a>
+{% if sel_year %}
+<a href="{% url 'client-invoice-day' sel_year sel_month sel_day %}">Всі</a> 
+{% endif %}
 {% endif %}  	
 </div>
 
