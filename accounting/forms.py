@@ -535,7 +535,7 @@ class CatalogForm(forms.ModelForm):
     length = forms.FloatField(initial=0, required=False)
     country = forms.ModelChoiceField(queryset = Country.objects.all())    
     description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255, required=False)
-    date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y') , required=False)    
+    date = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y',) , required=False, )    
 
     def __init__(self, *args, **kwargs):
         #cid = kwargs.pop('ids', None)

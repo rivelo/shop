@@ -14,6 +14,7 @@
 <body>
 <script type="text/javascript">
 
+
 function check_invoice(element) {
 //	console.log("You click on " + element.html());
 //	console.log("You click on " + element.find('span').attr('ids'));
@@ -58,6 +59,9 @@ function add_to_print_invoice_price(element) {
 
 
 $(function() {
+
+$('[data-toggle="tooltip"]').tooltip();
+
 //    $( "#accordion" ).accordion({
 //    	heightStyle: "content",
 //    	collapsible: true,
@@ -77,7 +81,6 @@ $("#accordion").addClass("ui-accordion ui-accordion-icons ui-widget ui-helper-re
     .next()
       .addClass("ui-accordion-content  ui-helper-reset ui-widget-content ui-corner-bottom")
   .hide();
-      
     
     $( ".selector" ).accordion({ animate: false });
     $('#ui-id-1').remove();
@@ -113,6 +116,7 @@ $("#accordion").addClass("ui-accordion ui-accordion-icons ui-widget ui-helper-re
      	 }
      });
 
+    
 $("body").on("click",".locality_edit",function(e){ 	    
 //$('.locality_edit').each(function() {
   $(this).editable('/catalog/edit/', {
@@ -157,7 +161,6 @@ $("#dialog").dialog({
                     alert("При відправці виникли проблеми");
                 }
             });
-
         
           $( this ).dialog( "close" );
         },
@@ -179,9 +182,119 @@ $(document).on("click", ".addprice", function(event) {
 	$("#dtext").after("<span id='catalog_name'>" + $(this).next('td').html() + "</span>");
 });
 
-$('[data-toggle="tooltip"]').tooltip();
 
-});   
+
+$(document).on("click", "#exampleModalLabel", function(event) {
+	document.getElementById("myInputScannerBarcode").focus();
+	console.log("Label click");
+})
+
+
+$(document).on("click", ".addbarcode", function(event) {
+	document.getElementById("myInputScannerBarcode").focus();
+	if ($(this).attr("pk") != $('#exampleModalLabel').attr('pk')){
+		document.getElementById("barcodes_content").innerHTML = '';
+		//var o = '';
+	}
+	console.log("Add BarCode ");
+	var pk = $(this).attr("pk");
+	var lab_str = "[" + $(this).attr("ids")+ "] " + $(this).attr("c_name");
+	//$('#exampleModalLabel').html($(this).attr("c_name"));
+	$('#exampleModalLabel').html(lab_str);
+	$('#exampleModalLabel').attr('pk', pk);
+	$('#CatalogModalEdit').modal(focus);	
+	document.getElementById("myInputScannerBarcode").focus();	
+	document.getElementById("myInputScannerBarcode").blur();
+	document.getElementById("myInputScannerBarcode").focus();
+});
+
+$('#myInputScannerBarcode').on('shown.bs.modal', function (event) {
+	  // do something...
+	document.getElementById("myInputScannerBarcode").focus();
+	console.log("!!! SHOW modal !!!");
+	})
+
+// Ajax request to change Catalog field
+function ajax_cat_req(){
+	const xhttp = new XMLHttpRequest();
+	xhttp.onload = function() {
+		console.log("JSOn = onload");
+//		document.getElementById("barcodes_content").innerHTML = this.responseText;
+	  	const myObj = JSON.parse(this.responseText);
+	  	//console.log("myObj = " + myObj[0].model + " - " + myObj[0].pk + " Fields[" + myObj[0].fields.ids + "]");
+	  	//var s = JSON.stringify(myObj)
+	  	//console.log("JSOn = " + s);
+	 	document.getElementById("barcodes_content").innerHTML += "<br>>>>" + myObj.msg;
+	  	if (myObj.url) {
+	  		document.getElementById("barcodes_content").innerHTML += "<a href='"+myObj.url+"' > Перейти до товару </a>" ;
+	  	}
+	  	//if (myObj[0].model) {
+	  	if (myObj.f_model) {
+	  		const myModel = JSON.parse(myObj.f_model);
+	  		console.log("Model = json Parse | len = " + myModel.length) //[0].fields);
+//	  		console.log(JSON.stringify(myModel))
+	  		console.log(Object.keys(myModel[0].fields));
+
+	  		myModel.forEach(PrintThis);
+	  		
+	  		for (i in myModel){
+	  			console.log("Model [ids] = " + myModel[i].fields.ids) 
+	  		}
+	  		 
+//	  		"<br>" + myModel[0].fields.ids + " - " +myModel[0].fields.name//myObj.f_model[0];
+	  		
+//	  		document.getElementById("barcodes_content").innerHTML += "<br>" + myModel[0].fields.ids + " - " +myModel[0].fields.name//myObj.f_model[0];
+	  		//document.getElementById("barcodes_content").innerHTML += "<a href='"+myObj.url+"' > Перейти до товару </a>" ;
+	  	}
+	  	//document.getElementById("myInputScannerBarcode").focus();
+	}
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+		      // document.getElementById("barcodes_content").innerHTML =  this.responseText;
+		      console.log("State - " +  this.responseText);
+		}
+	};
+	var c_pk = $('#exampleModalLabel').attr('pk');
+	var c_val = document.getElementById("myInputScannerBarcode").value;
+	const myObj = {'name': "TestName", 'pk': c_pk, 'value': c_val};
+	const myJSON = JSON.stringify(myObj);
+//	xhttp.open("GET", "{% url 'catalog-lookup' %}");
+	xhttp.open("POST", "{% url 'catalog-lookup' %}");
+//	xhttp.send();
+//	xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xhttp.setRequestHeader("Content-type", "application/json");
+//	xhttp.send("value="+ c_val +"&id=" + c_pk);
+	xhttp.send(myJSON);
+//	xhttp.send(myObj);
+}
+
+
+//Event of input field 
+var input = document.getElementById("myInputScannerBarcode");
+
+input.addEventListener("keypress", function(event) {
+	console.log("Key pressed - " + input.value);
+  if (event.key === "Enter") {
+    event.preventDefault();
+    //document.getElementById("myBtn").click();
+//    $("#barcodes_content").append("<p>"+ input.value +"</p>");
+//    console.log("Enter pressed - " + input.value);
+//    alert(input.value);
+    ajax_cat_req();
+    input.value = '';
+  }
+});
+
+
+}); //end Ready function   
+
+
+function PrintThis(value, index, arr){
+	console.log("EaCH - " + value.fields.name + " | arr =  " +  arr[index].fields.ids + "| index - " + index);
+	str_input = "<br>[" + value.fields.ids + "] " + value.fields.name + " <a href='/catalog/edit/"+ value.pk  +"' >Перейти до товару?</a>"
+	document.getElementById("barcodes_content").innerHTML += str_input				
+}
+
 </script>
 <br>    
 
@@ -246,7 +359,7 @@ $('[data-toggle="tooltip"]').tooltip();
    	<th style="width:80px" data-toggle="tooltip" data-html="true" data-placement="left" title="Наявна кількість товару">Наявна кількість</th>
    	<th>Ціна</th>
    	<th data-toggle="tooltip" data-html="true" data-placement="left" title="Користувач що прийняв товар">User</th>
-   	<th data-toggle="tooltip" data-html="true" data-placement="left" title="Номер ящика на складі">Ящик</th>
+   	<th data-toggle="tooltip" data-html="true" data-placement="left" title="Номер ящика на складі">Місце</th>
 </tr> 
 </thead>
 {% endifchanged %}
@@ -262,8 +375,13 @@ $('[data-toggle="tooltip"]').tooltip();
 
 <td class="addprice" ids="{{x.catalog.id}}">{{forloop.counter}}</td>
 <td class="cat_name d-flex">
-	<div class="p-2">{{x.catalog}} {% if x.catalog.dealer_code %} [{{x.catalog.dealer_code}}] {% endif %}</div> 
-	<div class="ml-auto p-2"><a style="text-align: right;" href="{% url 'catalog_edit' x.catalog.id %}"><i class="material-icons">edit</i></a></div>
+<!-- 	<div class="p-2">{{x.catalog}} {#% if x.catalog.dealer_code %} [{{x.catalog.dealer_code}}] {% endif %#} [{{x.catalog.get_code|join:" ][ "}}]</div>  --> 
+	<div class="p-2">{{x.catalog.manufacturer}} - {{x.catalog.name}} [ {{x.catalog.get_code|join:" ][ "}} ]</div>
+	<div class="ml-auto p-2">
+	<span class="badge badge-light addbarcode mr-3" pk="{{x.catalog.pk}}" ids="{{x.catalog.ids}}" c_name="{{x.catalog.name}}" title="Сканування штрихкодів" data-toggle="tooltip" data-placement="right"><i class="material-icons">barcode_reader</i></span>
+	<a style="text-align: right;" href="{% url 'catalog_edit' x.catalog.id %}" title="Редагувати товар" data-toggle="tooltip" data-placement="right"><i class="material-icons">edit</i></a>
+	
+	</div>
 </td>
 <td id="count{{x.id}}" align="center">{{x.count}} шт.</td>
 <td>{{x.invoice.origin_id}}</td>
@@ -283,7 +401,17 @@ $('[data-toggle="tooltip"]').tooltip();
 {{x.rcount}}
 </td>
 
+{% if x.catalog.get_saleprice != x.catalog.price %}
+<td align="center">
+<div style="text-decoration: line-through;">
+<s>{{x.catalog.price}} грн.</s>
+</div>
+<b> {{x.catalog.get_saleprice}} грн.</b>
+</td>
+{% else %}
 <td align="center">{{x.catalog.price}} грн.</td>
+{% endif %}
+
 <td id="userid{{x.id}}" align="center">{{x.user}}</td>
 <td align="center" class="locality_edit" id_locality="{{x.catalog.id}}">
 {{x.catalog.locality}}
@@ -302,5 +430,42 @@ $('[data-toggle="tooltip"]').tooltip();
 
 </div>
 
-{% load poll_extras %}  
+
+<!-- Button trigger modal 
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#CatalogModalEdit">
+  Launch demo modal Catalog Edit
+</button>
+-->
+
+<!-- Modal -->
+<div class="modal fade" id="CatalogModalEdit" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Назва товару</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="catalog_modal_content">
+        Додайте штрих коди, або інші коди виробника
+        <input type="text" class="form-control w-100 m-2" id="myInputScannerBarcode"> 
+        
+        <p>
+        Результати: 
+        </p>
+        <div id="barcodes_content" class="text-danger">
+        
+        </div>
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+{#        <button type="button" class="btn btn-primary">Save changes</button> #}
+      </div>
+    </div>
+  </div>
+</div>
+
+  
 {% orm_debug %}

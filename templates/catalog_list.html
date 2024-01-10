@@ -116,20 +116,6 @@ $(document).ready(function() {
 		update_enddate( $(this).parents('td').parents('tr').attr('pk'), $(this).datepicker('getDate', true) )
 	});
 
-{% comment %}	
-	$('[data-toggle="datepicker"]').on('pick.datepicker.event.date', function (e) {
-		console.log("WORK " + e.date);
-		  if (e.date < new Date()) {
-			  console.log("***date changed" + e.date);			  
-		    e.preventDefault(); // Prevent to pick the date
-		  }
-	});	
-	
-	$('.modal-body').on("DOMNodeInserted", function(){
-		console.log("++++ " + $(this).datepicker('getDate', true));
-		console.log("date changed ");
-	});
-{% endcomment %}
 	
 	function update_enddate(pk, date) {
 		$.ajax({
@@ -176,7 +162,9 @@ $(document).ready(function() {
 					
 				$("#exampleModalLongTitle").html("Фото - " + p.cname); //aData[0].id); 
 					$.each(p.aData,function(index, item){
-						var item_url
+//						console.log("ITEM = " + item + "\ aData = " + p.aData[index]);
+//						console.log("ITEM_URL = " + item.url + "\ LOCAl = " + item.local);
+						
 						if (item.url != null) {
 							item_url = item.url
 							console.log("ITEM_URL = " + item_url);
@@ -186,7 +174,7 @@ $(document).ready(function() {
 							item_url = item.local
 							console.log("ITEM_URL_Local = " + item_url);
 						}
-						
+						var item_url = p.aData[index]
 						
 						if (index == 0){
 							str_photo = '<div class="carousel-item active"><img id="image_' + index + '" src="'+ item_url + '" class="d-block w-100"></div>'
@@ -300,10 +288,10 @@ $(document).ready(function() {
     	<th>Тип</th>
     	<th>Вага</th>
     	<th data-toggle="tooltip" data-placement="top" title="Рік виготовлення">Рік</th>
-    	<th >Дата закінчення розпродажу</th>
+    	<th >Розпродаж до</th>
     	<th>Колір</th>
     	<th>Ціна</th>
-    	<th class="currency">Валюта</th>
+{#    	<th class="currency">Валюта</th> #}
     	<th data-toggle="tooltip" data-placement="top" title="Знижка в %">(%)</th>
     	<th data-toggle="tooltip" data-placement="right" title="Наявна кількість (шт.)">К-ть</th>
     	<th>Країна</th>
@@ -336,11 +324,12 @@ $(document).ready(function() {
 	{{type.ids}}
 	<br>
 	{{type.dealer_code}}
+	{{type.get_code|join:" <br> "}}
 	</td>
-	<td>       
+	<td >       
     {% if type.get_photos %}
     	{#type.get_photos#}
-        <span class="photoModalbutton" pk_catalog={{type.id}}><i class="material-icons">insert_photo</i></span>
+        <span class="photoModalbutton" pk_catalog={{type.id}} title="{{type.get_photos}}"><i class="material-icons">insert_photo</i></span>
     {% endif %}
     </td>
     <td>
@@ -349,8 +338,8 @@ $(document).ready(function() {
 	<td align="center">       
 	<a href="/catalog/manufacture/{{ type.manufacturer.id }}/view">{{type.manufacturer}}</a>
 	</td>
-	
-	{% if user.is_authenticated %}
+	{% if request.user|has_group:"admin" %}	
+	{#% if user.is_authenticated %#}
 	<td class="edit_type" id_type="{{type.id}}" cat_id="{{type.type.id}}" align="center">
 	{% else %}
 	<td id_type="{{type.id}}" cat_id="{{type.type.id}}" align="center">
@@ -375,14 +364,22 @@ $(document).ready(function() {
 	<td id_price="{{type.id}}" align="center">
 {% endif %}       
 	{{type.price}} {{type.currency.ids_char}}
+	<br>
+	<span class="badge badge-light {{type.chk_price.1}}">	{{type.chk_price.0}} </span>
 	</td>
+{% comment %}	
 	<td class="currency">       
 	{{type.currency}}
-	</td>	
+	</td>
+{% endcomment %}		
 	<td class="edit_sale" id_sale="{{type.id}}" align="center">
 	{{type.sale}}
     <td align="center" data-toggle="tooltip" data-placement="top" title="Переглянути надходження">
     <a href="/invoice/catalog/{{type.id}}/view/">{{type.count}}</a>
+{% if type.count !=  type.get_realshop_count %}
+    <br>
+    <span class="badge badge-info" title="Фактична кількість: {{type.get_realshop_count}} штук" data-toggle="tooltip" data-placement="right">{{type.get_realshop_count}}</span>
+{% endif %}
     </td>
 	</td>
 	<td align="center">       

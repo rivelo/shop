@@ -22,7 +22,9 @@ from django.utils.translation.trans_real import catalog
 from __builtin__ import True
 from django.template.defaultfilters import default
 from datetime import date
+#from audioop import reverse
 #from Scripts.pilprint import description
+from django.urls import reverse
 
 
 # Group Type = Group for Component category 
@@ -70,7 +72,7 @@ class Shop(models.Model):
     map_point = models.TextField(blank = True, null = True)
     ip_addr = models.GenericIPAddressField(protocol='IPv4', blank = True, null = True)
     status = models.BooleanField(default = True) # Work status
-    #show = models.BooleanField(default = True) # Show status in SHOPs list
+    show = models.BooleanField(default = True) # Show status in SHOPs list
 #    shop_pay_cash = models.ManyToManyField(CashType, blank = True, related_name='Shop_Cash_Pay')
 #    shop_pay_term = models.ManyToManyField(CashType, blank = True, related_name='Shop_Term_Pay')
     casa_server_ip =  models.GenericIPAddressField(protocol='IPv4', blank = True, null = True)
@@ -197,6 +199,45 @@ class Type(models.Model):
 
     class Meta:
         ordering = ["name"]    
+
+
+#Bicycle type table
+class Bicycle_Type(models.Model):
+    type = models.CharField(max_length=255) #adult, kids, mtb, road, hybrid
+    ukr_name = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    level = models.IntegerField(default = 0, blank = True, null = True)
+    parent_id = models.ForeignKey("self", blank=True, null = True, default=None)
+    status = models.BooleanField(default = True, blank=True)
+
+    def bike_count(self):
+        res = self.bicycle_set.all().order_by('pk').aggregate(bike_sum = Count('pk'))
+        return res['bike_sum']
+    
+    def subtype_count(self):
+        res = self.bicycle_type_set.all().order_by('pk').aggregate(bike_sum = Count('pk'))
+        return res['bike_sum']
+
+    def subtype_list(self):
+        res = self.bicycle_type_set.all()
+        return res
+
+    def subtype_storebike(self):
+        res = self.bicycle_type_set.all().values_list('pk')
+        bs = Bicycle_Store.objects.filter(count__gt = 0, model__type__pk__in = res).order_by('model__brand')
+        return bs
+
+    def storebike(self):
+        inlist = []
+        inlist.append(self.pk)
+        bs = Bicycle_Store.objects.filter(count__gt = 0, model__type__pk__in = inlist).order_by('model__brand')
+        return bs
+
+    def __unicode__(self):
+        return u'%s' % self.type
+
+    class Meta:
+        ordering = ["type"]    
 
 
 # Size catalog
@@ -421,9 +462,10 @@ class YouTube(models.Model):
 class Catalog(models.Model):
     ids = models.CharField("code", unique=True, max_length=50)
     dealer_code = models.CharField("dealer code", max_length=50, blank=True, null=True)
-    #barcode_upc = models.CharField("dealer code", max_length=12, blank=True, null=True)
-    #barcode_ean = models.CharField("dealer code", max_length=13, blank=True, null=True)
-    #barcode = models.CharField("dealer code", max_length=50, blank=True, null=True)
+    manufacture_article = models.CharField("manufacture code(article)", max_length=100, blank=True, null=True)
+    barcode_upc = models.CharField("barcode_upc", max_length=12, blank=True, null=True)
+    barcode_ean = models.CharField("barcode_EAN", max_length=13, blank=True, null=True)
+    barcode = models.CharField("barcode other", max_length=128, blank=True, null=True)
     name = models.CharField(max_length=255)
     manufacturer = models.ForeignKey(Manufacturer)
     type = models.ForeignKey(Type, related_name='type')
@@ -443,23 +485,23 @@ class Catalog(models.Model):
     length = models.FloatField(blank=True, null=True)
     last_update = models.DateTimeField(auto_now_add=False, null=True, blank=True)
     user_update = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
-#    last_changes = models.TextField(blank=True, null=True, verbose_name="Останні зміни в товарі")    
-    description = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, blank=True, null=True)
     locality = models.CharField("locality", blank=True, null=True, max_length=50)
     show = models.BooleanField(default=False, verbose_name="Статус відображення")
+    bike_style = models.ManyToManyField(Bicycle_Type, blank=True) # cyclocross, crosscountry, road, gravel, enduro, downhill, city...
 #    models.ManyToManyField() # field like sizechart, field to shoes
-#    bike_style = models.ManyToManyField()  cyclocross, crosscountry, road, gravel ...
 #    season = winter, summer, ...
-    full_description = models.TextField(blank=True, null=True)
+    full_description = models.TextField("Опис товару", blank=True, null=True)
     youtube_url = models.ManyToManyField(YouTube, blank=True)
 #    наявність у постачальника
-    date = models.DateField(null=True, blank=True) #Строк придатності
-    #url_web_site = models.CharField()
-    #mistake =
-    #mistake_status = 
-    #attr = models.ManyToManyField
+    date = models.DateField("Строк придатності", null=True, blank=True) #Строк придатності
+#    last_changes = models.TextField(blank=True, null=True, verbose_name="Останні зміни в товарі")
+    url_web_site = models.CharField(max_length=255, null=True, blank=True, verbose_name="Посилання на офіційний сайт")
+    mistake = models.CharField(max_length=255, null=True, blank=True, verbose_name="Помилка в заповненні картки товару")
+    mistake_status = models.BooleanField(default=False, verbose_name="Статус помилки")
+    #attr = models.ManyToManyField()
     #search_history
-    #change_history
+    change_history = models.TextField(blank=True, null=True, verbose_name="History of changes on item Catalog ")
     rating = models.FloatField(blank=True, null=True)   
 
     def get_discount(self):
@@ -493,17 +535,6 @@ class Catalog(models.Model):
         percent_sale = (100-self.sale)*0.01
         price = self.price * percent_sale
         return price
-
-    def inv_price(self):
-        usd = Currency.objects.get(pk=2)
-        eur = Currency.objects.get(pk=4)
-        uah = Currency.objects.get(pk=3)
-        r = self.invoicecomponentlist_set.filter(price__gt = 0, currency = uah).values('currency').annotate(count_p=Count('currency'), sum_p=Sum('price'), count_s=Sum('count'))
-        #r = self.invoicecomponentlist_set.filter(currency = eur).values('currency').annotate(count_p=Count('currency'), sum_p=Sum('price'))
-        #r = self.invoicecomponentlist_set.filter(price__gt = 0, currency = usd).values('currency').annotate(count_p=Count('currency'), sum_p=Sum('price'))
-        #r = self.invoicecomponentlist_set.filter(currency = uah).values('price', 'currency').annotate(sum_p=Sum('price'), count_p=Count('currency'))
-        #values('price', 'currency')
-        return r
 
     def client_price(self):
         usd = Currency.objects.get(pk=2)
@@ -550,7 +581,7 @@ class Catalog(models.Model):
     def get_invoice_count(self):
         cc = self.invoicecomponentlist_set.filter().aggregate(icount = Sum('count'))
         return cc['icount']
-    
+    # Розрахунок реальної кількості товару в магазині
     def get_realshop_count(self):
         ci = self.clientinvoice_set.filter().aggregate(cicount = Sum('count'))
         ic = self.invoicecomponentlist_set.filter().aggregate(icount = Sum('count'))
@@ -597,15 +628,146 @@ class Catalog(models.Model):
             return photos_list
         else:
             return False
+
+    def _get_all_code(self):
+        data = 'ids: %s;\n  dealer_code: %s; barcode: %s; barcode_upc: %s; barcode_ean: %s; manufacture_article:%s;'  %  (self.ids, self.dealer_code, self.barcode, self.barcode_upc, self.barcode_ean, self.manufacture_article)
+        code_list = (self.ids, self.dealer_code, self.barcode, self.barcode_upc, self.barcode_ean, self.manufacture_article)
+        arr = []
+        for i in code_list:
+#            print "I = %s" % i
+            if (i == None) or (i == u''):
+                pass
+            else:
+                arr.append(i)
+#        print "\nGET all Code - " +  str(arr) #str(code_list)
+        return arr
+    get_code = property(_get_all_code) # Перевірка на правильність ціни
+
+    def json_barcode(self):
+        data = {'ids': self.ids,
+                'dealer_code': self.dealer_code,
+                'barcode': self.barcode,
+                'barcode_upc' : self.barcode_upc,
+                'barcode_ean' : self.barcode_ean,
+                'manufacture_article': manufacture_article,
+                'name': self.name,
+                'weight': self.weight,
+                'description': self.description,
+                'mistake_status': self.mistake_status,
+                'mistake': self.mistake
+            }
+        return data
+
+    def chk_barcode(self, value):
+        res = ''
+        dres = {}
+        dres['f_model'] = None
+        code_list = (self.ids, self.dealer_code, self.barcode, self.barcode_upc, self.barcode_ean, self.manufacture_article)
+        if value in code_list:
+#            print "CHECK barcode =  True" 
+            res = u"[%s] Даний код вже додано до товару" % value
+            dres['msg'] = res
+            dres['url'] = reverse("catalog_edit", kwargs={"id": self.pk}) #'/catalog/edit/' + str(self.pk) 
+            dres['status'] = False
+            dres['f_model'] = None 
+#            print "\nQuerySet = " + str(Catalog.objects.filter(pk=self.pk).only('pk', 'ids', 'name', 'dealer_code'))
+        else:
+#            print "CHECK barcode =  False"
+            #ids_obj = Catalog.objects.filter(ids = value)
+            #dcode_obj = Catalog.objects.filter(dealer_code = value)
+            chk_obj = Catalog.objects.filter(Q(ids=value) | Q(dealer_code=value) | Q(barcode=value) | Q(barcode_ean=value) | Q(barcode_upc=value) | Q(manufacture_article=value)).only('pk', 'ids', 'name', 'dealer_code', 'barcode')#.exclude(pk=self.pk)
+#            print "Chk OBJ = " + str(chk_obj[0].dealer_code)
+#            print "OBJ = " + str(list(chk_obj)) #.values_list('pk', 'ids', 'name', 'dealer_code'))
+            list_o = chk_obj.values('pk', 'ids', 'name', 'dealer_code', 'barcode')
+#            print "OBJ list = " + str(list_o)
+            if chk_obj:
+                dres['f_model'] = list(chk_obj) #, flat=True)
+                dres['msg'] = "Існує інший товар з таким кодом"
+                dres['url'] =  None #reverse("cat_set_attr") #, kwargs={"id": self.pk}) #'/catalog/edit/'
+                dres['status'] = False
+ #               for item in chk_obj:
+ #                   print "Item = %s \n" % item.pk
+ #                   print "Item ids = %s \n" % item.ids
+ #                   print "Item name = %s \n" % item.dealer_code
+                return dres
             
+            if value.isdigit() == True:
+                if len(value) == 12:
+#                    print ("\nUPC barcode %s\n" % self.barcode_upc)
+                    if self.barcode_upc == None:
+                        print ("\nUPC barcode is None\n")
+                        self.barcode_upc = value
+                        res = u"Додано UPC barcode - %s " % value
+                        dres['status'] = True
+                    else:
+                        res = u"UPC barcode [%s] існує в даного товару. Перезаписати його на новий [%s]? " % (self.barcode_upc, value)
+                        dres['status'] = False
+                        dres['url'] = '/catalog/edit/' + str(self.pk)
+                elif len(value) == 13:
+ #                   print ("\nEAN barcode\n")
+                    if self.barcode_ean == None:
+                        self.barcode_ean = value
+#                        print ("\nEAN barcode is None\n")
+                        res = u"Додано EAN barcode - %s " % value
+                        dres['status'] = True
+                    else:
+                        res = u"EAN barcode [%s] існує в даного товару. Перезаписати його на новий [%s]?" % (self.barcode_ean, value)
+                        dres['status'] = False
+                        dres['url'] = reverse("catalog_edit", kwargs={"id": self.pk}) #'/catalog/edit/' + str(self.pk)
+                else:
+#                    print ("\nEAN barcode\n")
+                    if self.barcode == None:
+                        self.barcode = value
+#                        print ("\nBarcode is None\n")
+                        res = u"Додано [%s] в поле barcode" % value
+                        dres['status'] = True
+                    else:
+                        res = u"Поле barcode [%s] існує в даного товару. Перезаписати його на новий [%s]?" % (self.barcode, value)
+                        dres['status'] = False
+                        dres['url'] = '/catalog/edit/' + str(self.pk)
+            else:
+                res = u"Введені дані [%s] не є стандартним штрихкодом. Введіть ці дані вручну якщо вони вірні!? " % (value)
+                dres['status'] = False                 
+                dres['url'] = reverse("catalog_edit", kwargs={"id": self.pk})
+            dres['msg'] = res
+        self.save()
+        return dres
+
+    def inv_price(self):
+        r = self.invoicecomponentlist_set.filter(price__gt = 0)
+        l = len(r)
+        sum = 0
+        for item in r:
+#            print "\nInvPrice UA =  %s" % item.get_uaprice()
+            sum = sum + item.get_uaprice()
+        #r = self.invoicecomponentlist_set.filter(currency = uah).values('price', 'currency').annotate(sum_p=Sum('price'), count_p=Count('currency'))
+        try:
+            res = sum / l
+        except:
+            res = 0
+        return res
         
-    def _get_full_name(self):
+    def _get_chk_price(self):
         p = self.inv_price()
-        cprice = p[0]['sum_p']/p[0]['count_s']
-        if self.price < cprice:
-            return "Ahtung!!!"
-        return 'Price OK = ' + str(cprice)
-    chk_price = property(_get_full_name) # Перевірка на правильність ціни
+        if p == 0:
+            color = "text-primary"
+            return ("Товару не надходило або в надходженнях ціна 0 грн!", color)
+        ua_s  = self.invoice_price()
+        print "\nFULL name Prop - %s \n" % p
+        print "\nUA seredn = " + str(ua_s) #[2]) + " --- " +str(ua_s)
+#        cprice = p[0]['sum_p']/p[0]['count_s']
+        #cprice = self.inv_price()
+        print ("Price = %s - s_Price = %s; with Sale 15 = %s; with Sale 25 = %s; with Sale 35 = %s\n" % (self.get_saleprice(), p, str(self.price*0.85), str(self.price*0.75), str(self.price*0.65) ))
+        color = "text-success"
+        if ( (self.get_saleprice() <= p) or (p >= (self.price * 0.85)) ):            
+            color = "text-danger"
+            return ("Ahtung!!!", color)
+        if (p >= (self.price * 0.75)) and  (p < (self.price * 0.85)):
+            color = "text-warning"
+        if (p >= (self.price * 0.65)) and (p < (self.price * 0.75)):
+            color="text-info"
+        return ('Price OK! ', color) #+ str(cprice)
+    chk_price = property(_get_chk_price) # Перевірка на правильність ціни
 
     
     def __unicode__(self):
@@ -848,9 +1010,9 @@ class Client(models.Model):
     birthday = models.DateField(auto_now_add=False, blank = True, null = True)
     sale_on = models.BooleanField(default=True, verbose_name="Знижка включена")
     description = models.TextField(blank = True, null = True)
-    #reg_date = models.DateField(auto_now_add=True, blank = True, null = True)
-    #reg_shop = models.ForeignKey(Shop, blank=True, null=True)
-    #reg_user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+    reg_date = models.DateField(auto_now_add=True, blank = True, null = True)
+    reg_shop = models.ForeignKey(Shop, blank=True, null=True)
+    reg_user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     #cashback = models.FloatField(default=0)
     #cashback_out_date = models.DateField(blank = True, null = True)
     #bicycle_service = 
@@ -1090,43 +1252,6 @@ class Costs(models.Model):
         ordering = ["date"]
 
 
-#Bicycle type table
-class Bicycle_Type(models.Model):
-    type = models.CharField(max_length=255) #adult, kids, mtb, road, hybrid
-    ukr_name = models.CharField(max_length=255, blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
-    level = models.IntegerField(default = 0, blank = True, null = True)
-    parent_id = models.ForeignKey("self", blank=True, null = True, default=None)
-    status = models.BooleanField(default = True, blank=True)
-
-    def bike_count(self):
-        res = self.bicycle_set.all().order_by('pk').aggregate(bike_sum = Count('pk'))
-        return res['bike_sum']
-    
-    def subtype_count(self):
-        res = self.bicycle_type_set.all().order_by('pk').aggregate(bike_sum = Count('pk'))
-        return res['bike_sum']
-
-    def subtype_list(self):
-        res = self.bicycle_type_set.all()
-        return res
-
-    def subtype_storebike(self):
-        res = self.bicycle_type_set.all().values_list('pk')
-        bs = Bicycle_Store.objects.filter(count__gt = 0, model__type__pk__in = res).order_by('model__brand')
-        return bs
-
-    def storebike(self):
-        inlist = []
-        inlist.append(self.pk)
-        bs = Bicycle_Store.objects.filter(count__gt = 0, model__type__pk__in = inlist).order_by('model__brand')
-        return bs
-
-    def __unicode__(self):
-        return u'%s' % self.type
-
-    class Meta:
-        ordering = ["type"]    
 
 
 #Bicycle wheel size table

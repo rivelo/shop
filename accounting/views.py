@@ -2438,7 +2438,7 @@ def invoice_new_item(request):
     start_date = datetime.date(date.year, 1, 1)
     end_date = datetime.date(date.year, 3, 31)    
     di = DealerInvoice.objects.filter(received = False).values_list("id", flat=True)
-    nday = 14
+    nday = settings.NEW_INVOICE_SHOW_DAY #14
     list_comp = InvoiceComponentList.objects.filter(invoice__date__gt = date - datetime.timedelta(days=int(nday)), invoice__id__in = di).order_by("invoice__id")
     context = {'dinvoice_list': list_comp, 'weblink': 'dealer_invoice_new_item.html', }
     context.update(custom_proc(request))
@@ -3803,6 +3803,12 @@ def catalog_set(request):
                 return HttpResponse(c)
             
             if POST.has_key('id') and POST.has_key('price'):
+                if auth_group(request.user, 'admin')==False:
+                    d = {}
+                    d['status'] = False
+                    d['msg'] = 'Ви не має достаттньо повноважень для даної функції'
+                    response = JsonResponse(d)
+                    return response                
                 id = request.POST.get('id')
                 p = request.POST.get('price')
                 obj = Catalog.objects.get(id = id)
@@ -3813,6 +3819,7 @@ def catalog_set(request):
                 obj.save() 
 #                c = Catalog.objects.filter(id = id).values('price', 'id')
                 c = Catalog.objects.filter(id = id).values_list('price', flat=True)
+                print "\nV_list" + str(c)
                 return HttpResponse(c)
             
             if POST.has_key('id') and POST.has_key('sale'):
@@ -3856,8 +3863,6 @@ def catalog_set(request):
                 d['msg'] = 'Done'
                 response = JsonResponse(d)
                 return response                
-
-                #return HttpResponse(c)
               #  return HttpResponse(simplejson.dumps(list(c)))
     else :
            return HttpResponse('Error: Щось пішло не так')
@@ -4018,10 +4023,12 @@ def catalog_search_result(request):
     elif 'locality' in request.GET and request.GET['locality']:
         local = request.GET['locality']
         list = Catalog.objects.filter(locality__icontains = local).order_by('locality')
-                
-    return render_to_response('index.html', {'catalog': list, 'url':print_url, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'catalog': list, 'url':print_url, 'weblink': 'catalog_list.html',}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
-
+from django.http import QueryDict
+@csrf_exempt
 def catalog_lookup(request):
     # Default return list
     data = None
@@ -4036,8 +4043,10 @@ def catalog_lookup(request):
 #                results = [ x.name for x in model_results ]
 #    json = simplejson.dumps(results)
                 data = serializers.serialize("json", model_results, fields=('name','id', 'ids', 'price'))
-
+        else:
+            data = "request Error"
     if request.is_ajax():
+        data = "\nAjax - ok\n"
         if request.method == "POST":
             if request.POST.has_key(u'query') and request.POST.has_key(u'type'):
                 value = request.POST[u'query']
@@ -4047,7 +4056,57 @@ def catalog_lookup(request):
                     model_results = Catalog.objects.filter(name__icontains=value, type = type_id)
                     data = serializers.serialize("json", model_results, fields=('name','id', 'ids', 'price'))
                 
-    return HttpResponse(data)    
+            if request.POST.has_key(u'name'):
+                pass
+    # JSON Read and Parse
+    if request.method == "POST":
+        print "POST. ID - ok [%s]" % request.body
+        rdict = QueryDict(request.body)
+        sel_id = rdict.keys()#[0]
+        req_dict = json.loads(request.body)
+        print "DICT  = %s" % sel_id #.items() 
+        print "DICT [id] = %s" % req_dict['pk']
+        if req_dict['pk']:
+            pk = int(req_dict['pk'])
+            value = req_dict['value']
+            obj = Catalog.objects.get(id = pk)#.values('name','id', 'ids', 'dealer_code', 'price')
+            res = obj.chk_barcode(value)
+            #obj.barcode = value
+            #obj.save()
+#            data = serializers.serialize('json', [obj,])
+            #===================================================================
+            print "\nRES = %s\n" % res#['f_model']
+            #data = serializers.serialize('json', res, many = True)
+#            data = serializers.serialize('json', res['f_model'])
+            # ndt = { 'msq': res['msg'],'url': res['url'], 'status': res['status'], }
+            # print "\nNdata = %s;\n" % (ndt)
+            # jdata = json.dumps(ndt)
+            # data = jdata + data
+            # print "Jdata = %s ;\n Ndata = %s;\n Data = %s;\n" % (jdata, ndt, data)
+            #===================================================================
+            if res['f_model']:
+                res['f_model'] = serializers.serialize('json', res['f_model'])
+            #data = json.dumps(res, skipkeys=True)
+            data = simplejson.dumps(res)
+#            return JsonResponse([res['f_model'],], safe=False)
+            
+#            jobj = {'error': None, 'text': 'Request - DONE', 'value': 999 }
+#            data = json.dumps(jobj)
+        #JS send  setRequestHeader("Content-type", "application/json")
+ 
+#        print("\nPK = %s | post[pk] = \n" % request.POST)
+#        if request.POST.has_key('pk'):
+#            pk = request.POST['pk']
+#            obj = Catalog.objects.get(id = pk)#.values('name','id', 'ids', 'dealer_code', 'price')
+#            print "OBJ has KEY -  %s" % type(obj) 
+#            data = serializers.serialize('json', [obj,])
+            #data = serializers.serialize("json", model_results, fields=('name','id', 'ids', 'dealer_code', 'price')) # its for Filter
+            #data = json.dumps(model_result)
+            #data = "Request. OK"
+#            return HttpResponse(data, content_type='application/json')
+
+            
+    return HttpResponse(data, content_type='application/json')    
     #return HttpResponse(json)
 
 
@@ -6404,7 +6463,7 @@ def shop_price_print_add(request, id=None):
         sp.save()
     return HttpResponseRedirect('/shop/price/print/view/')
 
-
+@csrf_exempt
 def shop_price_print_add_invoice(request):
     if auth_group(request.user, 'seller')==False:
         return HttpResponse(simplejson.dumps({'msg': 'Error: У вас не має прав для редагування'}), content_type="application/json")
@@ -6415,9 +6474,9 @@ def shop_price_print_add_invoice(request):
                 id = request.POST.get('id')
                 di_obj = DealerInvoice.objects.get(pk = id)
                 cat_list = di_obj.invoicecomponentlist_set.all()
-                print "Invoice list:"
+#                print "Invoice list:"
                 for obj in cat_list:
-                    print "Cat = " + str(obj.catalog)
+#                    print "Cat = " + str(obj.catalog)
                     sp = ShopPrice()
                     sp.catalog = obj.catalog
                     sp.scount = 1 # count of price
@@ -6425,7 +6484,7 @@ def shop_price_print_add_invoice(request):
                     sp.user = request.user
                     sp.save()
                     
-                status_msg = "Цінники з накладної #" + str(di_obj.origin_id) + " додані"
+                status_msg = u"Цінники з накладної #" + str(di_obj.origin_id) + u" додані"
                 #return HttpResponse('Ваш запит виконано', content_type="text/plain;charset=UTF-8;charset=UTF-8")
                 return HttpResponse(simplejson.dumps({'status': di_obj.received, 'msg': status_msg}), content_type="application/json")
     else:
@@ -8328,6 +8387,7 @@ def photo_url_get(request, id=None):
                     json = simplejson.dumps({'aData': "None", 'id': cid, 'cname': c_name})
         return HttpResponse(json, content_type='application/json')
     else:
+#        print "<< ELSE - WORK PHOTO ajax >>"
         #id = request.POST.get('id')
         obj = Photo.objects.get(pk = id)
         bset = obj.bicycle_set.all()
@@ -8542,13 +8602,13 @@ def photo_list(request, show=2, page=1, limit=50, cat_id=None):
         #list = Photo.objects.filter(catalog = None)
         text = "Show all record who join Catalog - " + str(cat)
 
-        
 #    list = Photo.objects.filter((Q(www = '') | Q (www = None)) & Q(catalog = None)).values('user', 'date', 'url', 'catalog__name', 'catalog__id', 'catalog__ids', 'user__username', 'id', 'bicycle__model', 'bicycle', 'local', 'www').order_by('-date')
     for iphoto in list:
         psts = change_photo_url(iphoto)
 #        print "[" + str(iphoto.pk) + "] - "+ str(psts) 
-            
-    return render_to_response('index.html', {'weblink': 'photo_list.html', 'list': list, 'text': text, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'weblink': 'photo_list.html', 'list': list, 'text': text, }
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def photo_url_delete(request, id=None):
@@ -8864,7 +8924,7 @@ def inventory_fix(request, year=None, month=None, day=None, update=False):
 #    return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
     return render_to_response("index.html", {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+@csrf_exempt
 def inventory_add(request):
     inv = None
     balance = 0
@@ -8911,7 +8971,7 @@ def inventory_add(request):
     #search = "ok"
     #return HttpResponse(search, content_type="text/plain;charset=UTF-8;")
 
-
+@csrf_exempt
 def inventory_get(request):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -8930,7 +8990,7 @@ def inventory_get(request):
 
     return HttpResponse(data_c, content_type='application/json')        
 
-
+@csrf_exempt
 def inventory_get_listid(request):
     date_before = datetime.datetime.today() - datetime.timedelta(days=180)
     if request.is_ajax():
@@ -8961,7 +9021,7 @@ def inventory_get_count(request):
             return HttpResponse('Error: У вас не достатньо повноважень для редагування', content_type="text/plain;charset=UTF-8;;")
     return HttpResponse(unicode(list.count), content_type="text/plain;charset=UTF-8;;")
 
-
+@csrf_exempt
 def inventory_set(request):
     if request.is_ajax():
         if request.method == 'POST':
@@ -9021,7 +9081,7 @@ def inventory_delete(request, id=None):
 #    bj.delete()
     return HttpResponseRedirect('/inventory/list/')
 
-
+@csrf_exempt
 def catalog_join(request,id1=None, id2=None, ids=None):
     if auth_group(request.user, 'admin')==False:
         #return HttpResponseRedirect('/')
@@ -9061,8 +9121,6 @@ def catalog_join(request,id1=None, id2=None, ids=None):
                 ClientReturn.objects.filter(catalog = i).update(catalog = id1)
                 obj_del = Catalog.objects.get(id = i)
                 #obj_del.delete()
-                
-#                result = ''
             result = "ok"
             return HttpResponse(result, content_type="text/plain;charset=UTF-8;")
     

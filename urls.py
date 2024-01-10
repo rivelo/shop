@@ -254,7 +254,7 @@ urlpatterns = [
     url(r'^catalog/search/locality/$', catalog.catalog_search_locality),
     url(r'^catalog/search/result/$', catalog.catalog_search_result),
     url(r'^catalog/search/locality/$', catalog.catalog_search_result),
-    url(r'^catalog/lookup/$', catalog.catalog_lookup),
+    url(r'^catalog/lookup/$', catalog.catalog_lookup, name="catalog-lookup"),
     url(r'^catalog/get/locality/$', catalog.catalog_get_locality),
     url(r'^catalog/search/$', catalog.catalog_search_by_ids), # POST AJAX
 
