@@ -275,7 +275,8 @@ function copyToClipboard(elem) {
 
 
 jQuery(document).ready(function ($) {
-	
+
+	$("#q_search").hide();
 	$("div.price_tag").hide();		
 
 jQuery.extend( jQuery.fn.dataTableExt.oSort, {
@@ -1783,6 +1784,11 @@ var table = $('#iTable').DataTable();
 });
 
 
+$("body").on('click', '#span_show_select', function() {
+//	$("#q_search").hide();
+	$("#q_search").toggle();
+});
+
 $("body").on('click', '#price_tag_button', function() {
 	var status = $('#price_tag_button').attr('val')
 	if ( status == 1) {
@@ -1851,7 +1857,9 @@ function show_tr_year(obj){
 </div>
 <!-- Modal PHOTO end -->
 
-<div style="width:300px; float:left;"> 
+
+<div class="row ml-50" id="q_search">
+<div class="col-2 ml-50" style="width:300px; float:left;"> 
 <select id="m_combobox">
 <option value="">Select one...</option>
 {% for company in company_list %}
@@ -1860,7 +1868,7 @@ function show_tr_year(obj){
 </select>
 </div>
 
-<div style="width:auto; float:left;">
+<div class="col-2"  >
 <select id="t_combobox">
 <option value="">Select one...</option>
 {% for type in type_list %}
@@ -1868,14 +1876,18 @@ function show_tr_year(obj){
 {% endfor %}
 </select>
 </div>
+</div>
+
 
 <div style="clear:left;">
-     <h1><span class="badge badge-secondary">Список наявного товару</span> <span class="badge badge-info" id="c_c">{{company_name|capfirst}}{{category_name|capfirst}}</span>
+     <h1>
+     <span id="span_show_select" class="badge badge-secondary" title="Показати/приховати рядок вибору по категорії/виробнику" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">unfold_more</i></span>
+     <span class="badge badge-secondary">Список наявного товару</span> <span class="badge badge-info" id="c_c">{{company_name|capfirst}}{{category_name|capfirst}}</span>
 {% if category_name %}     
-	 <a href="{% url 'category_id_list' category_id %}" title="Показати наявні записи" data-toggle="tooltip" data-placement="top">
+	 <a href="{% url 'category-id-list' category_id %}" title="Показати наявні записи" data-toggle="tooltip" data-placement="top">
      <img src="{{category_name.get_icon_name}}" alt="{{company_name|capfirst}}" width="64px">
      </a>
-     <a href="{% url 'category_id_list_all' category_id %}" >
+     <a href="{% url 'category-id-list-all' category_id %}" >
      <span id="all_record_show" class="badge badge-success" title="Показати всі записи" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">more_horiz</i></span>
      </a>
 {% if request.user|has_group:"admin" %}     
@@ -2155,7 +2167,8 @@ function show_tr_year(obj){
 	</td>
 	<td class="c_name">
 <div class="div_c_name">	
-	[{{type.catalog__ids}}] {% if type.catalog__dealer_code %} [{{type.catalog__dealer_code}}] {% endif %}- ({{type.catalog__manufacturer__name}}) {{type.catalog__name}} 
+	[{{type.catalog__ids}}] {% if type.catalog__dealer_code %} [{{type.catalog__dealer_code}}] {% endif %}- ({{type.catalog__manufacturer__name}}) {{type.catalog__name}}  
+
 	{% if type.catalog__date %} 
           <span class="modal-body" data-toggle="datepicker">
 	    [{{type.catalog__date}}]
@@ -2306,6 +2319,7 @@ local_offer
     </tr>
 </tfoot>    
 </table>
+    
     
 
 {% orm_debug %}

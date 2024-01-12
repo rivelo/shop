@@ -694,8 +694,8 @@ class Catalog(models.Model):
             if value.isdigit() == True:
                 if len(value) == 12:
 #                    print ("\nUPC barcode %s\n" % self.barcode_upc)
-                    if self.barcode_upc == None:
-                        print ("\nUPC barcode is None\n")
+                    if self.barcode_upc == None or self.barcode_upc == '':
+#                        print ("\nUPC barcode is None\n")
                         self.barcode_upc = value
                         res = u"Додано UPC barcode - %s " % value
                         dres['status'] = True
@@ -705,7 +705,7 @@ class Catalog(models.Model):
                         dres['url'] = '/catalog/edit/' + str(self.pk)
                 elif len(value) == 13:
  #                   print ("\nEAN barcode\n")
-                    if self.barcode_ean == None:
+                    if self.barcode_ean == None or self.barcode_ean == '':
                         self.barcode_ean = value
 #                        print ("\nEAN barcode is None\n")
                         res = u"Додано EAN barcode - %s " % value
@@ -716,7 +716,7 @@ class Catalog(models.Model):
                         dres['url'] = reverse("catalog_edit", kwargs={"id": self.pk}) #'/catalog/edit/' + str(self.pk)
                 else:
 #                    print ("\nEAN barcode\n")
-                    if self.barcode == None:
+                    if self.barcode == None or self.barcode == '':
                         self.barcode = value
 #                        print ("\nBarcode is None\n")
                         res = u"Додано [%s] в поле barcode" % value

@@ -216,7 +216,7 @@ $(".photo_del").click(function(){
 	{% if photo.url %}
 	<span class="text-success" style="width:100px">	{{photo.url}}
 {% if request.user|has_group:"admin" %}		
-	<span class="photo_www_del" title="очистити поле URL" data-toggle="tooltip" data-placement="top">
+	<span class="photo_url_del" title="очистити поле URL" data-toggle="tooltip" data-placement="top">
 	<i class="material-icons">delete_forever</i>
 	</span>
 {% endif %}	

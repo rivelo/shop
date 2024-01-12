@@ -3,6 +3,12 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>Main page Rivelo</title>
 
+
+{# <link rel="stylesheet" href="/media/jquery-ui.min.css"> #}
+{#<script type="text/javascript" src="/media/jquery-ui.min.js"></script> #}
+
+	
+
   <style type="text/css">
 .icon{
     height: auto; 
@@ -15,6 +21,12 @@
     cursor: pointer; */
 } 
   </style>
+
+<script>
+$(document).ready( function() {
+	$('[data-toggle="tooltip"]').tooltip();
+})
+</script>
   
  </head>
  
@@ -22,7 +34,7 @@
  
 {% for cat in cat_list %}
  
- <a href="{% url 'category_id_list' cat.id %}" title="{{cat.name_ukr}} / {{cat.name}}" data-toggle="tooltip" data-placement="top">
+ <a href="{% url 'category-id-list' cat.id %}" title="{{cat.name_ukr}} / {{cat.name}}" data-toggle="tooltip" data-placement="top">
  <img class="icon" src="{{cat.get_icon_name}}">
  </a>
  
@@ -30,11 +42,7 @@
  
  </body>
  
-<script>
-$(document).ready( function() {
-	$('[data-toggle="tooltip"]').tooltip();
-})
-</script>
+
  
  
 </html>

@@ -1,17 +1,42 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Додати витрати</title>
 
 
-    <h1>Затрати</h1>
-    <form action="" method="POST" enctype="multipart/form-data">
-        <table>
-            {{ form.as_table }}
-        </table>
-        <p><input type="submit" value="Save"></p>
-    </form>
+{% load poll_extras %}
+
+<body>
+    <h1>
+<span class="badge badge-secondary">Затрати</span>    
+
+<a class="badge badge-info" href="/cost/view/">Список затрат</a>
+</h1>
+
+
+<form action="" method="POST" enctype="multipart/form-data">
+{#        <table>            {{ form.as_table }}        </table> #}
+        
+	<div class="form-group col-md-6">
+    <label for="formGroupExampleInput">Вид витрат</label>
+    {{ form.cost_type|add_attr:"class:form-control" }}
+	</div>
+	<div class="form-group col-md-6">
+    <label for="formGroupExampleInput">Сума</label>
+    {{ form.price|add_attr:"class:form-control" }}
+	</div>
+	<div class="form-group col-md-6">
+    <label for="formGroupExampleInput">Опис витрат</label>
+    {{ form.description|add_attr:"class:form-control" }}
+	</div>
+  	<div class="form-group col-md-6">
+    <label for="formGroupExampleInput2">Дата</label>
+    {{ form.date|add_attr:"class:form-control" }}
+  	</div>
+        
+{#        <p><input type="submit" value="Save"></p> #}
+        <button type="submit" class="btn btn-primary mb-2 col-6">Зберегти</button>
+</form>
     
     
-<br>
-<a href="/cost/view/">Список затрат</a>
-<br>
-<a href="/">HOME</a>
 
+
+</body>

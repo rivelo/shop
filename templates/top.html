@@ -3,6 +3,9 @@
 
 <script type="text/javascript" src="/media/jquery-1.11.2.min.js"></script> 
 <script type="text/javascript" src="/media/jquery.hotkeys-0.7.9.min.js"></script>
+<link rel="stylesheet" href="/media/jquery-ui.min.css">
+<script type="text/javascript" src="/media/jquery-ui.min.js"></script>
+
 
 <script type="text/javascript">
 $(document).ready(function() {
@@ -45,7 +48,50 @@ $(document).ready(function() {
                  
 	});
 
-})
+	$( "#csearch_field" ).autocomplete({
+	      source: function( request, response ) {
+	        $.ajax({
+	          type: "POST",
+	          url: "{% url 'cat-man-lookup' %}",
+	          dataType: "json",
+	          data: {
+	            query: $("#csearch_field").val(),
+	          },
+	          success: function( data ) {
+				console.log("DATA type = " + data);
+				//console.log("DATA type 0 = " + data[0]);
+				//console.log("DATA type 1 = " + data[1]);
+				//const myModel_t = JSON.parse(data[0]);
+				//const myModel_m = JSON.parse(data[1]);
+	        	response( $.map( data, function( item ) {
+	              	return {
+	                	label: item.name,
+	                	value: item.name,
+		                url_s: item.url,
+		                pk_id: item.id                       
+	    	          }
+	            }));
+	          } // end success function
+	        }); // end ajax function
+	      },
+	      minLength: 2,
+	      select: function( event, ui ) {
+	      	var sel = ui.item.pk_id;
+//	      	alert("Select - " + ui.item.value + " | id = " + sel);
+//	      	var name_url = "{% url 'category-id-list' 01199110 %}".replace('01199110', sel);
+	      	window.location.href = ui.item.url_s; // name_url; //"{% url 'category-id-list' 156 %}";
+	      },
+	      open: function() {
+	    	$("#portal_menu").css("z-index", -1);
+	        $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+	      },
+	      close: function() {
+	    	$("#portal_menu").css("z-index", 1020);
+	        $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+	      }
+	    });	    
+    
+}) // end ready
 
 
 $(document).bind('keydown', 'alt+z', function(){
@@ -56,6 +102,9 @@ $(document).bind('keydown', 'alt+x', function(){
   $('#asearch_field').focus();
 });
 
+$(document).bind('keydown', 'alt+c', function(){
+	  $('#csearch_field').focus();
+});
 </script>
 
 
@@ -83,6 +132,9 @@ $(document).bind('keydown', 'alt+x', function(){
    </span>
 </div>
 </form>
+<div class="input-group mb-1">
+   <input type="text" class="form-control" placeholder="Пошук категорії чи виробника товару (Alt + c)" name="name" id="csearch_field" style="position: relative; z-index:9999;">
+</div>
 
 </div>
 

@@ -199,7 +199,7 @@ $(".w_del").click(function(){
 <div class="row">
  	{% for type in type.work_type.component_type.all %}
 		<div class="col-auto mt-1 ml-0">
-			<a href="{% url 'category_id_list' type.id %}" ><img src="{{type.get_icon_name}}" style="width:64px" alt="{{type.name}}"></a> 
+			<a href="{% url 'category-id-list' type.id %}" ><img src="{{type.get_icon_name}}" style="width:64px" alt="{{type.name}}"></a> 
 		</div>
  	{% endfor %}
  	</div>

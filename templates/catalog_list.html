@@ -6,7 +6,7 @@
 {#	<link rel="stylesheet" type="text/css" href="/media/css/table.css"> #}  
   	<link rel="stylesheet" href="/media/css/datepicker.min.css">
 {#	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> #} 
-  	<link rel="stylesheet" href="/media/css/mainstyle.css">
+{#  	<link rel="stylesheet" href="/media/css/mainstyle.css"> #}
  
 	<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
   	<script src="/media/js/datepicker.min.js"></script>
@@ -81,9 +81,6 @@ $(document).ready(function() {
       	return {id : $(this).attr('id_type')};
     	 },
      callback : function(value, settings) {
-//         console.log(this);
-//         console.log(typeof(value));
-//         console.log(settings);
          var obj = jQuery.parseJSON(value);
 //         console.log(obj);
          $(this).attr({'cat_id': obj[0]['type__id']});
@@ -205,7 +202,81 @@ $(document).ready(function() {
         });		
 		
 		});	
-	
+
+// --------------------- Scan Barcode in modal window ----------------------
+	$(document).on("click", "#exampleModalLabel", function(event) {
+		document.getElementById("myInputScannerBarcode").focus();
+		console.log("Label click");
+	})
+
+	$(document).on("click", ".addbarcode", function(event) {
+		document.getElementById("myInputScannerBarcode").focus();
+		if ($(this).attr("pk") != $('#exampleModalLabel').attr('pk')){
+			document.getElementById("barcodes_content").innerHTML = '';
+		}
+		var pk = $(this).attr("pk");
+		var lab_str = "[" + $(this).attr("ids")+ "] " + $(this).attr("c_name");
+		$('#exampleModalLabel').html(lab_str);
+		$('#exampleModalLabel').attr('pk', pk);
+		$('#CatalogModalEdit').modal(focus);	
+		document.getElementById("myInputScannerBarcode").focus();	
+		document.getElementById("myInputScannerBarcode").blur();
+		document.getElementById("myInputScannerBarcode").focus();
+	});
+
+/*	$('#myInputScannerBarcode').on('shown.bs.modal', function (event) {
+		document.getElementById("myInputScannerBarcode").focus();
+		console.log("!!! SHOW modal !!!");
+		})
+*/
+	// Ajax request to change Catalog field
+	function ajax_cat_req(){
+		const xhttp = new XMLHttpRequest();
+		xhttp.onload = function() {
+			console.log("JSOn = onload");
+		  	const myObj = JSON.parse(this.responseText);
+		 	document.getElementById("barcodes_content").innerHTML += "<br>>>>" + myObj.msg;
+		  	if (myObj.url) {
+		  		document.getElementById("barcodes_content").innerHTML += "<a href='"+myObj.url+"' > Перейти до товару </a>" ;
+		  	}
+		  	if (myObj.f_model) {
+		  		const myModel = JSON.parse(myObj.f_model);
+		  		for (i in myModel){
+		  			console.log("Model [ids] = " + myModel[i].fields.ids) 
+		  			str_input = "<br>[" + value.fields.ids + "] " + value.fields.name + " <a href='/catalog/edit/"+ value.pk  +"' >Перейти до товару?</a>"
+		  			document.getElementById("barcodes_content").innerHTML += str_input				
+		  		}
+		  	}
+		}
+		xhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+			      // document.getElementById("barcodes_content").innerHTML =  this.responseText;
+			      console.log("State - " +  this.responseText);
+			}
+		};
+		var c_pk = $('#exampleModalLabel').attr('pk');
+		var c_val = document.getElementById("myInputScannerBarcode").value;
+		const myObj = {'name': "TestName", 'pk': c_pk, 'value': c_val};
+		const myJSON = JSON.stringify(myObj);
+		xhttp.open("POST", "{% url 'catalog-lookup' %}");
+		xhttp.setRequestHeader("Content-type", "application/json");
+//		xhttp.send("value="+ c_val +"&id=" + c_pk);
+		xhttp.send(myJSON);
+	}
+
+	//Event of input field 
+	var input = document.getElementById("myInputScannerBarcode");
+	input.addEventListener("keypress", function(event) {
+		console.log("Key pressed - " + input.value);
+	  if (event.key === "Enter") {
+	    event.preventDefault();
+	    ajax_cat_req();
+	    input.value = '';
+	  }
+	});
+	//--------------------- end of Scan Barcode in modal window ----------------------
+
+
 });
 </script>
 
@@ -315,22 +386,20 @@ $(document).ready(function() {
 	<td>
 	{{forloop.counter}}
 	</td>	
-	<td data-toggle="tooltip" data-placement="top" title="Додати товар до накладної">       
+	<td data-toggle="tooltip" data-placement="top" title="Додати товар до накладної" class="text-center">       
 	{# <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Додати товар до накладної"> #}
 	<a href="/invoice/catalog/{{ type.id }}/add">{{type.id}}</a> 
 	{# </span> #}
 	</td>
 	<td>       
-	{{type.ids}}
-	<br>
-	{{type.dealer_code}}
-	{{type.get_code|join:" <br> "}}
+	 {{type.get_code|join:"<br>"}} 
 	</td>
-	<td >       
+	<td class="text-center">       
     {% if type.get_photos %}
     	{#type.get_photos#}
         <span class="photoModalbutton" pk_catalog={{type.id}} title="{{type.get_photos}}"><i class="material-icons">insert_photo</i></span>
     {% endif %}
+    <span class="badge badge-light addbarcode mr-3" pk="{{type.pk}}" ids="{{type.ids}}" c_name="{{type.name}}" title="Сканування штрихкодів" data-toggle="tooltip" data-placement="right"><i class="material-icons">barcode_reader</i></span>
     </td>
     <td>
     <a href="/catalog/edit/{{ type.id }}">{{type.name}}</a>
@@ -422,7 +491,37 @@ $(document).ready(function() {
 </table>
 </div>
 
-<br>
+
+<!-- Modal dialog for Scan Barcodes -->
+<div class="modal fade" id="CatalogModalEdit" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Назва товару</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="catalog_modal_content">
+        Додайте штрих коди, або інші коди виробника
+        <input type="text" class="form-control w-100 m-2" id="myInputScannerBarcode"> 
+        
+        <p>
+        Результати: 
+        </p>
+        <div id="barcodes_content" class="text-danger">
+        
+        </div>
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+{#        <button type="button" class="btn btn-primary">Save changes</button> #}
+      </div>
+    </div>
+  </div>
+</div>
+
 
 
 <div>

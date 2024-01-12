@@ -118,7 +118,13 @@ $(document).ready(function() {
 	{% endif %}
 	
 	$("#s_client").focus();
-});
+	
+	
+	$('.month').click(function(){
+		$("#id_description").text($(this).html());
+	});
+
+}); //end Ready function
 
 </script>
 
@@ -233,13 +239,28 @@ $(document).ready(function() {
   </div>
 
 <div class="row">
-    <div class="col-12 col-md-6" id="depence_component">
+    <div class="col-md-6" id="depence_month">
+    <h3>
+    <span class="badge badge-primary month">Грудень</span>
+    <span class="badge badge-primary month">Січень</span>
+    <span class="badge badge-primary month">Лютий</span>
+    <span class="badge badge-info month">Березень</span>
+    <span class="badge badge-info month">Квітень</span>
+    <span class="badge badge-info month">Травень</span>
+    <span class="badge badge-success month">Червень</span>
+    <span class="badge badge-success month">Липень</span>
+    <span class="badge badge-success month">Серпень</span>
+    <span class="badge badge-warning month">Вересень</span>
+    <span class="badge badge-warning month">Жовтень</span>
+    <span class="badge badge-warning month">Листопад</span>
+    </h3>
 {#  	<span class="btn btn-dark"><a class="text-light" href="/invoice/category/{{dependence_comp.pk}}/view/">{{dependence_comp}}</a></span> #}
 	</div>
 </div>
 
+
+
 </div>
-<br>
 
  
 </body>

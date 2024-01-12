@@ -8,6 +8,7 @@ from django.db.models.functions import ExtractDay, ExtractMonth, ExtractYear
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.http import HttpResponse, Http404 
 from django.http import JsonResponse
+from django.http import QueryDict
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import EmailMultiAlternatives
@@ -29,6 +30,8 @@ from django.conf import settings
 
 from django.utils.text import slugify
 
+from django.urls import reverse
+
 from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,  FrameSize, Bicycle_Store, Bicycle_Sale, Bicycle_Order, Bicycle_Storage, Bicycle_Photo, Storage_Type, Bicycle_Parts
 from models import Catalog, Client, ClientDebts, ClientCredits, ClientInvoice, ClientOrder, ClientMessage, ClientReturn, InventoryList
 from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType, Discount, Shop
@@ -38,8 +41,6 @@ from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, C
 from forms import ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm, BicycleStorage_Form, StorageType_Form
 from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm, DiscountForm 
 from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm, WorkShopFormset, SalaryForm
-
-
   
 import datetime
 import calendar
@@ -252,14 +253,13 @@ def main_page(request):
         context.update(custom_proc(request))
         return render(request, 'index.html', context) 
     else:
-        context = {"weblink": 'top.html'}
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу. Авторизуйтеся або зверніться до адміністратора.', }
+        #context = {"weblink": 'top.html'}
         context.update(custom_proc(request))
         return render(request, 'index.html', context)
 
 
-
 # ------------ Country -----------------
-
 def country_add(request):
     a = Country()
     current_url = request.get_full_path()
@@ -2508,26 +2508,41 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
     id_list=[]
     zsum = 0
     zcount = 0
-    
+# Search by Name field    
     if 'name' in request.GET and request.GET['name']:
-        name = request.GET['name']
-        try:
-            re.search('^ +$', name).group()
-        except:
+        name = request.GET['name'].strip()
+        if len(name) <= 1:
+            context = {'weblink': 'error_message.html', 'mtext': u'[%s] Введіть більше символів  для пошуку' % name, }
+            context.update(custom_proc(request))
+            return render(request, 'index.html', context)
+        if name.isdigit() == True and (len(name) >= 12):
+            id = name
+            list = InvoiceComponentList.objects.filter( Q(catalog__barcode__icontains=id) | Q(catalog__barcode_upc__icontains=id) | Q(catalog__barcode_ean__icontains=id) ).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')#.order_by('catalog__pk')            
+        else:
             list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__dealer_code', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')        
+# Search by Id field
     elif  'id' in request.GET and request.GET['id']:
-        id = request.GET['id']
+        id = request.GET['id'].strip()
+        if len(id) <= 1:
+            context = {'weblink': 'error_message.html', 'mtext': u'[%s] Введіть більше символів  для пошуку' % id, }
+            context.update(custom_proc(request))
+            return render(request, 'index.html', context)
+        print ("Get id - OK | %s|" % id)
+        if id.isdigit() == True and (len(id) >= 12):
+            print " is Barcode = %s" % id
+            list = InvoiceComponentList.objects.filter( Q(catalog__barcode__icontains=id) | Q(catalog__barcode_upc__icontains=id) | Q(catalog__barcode_ean__icontains=id) ).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')#.order_by('catalog__pk')            
+        
         try:
-            id_res = re.search(r"(?<=rivelo.com.ua/component/)[0-9]+", id).group()
-            ist = InvoiceComponentList.objects.filter(Q(catalog__id=id_res)).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').order_by('catalog')            
+            # Parse QR code from item
+            id_res = re.search(r"(?<=rivelo.com.ua/component/)[0-9]+", id.lower()).group()
+            list = InvoiceComponentList.objects.filter(Q(catalog__id=id_res)).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')            
         except:
-            try:
-                re.search('^ +$', id).group()
-            except:
-                list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
-                if not list.count():
-                    id = id.replace(' ', '')
-                    list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')                    
+            if not list:               
+                list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) | Q(catalog__manufacture_article__icontains=id) ).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').order_by('catalog__manufacturer')
+#                if not list.count():
+#                    id = id.replace(' ', '')
+#                    list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')                    
+#                    list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
     if mid:
         if all == True:
             list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
@@ -2619,16 +2634,14 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
         #upd.count = element['balance'] 
         #upd.save()
 
-    cur_year = datetime.date.today().year        
-    vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'cur_year': cur_year, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'next': current_url(request)}
 #    calendar = embeded_calendar()
 #    cat_discount = cat_name.get_discount()
 #    vars.update({'cat_discount': cat_discount})
-    
 #    categ = type_list.get(id=cid)
 #    vars.update({'type_obj': categ})
     
-#    return render_to_response('index.html', vars, context_instance=RequestContext(request, processors=[custom_proc]))
+    cur_year = datetime.date.today().year        
+    vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'cur_year': cur_year, 'weblink': 'invoicecomponent_list.html', 'focus': focus, }
     vars.update(custom_proc(request))
     return render(request, 'index.html', vars)
 
@@ -3055,6 +3068,46 @@ def invoice_import(request):
 
 
 # --------------- Classification ---------
+@csrf_exempt
+def category_manufacture_lookup(request):
+    data = None
+    res = []
+    if request.is_ajax():
+#        print "\n>>> AJAX WORK AJAX <<<" + str(data) 
+        if request.method == "POST":
+            if request.POST.has_key(u'query'):
+                value = request.POST[u'query']
+                if len(value) >= 2:
+                    model_results_type = Type.objects.filter(Q(name__icontains = value) | Q(name_ukr__icontains = value)).order_by('name')
+                    print ("LEN type %s " %  len(model_results_type))
+                    if len(model_results_type):
+#                        data1 = serializers.serialize("json", model_results_type, fields = ('id', 'name_ukr', 'name'))
+                        for mod in model_results_type:
+                            d_res = {}
+                            d_res["id"] = mod.id
+                            d_res["name"] = "%s - %s" % (mod.name, mod.name_ukr)
+                            d_res["url"] = reverse('category-id-list', args=[mod.pk])
+                            res.append(d_res)
+                            
+                    model_results_manuf = Manufacturer.objects.filter(Q(name__icontains = value)).order_by('name')
+                    print ("LEN type %s " %  len(model_results_manuf))
+                    if len(model_results_manuf):
+#                        data2 = serializers.serialize("json", model_results_manuf, fields = ('id', 'name', 'www', ))
+                        for mod in model_results_manuf:
+                            d_res = {}
+                            print ("Manufacture Name =  %s " %  (mod.name))
+                            d_res["id"] = mod.id
+                            d_res["name"] = ">> %s <<" % (mod.name.upper())
+                            d_res["url"] = reverse('invoice-manufacture-id-list', args=[mod.pk])
+                            res.append(d_res)
+                    #res = [data1, data2]
+                    data = simplejson.dumps(res)
+#                else:
+#                    model_results = Type.objects.all().order_by('name')
+#                    data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name') )
+ #   return HttpResponse(data)                
+    return HttpResponse(data, content_type='application/json')    
+
 
 def category_list(request):
     list = Type.objects.all()
@@ -3869,6 +3922,10 @@ def catalog_set(request):
     
 @csrf_exempt
 def catalog_edit(request, id=None):
+    if auth_group(request.user, "seller") == False:
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу для редагування. Авторизуйтесь на порталі або зверніться до адміністратора.', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)    
     a = Catalog.objects.get(pk=id)
     if request.method == 'POST':
         form = CatalogForm(request.POST, request.FILES, instance=a, request = request)
@@ -3935,7 +3992,9 @@ def catalog_manufacture_list(request, id=None):
     print_url = None
     if id:
         print_url = '/shop/price/company/'+ str(id) +'/view/'
-    return render_to_response('index.html', {'catalog': list, 'company_list': company_list, 'url': print_url, 'view': True, 'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'catalog': list, 'company_list': company_list, 'url': print_url, 'view': True, 'weblink': 'catalog_list.html', }
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def catalog_part_list(request, id, num=5):
@@ -4027,7 +4086,7 @@ def catalog_search_result(request):
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
-from django.http import QueryDict
+
 @csrf_exempt
 def catalog_lookup(request):
     # Default return list
@@ -4046,7 +4105,7 @@ def catalog_lookup(request):
         else:
             data = "request Error"
     if request.is_ajax():
-        data = "\nAjax - ok\n"
+#        data = "\nAjax - ok\n"
         if request.method == "POST":
             if request.POST.has_key(u'query') and request.POST.has_key(u'type'):
                 value = request.POST[u'query']
@@ -4060,12 +4119,12 @@ def catalog_lookup(request):
                 pass
     # JSON Read and Parse
     if request.method == "POST":
-        print "POST. ID - ok [%s]" % request.body
+#        print "POST. ID - ok [%s]" % request.body
         rdict = QueryDict(request.body)
         sel_id = rdict.keys()#[0]
         req_dict = json.loads(request.body)
-        print "DICT  = %s" % sel_id #.items() 
-        print "DICT [id] = %s" % req_dict['pk']
+#        print "DICT  = %s" % sel_id #.items() 
+#        print "DICT [id] = %s" % req_dict['pk']
         if req_dict['pk']:
             pk = int(req_dict['pk'])
             value = req_dict['value']
@@ -4075,7 +4134,7 @@ def catalog_lookup(request):
             #obj.save()
 #            data = serializers.serialize('json', [obj,])
             #===================================================================
-            print "\nRES = %s\n" % res#['f_model']
+ #           print "\nRES = %s\n" % res#['f_model']
             #data = serializers.serialize('json', res, many = True)
 #            data = serializers.serialize('json', res['f_model'])
             # ndt = { 'msq': res['msg'],'url': res['url'], 'status': res['status'], }
@@ -4104,8 +4163,6 @@ def catalog_lookup(request):
             #data = json.dumps(model_result)
             #data = "Request. OK"
 #            return HttpResponse(data, content_type='application/json')
-
-            
     return HttpResponse(data, content_type='application/json')    
     #return HttpResponse(json)
 
@@ -6718,7 +6775,7 @@ def costtype_delete(request, id):
     obj.delete()
     return HttpResponseRedirect('/cost/type/view/')
 
-
+@csrf_exempt
 def cost_add(request, id = None):
     cost = None
     if id != None: 
@@ -6738,7 +6795,9 @@ def cost_add(request, id = None):
             form = CostsForm(initial={'cost_type': cost.id})
         else:        
             form = CostsForm()
-    return render_to_response('index.html', {'form': form, 'weblink': 'cost.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'cost.html',}
+    context.update(custom_proc(request))             
+    return render(request, 'index.html', context)
 
 
 def cost_edit(request, id):
@@ -6756,14 +6815,30 @@ def cost_edit(request, id):
             return HttpResponseRedirect('/cost/view/')
     else:
         form = CostsForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'cost.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'cost.html', }
+    context.update(custom_proc(request))         
+    return render(request, 'index.html', context)
 
 
-def cost_list(request):
-    list = Costs.objects.all().order_by("-date")
-    sum = 0
-    for item in list:
-        sum = sum + item.price
+def cost_list(request, year=None, month=None):
+    if auth_group(request.user, "admin") == False:
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу до даної функції', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+    list = None
+    if year != None and month == None:
+        list = Costs.objects.filter(date__year=year)
+    elif (year != None) and (month != None):
+        list = Costs.objects.filter(date__year=year, date__month=month)
+    elif year == None and month == None:
+        year = datetime.datetime.now().year
+        month = datetime.datetime.now().month
+        list = Costs.objects.filter(date__year=year, date__month=month)
+    else:
+        list = Costs.objects.all().order_by("-date")
+    #list = Costs.objects.filter(date__year=year, date__month=month)
+    sum_price = list.aggregate(allsum = Sum('price'))
+    year_list = Costs.objects.all().extra({'yyear':"Extract(year from date)"}).values('yyear').annotate(year_count = Count('pk')).order_by('yyear')
         
     paginator = Paginator(list, 25)
     page = request.GET.get('page')
@@ -6777,8 +6852,20 @@ def cost_list(request):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         pcost = paginator.page(paginator.num_pages)
-
-    return render_to_response('index.html', {'costs': pcost, 'summ': sum, 'weblink': 'cost_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+#    if year == None:
+#        year = datetime.datetime.now().year
+#    if month == None:
+#        month = datetime.datetime.now().month
+#    if day == None:
+#        day = datetime.datetime.now().day        
+    sel_month = int(month or 0)
+    sel_year = int(year or 0)
+#    for i in year_list:
+#        print "SEL = [%s][]" % sel_year
+#        print "STR year - " + str(type(i['yyear'])) 
+    context = {'weblink': 'cost_list.html', 'costs': pcost, 'summ': sum_price['allsum'], 'y_list' : year_list, 'sel_month': sel_month, 'sel_year': sel_year}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def cost_delete(request, id):
@@ -6789,7 +6876,7 @@ def cost_delete(request, id):
     obj.delete()
     return HttpResponseRedirect('/cost/view/')
 
-
+@csrf_exempt
 def salary_add(request, id=None):
     if request.user.is_authenticated():
         user = request.user
@@ -6800,9 +6887,9 @@ def salary_add(request, id=None):
     form = SalaryForm(initial={'user': user.pk})
     if request.method == 'POST':
         form = SalaryForm(request.POST)
-        print "POST is true"
+#        print "POST is true"
         if form.is_valid():
-            print "FORM is true"
+#            print "FORM is true"
             cash_type = CashType.objects.get(id = 6)
             client = form.cleaned_data['client']
             #wclient = Client.objects.get(id=client)
@@ -6818,10 +6905,12 @@ def salary_add(request, id=None):
             #WorkShop(client=client, date=date, work_type=work_type, price=price, description=description, user=user).save()
             return HttpResponseRedirect('/cost/view/')
     else:
-        print "FORM is false"
+        #print "FORM is false"
         form = SalaryForm(initial={'user': user.pk})
 
-    return render_to_response('index.html', {'form': form, 'weblink': 'salary.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'salary.html', 'next': current_url(request)}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 from django.forms.models import inlineformset_factory, modelformset_factory
@@ -8506,12 +8595,11 @@ def change_photo_url(obj_photo):
 #    print "LAST return"
     return True
 
-
+@csrf_exempt
 def photo_del_field(request):
     if auth_group(request.user, 'admin')==False:
         #return HttpResponse('Error: У вас не має прав для редагування')
         return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
-    
     if request.is_ajax():
         if request.method == 'POST':  
             POST = request.POST  
@@ -8547,9 +8635,6 @@ def photo_del_field(request):
                 except:
                     json = simplejson.dumps({'status': False, 'msg': u'Ajax: Photo get ERRROR'})
                     return HttpResponse(json, content_type='application/json')
-            
-                
-#                    return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Такого фото вже не існує, спробуйте оновити сторінку, та повторіть спробу'}, context_instance=RequestContext(request, processors=[custom_proc]))                    
     json = simplejson.dumps({'status': False, 'msg': u'Ajax: Щось пішло не так'})
     return HttpResponse(json, content_type='application/json')
 
@@ -8614,7 +8699,6 @@ def photo_list(request, show=2, page=1, limit=50, cat_id=None):
 def photo_url_delete(request, id=None):
     if auth_group(request.user, 'seller')==False:
         return HttpResponseRedirect('/catalog/photo/list/')
-
     obj = None
     if (id <> None):
         try:        
@@ -8622,7 +8706,6 @@ def photo_url_delete(request, id=None):
             obj.delete()
         except:
             return HttpResponse("Дане фото вже видалене спробуйте інший ID")#, content_type="text/plain;charset=UTF-8;")
-                         
     try:
         if request.is_ajax():
             if request.method == 'POST':  
@@ -8640,7 +8723,7 @@ def photo_url_delete(request, id=None):
 
     return HttpResponseRedirect('/catalog/photo/list/')
     
-
+@csrf_exempt
 def catalog_set_type(request):
     if auth_group(request.user, 'seller')==False:
         return HttpResponse('Error: У вас не має прав для редагування')
@@ -8651,16 +8734,13 @@ def catalog_set_type(request):
         cids = request.POST.get('ids')
         list_id = cids.split(',')
         t_catalog = Catalog.objects.filter(id__in = list_id) #.values_list('type__name')
-        #t_catalog.type = Type.objects.get(id = q)
         t_catalog.update(type = Type.objects.get(id = q))
         return HttpResponse('ok')
         #t_catalog.save()
     if POST.has_key('id'):
-#        cid = request.GET.get('id')                
         t_catalog = Catalog.objects.get(id = cid) #.values_list('type__name')
         t_catalog.type = Type.objects.get(id = q) 
         t_catalog.save()
-    
     cat = Catalog.objects.filter(id = cid).values('type__name', 'type__id')
     return HttpResponse(simplejson.dumps(list(cat)), content_type="application/json")
 #    return HttpResponse(cat[0][0], content_type="text/plain;charset=UTF-8;")

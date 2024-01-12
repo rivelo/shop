@@ -11,9 +11,34 @@
 
 
 <!--   <body onLoad="res()"> -->
-<body>
-<script type="text/javascript">
 
+<style type="text/css">
+/*	#searcher { position:fixed; top:50px; right:10px; } */
+	#searcher { position:fixed; 
+				bottom:35px; 
+				right:45px; 
+				border: solid;
+				border-radius: 5px;
+				border-color: red;
+/*				z-index: 9999; */
+			 }
+	#div_show_all{
+				position:fixed; 
+				bottom:30px; 
+				right:25px; 
+/*				border: solid;
+				border-radius: 5px;
+				border-color: red;*/
+	}
+	
+	#div_show_all{
+		position:fixed;
+		z-index: 1050;
+	}	
+</style>
+
+
+<script type="text/javascript">
 
 function check_invoice(element) {
 //	console.log("You click on " + element.html());
@@ -98,21 +123,22 @@ $("#accordion").addClass("ui-accordion ui-accordion-icons ui-widget ui-helper-re
          tooltip   : 'Click to edit...',
          select : true,
          callback : function(value, settings) {
-          var obj = jQuery.parseJSON(value);
-          $(this).html(obj.value);
-          document.getElementById('userid'+obj.id).innerHTML = obj.user;
-          if (obj.value > parseFloat(document.getElementById('count'+obj.id).innerHTML)) {
-          	document.getElementById('row'+obj.id).style.backgroundColor = "#f42525";
-          	$("#row"+obj.id).children("td.recived").html("Надлишок");
-          }
-          if (obj.value == parseFloat(document.getElementById('count'+obj.id).innerHTML)) {
-           	document.getElementById('row'+obj.id).style.backgroundColor = "#9fbb31";
-           	$("#row"+obj.id).children("td.recived").html("Отримано");
-          }    
-          if (obj.value < parseFloat(document.getElementById('count'+obj.id).innerHTML)) {
-           	document.getElementById('row'+obj.id).style.backgroundColor = "#FFFFFF";
-           	$("#row"+obj.id).children("td.recived").html("Недостача");
-          }
+         	 var obj = jQuery.parseJSON(value);
+          	$(this).html(obj.value);
+          	document.getElementById('userid'+obj.id).innerHTML = obj.user;
+          	if (obj.value > parseFloat(document.getElementById('count'+obj.id).innerHTML)) {
+          		document.getElementById('row'+obj.id).style.backgroundColor = "#f42525";
+          		$("#row"+obj.id).children("td.recived").html("Надлишок");
+          	}
+          	if (obj.value == parseFloat(document.getElementById('count'+obj.id).innerHTML)) {
+           		document.getElementById('row'+obj.id).style.backgroundColor = "#9fbb31";
+           		$("#row"+obj.id).children("td.recived").html("Отримано");
+          	}    
+          	if (obj.value < parseFloat(document.getElementById('count'+obj.id).innerHTML)) {
+           		document.getElementById('row'+obj.id).style.backgroundColor = "#FFFFFF";
+           		$("#row"+obj.id).children("td.recived").html("Недостача");
+          	}
+          	document.getElementById("searcher").focus();
      	 }
      });
 
@@ -184,11 +210,16 @@ $(document).on("click", ".addprice", function(event) {
 
 
 
+$(document).on("click", "#b_accordion_toggle", function(event) {
+		$(".ui-accordion-header").click();
+	});
+
+
+// --------------------- Scan Barcode in modal window ----------------------
 $(document).on("click", "#exampleModalLabel", function(event) {
 	document.getElementById("myInputScannerBarcode").focus();
 	console.log("Label click");
 })
-
 
 $(document).on("click", ".addbarcode", function(event) {
 	document.getElementById("myInputScannerBarcode").focus();
@@ -206,6 +237,7 @@ $(document).on("click", ".addbarcode", function(event) {
 	document.getElementById("myInputScannerBarcode").focus();	
 	document.getElementById("myInputScannerBarcode").blur();
 	document.getElementById("myInputScannerBarcode").focus();
+	console.log("Focus el = " + document.hasFocus());
 });
 
 $('#myInputScannerBarcode').on('shown.bs.modal', function (event) {
@@ -271,7 +303,6 @@ function ajax_cat_req(){
 
 //Event of input field 
 var input = document.getElementById("myInputScannerBarcode");
-
 input.addEventListener("keypress", function(event) {
 	console.log("Key pressed - " + input.value);
   if (event.key === "Enter") {
@@ -283,8 +314,110 @@ input.addEventListener("keypress", function(event) {
     ajax_cat_req();
     input.value = '';
   }
+
+});
+//--------------------- end of Scan Barcode in modal window ----------------------
+/*window.onkeydown = function(event) {
+	console.log("Key pressed - " + event.keyCode);
+	if (event.altKey && event.keyCode === 97) {
+		  document.getElementById("searcher").focus();
+	}
+};*/
+
+// ------------------- quick short combination to Focus Search input --------------
+var altIsPressed = false;
+
+$(window).keydown(function(event){
+	console.log("Key pressed - " + event.keyCode);
+	if(event.keyCode == 18) {
+        altIsPressed = true; event.preventDefault();
+    }
+}); 
+
+$(window).keyup(function(event){
+    if(event.keyCode == 18) {
+    altIsPressed = false; event.preventDefault();
+    }    
 });
 
+$(window).on('keydown', function(e) {
+  if (altIsPressed && event.keyCode === 65) {
+                      event.preventDefault();
+                      document.getElementById("searcher").focus();
+                      return;
+    }
+});
+
+
+// -------------- Event of SEARCH input field ----------------- 
+var input = document.getElementById("searcher");
+input.addEventListener("keypress", function(event) {
+	console.log("Key pressed - " + input.value);
+  if (event.key === "Enter") {
+    	event.preventDefault();
+    	
+    	var s_val = input.value; // 49747
+    	var tr_code = null;
+    	var code = null;
+    	code = $("tr[ids='"+s_val+"']");
+    	if (code.is('tr')) {
+			tr_code = code
+    	}
+    	console.debug("[ids] = " + code.is("tr"));
+    	code = $("tr[dealer_code='"+s_val+"']");
+    	if (code.is('tr')) {
+			tr_code = code
+    	}    	
+    	console.log("[dealer code] = " + code.is("tr"));
+    	code = $("tr[barcode='"+s_val+"']");
+    	if (code.is('tr')) {
+			tr_code = code
+    	}    	
+    	console.log("[barcode] = " + code.is("tr"));
+    	code = $("tr[barcode_upc='"+s_val+"']");
+    	if (code.is('tr')) {
+			tr_code = code
+    	}    	
+    	console.log("[barcode_upc] = " + code.is("tr"));
+    	code = $("tr[barcode_ean='"+s_val+"']");
+    	if (code.is('tr')) {
+			tr_code = code
+    	}    	
+    	console.log("[barcode_ean] = " + code.is("tr"));
+    	
+//    	console.log("[TR code] = " + tr_code.attr('id').split("row")[1]); // tr_code.is("tr"));
+    	var id_val;
+    	try {
+    		s_id = tr_code.attr('id').split("row")[1];
+	    	id_val = s_id;
+    		var td_el = $("td[id_rcount='"+ id_val +"']");
+    		$([document.documentElement, document.body]).animate({scrollTop: td_el.offset().top - 300 }, 500); //jquery
+    		td_el.click();
+    	}
+    	catch (e){
+    		alert("Такого коду ["+ input.value +"] не знайдено, спробуйте ще");
+    		input.value = '';
+    	}
+    	
+/*    	var s_row = document.getElementById("row"+id_val);
+    	try {
+	       	s_row.scrollIntoView({behavior : "smooth", block: "center" });    		
+		}
+		catch (e){
+			s_row.scrollIntoView({behavior : "smooth" });
+		}
+*/
+    	
+    	
+//    	$([document.documentElement, document.body]).animate({scrollTop: td_el.offset().top - 300 }, 500); //jquery
+//    	document.getElementById("row"+s_val).scrollIntoView({behavior : "smooth", block: "center" });
+    	//document.getElementById("row49747").scrollIntoView({behavior : "smooth", block: "center" });
+//    ajax_cat_req();
+    	input.value = '';
+  }
+
+});
+// ---------------------- end ------------------------------------
 
 }); //end Ready function   
 
@@ -296,6 +429,8 @@ function PrintThis(value, index, arr){
 }
 
 </script>
+
+<body>
 <br>    
 
 
@@ -307,25 +442,20 @@ function PrintThis(value, index, arr){
 	</div>
 
 
+<div class="row" id="div_show_all">
+<div class="col-6">	
+	<input id="searcher" type="text" name="searcher" class="w-35" placeholder="Штрихкод. (Alt + a)">
+</div>
+<div class="col-6">
+	<button class="w-10" id="b_accordion_toggle"><i class="material-icons">unfold_more</i></button>
+</div>
+</div>
+
 <div id="accordion" >
 
 {% load poll_extras %}
 
-{% comment %}
-<h3>EMPTY{{dinvoice_list.0.invoice.origin_id}}</h3>
 
-<div>
-<table id="iTable" class = "table table-bordered table-hover table-condensed table-sm">
-<tr>
-	<th>#</th>
-   	<th>[ID] - Назва </th>
-  	<th>Кількість</th>
-   	<th>Накладна</th>
-   	<th>Статус</th>
-   	<th>Наявна кількість</th>
-   	<th>Користувач</th>
-</tr>
-{% endcomment %}
 
 {% for x in dinvoice_list %}
 {% ifchanged x.invoice %}
@@ -364,13 +494,13 @@ function PrintThis(value, index, arr){
 </thead>
 {% endifchanged %}
 {% if x.count == x.rcount %}
-<tr id=row{{x.id}}  bgcolor="#9fbb31">
+<tr id=row{{x.id}}  bgcolor="#9fbb31" barcode="{{x.catalog.barcode}}" barcode_ean="{{x.catalog.barcode_ean}}" barcode_upc="{{x.catalog.barcode_upc}}" ids="{{x.catalog.ids}}" dealer_code="{{x.catalog.dealer_code}}">
 {% endif %}
 {% if  x.count < x.rcount %}
-<tr id=row{{x.id}}  bgcolor="#f42525">
+<tr id=row{{x.id}}  bgcolor="#f42525" barcode="{{x.catalog.barcode}}" barcode_ean="{{x.catalog.barcode_ean}}" barcode_upc="{{x.catalog.barcode_upc}}" ids="{{x.catalog.ids}}" dealer_code="{{x.catalog.dealer_code}}">
 {% endif %}
 {% if  x.count > x.rcount %}
-<tr id=row{{x.id}}>
+<tr id=row{{x.id}} barcode="{{x.catalog.barcode}}" barcode_ean="{{x.catalog.barcode_ean}}" barcode_upc="{{x.catalog.barcode_upc}}" ids="{{x.catalog.ids}}" dealer_code="{{x.catalog.dealer_code}}">
 {% endif %}
 
 <td class="addprice" ids="{{x.catalog.id}}">{{forloop.counter}}</td>
@@ -429,7 +559,7 @@ function PrintThis(value, index, arr){
 
 
 </div>
-
+<br>
 
 <!-- Button trigger modal 
 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#CatalogModalEdit">
@@ -437,7 +567,7 @@ function PrintThis(value, index, arr){
 </button>
 -->
 
-<!-- Modal -->
+<!-- Modal dialog for Scan Barcodes -->
 <div class="modal fade" id="CatalogModalEdit" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -467,5 +597,5 @@ function PrintThis(value, index, arr){
   </div>
 </div>
 
-  
+</body>  
 {% orm_debug %}

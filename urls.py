@@ -196,7 +196,7 @@ urlpatterns = [
     url(r'^invoice/catalog/(?P<cid>\d+)/add/$', catalog.invoicecomponent_add),
     url(r'^invoice/manufacture/(?P<mid>\d+)/add/$', catalog.invoicecomponent_add),
 #    url(r'^invoice/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list_by_manufacturer'),
-    url(r'^invoice/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}),    
+    url(r'^invoice/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-manufacture-id-list"),    
     url(r'^invoice/manufacture/(?P<mid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True}, name="manufacture_id_list_all"),
     url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list, {'all': True}, name="invoice_year_manufacture"),
     url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': True}, name="invoice_year_category"),
@@ -208,8 +208,8 @@ urlpatterns = [
     url(r'^invoice/category/view/$', catalog.invoicecomponent_list, {'focus': 2}),
     #url(r'^invoice/category/view/$', catalog.invoicecomponent_list_by_category'),
 #    url(r'^invoice/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list_by_category'),
-    url(r'^invoice/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="category_id_list"),
-    url(r'^invoice/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True}, name="category_id_list_all"),
+    url(r'^invoice/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="category-id-list"),
+    url(r'^invoice/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True}, name="category-id-list-all"),
     url(r'^invoice/list/(?P<limit>\d+)/view/$', catalog.invoicecomponent_list),
     url(r'^invoice/price/update/(?P<upday>\d+)/view/$', catalog.invoicecomponent_list),
     url(r'^invoice/list/view/$', catalog.invoicecomponent_list),
@@ -234,6 +234,7 @@ urlpatterns = [
     url(r'^category/delete/(?P<id>\d+)$', catalog.category_del),    
     url(r'^category/get/list/$', catalog.category_get_list),
     url(r'^category/lookup/$', catalog.category_lookup),
+    url(r'^category/plus/manufacture/lookup/$', catalog.category_manufacture_lookup, name="cat-man-lookup"),
 
     # Catalog operation
     url(r'^catalog/set/type/$', catalog.catalog_set_type),
@@ -464,7 +465,9 @@ urlpatterns = [
 
     url(r'^cost/add/(?P<id>\d+)$', catalog.cost_add),
     url(r'^cost/add/$', catalog.cost_add),
-    url(r'^cost/view/$', catalog.cost_list),
+    url(r'^cost/view/$', catalog.cost_list, name='cost-list'),
+    url(r'^cost/view/year/(?P<year>\d+)/$', catalog.cost_list, name='cost-list-year'),
+    url(r'^cost/view/year/(?P<year>\d+)/month/(?P<month>\d+)/$', catalog.cost_list, name='cost-list-year-month'),
     url(r'^cost/delete/(?P<id>\d+)/$', catalog.cost_delete),    
     url(r'^cost/edit/(?P<id>\d+)/$', catalog.cost_edit),
 
@@ -483,7 +486,7 @@ urlpatterns = [
     url(r'^report/workshop/(?P<user_id>\d+)/byuser/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/$', catalog.user_workshop_report, name='report_workshop_by_user_day'),
     url(r'^report/salary/all_user/$', catalog.all_user_salary_report, {'day':"all"}, name='user_salary_report'),
     url(r'^report/salary/all_user/year/(?P<year>\d+)/month/(?P<month>\d+)/$', catalog.all_user_salary_report, {'day':"all"}, name='user_salary_report_by_year_month'),
-    url(r'^salary/add/$', catalog.salary_add),
+    url(r'^salary/add/$', catalog.salary_add, name='salary-add'),
 
     url(r'^shop/price/lastadded/(?P<id>\d+)/view/$', catalog.shop_price_lastadd, name="shop-price-last-added"),    
     url(r'^shop/price/lastadded/(?P<id>\d+)/print/$', catalog.shop_price_lastadd, {'pprint': True}),
