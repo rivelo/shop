@@ -4,35 +4,38 @@
 <head>
 <title>{{company_name|capfirst}}{{category_name|capfirst}} - Наявний товар</title>
 
-
+{% comment %}
 <link rel="stylesheet" href="/media/jquery-ui.min.css">
+{% endcomment %}
+
 <link rel="stylesheet" href="/media/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="/media/css/dataTables.jqueryui.css">
 <link rel="stylesheet" href="/media/css/select.dataTables.min.css">
-{#<link rel="stylesheet" href="/media/css/tooltip.css">#}
 <link rel="stylesheet" href="/media/css/datepicker.min.css">
+
 <link rel="stylesheet" type="text/css" href="/media/css/table.css">
 <link rel="stylesheet" href="/media/css/mainstyle.css">
+
 
 {# <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> #}  	
 {# <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"> #} 	
 {# <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/typicons/2.0.7/typicons.min.css" /> #}
 
-  	 
+
+{% comment %}  	 
 <script type="text/javascript" src="/media/jquery-ui.min.js"></script>
+{% endcomment %}
+
 <script type="text/javascript" language="javascript" src="/media/jquery.dataTables.min.js"></script>
 <script type="text/javascript" language="javascript" src="/media/dataTables.jqueryui.js"></script>
 <script type="text/javascript" language="javascript" src="/media/dataTables.select.min.js"></script>
 {# <script type="text/javascript" language="javascript" src="/media/dataTables.buttons.min.js"></script> #}
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
-<script src="/media/jssor.slider.mini.js"></script>
-
-{% comment %}
-  	<script src="/media/js/popper.min.js"></script>
-  	<script src="/media/js/bootstrap.min.js"></script>   	
-{% endcomment %}
+{#<script src="/media/jssor.slider.mini.js"></script>#}
   	
-  	<script src="/media/js/datepicker.min.js"></script> 
+
+
+<script src="/media/js/datepicker.min.js"></script> 
 
 </head>
 
@@ -219,7 +222,6 @@ cursor: pointer;
 {% load poll_extras %}
         
 <script type="text/javascript">
-
 
 function copy2clipboard() {
 	  var copyText = document.getElementById("print_container").innerText;
@@ -475,7 +477,7 @@ $("#copyButton, #copyTarget").on("click", function() {
 
 $(document).ready(function() {
 
-	$('[data-toggle="tooltip"]').tooltip();	
+//	$('[data-toggle="tooltip"]').tooltip();	
 	
 	// DataTable
     var table = $('#iTable').DataTable({
@@ -1646,10 +1648,20 @@ $("body").on('click', '#c_join', function() {
 
 
 $("body").on('click', '.mark_id', function() {
-	console.log("Click on: " +  $(this).text() );
+//	console.log("Click on: " +  $(this).text() );
 	$("#main_id").val($(this).text());
 	$("#main_id").attr('index', $(this).attr('indx'));
 })
+
+
+$("body").on('click', '.sale_td_url', function() {
+	console.log("Click on: " +  $(this).text() );
+	var tag_a = $(this).find('a');
+	console.log("Click on: " +  tag_a.attr("href"));
+	window.location.href = tag_a.attr("href");
+//	$("#main_id").attr('index', $(this).attr('indx'));
+})
+
 
 
 $("body").on('click', '#sale_change', function() {
@@ -2201,9 +2213,9 @@ local_offer
 	</a>
 	</td>
 {% if type.new_arrival %}	
-	<td align="center" bgcolor="#c8c2f9">
+	<td align="center" bgcolor="#c8c2f9" class="sale_td_url" title="Продати товар" data-toggle="tooltip" data-placement="top">
 {% else %}
-	<td align="center">
+	<td align="center" class="sale_td_url" title="Продати товар" data-toggle="tooltip" data-placement="top">
 {% endif %}	
 {% ifequal type.sum_catalog type.c_sale %}
 	{{type.sum_catalog|sub:type.c_sale|floatformat}} 
@@ -2213,7 +2225,7 @@ local_offer
 	<a href="/client/invoice/catalog/{{type.catalog}}/add" title="{{type.new_arrival}}" data-toggle="tooltip" data-placement="top">
 	{{ type.balance|floatformat }}
 {% else %}
-	<a href="/client/invoice/catalog/{{type.catalog}}/add" title="Продати товар" data-toggle="tooltip" data-placement="top">
+	<a href="/client/invoice/catalog/{{type.catalog}}/add" > {#</a>title="Продати товар" data-toggle="tooltip" data-placement="top">#}
 	{{ type.balance|floatformat }}	
 {% endif %}		
 	</a>

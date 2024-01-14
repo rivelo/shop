@@ -4,17 +4,18 @@
 <title>Витрати</title>
 
 <link type="text/css" rel="stylesheet" href="/media/paginator.css">
-<link type="text/css" rel="stylesheet" href="/media/css/main_ui.css">
 
 
-<script src="/media/jquery-ui.min.js"></script>
+<body>
+
+{#<script src="/media/jquery-ui.min.js"></script>#}
 
 
 
 <h1>
 <span class="badge badge-secondary">Затрати</span>
-<a href="/cost/add/" title="Додати" class="badge badge-success"><i class="material-icons">add_circle_outline</i> </a> 
-<a href="{% url 'salary-add' %}" title="Додати зарплату" class="badge badge-success">Додати зарплату <i class="material-icons">add_circle_outline</i> </a>
+<a href="/cost/add/" title="Додати" class="badge badge-success" data-toggle="tooltip" data-placement="bottom" data-html="true"><i class="material-icons">add_circle_outline</i> </a> 
+<a href="{% url 'salary-add' %}" title="Додати зарплату" class="badge badge-success" data-toggle="tooltip" data-placement="bottom" data-html="true">Додати зарплату <i class="material-icons">add_circle_outline</i> </a>
 </h1>
 
 <h2>
@@ -59,7 +60,7 @@
 	<td>
 	{{forloop.counter}}
 	</td>
-	<td title="редагувати">       
+	<td title="редагувати" data-toggle="tooltip" data-placement="top" data-html="true">       
 	<a href="/cost/edit/{{ type.id }}">{{type.id}}</a>
 	</td>
 	<td>       
@@ -128,4 +129,4 @@
 </div>
 
 
-
+</body>

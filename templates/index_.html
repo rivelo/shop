@@ -1,15 +1,10 @@
  <html xmlns="http://www.w3.org/1999/xhtml">
  <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <title>Main page Rivelo</title>
+  <title>Main page Rivelo (ICONS)</title>
 
 
-{# <link rel="stylesheet" href="/media/jquery-ui.min.css"> #}
-{#<script type="text/javascript" src="/media/jquery-ui.min.js"></script> #}
-
-	
-
-  <style type="text/css">
+<style type="text/css">
 .icon{
     height: auto; 
     width: auto; 
@@ -20,12 +15,10 @@
 /*    background: none;
     cursor: pointer; */
 } 
-  </style>
+</style>
 
 <script>
-$(document).ready( function() {
-	$('[data-toggle="tooltip"]').tooltip();
-})
+
 </script>
   
  </head>
@@ -34,7 +27,7 @@ $(document).ready( function() {
  
 {% for cat in cat_list %}
  
- <a href="{% url 'category-id-list' cat.id %}" title="{{cat.name_ukr}} / {{cat.name}}" data-toggle="tooltip" data-placement="top">
+ <a href="{% url 'category-id-list' cat.id %}" title="{{cat.name_ukr}}  <br/> {{cat.name}}" data-toggle="tooltip" data-placement="top" data-html="true">
  <img class="icon" src="{{cat.get_icon_name}}">
  </a>
  

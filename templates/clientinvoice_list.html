@@ -6,21 +6,22 @@
 <head>
     
     <link type="text/css" rel="stylesheet" href="/media/paginator.css">
-	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{#	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> #}
     <link rel="stylesheet" type="text/css" href="/media/css/table.css"> 
 {#    <link rel="stylesheet" type="text/css" href="/media/css/tooltip.css"> #}
 
 {# <link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" /> #}
 {# <script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script> #}
 
-<link rel="stylesheet" href="/media/jquery-ui.min.css">
+{#<link rel="stylesheet" href="/media/jquery-ui.min.css">#}
+
 <link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
 
 
 {# <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"> #}
 {# <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> #}
 
-<script src="/media/jquery-ui.min.js"></script>
+{#<script src="/media/jquery-ui.min.js"></script>#}
 {# <script src="/media/js/touchHover.js"></script> #}
  
 </head>
@@ -61,6 +62,7 @@ $(document).ready( function() {
 
 $('[data-toggle="tooltip"]').tooltip();
 $(".op_datetime").hide();
+$("#q_search").hide();
 
 // $('#maincheck').prop('checked', true);
 
@@ -443,10 +445,14 @@ $.ajax({
 	    error:function(){
 	    	alert("При відправці виникли проблеми");
 	    }
-
 });
-	
-}
+};
+
+
+$("body").on('click', '#span_show_select', function() {
+//	$("#q_search").hide();
+	$("#q_search").toggle();
+});
 
 
 
@@ -455,8 +461,9 @@ $.ajax({
 
 
 <body onLoad="res()">
-<br>
+<div class="container-fluid" >
 {% if view %}
+<div class="row" id="q_search">
 <h2>
     За місяць: 
 	{% for i in "123456789012" %}
@@ -473,8 +480,6 @@ $.ajax({
 	{% endfor %}    
 </h2>    
 
-{% comment %}
-{% endcomment %}    
 <h2>
 	За день:
 	{% for day in month_days %}		 
@@ -487,7 +492,7 @@ $.ajax({
     {% endifequal %}
     {% endfor %}
 </h2>
-
+</div>
 {% endif %}
 
 <form action="/payform/" method="post" name="formSum">
@@ -496,16 +501,18 @@ $.ajax({
 <div class="d-flex">
    <div class="mr-auto">
    <h1>
-   <span class="badge badge-dark">Список проданого товару</span> <span class="badge badge-info" id="show_date">{{sel_day}}/{{sel_month}}/{{sel_year}}</span> 
+   <span class="badge badge-dark">Список проданого товару</span> 
+   <span id="span_show_select" class="badge badge-secondary" title="Показати/приховати рядок вибору дня/місяця" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">unfold_more</i></span>
+   <span class="badge badge-info" id="show_date">{{sel_day}}/{{sel_month}}/{{sel_year}}</span> 
    <span id="clear_basket"><img src="/media/images/Ecommerce Return.ico" title="видалити всі відмічені" width="32" height="32" data-toggle="tooltip" data-html="true" data-placement="right"> </span>
 {#   <a href="/workshop/playsound/" ><span class="badge badge-dark mt-250"><i class="material-icons" style="font-size: 28px" >notification_important</i></span></a> #}
    <a href="notpay/" ><span class="badge badge-dark mt-250"><i class="material-icons" style="font-size: 28px" >check_box</i></span></a>
 
 {% for shop_obj in shops %}
 	{% if shop_obj.id == shop %} 
-	<div class="badge bg-primary text-wrap" title="Продажі в магазині: {{shop_obj.name}}" data-toggle="tooltip">
+	<div class="badge bg-success " title="Продажі в магазині: {{shop_obj.name}}" data-toggle="tooltip" data-placement="bottom">
 	{% else %}
-	<div class="badge bg-secondary text-wrap" title="Продажі в магазині: {{shop_obj.name}}" data-toggle="tooltip">
+	<div class="badge bg-secondary" title="Продажі в магазині: {{shop_obj.name}}" data-toggle="tooltip" data-placement="bottom">
 	{% endif %}
 {% if sel_day == 'all' %}
 	<a href="{% url 'client-invoice-month-by-shop' shop_obj.id sel_year sel_month %}">{{shop_obj.name}}</a>
@@ -517,9 +524,9 @@ $.ajax({
 
 
 {% if shop == 0 %}
-<div class="badge bg-primary text-wrap" title="Продажі у всіх магазинах" data-toggle="tooltip">
+<div class="badge bg-success" title="Продажі у всіх магазинах" data-toggle="tooltip" data-placement="bottom">
 {% else %}
-<div class="badge bg-secondary text-wrap" title="Продажі у всіх магазинах" data-toggle="tooltip">
+<div class="badge bg-secondary" title="Продажі у всіх магазинах" data-toggle="tooltip" data-placement="bottom">
 {% endif %}
 {% if sel_day == 'all' %}
 	<a href="{% url 'client-invoice-month' sel_year sel_month %}">Всі</a>
@@ -535,7 +542,7 @@ $.ajax({
    </h1>
    </div>
    
- <div class="ml-auto">
+ <div class="ml-auto mt-2">
   <div class="input-group ">
   <div class="input-group-prepend">
   	<span id="for_pay" style="COLOR: red" class="input-group-text font-weight-bold" >2133</span>
@@ -659,11 +666,16 @@ $.ajax({
 	</td>
 	<td class="tsum" ci_id="{{type.id}}">       
 	{{type.sum}}  
+{% comment %}
 	{% if request.user|has_group:"admin" %}
-	{% if type.pay != type.sum %}   
+	{% if type.pay != type.sum %}
+		<span class="badge badge-pill badge-warning" onclick=""> {{type.pay}} </span>
+	{{type.check_pay}} - {{type.check_payment}}
+	   
 	<span class="badge badge-pill badge-warning" onclick=""> {{type.pay}} </span>
 	{% endif %}
 	{% endif %}
+{% endcomment %}	
 	</td>
 {#	<td>	{{type.currency.name}}	</td> #}
 	<td align="center" title="Економія склала {{type.get_client_profit}} грн.">       
@@ -785,5 +797,6 @@ $.ajax({
 
 {% orm_debug %}
 <br>
+</div>
 </body>
 </html>

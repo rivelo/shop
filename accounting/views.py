@@ -453,7 +453,9 @@ def bicycle_type_del(request, id):
 
 def bicycle_type_list(request):
     list = Bicycle_Type.objects.all()
-    return render_to_response('index.html', {'types': list, 'weblink': 'bicycle_type_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'types': list, 'weblink': 'bicycle_type_list.html', }
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 @csrf_exempt
 def bicycle_framesize_add(request):
@@ -1087,8 +1089,12 @@ def store_report_bytype(request, id):
     type = list[0].model.type.type
     text = u"Тип велосипеду: " + type
     if auth_group(request.user, 'admin'):
-        return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_store_list.html', 'text': text, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_store_list_by_seller.html', 'text': text, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        context = {'bicycles': list, 'weblink': 'bicycle_store_list.html', 'text': text, }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+    context = {'bicycles': list, 'weblink': 'bicycle_store_list_by_seller.html', 'text': text,}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 @csrf_exempt
 def bicycle_sale_add(request, id=None):
@@ -3169,6 +3175,7 @@ def category_add(request):
     #return render_to_response('category.html', {'form': form})
     return render_to_response('index.html', {'form': form, 'weblink': 'category.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
+@csrf_exempt
 def category_edit(request, id):
     a = Type.objects.get(pk=id)
     if request.method == 'POST':
@@ -3178,7 +3185,9 @@ def category_edit(request, id):
             return HttpResponseRedirect('/category/view/')
     else:
         form = CategoryForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'category.html', 'text': 'Обмін валют (редагування)'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'category.html', 'text': 'Обмін валют (редагування)'}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 def category_del(request, id):
     obj = Type.objects.get(id=id)
@@ -5424,7 +5433,9 @@ def worktype_edit(request, id):
             return HttpResponseRedirect('/worktype/view/group/'+ str(a.work_group.id))
     else:
         form = WorkTypeForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html', 'add_edit_text': 'Редагувати', 'workID': a}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'worktype.html', 'add_edit_text': 'Редагувати', 'workID': a}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def worktype_list(request, id=None):
@@ -5435,7 +5446,9 @@ def worktype_list(request, id=None):
         list = WorkType.objects.all()
     worklist = WorkType.objects.all().order_by('work_group')
     component_type_list = Type.objects.all().order_by('group')
-    return render_to_response('index.html', {'worktypes': list, 'worklist': worklist, 'component_type_list':component_type_list, 'weblink': 'worktype_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'worktypes': list, 'worklist': worklist, 'component_type_list':component_type_list, 'weblink': 'worktype_list.html', }
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 #===============================================================================
 # 
@@ -6219,7 +6232,7 @@ def shopdailysales_add(request, id=None):
             #ci_res = ClientInvoice.objects.filter(client = unknown_client, date__year=now.year, date__month=now.month, date__day=now.day)
             ci_res = ci_array.filter(client = unknown_client)
             for ci in ci_res: 
-                if ci.check_pay() == False:
+                if ci.check_payment() == False:
 #                    print "FILTER ok!!!"
                     ci_status = ci_status + 1
             other_ci = ci_array.exclude(sum = F('pay'))
@@ -7171,7 +7184,7 @@ def payform(request):
             context = {'weblink': 'error_manyclients.html', 'error_msg':error_msg, }
             context.update(custom_proc(request))
             return render(request, 'index.html', context)
-        if inv.check_pay() and ('send_check' not in request.POST):
+        if inv.check_payment() and ('send_check' not in request.POST):
             if (auth_group(request.user, 'admin') == False):
                 error_msg = "Вибрані позиції вже оплачені"
                 context = {'weblink': 'error_manyclients.html', 'error_msg':error_msg, }
@@ -7184,7 +7197,8 @@ def payform(request):
         sum = sum + inv.sum
     #-------- показ і відправка чеку на електронку ------
     if 'send_check' in request.POST:
-        if inv.check_pay() == False:
+#        if inv.check_pay() == False:
+        if inv.check_payment() == False:
             if (auth_group(request.user, 'admin') == False):
                 error_msg = "Вибрані позиції ще не оплачені і на них не можна друкувати фіскальний чек"
                 context = {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}
@@ -7228,7 +7242,7 @@ def payform(request):
         bal = res
     url = '/client/result/search/?id=' + str(client.id)
     cmsg = ClientMessage.objects.filter(client__id=user)
-    context = {'messages': cmsg,'checkbox': list_id, 'invoice': ci, 'summ': sum, 'balance':bal, 'client': client, 'chk_list': chk_list, 'error_msg':error_msg, 'weblink': 'payform.html', 'next': url}
+    context = {'messages': cmsg,'checkbox': list_id, 'invoice': ci, 'summ': sum, 'balance':bal, 'client': client, 'chk_list': chk_list, 'error_msg':error_msg, 'weblink': 'payform.html', }
     context.update(custom_proc(request)) 
     return render(request, 'index.html', context)
 
@@ -7562,7 +7576,7 @@ def client_payform(request):
         ci = ClientInvoice.objects.filter(id__in=list_id)
         client = ci[0].client
         for inv in ci:
-            if inv.check_pay():
+            if inv.check_payment():
                 if (auth_group(request.user, 'admin') == False):
                     error_msg = "Вибрані позиції вже оплачені!"
                     return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))

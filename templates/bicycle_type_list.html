@@ -2,7 +2,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
 {# <link rel="stylesheet" type="text/css" href="/media/css/table.css"> #}
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{#<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">#}
 
 
 <h1><span class="badge badge-info">Типи велосипедів </span> <a href="/bicycle-type/add/" class="badge badge-success">Створити <i class="material-icons">add_circle_outline</i></a></h1>
@@ -19,23 +19,25 @@
     {% for type in types %}
     <tr>
     	<td><a href="/bicycle-type/edit/{{ type.id }}">{{ type.id }}</a></td>
-        <td>
-        {{ type.type }} 
-        [
-		{{ type.bike_count }}
-		]
-		{{ type.subtype_count }} 
+        <td align="center">
+        {{ type.type }}
+        <br> 
+        [{{ type.bike_count }}]
+<span class="badge badge-info" title="Кількість велосипедів в магазині">		{{ type.subtype_count }} </span> 
+
+{% comment %}
 		{% for item in type.subtype_storebike %}
 		<br>
 		{{item}} / {{item.model.type}} 
 		{% endfor %}
-		
-		
+{% endcomment %}		
+
+<div id="bike_in_shop" style="display:none;">		
 		{% for item in type.storebike %}
 		<br>
 		{{item}} / {{item.model.type}} 
 		{% endfor %}
-		
+</div>		
         </td>
         <td>
         {{ type.description }}

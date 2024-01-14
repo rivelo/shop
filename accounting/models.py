@@ -210,12 +210,26 @@ class Bicycle_Type(models.Model):
     parent_id = models.ForeignKey("self", blank=True, null = True, default=None)
     status = models.BooleanField(default = True, blank=True)
 
+    # Bikes in Store allTime
     def bike_count(self):
-        res = self.bicycle_set.all().order_by('pk').aggregate(bike_sum = Count('pk'))
+ #       all_bike = self.bicycle_set.all()
+#        res = self.bicycle_set.all().aggregate(bike_sum = Count('pk')) 
+        inlist = []
+        inlist.append(self.pk)
+#        for i in all_bike:
+#            print ">> bike[%s] =" % self.type 
+#            print "bike = " + str(i.id)
+        bs_list = Bicycle_Store.objects.filter(model__type__pk__in = inlist)
+        res = bs_list.aggregate(bike_sum = Count('pk'))
         return res['bike_sum']
     
+    # Bikes in Store Now
     def subtype_count(self):
-        res = self.bicycle_type_set.all().order_by('pk').aggregate(bike_sum = Count('pk'))
+        inlist = []
+        inlist.append(self.pk)
+        bs_list = Bicycle_Store.objects.filter(count__gt = 0, model__type__pk__in = inlist)
+        res = bs_list.aggregate(bike_sum = Count('pk'))
+        #res = self.bicycle_type_set.filter().aggregate(bike_sum = Count('pk'))
         return res['bike_sum']
 
     def subtype_list(self):
@@ -1139,9 +1153,16 @@ class ClientInvoice(models.Model):
             self.save()
         return True
 
+#its wrong check becouse math in float val not equal to pay field 
     def check_pay(self):
         sum = self.price * self.count * (100 - self.sale)*0.01
         if self.pay == sum :
+            return True
+        else:
+            return False
+        
+    def check_payment(self):
+        if self.sum == self.pay:
             return True
         else:
             return False
@@ -1652,7 +1673,7 @@ class WorkType(models.Model):
 class WorkStatus(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-#    color = models.CharField(blank = True, null = True)
+#    color = models.CharField(max_length=50, blank = True, null = True)
 #    disable = models.BooleanField()
 #    show_cur_month = models.BooleanField()
 #    order = models.PositiveIntegerField(default = 0, verbose_name="Порядок сортування статусів. 0 - не сортувати")

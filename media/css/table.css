@@ -45,7 +45,8 @@ a.select {
 
 
 a.toggle-vis {
-		color:#293d6b; 
+		color: white; /* #293d6b;*/
+		 
   		cursor: pointer; 
 /*  		border-radius: 3px;
   		color: #FFF;

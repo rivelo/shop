@@ -1,7 +1,45 @@
+a {
+	color: #0c5e0c;
+}
+
+
 .select {
 /*		color: red; */
 		background-color:#006600;
 	}
+
+div.bg-success a {
+	color: white; 
+/* 	background-color: red; */
+}
+
+span.badge-secondary a {
+	color: white; 
+/* 	background-color: red; */
+}
+
+
+div.bg-secondary a {
+	color: white; 
+/* 	background-color: red; */
+}
+
+
+.bg-success{
+	background-color: red;
+	color: white; 
+}
+
+
+.badge-success{
+	background-color: #6A9B56;
+	color: white;
+}
+
+a.badge-success {
+	color: white;
+	background-color: #6A9B56;
+}
 
 
 a.toggle-vis {
@@ -12,132 +50,3 @@ a.toggle-vis {
   		background-color: red;
   		border-right:10px solid #4A4A4A;*/
 }
-
-.cdiv {
- /*   float: left; */
- 	float:left;
-    display: inline-block
-    vertical-align: middle;
-    margin: 2px;
-}
-
-/*
-  span:visited{ text-decoration:none; color:#293d6b; }
-  span:hover{ text-decoration:underline; color:#293d6b; }
-  span {color:#293d6b; cursor: pointer; }
-*/
-
-/* виконано */
-	tr.w_done_done {
-		background-color: #ffffff;
-	}
-/* виконано не видано */
-	tr.w_done {
-		background-color: #bbbbbb;
-	}
-	
-/* не виконано */
-	tr.w_false {
-		background-color: red;
-	}
-/*   	// в роботі {% endcomment %} */
-	tr.w_working {
-		background-color: #FFFF99;
-	}
-/*   	// прийнято */
-	tr.w_true {
-		background-color: #CCFF99;
-	}
-
-.tr_true {
-background-color: #fff;
-}
-
-.tr_false {
-background-color: #fbf4aa;
-/* font-weight: bold; */
-}
-
-
-table#balance {
-	border: 2px solid black; /* Рамка вокруг таблицы */
-	border-collapse: collapse; /* Отображать только одинарные линии */
-}
-
-table#balance TH {
-	text-align: center; /* Выравнивание по левому краю */
-	background: #ccc; /* Цвет фона ячеек */
-	padding: 5px; /* Поля вокруг содержимого ячеек */
-	border: 1px solid black; /* Граница вокруг ячеек */
-}
-
-table#balance TD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
-	border: 1px solid black; /* Граница вокруг ячеек */
-	font-size: 14pt;
-}
-
-table#balance a{
-	color: black;
-}
-
-.invoiceTABLE { /*width: 100%; */ /* Ширина таблицы */
-	/*border: 4px double black; /* Рамка вокруг таблицы */
-	border: 2px solid black; /* Рамка вокруг таблицы */
-	border-collapse: collapse; /* Отображать только одинарные линии */
-}
-
-.invoiceTABLE TH {
-	text-align: center; /* Выравнивание по левому краю */
-	background: #ccc; /* Цвет фона ячеек */
-	padding: 5px; /* Поля вокруг содержимого ячеек */
-	border: 1px solid black; /* Граница вокруг ячеек */
-}
-
-.invoiceTD { /* padding: 5px; /* Поля вокруг содержимого ячеек */
-	border: 1px solid black; /* Граница вокруг ячеек */
-	font-size: 10pt;
-}
-
-#button > span.ui-icon-custom { 
-    background-image: url(/media/images/Bicycle_ico.png)    
-}
-
-div.read { color:red; 
-		background-color: #CCCCCC;
-		//display: inline-block; /* Строчно-блочный элемент */
-    position: relative; /* Относительное позиционирование */
-		}
-div.standart { color:black; 
-		background-color: #999999;
-		//display: inline-block; /* Строчно-блочный элемент */
-    position: relative; /* Относительное позиционирование */
-		}
-
-div.read:hover::after {
-    content: attr(data-title); /* Выводим текст */
-    position: absolute; /* Абсолютное позиционирование */
-    left: 0; right: 0; bottom: 5px; /* Положение подсказки */
-    z-index: 1; /* Отображаем подсказку поверх других элементов */
-    background: rgba(0,42,167,0.6); /* Полупрозрачный цвет фона */
-    color: #fff; /* Цвет текста */
-    text-align: center; /* Выравнивание текста по центру */
-    font-family: Arial, sans-serif; /* Гарнитура шрифта */
-    font-size: 11px; /* Размер текста подсказки */
-    padding: 5px 10px; /* Поля */
-    border: 1px solid #333; /* Параметры рамки */
-   }
-
-div.standart:hover::after {
-    content: attr(data-title); /* Выводим текст */
-    position: absolute; /* Абсолютное позиционирование */
-    left: 0; right: 0; bottom: 5px; /* Положение подсказки */
-    z-index: 1; /* Отображаем подсказку поверх других элементов */
-    background: rgba(0,42,167,0.6); /* Полупрозрачный цвет фона */
-    color: #fff; /* Цвет текста */
-    text-align: center; /* Выравнивание текста по центру */
-    font-family: Arial, sans-serif; /* Гарнитура шрифта */
-    font-size: 11px; /* Размер текста подсказки */
-    padding: 5px 10px; /* Поля */
-    border: 1px solid #333; /* Параметры рамки */
-   }
-

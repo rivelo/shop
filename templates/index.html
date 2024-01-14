@@ -3,7 +3,31 @@
   
 <link rel="shortcut icon" type="image/png" href="/media/images/favicon.ico"/>
   
-<html xmlns="http://www.w3.org/1999/xhtml">
+{# <html xmlns="http://www.w3.org/1999/xhtml" lang="en">#}
+<html lang="uk">
+ 
+   <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+<link rel="stylesheet" href="/media/css/jquery-ui.min.css">
+<link rel="stylesheet" href="/media/css/bootstrap.min.css">
+
+<link type="text/css" rel="stylesheet" href="/media/css/main_ui.css">
+
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<!-- Option 2: Separate Popper and Bootstrap JS -->
+
+<script type="text/javascript" src="/media/js/jquery.js"></script>
+<script type="text/javascript" src="/media/js/jquery-ui.min.js"></script>
+<script type="text/javascript" src="/media/js/bootstrap.bundle.min.js"></script>
+
+  </head>
+ 
+ {% comment %}
  
  <head>
   	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -11,18 +35,17 @@
 
 <link rel="stylesheet" href="/media/css/bootstrap.min.css">  
 
+
 {# <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"> #}   
 
 <script type="text/javascript" src="/media/js/jquery.js"></script>
 <script type="text/javascript" src="/media/js/bootstrap.bundle.min.js"></script>
+<script src="/media/js/popper.min.js"></script>
 
-{#	<script type="text/javascript" src="/media/js/bootstrap.bundle.min.js"></script> #}
-{#	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script> #} 
+{% endcomment %}
 
-{% comment %}
-  	<script src="/media/js/popper.min.js"></script>
-  	<script src="/media/js/bootstrap.min.js"></script>   	
-{% endcomment %} 	
+{#<link rel="stylesheet" href="/media/css/tooltip.css">#} 
+
 
 <style type="text/css">
 #footer { /* Нижний блок */
@@ -59,6 +82,13 @@
 
 </style>
 
+<script type="text/javascript">
+
+$(function () {
+	  $('[data-toggle="tooltip"]').tooltip();
+	})
+
+</script>
   
  </head>
  
