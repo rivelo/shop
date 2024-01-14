@@ -64,7 +64,7 @@ urlpatterns = [
     url(r'^bicycle-framesize/add/$', catalog.bicycle_framesize_add),
     url(r'^bicycle-framesize/view/$', catalog.bicycle_framesize_list),
     url(r'^bicycle-framesize/lookup/$', catalog.framesize_lookup, name='frame-size-lookup'),
-    url(r'^bicycle/framesize/edit/(?P<id>\d+)/$', catalog.bicycle_framesize_edit),    
+    url(r'^bicycle/framesize/edit/(?P<id>\d+)/$', catalog.bicycle_framesize_edit, name='framesize-edit'),    
     url(r'^bicycle/framesize/delete/(?P<id>\d+)/$', catalog.bicycle_framesize_del),
     #url(r'^bicycle/framesize/delete/(?P<id>\d)/$', catalog.bicycle_framesize_del'),
 

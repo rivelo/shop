@@ -253,10 +253,22 @@ $("body").on("click", ".change_sale", function(e){
 	<td><a href="/">{{type.id}}</a></td>
 	<td><span class="f_type">{{type.model.type.type}}</span></td>
 	<td><span class="f_brand">{{type.model.brand.name}}</span></td>
-	<td><a href="/bicycle/photo/{{type.model.id}}">
-	{{type.model.model}} ({{type.model.color}}) 
-	</a> 
-	{{type.size.rider_height_str}}
+	<td>
+	<div class="row justify-content-between">
+    <div class="col-10" >
+    	<a href="/bicycle/photo/{{type.model.id}}">
+		{{type.model.model}} ({{type.model.color}}) 
+		</a>
+		<a href="{% url 'framesize-edit' type.size.id %}" title="Редагувати дані рами [{{type.size}}] велосипеду" data-toggle="tooltip" data-placement="right" style="align: end;">
+		{{type.size.rider_height_str}}
+		</a> 
+    </div>
+    <div class="col-2" style="text-align: right;">
+    	<a href="{% url 'bicycle-edit' type.model.pk %}" title="Редагувати модель велосипеду" data-toggle="tooltip" data-placement="right" style="align: end;"><i class="material-icons">create</i> </a>  
+    </div>
+  </div>
+	
+	
 	</td>
 	<td><span class="f_year">{{type.model.year|date:"Y"}}</span></td>
 	<td class="serial_edit" id_serial="{{ type.id }}"> {{type.serial_number}}</td>  
@@ -316,7 +328,9 @@ $("body").on("click", ".change_sale", function(e){
 	<a href="/bicycle/photo/{{type.model.id}}">
 	{{type.model.model}} ({{type.model.color}})
 	</a>
+	<a href="{% url 'framesize-edit' type.size.id %}" title="Редагувати дані рами [{{type.size}}] велосипеду" data-toggle="tooltip" data-placement="right" style="align: end;">
 	{{type.size.rider_height_str}}
+	</a>
 	</td>
 	<td><span class="f_year">{{type.model.year|date:"Y"}}</span></td>
 	<td class="serial_edit" id_serial="{{ type.id }}"> {{type.serial_number}}</td>  

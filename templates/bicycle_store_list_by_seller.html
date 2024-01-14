@@ -3,7 +3,7 @@
 <title>Велосипеди - магазин - Simple</title>
 
 {# <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{# <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">#}
 
 {# <script type="text/javascript" src="/media/jquery-1.7.2.min.js"></script> #}
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
@@ -63,8 +63,14 @@ $(document).ready(function() {
      	}
      });
 
+     
+    // $(".frame_number").hide();
 
 });
+
+$("body").on("click", "#frame_size", function(e){ 
+	$(".frame_number").toggle();
+})
 
 </script>
 
@@ -111,8 +117,8 @@ $(document).ready(function() {
     	<th>#</th>
     	<th></th>
     	<th style="text-align: left"> Велосипед</th>
-    	<th >Номер рами</th>
-    	<th>Розмір рами</th>
+    	<th class="frame_number">Номер рами</th>
+    	<th id="frame_size">Розмір рами</th>
 {% if perms.accounting.add_preorder %}
     	<th>Оптова ціна</th>
 {% endif %}    	
@@ -149,9 +155,9 @@ $(document).ready(function() {
 	</td>
       
 {% if user.is_authenticated %}
-	<td class="edit" id_serial="{{ type.id }}">
+	<td class="edit frame_number" id_serial="{{ type.id }}" >
 {% else %}
-	<td id_serial="{{ type.id }}">
+	<td id_serial="{{ type.id }}" class="frame_number">
 {% endif %}       
 	{{type.serial_number}}
 	</td>
@@ -225,7 +231,7 @@ $(document).ready(function() {
     	<th></th>
     	<th></th>
     	<th></th>
-    	<th></th>
+    	<th class="frame_number"></th>
     	<th></th>
 {% if perms.accounting.add_preorder %}    	    	
     	<th align="center">
@@ -241,10 +247,16 @@ $(document).ready(function() {
     	<th><input type="submit" value="Цінники" name="BPrice"></th>    	
     </tr>        
 </thead>   
-<table>
+</table>
 
 {% if html %}
-<p>
+    {% for bike in bicycles %}
+    	<p>{{bike.model.get_simple_name}} [{{bike.size.letter|default_if_none:""}}] - {{bike.model.price}} грн. 
+    	{% if bike.model.sale != 0 %} Знижка - {{bike.model.sale|floatformat:"0"}}% . Нова ціна - {{bike.model.sale|div:-100|sub:-1|mul:bike.model.price|floatformat:"0"}} грн. {% endif %} </p>
+    {% endfor %}
+
+
+{% comment %}
     [table]
 	[tr]
     	[td]Назва[/td]
@@ -272,8 +284,8 @@ $(document).ready(function() {
     [/td]
     [/tr]
     {% endfor %}
-    [/table]    
-    </p>
+    [/table]
+{% endcomment %}        
 {% endif %}
 
 {% load poll_extras %}

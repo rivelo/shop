@@ -415,6 +415,7 @@ def cashtype_edit(request, id):
     return render(request, 'index.html', context)
 
 # ----------- Bicycle --------------
+@csrf_exempt
 def bicycle_type_add(request):
     a = Bicycle_Type()
     if request.method == 'POST':
@@ -427,7 +428,9 @@ def bicycle_type_add(request):
     else:
         form = BicycleTypeForm(instance=a)
     #return render_to_response('bicycle_type.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_type.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'bicycle_type.html', }
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def bicycle_type_edit(request, id):
@@ -1092,7 +1095,7 @@ def store_report_bytype(request, id):
         context = {'bicycles': list, 'weblink': 'bicycle_store_list.html', 'text': text, }
         context.update(custom_proc(request))
         return render(request, 'index.html', context)
-    context = {'bicycles': list, 'weblink': 'bicycle_store_list_by_seller.html', 'text': text,}
+    context = {'bicycles': list, 'weblink': 'bicycle_store_list_by_seller.html', 'text': text, 'html': True}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 

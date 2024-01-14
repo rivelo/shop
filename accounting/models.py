@@ -1360,6 +1360,9 @@ class Bicycle(models.Model):
     def photo_count(self):
         return self.photo_url.count()        
 
+    def get_simple_name(self):
+        return u'Велосипед %s. Модель %s. (%s)' % (self.brand, self.model, self.color)
+
     def __unicode__(self):
         #return u'Велосипед %s. Ціна %s грн.' % (self.model, self.brand)
         return u'Велосипед %s. Модель %s. %s (%s)' % (self.brand, self.model, self.year.year, self.color)
