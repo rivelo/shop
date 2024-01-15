@@ -5,6 +5,7 @@
 {# <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> #}
 
 {#<link rel="stylesheet" href="/media/jquery-ui.min.css">#}
+
 <link rel="stylesheet" href="/media/css/table.css">
 
 {#<script src="/media/jquery-ui.min.js"></script>#}
@@ -194,21 +195,21 @@ $('.phone').editable('/workticket/edit/', {
 
 {% for shop_obj in shops %}
 {% if shop_obj.id == shop %} 
-<div class="badge bg-primary text-wrap" title="Показати заявки в майстерні: {{shop_obj.name}}" data-toggle="tooltip">
+<div class="badge bg-success text-wrap" title="Показати заявки в майстерні: {{shop_obj.name}}" data-toggle="tooltip">
 {% else %}
 <div class="badge bg-secondary text-wrap" title="Показати заявки в майстерні: {{shop_obj.name}}" data-toggle="tooltip">
 {% endif %}
-<a href="{% url 'workticket-byshop-cur-month' shop_obj.id %}">{{shop_obj.name}}</a>
+<a href="{% url 'workticket-byshop-cur-month' shop_obj.id %}" class="shop_id">{{shop_obj.name}}</a>
 </div>
 {% endfor %}
 
 {% if shop == 0 %}
 <div class="badge bg-primary text-wrap select" title="Показати заявки з обох магазинів">
-<a href="{% url 'workticket-byshop-cur-month' 0 %}">Всі</a>
+<a href="{% url 'workticket-byshop-cur-month' 0 %}" class="shop_id">Всі</a>
 </div>
 {% else %}
 <div class="badge bg-secondary text-wrap" title="Показати заявки з обох магазинів">
-<a href="{% url 'workticket-byshop-cur-month' 0 %}">Всі</a>
+<a href="{% url 'workticket-byshop-cur-month' 0 %}" class="shop_id">Всі</a>
 </div>
 {% endif %}
 <sup>

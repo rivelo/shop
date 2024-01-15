@@ -2,14 +2,19 @@
 <title>Виписка по клієнту: {{client_name.name}}</title>
 
 <head>
-	<link rel="stylesheet" href="/media/css/table.css"> 
-	<link rel="stylesheet" href="/media/jquery-ui.min.css">
+{#	<link rel="stylesheet" href="/media/css/table.css"> #}  
+{#	<link rel="stylesheet" href="/media/jquery-ui.min.css"> #}
+<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
+{#	<script src="/media/jquery-ui.min.js"></script> #}	
+
 </head>
 
 {% load poll_extras %}
 
 
 <style type="text/css">
+
+{% comment %}
 
 table#balance a{
 	color: black;
@@ -68,18 +73,24 @@ a.delete_row_user :HOVER{
 	color: red;
 }
 
-    
-</style>
-{% comment %}
 {% endcomment %}
 
+#tabs .ui-tabs-active {
+    background: #5ba63c;
+	border: #FFFFFF;
+	font-weight: bold;
+}
+    
+</style>
 
-{% load poll_extras %}     
+
+
     
 <script language="JavaScript">
+
 $(document).ready(function() {
 
-	$('[data-toggle="tooltip"]').tooltip();
+//	$('[data-toggle="tooltip"]').tooltip();
 //	$('[data-toggle="tooltip"]').show();
 
 	
@@ -88,6 +99,8 @@ $(document).ready(function() {
 	$("#dialog_msg").hide();
 	$("#dialog_ajax_load").hide();
 	$("#dialog_return").hide();
+	
+	$(".profit").hide();
 	
   	$( "#img_bike" ).click(function() {
   		$( "#dialog" ).dialog();
@@ -140,7 +153,43 @@ $(document).ready(function() {
 
 	
 	//$('#img_repair').css("opacity", 1);
-})
+
+{% if request.user|has_group:"admin" %}
+$("#show_profit").click(function(){
+	$(".profit").toggle();
+});
+{% endif %}
+	
+
+$('.cred_price').each(function() {
+	$(this).editable('/clientcredits/set/', {
+		 loadurl : '/cashtype/list/',
+		 //loaddata : {sel: $(this).attr('tcash_id')},
+		 loaddata : function(value, settings) {
+		   console.log("load this [tcash_id]= " + $(this).attr('tcash_id'));
+	       return {sel: $(this).attr('tcash_id')};
+	   	 },
+	     loadtype: 'POST',
+	     submitdata : function() {
+	      	return {id : $(this).attr('id_cred')};
+	     },
+	     type : 'select',
+	     event : 'dblclick',
+	     style : 'inherit',
+	     callback : function(value, settings) {
+	         var obj = jQuery.parseJSON(value);
+	         $(this).attr("tcash_id", obj[0]["cash_type__id"])
+	         str = '<abbr title="'+ obj[0]["cash_type__name"] +'">'+$(this).attr("value")+'</abbr>';
+	         $(this).html(str);
+	         sel = obj[0]["cash_type__id"];
+	     },
+	     tooltip   : 'Натисніть для редагування...',
+	     submit : 'OK'
+	});
+	});
+
+
+}); // end Ready
 
 
 function res() {
@@ -149,15 +198,14 @@ var sum=0;
 	if(this.checked){
 //		console.log("THIS = "+ this.value);
 		sum = sum + parseFloat(this.value);
-	}
+		}
 	});
 document.getElementById('for_pay').innerHTML = sum + " грн.";
 document.getElementById('debet').innerHTML = ( parseFloat(document.getElementById('for_pay').innerHTML) + parseFloat(document.getElementById('workshop_pay').innerHTML) ).toFixed(2);
 //document.getElementById('row_count').innerHTML = "Row = " + document.getElementById("product").rows.length;
-
-
 }
     
+
 function resWorkshop()
 {
 var p=0;
@@ -172,16 +220,19 @@ for(var i = 0; i < All.elements.length; ++i) {
 }
 
 
+
+
 $(function() {
     $( "#tabs" ).tabs({
       beforeLoad: function( event, ui ) {
-        ui.jqXHR.error(function() {
-          ui.panel.html(
-            "Couldn't load this tab. We'll try to fix this as soon as possible. " +
-            "If this wouldn't be a demo." );
-        });
-      }
-    });
+        //ui.jqXHR.error(function() {
+            ui.panel.html(       "Couldn't load this tab. We'll try to fix this as soon as possible. " +           "If this wouldn't be a demo." );
+       },
+       show: function( e,ui ){
+           $( ui.panel ).html('<p>Loading...</p>');
+       }
+      });
+{# }}); #}
 
     $("#all_cred").click(function(){
             var Id = {{client_name.id}};
@@ -354,32 +405,7 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
      submit : 'OK'
 });
 
-$('.cred_price').each(function() {
-$(this).editable('/clientcredits/set/', {
-	 loadurl : '/cashtype/list/',
-	 //loaddata : {sel: $(this).attr('tcash_id')},
-	 loaddata : function(value, settings) {
-	   console.log("load this [tcash_id]= " + $(this).attr('tcash_id'));
-       return {sel: $(this).attr('tcash_id')};
-   	 },
-     loadtype: 'POST',
-     submitdata : function() {
-      	return {id : $(this).attr('id_cred')};
-     },
-     type : 'select',
-     event : 'dblclick',
-     style : 'inherit',
-     callback : function(value, settings) {
-         var obj = jQuery.parseJSON(value);
-         $(this).attr("tcash_id", obj[0]["cash_type__id"])
-         str = '<abbr title="'+ obj[0]["cash_type__name"] +'">'+$(this).attr("value")+'</abbr>';
-         $(this).html(str);
-         sel = obj[0]["cash_type__id"];
-     },
-     tooltip   : 'Натисніть для редагування...',
-     submit : 'OK'
-});
-});
+
 
 
 	$('#selectall').click(function(event) {  //on click 
@@ -398,6 +424,8 @@ $(this).editable('/clientcredits/set/', {
 
       
 });
+
+
 
 
 function reload_price() {
@@ -429,9 +457,14 @@ $(this).editable('/clientcredits/set/', {
 });
 }
 
+
+
+
+{% comment %}
+
 $(document).ready(function() {
 
-	$(".profit").hide();
+	
 	
 	//	$('div.read').on("click", function(){
 	//$("body").on("click", "div.read", function(){	
@@ -480,17 +513,12 @@ $(document).ready(function() {
     	$(this).attr("data-title", "Клікніть для зміни статусу. Статус: В черзі")
 	});    
  
+	
+	
 $("body").on('click', '#email_send', function() {
 //showbox(function(){
-
 {#	{% if request.user|has_group:"admin" %} - {{client_name.id}} {% endif %} #}
-	
 if (confirm('Ви впевненні що хочете відправити лист на пошту {{client_name.email}}')) {
-{% comment %}
-//	parent.location='http://www.jsp.newmail.ru/les12.htm';
-//	console.log("EMAIL_send!!!");
-{% endcomment %}
-
 	$.ajax("/client/{{client_name.id}}/sendcard/", {
     	type: 'POST',
     	data: {
@@ -502,6 +530,7 @@ if (confirm('Ви впевненні що хочете відправити ли
   	})	
 }
 }); 
+
 
 
 $( "#dialog_return" ).dialog({
@@ -606,6 +635,25 @@ $('.edit_workstatus').editable('/workticket/edit/', {
      }
  });
 
+{% endcomment %}
+
+
+
+
+{# }}); #}
+
+function show_ret(ciid, item) {
+	//iid = $(this).attr("tvalue");
+	iid = ciid
+	console.log("Catalog = " + $(item).parents('tr').find('td.cat_name > div > div.p-2').html()) // + $(item).parents('tr').find('td.cat_name').html())// > td.cat_name').html() );
+	console.log("this = " + item)
+	$("#dialog_return").attr("id_target", iid);
+	$("#dialog_return").dialog("open");
+	//$("ui-id-2").attr("html", "New title");
+	//document.getElementById("ui-id-2").innerHTML = "Повернення: " + ""
+	$("#ui-id-6").html("Повернення: " + $(item).parents('tr').find('td.cat_name > div > div.p-2').html().substr(0, 35));
+}
+
 $('.phone').editable('/workticket/edit/', { 
     loadurl : '/phonestatus/view/',
     type   : 'select',
@@ -635,41 +683,12 @@ $('.phone').editable('/workticket/edit/', {
     }
 }); 
 
-
-{% if request.user|has_group:"admin" %}
-$("#show_profit").click(function(){
-	$(".profit").toggle();
-});
-{% endif %}
-
-});
-
-function show_ret(ciid, item) {
-	//iid = $(this).attr("tvalue");
-	iid = ciid
-	console.log("Catalog = " + $(item).parents('tr').find('td.cat_name > div > div.p-2').html()) // + $(item).parents('tr').find('td.cat_name').html())// > td.cat_name').html() );
-	console.log("this = " + item)
-	$("#dialog_return").attr("id_target", iid);
-	$("#dialog_return").dialog("open");
-	//$("ui-id-2").attr("html", "New title");
-	//document.getElementById("ui-id-2").innerHTML = "Повернення: " + ""
-	$("#ui-id-6").html("Повернення: " + $(item).parents('tr').find('td.cat_name > div > div.p-2').html().substr(0, 35));
-}
-
-
 </script>
+
 
 <body onLoad="res(); resWorkshop()">
 
-<div style=" margin: 10px 0px 0px 0px;
-    width: 800px;      
-    float:left;  ">
-    <h1>Виписка по клієнту:
-    <span data-html="true" title="<font size='1'>Телефон: </font> <font size='4'>{{client_name.phone|phone2Str}}</font> <br> <font size='2'> E-mail: {{client_name.email}}</font>" data-toggle="tooltip" data-placement="bottom">
-    	 <a href=/client/edit/{{client_name.id}}> {{client_name.name}} ({{client_name.forumname}}) </a>
-    </span>
-    </h1>
-</div>
+{# DIALOG start #}
 
 {% if email == False %}
 
@@ -709,31 +728,6 @@ function show_ret(ciid, item) {
 <img style="display: none;" id="img_repair" src="http://thumb10.shutterstock.com/thumb_small/295516/103760093/stock-photo-bicycle-repair-sign-on-a-white-background-part-of-a-series-103760093.jpg" height="64px" >
 -->
 
-<img style="display: True; opacity: 0.2" id="img_repair" src="/media/images/bicycle-repair.jpg" height="56px" title="Майстерня" data-toggle="modal" data-target="#exampleModalCenter">
-{% if status_msg %}
-<img style="display: True; opacity: 1" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення" data-toggle="tooltip" data-placement="bottom">
-{% else %}
-<img style="display: True; opacity: 0.2" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення: ВІДСУТНІ" data-toggle="tooltip" data-placement="bottom">
-{% endif %}
-{% if b_bike %}
-<img style="display: True;" id="img_bike" src="/media/images/green-bicycle_ico.png" height="50px" title="Придбані велосипеди" data-toggle="tooltip" data-placement="bottom">
-{% endif %}
-
- <img style="display: None;" id="img_attention" src="/media/images/system-attention-icon.png" height="50px" title="Непроведені операції/роботи"> {# data-toggle="tooltip" data-placement="bottom"> #}
-	
-{% if status_order %}
-<img style="display: True;" id="img_order" src="/media/images/components_order.png" height="50px" title="Замовлення компонентів">
-{% else %}
-<img style="display: None;" id="img_order" src="/media/images/components_order.png" height="50px" title="Замовлення компонентів">
-{% endif %}
-
-{% if status_rent %}
-<img style="display: True;" id="img_rent" src="/media/images/test_icon.png" height="50px" title="Тест сидінь">
-{% else %}
-<img style="display: None;" id="img_rent" src="/media/images/test_icon.png" height="50px" title="Тест сидінь">
-{% endif %}
-
-<span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="56px" height="56px" title="Відправити картку клієнта на Email" data-toggle="tooltip" data-placement="left"></span>
 
 {% endif %}
 
@@ -836,21 +830,73 @@ function show_ret(ciid, item) {
 <br> Сервіс: <b class="bike_serv" id_bike={{bike.id}}>{{bike.service|yesno:"Пройдено,Не пройдено"}}</b></p>
 {% endfor %}  
 </div>	
-   
-    
 
-    <div style="clear:both;">
-	<br>
-	 <h2 style="color:red;" > Cума:  {{clients|floatformat:2}} грн.
-	 </h2>	
-	
-	</div>
+{# DIALOG END #}
 
-	
+
+
+
+
+
+{# HTML Main #}
+<div class="container-fluid">
+
 <div class="row">
-<div class="col-sm-12 col-xs-12 col-md-10 col-lg-8">	
+<div class="col-xs-12 col-sm-9 col-md-9 col-lg-9">
+    <h1>
+    <span class="badge badge-secondary" title="{{client_name.phone|phone2Str}}" data-toggle="tooltip" data-placement="bottom" data-html="true" >Виписка по клієнту:</span>
+    <span  data-html="true" title="<font size='1'>Телефон: </font> <font size='4'>{{client_name.phone|phone2Str}}</font> <br> <font size='2'> E-mail: {{client_name.email}}</font>" data-toggle="tooltip" data-placement="bottom">
+    <a id="client_fio" href=/client/edit/{{client_name.id}}> {{client_name.name}} ({{client_name.forumname}}) </a>
+    </span>
+    </h1>
+</div>
+
+
+<div class="col">
+<img style="display: True; opacity: 0.2" id="img_repair" src="/media/images/bicycle-repair.jpg" height="56px" title="Майстерня" data-toggle="modal" data-target="#exampleModalCenter">
+{% if status_msg %}
+<img style="display: True; opacity: 1" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення" data-toggle="tooltip" data-placement="bottom">
+{% else %}
+<img style="display: True; opacity: 0.2" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення: ВІДСУТНІ" data-toggle="tooltip" data-placement="bottom">
+{% endif %}
+{% if b_bike %}
+<img style="display: True;" id="img_bike" src="/media/images/green-bicycle_ico.png" height="50px" title="Придбані велосипеди" data-toggle="tooltip" data-placement="bottom">
+{% endif %}
+
+ <img style="display: None;" id="img_attention" src="/media/images/system-attention-icon.png" height="50px" title="Непроведені операції/роботи"> {# data-toggle="tooltip" data-placement="bottom"> #}
+	
+{% if status_order %}
+<img style="display: True;" id="img_order" src="/media/images/components_order.png" height="50px" title="Замовлення компонентів">
+{% else %}
+<img style="display: None;" id="img_order" src="/media/images/components_order.png" height="50px" title="Замовлення компонентів">
+{% endif %}
+
+{% if status_rent %}
+<img style="display: True;" id="img_rent" src="/media/images/test_icon.png" height="50px" title="Тест сидінь">
+{% else %}
+<img style="display: None;" id="img_rent" src="/media/images/test_icon.png" height="50px" title="Тест сидінь">
+{% endif %}
+
+<span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="56px" height="56px" title="Відправити картку клієнта на Email" data-toggle="tooltip" data-placement="left"></span> 
+</div>
+  
+</div>
+
+
+<div class="row">
+<div class="col">
+	 <h1 style="color:red;" > 
+	 <span class="badge badge-danger">Cума:  {{clients|floatformat:2}} грн.</span>
+	 </h1>	
+</div>	
+</div>
+
+
+{# DEB/CRED main Table #}	
+<div class="row">
+<div class="col-sm-12 col-xs-12 col-md-12 col-lg-9">	
 <table id="balance" class="table table-bordered table-sm">
-<thead>
+<thead class="thead-dark">
 	<tr>
 	<th>Дата</th>
 	<th>Опис</th>
@@ -862,16 +908,17 @@ function show_ret(ciid, item) {
 	<td>
 	Оплати
 	</td>
-	<td><h3>
-	<a href="/clientcredits/add/{{client_name.id}}" class="badge badge-info">Створити нову проплату</a>  
+	<td>
+	<h4>
+	<a href="/clientcredits/add/{{client_name.id}}" class="badge badge-secondary">Створити нову проплату <span class="badge badge-light"><i class="material-icons">add</i></span></a>  
 	{% if perms.accounting.delete_clientcredits %}
 	 <a href="/clientcredits/{{client_name.id}}/delete/all" onclick="return confirm('Видалити проплати?')" class="badge badge-warning">Видалити всі проплати</a> 
 	{% endif %}
 	{% if user.is_authenticated %}		
-	 <a id="all_cred" href="javascript:" class="badge badge-secondary">Показати всі проплати</a>
-	 <a id="1month_cred" class="badge badge-pill badge-dark text-white" href="javascript:" cred_month="12" cred_year="2014" cred_day="60">+ 30 днів</a>	 
+	 <a id="all_cred" href="javascript:" class="badge badge-info">Показати всі проплати</a>
+	 <a id="1month_cred" class="badge badge-pill badge-dark text-white" href="javascript:" cred_month="12" cred_year="2014" cred_day="60" data-toggle="tooltip" data-placement="right" title="Показати оплати за минулі 30 днів">+ 30 днів</a>	 
 	{% endif %}		
-	 </h3>
+	 </h4>
 	</td>
 	<td>
 	</td>
@@ -909,16 +956,17 @@ function show_ret(ciid, item) {
 	<td>
 	Борги
 	</td>
-	<td><h3>
-	<a href=/clientdebts/add/{{client_name.id}} class="badge badge-primary text-white"> Додати борг </a>
+	<td>
+	<h4>
+	<a href=/clientdebts/add/{{client_name.id}} class="badge badge-secondary text-white"> Додати борг <span class="badge badge-light"><i class="material-icons">remove</i></span></a>
 	{% if perms.accounting.delete_clientcredits %}
 	 <a href="/clientdebts/{{client_name.id}}/delete/all" onclick="return confirm('Видалити борг?')" class="badge badge-warning">Видалити всі борги</a>
 	{% endif %}
 	{% if user.is_authenticated %}	
-	 <a id="all_debt" href="javascript:" class="badge badge-secondary">Показати всю історію боргів</a>  
-	<a id="1month_debt" class="badge badge-pill badge-dark text-white" href="javascript:" debt_day=60>+ 30 днів</a>
+	 <a id="all_debt" href="javascript:" class="badge badge-info">Показати всю історію боргів</a>  
+	<a id="1month_debt" class="badge badge-pill badge-dark text-white" href="javascript:" debt_day=60 data-toggle="tooltip" data-placement="right" title="Показати борги за минулі 30 днів">+ 30 днів</a>
 	{% endif %}
-	</h3>	
+	</h4>	
 	</td>
 	<td  title="Сума непроведенних товарів/послуг"  data-toggle="tooltip" data-placement="right" align="center" >
 	<h3><span id="debet" class="badge badge-light"> </span></h3>
@@ -951,6 +999,7 @@ function show_ret(ciid, item) {
 	</table>
 </div>
 </div>
+
 
 
 <div id="tabs">
@@ -1146,11 +1195,16 @@ function show_ret(ciid, item) {
 	</div>
 
 {# Заявки на ремонт #}
-{% if email == False %}
+{#% if email == False %#}
 <div id="tabs-3" onClick='$("#tabs-3").append($("#t_workticket"))'>
 </div>
 	
 </div>
+
+{% comment %}
+{% endcomment %}
+
+
 
 <h3>
 <a class="badge badge-pill badge-secondary" href="/workticket/add/client/{{client_name.id}}/"> 
@@ -1164,11 +1218,12 @@ function show_ret(ciid, item) {
 
 
 {% orm_debug %}
-{% endif %}
+{#% endif %#}
+ 
+ 
+ </div>
  
  </body>
-	<script src="/media/jquery-ui.min.js"></script>	
-	<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 
 
 

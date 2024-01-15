@@ -7218,7 +7218,7 @@ def payform(request):
         return render(request, 'index.html', context)
      
     user = client.id
-    if user == 138:
+    if user == settings.CLIENT_UNKNOWN:
         bal = 0
     else:  
         sql1 = "SELECT sum(price) FROM accounting_clientcredits WHERE client_id = %s;"

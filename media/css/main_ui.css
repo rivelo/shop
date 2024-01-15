@@ -50,3 +50,30 @@ a.toggle-vis {
   		background-color: red;
   		border-right:10px solid #4A4A4A;*/
 }
+
+a#client_fio:hover {
+/*	background: #009300; */
+	background: #0c5e0c;
+	color: #FFFFFF;
+} 
+
+a.shop_id {
+	color: #FFFFFF;
+}
+
+
+.ui-tabs-active, .ui-state-active {
+	background: #0c5e0c; !important;
+	color: #FFFFFF;
+	border: #FFFFFF;
+	font-weight: bold;
+}
+
+/* Підказки іншого кольору та стилю
+.tooltip-inner {
+  background-color: #73AD21 !important;
+  color: #color ;
+  font-size: 20px; 
+  width: 500px;
+}
+*/
