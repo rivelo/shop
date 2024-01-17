@@ -61,13 +61,21 @@ a.shop_id {
 	color: #FFFFFF;
 }
 
-
-.ui-tabs-active, .ui-state-active {
-	background: #0c5e0c; !important;
+td.mark_true {
+		background: #0c5e0c; !important;
 	color: #FFFFFF;
 	border: #FFFFFF;
 	font-weight: bold;
 }
+
+
+td.mark_false {
+		background: #0c5e0c; !important;
+	color: #FFFFFF;
+	border: #FFFFFF;
+	font-weight: bold;
+}
+
 
 /* Підказки іншого кольору та стилю
 .tooltip-inner {

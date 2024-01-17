@@ -80,6 +80,22 @@ a.delete_row_user :HOVER{
 	border: #FFFFFF;
 	font-weight: bold;
 }
+
+
+td.mark_true {
+		background: #0c5e0c; !important;
+	color: #FFFFFF;
+	border: #FFFFFF;
+	font-weight: bold;
+}
+
+
+td.mark_false {
+		background: #ec971f;
+	color: #FFFFFF;
+	border: #FFFFFF;
+	font-weight: bold;
+}
     
 </style>
 
@@ -460,11 +476,10 @@ $(this).editable('/clientcredits/set/', {
 
 
 
-{% comment %}
+
 
 $(document).ready(function() {
 
-	
 	
 	//	$('div.read').on("click", function(){
 	//$("body").on("click", "div.read", function(){	
@@ -635,12 +650,41 @@ $('.edit_workstatus').editable('/workticket/edit/', {
      }
  });
 
-{% endcomment %}
+
+$('.phone').editable('/workticket/edit/', { 
+    loadurl : '/phonestatus/view/',
+    type   : 'select',
+    submit : 'OK',
+    event: 'click',
+    submitdata : function() {
+     	 	return {id_wp : $(this).attr('id_workticket')};
+    },
+    callback : function(value, settings) {
+
+    	switch(value) {
+		case 'Повідомлено':
+        $(this).closest("td").attr('class', 'mark_true');
+        break;
+		case 'Не дотелефонувались':
+        $(this).closest("td").attr('class', 'mark_false');
+		 break;
+    	} 
+{% comment %}		 
+		case 'Виконано':
+        $(this).closest("tr").attr('class', 'w_done_done');
+		 break;
+		case 'Виконано невидано':
+        $(this).closest("tr").attr('class', 'w_done');
+		 break;
+		default :
+        $(this).closest("tr").attr('class', 'w_true');
+      }
+{% endcomment %}    	
+    }
+}); 
 
 
 
-
-{# }}); #}
 
 function show_ret(ciid, item) {
 	//iid = $(this).attr("tvalue");
@@ -654,34 +698,11 @@ function show_ret(ciid, item) {
 	$("#ui-id-6").html("Повернення: " + $(item).parents('tr').find('td.cat_name > div > div.p-2').html().substr(0, 35));
 }
 
-$('.phone').editable('/workticket/edit/', { 
-    loadurl : '/phonestatus/view/',
-    type   : 'select',
-    submit : 'OK',
-    submitdata : function() {
-     	 	return {id_wp : $(this).attr('id_workticket')};
-    },
-    callback : function(value, settings) {
-{% comment %}
-    	switch(value) {
-		case 'Прийнято':
-        $(this).closest("tr").attr('class', 'w_true');
-        break;
-		case 'Ремонтується':
-        $(this).closest("tr").attr('class', 'w_working');
-		 break;
-		case 'Виконано':
-        $(this).closest("tr").attr('class', 'w_done_done');
-		 break;
-		case 'Виконано невидано':
-        $(this).closest("tr").attr('class', 'w_done');
-		 break;
-		default :
-        $(this).closest("tr").attr('class', 'w_true');
-      }
-{% endcomment %}    	
-    }
-}); 
+
+
+
+
+}); // Ready end
 
 </script>
 

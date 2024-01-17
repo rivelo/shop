@@ -251,6 +251,7 @@ $("#pp11").hide()
 	<tr>
 		<th>№</th>
 		<th>Роботи</th>
+		<th class="desc_col">Примітки</th>
 		<th>Ціна (грн.)</th>
 		<th>Сума (грн.)</th>
 	</tr>
@@ -259,14 +260,16 @@ $("#pp11").hide()
 		<td>{{forloop.counter}}</td>
 		<input type="hidden" name="chk_inv{{forloop.counter}}" id="chk_inv{{forloop.counter}}" value="{{item.id}}" ids="" >		
 		<td><a href="/worktype/view/group/{{item.work_type.work_group.id}}">{{item.work_type.name}}</a></td>
+		<td class="desc_col">{{item.description}}</td>
 		<td>{{item.price}}</td>
 		<td>{{item.price}}</td>
 	</tr>
 {% endfor %}
 	<tr>
 		<th></th>
-		<th>ВСЬОГО:</th>
 		<th></th>
+		<th class="desc_col"></th>
+		<th>ВСЬОГО:</th>
 		<th>{{sum}} грн.</th>
 	</tr>
 
