@@ -2934,9 +2934,11 @@ def invoice_cat_id_list(request, cid=None, limit=0):
 
 def invoice_import_form(request):
     form = ImportDealerInvoiceForm()
-    return render_to_response('index.html', {'form': form, 'weblink': 'import_invoice.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    context = {'form': form, 'weblink': 'import_invoice.html',}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)    
     
-
+@csrf_exempt
 def invoice_import(request):
     invoice_reader = None
     ids_list = []
@@ -3073,7 +3075,9 @@ def invoice_import(request):
 
     #list = Catalog.objects.filter(ids__in = ids_list)
     #return render_to_response('index.html', {'catalog': list, 'weblink': 'invoice_catalog_import_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
-    return render_to_response('index.html', {'update_list': update_list, 'add_list': add_list, 'weblink': 'invoice_catalog_import_list.html', 'error_list': error_list, 'created_cat_list': created_cat_list, 'icl_list': icl_list,  'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    context = {'update_list': update_list, 'add_list': add_list, 'weblink': 'invoice_catalog_import_list.html', 'error_list': error_list, 'created_cat_list': created_cat_list, 'icl_list': icl_list,}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)    
 
 
 # --------------- Classification ---------
