@@ -35,6 +35,7 @@ $(document).ready(function() {
 	$("#msg_text").hide();
 	$("#chk_url").hide();
 	$("#s_chk_url").hide();
+		
 
 	$( "#print_chk" ).click(function() {
 		$( "#dialog_pay" ).dialog({
@@ -165,6 +166,16 @@ $( "#pp_show_all" ).click(function() {
 $("#pp1").hide()
 $("#pp11").hide()
 
+
+$('#sale_hide_show').click(function(){
+	$('.sale_col').toggle();	
+});
+	
+$("#hide_desc_col").click(function(){
+	$('.desc_col').hide();
+});
+
+
 });       
 </script>
 
@@ -251,7 +262,7 @@ $("#pp11").hide()
 	<tr>
 		<th>№</th>
 		<th>Роботи</th>
-		<th class="desc_col">Примітки</th>
+		<th id="hide_desc_col" class="desc_col">Примітки</th>
 		<th>Ціна (грн.)</th>
 		<th>Сума (грн.)</th>
 	</tr>
@@ -283,8 +294,8 @@ $("#pp11").hide()
 		<th>Назва товару</th>
 		<th>Од.</th>
 		<th>Кількість</th>
-		<th>Ціна (грн.)</th>
-		<th>Знижка %</th>
+		<th id="sale_hide_show">Ціна (грн.)</th>
+		<th class="sale_col">Знижка %</th>
 		<th>Сума (грн.)</th>
 	</tr>
 
@@ -299,7 +310,7 @@ $("#pp11").hide()
 		<td>шт.</td>
 		<td>{{invoice.count}}</td>
 		<td>{{invoice.price}}</td>
-		<td>{{invoice.sale}}</td>
+		<td class="sale_col">{{invoice.sale}}</td>
 		<td>{{invoice.sum}}</td>
 	</tr>
 {% endfor %}
@@ -330,7 +341,7 @@ $("#pp11").hide()
 		<th></th>
 		<th></th>
 		<th></th>
-		<th></th>
+		<th class="sale_col"></th>
 		<th>{{sum}}</th>
 	</tr>
 

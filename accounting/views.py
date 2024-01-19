@@ -2188,7 +2188,7 @@ def dealer_invoice_add(request):
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def dealer_invoice_edit(request, id):
     a = DealerInvoice.objects.get(pk=id)
     if request.method == 'POST':
@@ -2506,7 +2506,7 @@ def invoicecomponent_add(request, mid=None, cid=None):
 
 
 
-def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None, all=False):
+def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None, all=False, mc_search=False):
     #company_list = Manufacturer.objects.none()
     company_list = Manufacturer.objects.all().only('id', 'name')
     #type_list = Type.objects.none() 
@@ -2650,7 +2650,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
 #    vars.update({'type_obj': categ})
     
     cur_year = datetime.date.today().year        
-    vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'cur_year': cur_year, 'weblink': 'invoicecomponent_list.html', 'focus': focus, }
+    vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'cur_year': cur_year, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'qsearch_lookup' : mc_search}
     vars.update(custom_proc(request))
     return render(request, 'index.html', vars)
 

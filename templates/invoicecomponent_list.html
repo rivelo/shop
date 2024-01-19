@@ -278,7 +278,13 @@ function copyToClipboard(elem) {
 
 jQuery(document).ready(function ($) {
 
+{% if qsearch_lookup == False %}
 	$("#q_search").hide();
+{% endif %}
+
+$(".year_sales").hide();
+
+	
 	$("div.price_tag").hide();		
 
 jQuery.extend( jQuery.fn.dataTableExt.oSort, {
@@ -545,7 +551,7 @@ $(document).ready(function() {
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis badge badge-dark" data-column="-3">Опис</a></div>');
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis badge badge-dark" data-column="-2">Місце</a></div>');
 	$('#iTable_length').append('<div class="cdiv"><a class="toggle-vis badge badge-dark" data-column="-1" id="show_inv" val="0">Інв.</a></div>');
-	$('#iTable_length').append('<div class="cdiv"><a href="javascript:void(0);" id="show_hide" val="0">Наявні</a></div>');
+	$('#iTable_length').append('<div class="cdiv"><a href="javascript:void(0);" id="show_hide" val="0" class="text-white badge badge-dark">Наявні</a></div>');
 	$("#iTable_length").append('  <a href="javascript:void(0);" id="sel_all" class="badge badge-dark text-white" val="0">Виділити всі</a> ');
 {% if request.user|has_group:"admin" %}
 	$("#iTable_length").append(' <a href="javascript:void(0);" id="c_join" class="badge badge-dark text-white" val="0">Обєднати товари</a>');
@@ -1796,6 +1802,12 @@ var table = $('#iTable').DataTable();
 });
 
 
+$("body").on('click', '#span_show_year_select', function() {
+//	$("#q_search").hide();
+	$(".year_sales").toggle();
+});
+
+
 $("body").on('click', '#span_show_select', function() {
 //	$("#q_search").hide();
 	$("#q_search").toggle();
@@ -1895,6 +1907,7 @@ function show_tr_year(obj){
      <h1>
      <span id="span_show_select" class="badge badge-secondary" title="Показати/приховати рядок вибору по категорії/виробнику" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">unfold_more</i></span>
      <span class="badge badge-secondary">Список наявного товару</span> <span class="badge badge-info" id="c_c">{{company_name|capfirst}}{{category_name|capfirst}}</span>
+
 {% if category_name %}     
 	 <a href="{% url 'category-id-list' category_id %}" title="Показати наявні записи" data-toggle="tooltip" data-placement="top">
      <img src="{{category_name.get_icon_name}}" alt="{{company_name|capfirst}}" width="64px">
@@ -1902,43 +1915,43 @@ function show_tr_year(obj){
      <a href="{% url 'category-id-list-all' category_id %}" >
      <span id="all_record_show" class="badge badge-success" title="Показати всі записи" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">more_horiz</i></span>
      </a>
-{% if request.user|has_group:"admin" %}     
+{% if request.user|has_group:"admin" %}
    {% for yy in years_range %}
-     <a href="{% url 'invoice_year_category' yy.0 componentlist.0.catalog__type__id %}" class="badge badge-success">{{yy.0}} 
+     <a href="{% url 'invoice_year_category' yy.0 componentlist.0.catalog__type__id %}" class="badge badge-info year_sales">{{yy.0}} 
           <span class="badge badge-light">{{yy.1}}</span>
      </a>
    {% endfor %}  
 {% endif %}   
 {% endif %}     
+
 {% if company_id %}
      <a href="{% url 'manufacture_id_list_all' company_id %}" >
      <span id="all_record_show" class="badge badge-success" title="Показати всі записи" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">more_horiz</i></span>
      </a>
-{% if request.user|has_group:"admin" %}          
+{% if request.user|has_group:"admin" %}
      {% for yy in years_range %}
-     <a href="{% url 'invoice_year_manufacture' yy.0 componentlist.0.manufacturer__id %}" class="badge badge-primary">{{yy.0}} 
+     <a href="{% url 'invoice_year_manufacture' yy.0 componentlist.0.manufacturer__id %}" class="badge badge-info year_sales">{{yy.0}} 
           <span class="badge badge-light">{{yy.1}}</span>
      </a>
      {% endfor %}
 {% endif %}     
 {% endif %}     
-     
-      
-     <span id="b_buy"><img src="/media/images/Ecommerce Buy.ico" width="32" height="32" title="Додати до кошика вибрані позиції" data-toggle="tooltip" data-placement="bottom"> </span>
-
-     
-{% if request.user|has_group:"admin" %}     
+   
+{% if request.user|has_group:"admin" %}
+<span id="span_show_year_select" class="badge badge-info" title="Показати/приховати рядок вибору продажів за рік" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">unfold_more</i></span>     
 {#     <span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="42" height="42" title="Відправити вибірку на Email" data-toggle="tooltip" data-placement="bottom"></span> #}
      {% if category_id %}
 	     <a href="/inventory/type/{{category_id}}/autofix/" title="Звести порахований товар" data-toggle="tooltip" data-placement="bottom"><i class="material-icons md-48 align-middle">playlist_add_check</i> </a>
      {% endif %}
 {% endif %}
+
+     <span id="b_buy"><img src="/media/images/Ecommerce Buy.ico" width="32" height="32" title="Додати до кошика вибрані позиції" data-toggle="tooltip" data-placement="bottom"> </span>
+     
      {# url 'invoice_year_manufacture' 2018 componentlist.0.manufacturer__id #}
      <span class="badge badge-danger">{{category_name.get_discount.0}}</span>
      <span class="badge badge-danger">{{company_name.get_discount.0}}</span>
 {#     <span class="badge badge-warning">{{cat_discount.0}}</span> #}
      </h1>
-      
 </div>
 
 <!-- Dialog print PHPbb -->
