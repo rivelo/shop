@@ -865,8 +865,9 @@ function show_ret(ciid, item) {
 <div class="row">
 <div class="col-xs-12 col-sm-9 col-md-9 col-lg-9">
     <h1>
-    <span class="badge badge-secondary" title="{{client_name.phone|phone2Str}}" data-toggle="tooltip" data-placement="bottom" data-html="true" >Виписка по клієнту:</span>
-    <span  data-html="true" title="<font size='1'>Телефон: </font> <font size='4'>{{client_name.phone|phone2Str}}</font> <br> <font size='2'> E-mail: {{client_name.email}}</font>" data-toggle="tooltip" data-placement="bottom">
+    <span class="badge badge-secondary" >Виписка по клієнту:</span>
+{#    <span  data-html="true" title="<font size='1'>Телефон: </font> <font size='4'>{{client_name.phone|phone2Str}}</font> <br> <font size='2'> E-mail: {{client_name.email}}</font>" data-toggle="tooltip" data-placement="bottom"> #}
+<span  data-html="true" title="<p style='font-size: 30px;'>Телефон:</p><h4><b>{{client_name.phone|phone2Str}}</b></h4> E-mail: {{client_name.email}}" data-toggle="tooltip" data-placement="bottom">
     <a id="client_fio" href=/client/edit/{{client_name.id}}> {{client_name.name}} ({{client_name.forumname}}) </a>
     </span>
     </h1>

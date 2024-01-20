@@ -2913,7 +2913,9 @@ def invoice_id_list_delete(request, id=None):
     list = InvoiceComponentList.objects.filter(invoice=id).order_by('-id')#.values('catalog__price', 'count', 'id', 'price', 'invoice__origin_id', 'invoice__company__name', 'invoice__manager__name', 'invoice__price', 'invoice__currency__ids_char' , 'catalog__ids', 'catalog__manufacturer', 'catalog__name', 'catalog__dealer_code', 'rcount', 'price', 'catalog__currency__name', 'date', 'description', 'user__username', 'currency__ids_char', 'catalog__id')
     list.delete()
     dinvoice = DealerInvoice.objects.get(id=id)
-    return render_to_response('index.html', {'list': list, 'dinvoice':dinvoice,  'weblink': 'invoice_component_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'list': list, 'dinvoice':dinvoice,  'weblink': 'invoice_component_report.html',}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def invoice_cat_id_list(request, cid=None, limit=0):
@@ -3832,7 +3834,31 @@ def catalog_add(request):
 def catalog_set(request):
     if auth_group(request.user, 'seller')==False:
         return HttpResponse('Error: У вас не має прав для редагування')
-    
+    #===========================================================================
+    # if request.method == 'POST':
+    #     POST = request.POST
+    #     if POST.has_key('id') and POST.has_key('mistake'):
+    #         pk = request.POST['id']                
+    #         mistake = request.POST['mistake']
+    #         if mistake == 'true':
+    #             mistake = True
+    #         else:
+    #             mistake = False
+    #         msgtext = request.POST['mistake_msg']
+    #         obj = Catalog.objects.get(pk = pk)
+    #         obj.mistake_status = mistake                                 
+    #         obj.mistake = msgtext
+    #         obj.save() 
+    #         d = {}
+    #         d['status'] = True
+    #         if mistake:
+    #             d['msg'] = 'Товар помічений для перевірки'
+    #         else:
+    #             d['msg'] = 'Товар помічений як виправлений'
+    #         response = JsonResponse(d)
+    #         return response                
+    # 
+    #===========================================================================
     if request.is_ajax():
         if request.method == 'POST':
             POST = request.POST
@@ -3847,6 +3873,29 @@ def catalog_set(request):
 
                 c = Catalog.objects.filter(id = id).values_list('description', flat=True)
                 return HttpResponse(c)
+
+
+            if POST.has_key('id') and POST.has_key('mistake'):
+                pk = request.POST['id']                
+                mistake = request.POST['mistake']
+                if mistake == 'true':
+                    mistake = True
+                else:
+                    mistake = False
+                msgtext = request.POST['mistake_msg']
+                obj = Catalog.objects.get(pk = pk)
+                obj.mistake_status = mistake                                 
+                obj.mistake = msgtext
+                obj.save() 
+                d = {}
+                d['status'] = True
+                if mistake:
+                    d['msg'] = 'Товар помічений для перевірки'
+                else:
+                    d['msg'] = 'Товар помічений як виправлений'
+                response = JsonResponse(d)
+                return response     
+
 
             if POST.has_key('id') and POST.has_key('locality') and auth_group(request.user, 'seller'):
                 id = request.POST.get('id')                
@@ -3874,7 +3923,7 @@ def catalog_set(request):
                 obj.save() 
 #                c = Catalog.objects.filter(id = id).values('price', 'id')
                 c = Catalog.objects.filter(id = id).values_list('price', flat=True)
-                print "\nV_list" + str(c)
+#                print "\nV_list" + str(c)
                 return HttpResponse(c)
             
             if POST.has_key('id') and POST.has_key('sale'):

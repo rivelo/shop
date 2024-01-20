@@ -767,11 +767,11 @@ class Catalog(models.Model):
             color = "text-primary"
             return ("Товару не надходило або в надходженнях ціна 0 грн!", color)
         ua_s  = self.invoice_price()
-        print "\nFULL name Prop - %s \n" % p
-        print "\nUA seredn = " + str(ua_s) #[2]) + " --- " +str(ua_s)
+#        print "\nFULL name Prop - %s \n" % p
+#        print "\nUA seredn = " + str(ua_s) #[2]) + " --- " +str(ua_s)
 #        cprice = p[0]['sum_p']/p[0]['count_s']
         #cprice = self.inv_price()
-        print ("Price = %s - s_Price = %s; with Sale 15 = %s; with Sale 25 = %s; with Sale 35 = %s\n" % (self.get_saleprice(), p, str(self.price*0.85), str(self.price*0.75), str(self.price*0.65) ))
+#        print ("Price = %s - s_Price = %s; with Sale 15 = %s; with Sale 25 = %s; with Sale 35 = %s\n" % (self.get_saleprice(), p, str(self.price*0.85), str(self.price*0.75), str(self.price*0.65) ))
         color = "text-success"
         if ( (self.get_saleprice() <= p) or (p >= (self.price * 0.85)) ):            
             color = "text-danger"

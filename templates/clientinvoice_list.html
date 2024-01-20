@@ -6,17 +6,14 @@
 <head>
     
     <link type="text/css" rel="stylesheet" href="/media/paginator.css">
-{#	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> #}
+    <link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
     <link rel="stylesheet" type="text/css" href="/media/css/table.css"> 
+    
+{#	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> #}
 {#    <link rel="stylesheet" type="text/css" href="/media/css/tooltip.css"> #}
-
 {# <link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" /> #}
 {# <script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script> #}
-
 {#<link rel="stylesheet" href="/media/jquery-ui.min.css">#}
-
-<link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
-
 
 {# <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"> #}
 {# <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> #}
@@ -275,7 +272,6 @@ $("#dialog_addprice").dialog({
                     alert("При відправці виникли проблеми");
                 }
             });
-
         
           $( this ).dialog( "close" );
         },
@@ -295,6 +291,44 @@ $(document).on("click", ".addprice", function(event) {
 	$("#dialog_addprice").dialog("open");
 	$("#catalog_name").remove();
 	$("#dtext").after("<span id='catalog_name'>" + $(this).parents('tr').find('td.cat_name').html() + "</span>");
+});
+
+
+$(document).on("click", ".mark_wrong", function(event) {
+	var ids = $(this).attr('ids');
+	if ($('#ModalError').attr('ids') != $(this).attr('ids')) {
+		$("#message-text").val("");
+		$('#ModalError').attr('ids', $(this).attr('ids'));
+	} 
+	$('#ModalError').modal({
+		  keyboard: true,
+		  backdrop: false
+	})
+	$("#errorMLabel").html( "Відмітити помилку в товарі:<br>" + $(this).parents('tr').find('td.cat_name').html() ); // $(this).attr('ids') );
+	
+	console.log("ID elem = " + $(this).attr('ids'));
+});
+
+
+$("#form_mistake").submit(function (event) {
+    var formData = {
+      mistake_msg: $("#message-text").val(),
+      id: $('#ModalError').attr('ids'),
+      mistake: true,
+      //superheroAlias: $("#superheroAlias").val(),
+    };
+
+    $.ajax({
+      type: "POST",
+      url: "{% url 'cat_set_attr' %}",
+      data: formData,
+      dataType: "json",
+      encode: true,
+    }).done(function (data) {
+      console.log(data);
+    });
+
+    event.preventDefault();
 });
 
 
@@ -454,13 +488,12 @@ $("body").on('click', '#span_show_select', function() {
 	$("#q_search").toggle();
 });
 
-
-
 </script>
 
 
 
 <body onLoad="res()">
+
 <div class="container-fluid" >
 {% if view %}
 <div class="row" id="q_search">
@@ -495,65 +528,6 @@ $("body").on('click', '#span_show_select', function() {
 </div>
 {% endif %}
 
-<form action="/payform/" method="post" name="formSum">
-
-
-<div class="d-flex">
-   <div class="mr-auto">
-   <h1>
-   <span class="badge badge-dark">Список проданого товару</span> 
-   <span id="span_show_select" class="badge badge-secondary" title="Показати/приховати рядок вибору дня/місяця" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">unfold_more</i></span>
-   <span class="badge badge-info" id="show_date">{{sel_day}}/{{sel_month}}/{{sel_year}}</span> 
-   <span id="clear_basket"><img src="/media/images/Ecommerce Return.ico" title="видалити всі відмічені" width="32" height="32" data-toggle="tooltip" data-html="true" data-placement="right"> </span>
-{#   <a href="/workshop/playsound/" ><span class="badge badge-dark mt-250"><i class="material-icons" style="font-size: 28px" >notification_important</i></span></a> #}
-   <a href="notpay/" ><span class="badge badge-dark mt-250"><i class="material-icons" style="font-size: 28px" >check_box</i></span></a>
-
-{% for shop_obj in shops %}
-	{% if shop_obj.id == shop %} 
-	<div class="badge bg-success " title="Продажі в магазині: {{shop_obj.name}}" data-toggle="tooltip" data-placement="bottom">
-	{% else %}
-	<div class="badge bg-secondary" title="Продажі в магазині: {{shop_obj.name}}" data-toggle="tooltip" data-placement="bottom">
-	{% endif %}
-{% if sel_day == 'all' %}
-	<a href="{% url 'client-invoice-month-by-shop' shop_obj.id sel_year sel_month %}">{{shop_obj.name}}</a>
-{% else %}
-	<a href="{% url 'client-invoice-day-by-shop' shop_obj.id sel_year sel_month sel_day %}">{{shop_obj.name}}</a>  	
-{% endif %}
-</div>
-{% endfor %}
-
-
-{% if shop == 0 %}
-<div class="badge bg-success" title="Продажі у всіх магазинах" data-toggle="tooltip" data-placement="bottom">
-{% else %}
-<div class="badge bg-secondary" title="Продажі у всіх магазинах" data-toggle="tooltip" data-placement="bottom">
-{% endif %}
-{% if sel_day == 'all' %}
-	<a href="{% url 'client-invoice-month' sel_year sel_month %}">Всі</a>
-{% else %}
-{% if sel_year %}
-<a href="{% url 'client-invoice-day' sel_year sel_month sel_day %}">Всі</a> 
-{% endif %}
-{% endif %}  	
-</div>
-
-
-
-   </h1>
-   </div>
-   
- <div class="ml-auto mt-2">
-  <div class="input-group ">
-  <div class="input-group-prepend">
-  	<span id="for_pay" style="COLOR: red" class="input-group-text font-weight-bold" >2133</span>
-    <span class="input-group-text" id="basic-addon1">Грн.</span>
-  </div>
- <input type="submit" value="Оплата" type="button" class="btn btn-warning font-weight-bold">
-{# <input type="submit" value="E-mail" name="send_check"> #} 
-</div>
-    
- </div>
-</div>
 
 <!-- ДІАЛОГИ Begin -->
 <div id="dialog_client" title="Змінити клієнта" id_target="">
@@ -595,8 +569,103 @@ $("body").on('click', '#span_show_select', function() {
 </div>
 
 
+<div class="modal fade" id="ModalError" tabindex="-1" aria-labelledby="errorMLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="errorMLabel">Відмітка про помилку в товарі</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+<form id="form_mistake" action="{% url 'cat_set_attr' %}" method="POST">
+      <div class="modal-body">
+          <div class="form-group">
+            <label for="message-text" class="col-form-label">Повідомлення:</label>
+            <textarea class="form-control" id="message-text" placeholder="Залиште пустим якщо потрібен переклад"></textarea>
+          </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
+        <button type="submit" class="btn btn-primary">Відправити</button>
+      </div>
+</form>      
+    </div>
+  </div>
+</div>
+
 
 <!-- ДІАЛОГИ End -->
+
+
+
+
+
+
+<form action="/payform/" method="post" name="formSum">
+
+
+<div class="d-flex">
+   <div class="mr-auto">
+   <h1>
+   <span class="badge badge-dark">Список проданого товару</span> 
+   <span id="span_show_select" class="badge badge-secondary" title="Показати/приховати рядок вибору дня/місяця" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">unfold_more</i></span>
+   <span class="badge badge-info" id="show_date">{{sel_day}}/{{sel_month}}/{{sel_year}}</span> 
+   <span id="clear_basket"><img src="/media/images/Ecommerce Return.ico" title="видалити всі відмічені" width="32" height="32" data-toggle="tooltip" data-html="true" data-placement="right"> </span>
+{#   <a href="/workshop/playsound/" ><span class="badge badge-dark mt-250"><i class="material-icons" style="font-size: 28px" >notification_important</i></span></a> #}
+   <a href="notpay/" ><span class="badge badge-dark mt-250"><i class="material-icons" style="font-size: 28px" >check_box</i></span></a>
+
+{% for shop_obj in shops %}
+{% if shop_obj.show %}
+	
+	{% if shop_obj.id == shop %} 
+		<div class="badge bg-success " title="Продажі в магазині: {{shop_obj.name}}" data-toggle="tooltip" data-placement="bottom">
+	{% else %}
+		<div class="badge bg-secondary" title="Продажі в магазині: {{shop_obj.name}}" data-toggle="tooltip" data-placement="bottom">
+	{% endif %}
+	{% if sel_day == 'all' %}
+		<a href="{% url 'client-invoice-month-by-shop' shop_obj.id sel_year sel_month %}">{{shop_obj.name}}</a>
+	{% else %}
+		<a href="{% url 'client-invoice-day-by-shop' shop_obj.id sel_year sel_month sel_day %}">{{shop_obj.name}}</a>  	
+	{% endif %}
+	
+</div>
+{% endif %}
+{% endfor %}
+
+
+{% if shop == 0 %}
+<div class="badge bg-success" title="Продажі у всіх магазинах" data-toggle="tooltip" data-placement="bottom">
+{% else %}
+<div class="badge bg-secondary" title="Продажі у всіх магазинах" data-toggle="tooltip" data-placement="bottom">
+{% endif %}
+{% if sel_day == 'all' %}
+	<a href="{% url 'client-invoice-month' sel_year sel_month %}">Всі</a>
+{% else %}
+{% if sel_year %}
+<a href="{% url 'client-invoice-day' sel_year sel_month sel_day %}">Всі</a> 
+{% endif %}
+{% endif %}  	
+</div>
+
+
+
+   </h1>
+   </div>
+   
+ <div class="ml-auto mt-2">
+  <div class="input-group ">
+  <div class="input-group-prepend">
+  	<span id="for_pay" style="COLOR: red" class="input-group-text font-weight-bold" >2133</span>
+    <span class="input-group-text" id="basic-addon1">Грн.</span>
+  </div>
+ <input type="submit" value="Оплата" type="button" class="btn btn-warning font-weight-bold">
+{# <input type="submit" value="E-mail" name="send_check"> #} 
+</div>
+    
+ </div>
+</div>
 
 
     <table border="1" id="iTable" class = "table table-bordered table-hover table-condensed">
@@ -689,7 +758,8 @@ $("body").on('click', '#span_show_select', function() {
 	<td>
 	{{type.description|linebreaks}}
 	</td>
-<td>
+
+<td name="{{type.catalog.name}}" >
 <div class="btn-group dropleft">
   <a type="button" class="btn btn-success" href="/client/invoice/{{type.id}}/edit" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="left"><i class="material-icons">edit</i></a>
   <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -703,16 +773,15 @@ $("body").on('click', '#span_show_select', function() {
 <a class="dropdown-item" href="#" onclick="show_ret(ciid={{type.id}}, this);return false">Обмін/Повернення</a>
 <a class="dropdown-item" href="#" onclick="show_client();return false">Змінити клієнта/кількість</a>
 <a class="dropdown-item addprice" ids="{{type.catalog.id}}" href="#">Додати цінник в чергу</a>
+<a class="dropdown-item mark_wrong" ids="{{type.catalog.id}}" href="#">Помилка в описі товару</a>
   
 {#    <div class="dropdown-divider"></div> #}
 {#    <a class="dropdown-item" href="#">Separated link</a> #}
-    
   </div>
 </div>
-	
-    </td>
-    <td align="center">
-    
+</td>
+ 
+<td align="center">
 
 {% ifequal type.sum type.pay %}
 <input type="checkbox" id="model{{forloop.counter}}" class="mc" value="{{type.sum}}" onclick="res()" name="checkbox_{{ type.id }}"/>
