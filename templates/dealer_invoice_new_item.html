@@ -4,9 +4,10 @@
 {% load template_math %}
 
 {# <link rel="stylesheet" type="text/css" href="/media/css/table.css"> #}
-<link rel="stylesheet" href="/media/jquery-ui.min.css">
+{# <link rel="stylesheet" href="/media/jquery-ui.min.css"> #}
 
-<script type="text/javascript" src="/media/jquery-ui.min.js"></script>
+{# <script type="text/javascript" src="/media/jquery-ui.min.js"></script> #}
+
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 
 
@@ -35,6 +36,18 @@
 		position:fixed;
 		z-index: 1050;
 	}	
+	
+#accordion {
+	font-size: 1.05em;
+	font-family: Verdana,Arial,sans-serif;  
+/*	font-weight: bold; */ 
+}
+
+.edit{
+	font-weight: bold; 
+}
+
+	
 </style>
 
 
@@ -218,32 +231,33 @@ $(document).on("click", "#b_accordion_toggle", function(event) {
 // --------------------- Scan Barcode in modal window ----------------------
 $(document).on("click", "#exampleModalLabel", function(event) {
 	document.getElementById("myInputScannerBarcode").focus();
-	console.log("Label click");
 })
 
 $(document).on("click", ".addbarcode", function(event) {
-	document.getElementById("myInputScannerBarcode").focus();
 	if ($(this).attr("pk") != $('#exampleModalLabel').attr('pk')){
 		document.getElementById("barcodes_content").innerHTML = '';
+		document.getElementById("myInputScannerBarcode").value = '';
 		//var o = '';
 	}
-	console.log("Add BarCode ");
 	var pk = $(this).attr("pk");
 	var lab_str = "[" + $(this).attr("ids")+ "] " + $(this).attr("c_name");
 	//$('#exampleModalLabel').html($(this).attr("c_name"));
 	$('#exampleModalLabel').html(lab_str);
 	$('#exampleModalLabel').attr('pk', pk);
-	$('#CatalogModalEdit').modal(focus);	
-	document.getElementById("myInputScannerBarcode").focus();	
-	document.getElementById("myInputScannerBarcode").blur();
-	document.getElementById("myInputScannerBarcode").focus();
-	console.log("Focus el = " + document.hasFocus());
+	$('#CatalogModalEdit').modal({
+//			  backdrop: false,
+			  focus: false, 
+			  keyboard: true,
+			});	
+/*	document.getElementById("myInputScannerBarcode").focus(); 	
+	document.getElementById("myInputScannerBarcode").blur(); */
+	document.getElementById("myInputScannerBarcode").focus(); 
 });
 
-$('#myInputScannerBarcode').on('shown.bs.modal', function (event) {
+$('#CatalogModalEdit').on('shown.bs.modal', function (event) {
 	  // do something...
 	document.getElementById("myInputScannerBarcode").focus();
-	console.log("!!! SHOW modal !!!");
+//	console.log("!!! SHOW modal !!!");
 	})
 
 // Ajax request to change Catalog field

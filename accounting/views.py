@@ -3834,31 +3834,7 @@ def catalog_add(request):
 def catalog_set(request):
     if auth_group(request.user, 'seller')==False:
         return HttpResponse('Error: У вас не має прав для редагування')
-    #===========================================================================
-    # if request.method == 'POST':
-    #     POST = request.POST
-    #     if POST.has_key('id') and POST.has_key('mistake'):
-    #         pk = request.POST['id']                
-    #         mistake = request.POST['mistake']
-    #         if mistake == 'true':
-    #             mistake = True
-    #         else:
-    #             mistake = False
-    #         msgtext = request.POST['mistake_msg']
-    #         obj = Catalog.objects.get(pk = pk)
-    #         obj.mistake_status = mistake                                 
-    #         obj.mistake = msgtext
-    #         obj.save() 
-    #         d = {}
-    #         d['status'] = True
-    #         if mistake:
-    #             d['msg'] = 'Товар помічений для перевірки'
-    #         else:
-    #             d['msg'] = 'Товар помічений як виправлений'
-    #         response = JsonResponse(d)
-    #         return response                
-    # 
-    #===========================================================================
+ 
     if request.is_ajax():
         if request.method == 'POST':
             POST = request.POST
@@ -3874,7 +3850,7 @@ def catalog_set(request):
                 c = Catalog.objects.filter(id = id).values_list('description', flat=True)
                 return HttpResponse(c)
 
-
+            # ------------- Mark Mistake ---------------
             if POST.has_key('id') and POST.has_key('mistake'):
                 pk = request.POST['id']                
                 mistake = request.POST['mistake']
@@ -3886,6 +3862,11 @@ def catalog_set(request):
                 obj = Catalog.objects.get(pk = pk)
                 obj.mistake_status = mistake                                 
                 obj.mistake = msgtext
+                shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+                str_dt_now = datetime.datetime.now().strftime('%d/%m/%Y %H:%M')
+                str_update = u"[%s] [%s] User [%s] mark mistake (%s) - [%s];\n" % (str_dt_now, shopN, request.user.username, msgtext, str(True)) 
+                history = obj.change_history or ""
+                obj.change_history = history + str_update
                 obj.save() 
                 d = {}
                 d['status'] = True
@@ -3895,7 +3876,6 @@ def catalog_set(request):
                     d['msg'] = 'Товар помічений як виправлений'
                 response = JsonResponse(d)
                 return response     
-
 
             if POST.has_key('id') and POST.has_key('locality') and auth_group(request.user, 'seller'):
                 id = request.POST.get('id')                
@@ -4244,8 +4224,11 @@ def client_add(request):
             description = form.cleaned_data['description']
             birthday = form.cleaned_data['birthday']
             sale_on = form.cleaned_data['sale_on']
- 
-            a = Client(name=name, forumname=forumname, country=country, city=city, email=email, phone=phone, sale=sale, summ=summ, description=description, phone1=phone1, birthday=birthday, sale_on=sale_on)
+            user = None             
+            if request.user.is_authenticated():
+                user = request.user
+            shopN = get_shop_from_request(request)
+            a = Client(name=name, forumname=forumname, country=country, city=city, email=email, phone=phone, sale=sale, summ=summ, description=description, phone1=phone1, birthday=birthday, sale_on=sale_on, reg_user=user, reg_shop=shopN)
             a.save()
             #return HttpResponseRedirect('/client/view/')
             return HttpResponseRedirect('/client/result/search/?id=' + str(a.id))
@@ -4372,7 +4355,7 @@ def client_balance_list(request):
             
 
 def client_list(request):
-    list = Client.objects.all()
+    list = Client.objects.all().order_by("-pk")
     paginator = Paginator(list, 100)
     page = request.GET.get('page')
     if page == None:

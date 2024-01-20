@@ -46,28 +46,57 @@ $(document).ready(function() {
 
 <body onload="document.getElementById('client_search_field').focus()">
 <input type="hidden" name="csrfmiddlewaretoken" value="$csrf_token"/>
-  <h1>Пошук клієнта</h1>
+  <h1><span class="badge badge-secondary">Пошук клієнта</span></h1>
+  <div class="row">
+  <div class="col-xs-12 col-lg-8 mb-2 ml-2 mr-2" >
+  
   <form action="/client/search/result/" method="GET">
-    <label>Введіть ім'я або прізвище клієнта: </label>
-    <input type="text" name="name" id="client_search_field" style="width: 350px;">
-    <br>
- <!--    <input id="q1" type="text" />   -->
-    <label>Введіть телефон клієнта: </label>
-    <input type="text" name="phone" id="phone_search_field">
-    <br>    
-    <label>Введіть місто клієнта: </label>
-    <input type="text" name="city" id="city_search_field">
-    <br>    
-    <label>Опис: </label>
-    <input type="text" name="description" id="descripion_search_field">
-    <br>    
-    <label>Борги: </label>
-    <input type="text" name="debt" id="debt_search_field">
-    <br>    
-    <label>Оплати: </label>
-    <input type="text" name="cred" id="cred_search_field">
-    <br>    
-    <input type="submit" value="Пошук">
+  <div class="form-group row">
+    <label class="col-sm-2 col-form-label">Введіть ім'я або прізвище клієнта: </label>
+	<div class="col-sm-10">      
+    <input type="text" name="name" id="client_search_field" class="form-control">
+   	</div>
+   </div>
+    <div class="form-group row">
+    <label class="col-sm-2 col-form-label">Введіть телефон клієнта: </label>
+    <div class="col-sm-10">
+    <input type="text" name="phone" id="phone_search_field" class="form-control">
+    </div>
+    </div>
+      
+    <div class="form-group row">
+    <label class="col-sm-2 col-form-label">Введіть місто клієнта: </label>
+     <div class="col-sm-10">
+    <input type="text" name="city" id="city_search_field" class="form-control">
+    </div>
+    </div>
+    
+    <div class="form-group row">
+    <label class="col-sm-2 col-form-label">Опис: </label>
+     <div class="col-sm-10">
+    <input type="text" name="description" id="descripion_search_field" class="form-control">
+    </div>
+    </div>
+    
+    <div class="form-group row">
+    <label class="col-sm-2 col-form-label">Борги: </label>
+     <div class="col-sm-10">
+    <input type="text" name="debt" id="debt_search_field" class="form-control">
+    </div>
+    </div>
+    
+    <div class="form-group row">
+    <label class="col-sm-2 col-form-label">Оплати: </label>
+     <div class="col-sm-10">
+    <input type="text" name="cred" id="cred_search_field" class="form-control">
+    </div>
+    </div>
+    
+    <input type="submit" value="Пошук" class="btn btn-success form-control w-100">
+
+
   </form>
-
-
+  
+</div>
+</div>  
+</body>

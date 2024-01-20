@@ -35,6 +35,12 @@ width: 150px;
 //float: left;
 }
 
+
+#dialog_return {
+	z-index: 999; !important;
+/*	z-index: 1050; */
+}
+
 </style>
 
 
@@ -298,14 +304,16 @@ $(document).on("click", ".mark_wrong", function(event) {
 	var ids = $(this).attr('ids');
 	if ($('#ModalError').attr('ids') != $(this).attr('ids')) {
 		$("#message-text").val("");
+		$(".msg_alert").remove();
 		$('#ModalError').attr('ids', $(this).attr('ids'));
 	} 
 	$('#ModalError').modal({
 		  keyboard: true,
-		  backdrop: false
+		  backdrop: false,
+		  focus: false
 	})
 	$("#errorMLabel").html( "Відмітити помилку в товарі:<br>" + $(this).parents('tr').find('td.cat_name').html() ); // $(this).attr('ids') );
-	
+	$("#message-text").focus();
 	console.log("ID elem = " + $(this).attr('ids'));
 });
 
@@ -326,6 +334,9 @@ $("#form_mistake").submit(function (event) {
       encode: true,
     }).done(function (data) {
       console.log(data);
+      $("#message-text").after(
+              '<div class="msg_alert alert alert-primary">' + data.msg + "</div>"
+            );
     });
 
     event.preventDefault();
@@ -442,7 +453,12 @@ function show_ret(ciid, item) {
 
 
 function show_client() {
-	$( "#dialog_client" ).dialog("open");
+	if ($(".mc").is(':checked') == false) {
+		alert("Відмітьте хочаб один товар");
+	}
+	else {
+		$( "#dialog_client" ).dialog("open");
+	}
 }
 
 
@@ -587,8 +603,8 @@ $("body").on('click', '#span_show_select', function() {
       </div>
       
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
         <button type="submit" class="btn btn-primary">Відправити</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
       </div>
 </form>      
     </div>
@@ -721,6 +737,16 @@ $("body").on('click', '#span_show_select', function() {
 		[{{type.catalog.ids}}]
 	{% endif %}
 		{{type.catalog.name}}
+		
+		{% if type.catalog.mistake_status %}
+		<span class="alert alert-danger" role="alert" title="Помилка в описі товару - {% if type.catalog.mistake %} {{ type.catalog.mistake }} {% else %} Потрібен переклад. {% endif %}<br>Редагувати товар" data-toggle="tooltip" data-placement="right" data-html="true">
+			<a href="{% url 'catalog_edit' type.catalog.id %}"  class="text-dark">
+			<span class="material-icons">
+			warning
+			</span>
+			</a>
+		</span>
+		{% endif %}
 	</td>
 	<td align="center" class="tcount" data-toggle="tooltip" data-placement="top" title="Переглянути попередні продажі" data-html="true" ci_id="{{type.id}}" start_count="{{type.count}}">       
 	<a href="{% url 'client-catalog-sale' type.catalog.id %}" >{{type.count|floatformat}}</a>

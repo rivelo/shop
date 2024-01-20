@@ -24,6 +24,7 @@
     	<th>Знижка (%)</th>
     	<th>Сумарна вартість покупок</th>
     	<th>Опис</th>
+    	<th>Дата реєстрації / Магазин</th>
     	<th>Дія</th>
     </tr>    
 </thead>
@@ -57,6 +58,9 @@
 	</td>
 	<td>       
 	{{type.description}}
+	</td>
+	<td title="{{type.reg_user}}" >       
+	{{type.reg_date}} / {{type.reg_shop}} 
 	</td>
 	<td>
 	<a href="/client/edit/{{ type.id }}"><i class="material-icons">create</i></a>            
