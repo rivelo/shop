@@ -5211,7 +5211,7 @@ def client_search(request):
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def client_search_result(request):
     if request.is_ajax():
         if request.method == 'GET':  
@@ -5219,6 +5219,14 @@ def client_search_result(request):
             if GET.has_key('name'):
                 q = request.GET.get('name')
                 c = Client.objects.filter(Q(name__icontains = q) | Q(forumname__icontains = q)).values('id','name', 'forumname')
+#                res = Client.objects.filter(Q(name__icontains = q)).values_list('name', flat=True)
+                return HttpResponse(simplejson.dumps(list(c)))
+
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('phone'):
+                q = request.POST.get('phone')
+                c = Client.objects.filter(Q(phone__icontains = q) | Q(phone1__icontains = q)).values('id','name', 'forumname', 'phone', 'phone1')
 #                res = Client.objects.filter(Q(name__icontains = q)).values_list('name', flat=True)
                 return HttpResponse(simplejson.dumps(list(c)))
     

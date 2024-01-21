@@ -587,26 +587,34 @@ class CatalogForm(forms.ModelForm):
 
 # ---------- Client -------------
 class ClientForm(forms.ModelForm):
-    name = forms.CharField(max_length=255)
-    forumname = forms.CharField(max_length=255, required=False)    
-    country = forms.ModelChoiceField(queryset = Country.objects.all(), initial=1)
-    city = forms.CharField(max_length=255)
+    name = forms.CharField(max_length=255, required=True, label=u"Прізвище, Імя, Побатькові")
+    forumname = forms.CharField(max_length=255, required=False, label=u"Нік (nickname, forumName)")    
+    country = forms.ModelChoiceField(queryset = Country.objects.all(), initial=1 , label=u"Країна")
+    city = forms.CharField(max_length=255, label=u"Місто")
     email = forms.EmailField(required=False)
     phone = forms.CharField(max_length=255, required=False)
     phone1 = forms.CharField(max_length=255, required=False)
     sale = forms.IntegerField(required=False, initial=0)
     summ = forms.FloatField(initial=0)
-    birthday = forms.DateField(label='Дата народженя (d/m/Y)', input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), required=False)
-    description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255, required=False)    
+    birthday = forms.DateField(label='Дата народженя (d.m.Y)', input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), required=False)
+    description = forms.CharField(label=u'Примітки', widget=forms.Textarea(), max_length=255, required=False)    
 
     def clean_phone(self):
         data = self.cleaned_data['phone']
         res = Client.objects.filter( Q(phone__icontains = data) | Q(phone1__icontains=data))
         if res:
             raise forms.ValidationError("Клієнт з таким номером телефону вже існує!")
-
         # Always return a value to use as the new cleaned data, even if
         # this method didn't change it.
+        return data
+
+    def clean_name(self):
+        data = self.cleaned_data['name']
+        res = Client.objects.filter( Q(name__icontains = data) )
+        if res:
+            raise forms.ValidationError("Клієнт з таким іменем вже існує!")
+        if len(data) < 2:
+            raise forms.ValidationError("Імя клієнта занадто коротке. Воно повинно мати що найменше 3 символи!")
         return data
 
     class Meta:

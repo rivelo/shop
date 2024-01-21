@@ -1,10 +1,33 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title> Редагування клієнта </title>
 
-{# <script src="/media/jquery.textchange.min.js"></script> #}
+ <script src="/media/jquery.textchange.min.js"></script> 
 
+{% load poll_extras %}
 
 <script>
+function chk_client_phone(){
+    $.ajax({
+	    type: "POST",
+        url: "/client/search/result/",
+        data: { phone:  $('#id_phone').val()},
+        dataType: "json",
+        success:function(msg){
+            $("#client_phone_list").empty();
+            for (var i = 0, length = msg.length; i < length; i++) {
+			    if (i in msg) {
+        			$('#client_phone_list').append(' <a class="badge badge-secondary" href="/client/result/search/?id='+msg[i].id+'">'+ msg[i].name + ' ('+ msg[i].phone +')</a>');	
+    			}
+			}
+            
+        },
+            error:function(){
+            alert("При відправці запиту виникли проблеми");
+        }
+    });
+}      
+
+
 function chk_client(){
     $.ajax({
 	    type: "GET",
@@ -12,52 +35,173 @@ function chk_client(){
         data: { name:  $('#id_name').val()},
         dataType: "json",
         success:function(msg){
-    	    //alert("Все отлично ушло на сервер - " + msg);
-            $('.test_client').empty();
-            $('#id_name').after('  <span class="test_client" style="padding-left:10px; color:red;"><a href="javascript:void(0)" id="chk_link" onclick="chk_client()">Check name</a></span>');            
-            $('#chk_link').after('<span id="result"> - </span>');
+            //$('.test_client').empty();
+//            $('#id_name').after('<span class="test_client badge badge-info" style="padding-left:10px; color:red;"><a href="javascript:void(0)" id="chk_link" onclick="chk_client()">Check name</a></span>');
+//            $('#id_name').after('<span class="test_client badge badge-info" style="padding-left:10px; color:red;"><h5 id="after_elem"><a href="javascript:void(0)" class="text-white" id="chk_link" onclick="chk_client()">Перевірка на наявність клієнта</a></h5></span>');
+//            $('#after_elem').after('<span id="result"> : </span>');
+            $("#client_list").empty();
             for (var i = 0, length = msg.length; i < length; i++) {
 			    if (i in msg) {
-        			$('#result').after(' <a href="/client/result/search/?id='+msg[i].id+'">'+ msg[i].name + ' ('+ msg[i].forumname +')</a>; ');	
+        			$('#client_list').append(' <a class="badge badge-secondary" href="/client/result/search/?id='+msg[i].id+'">'+ msg[i].name + ' ('+ msg[i].forumname +')</a>');	
     			}
 			}
             
-            
         },
             error:function(){
-            alert("При отправке возникли проблемы");
+            alert("При відправці запиту виникли проблеми");
         }
     });
 }      
 
 
 $(document).ready(function(){
-$('#id_name').attr('class', 'classOfTextField');
+
+//	$('#id_name').attr('class', 'classOfTextField');
+
+$('#id_phone').bind('textchange', function () {
+	if ($('#id_phone').val().length > 8){
+		$("#chk_phone_link").bind("onclick", chk_client_phone());
+	}
+});
+
+$('#id_phone').bind('hastext', function () {
+	$("#chk_phone_link").html('Перевірка на наявність клієнта');
+	$("#test_client_phone").attr('class', "badge badge-info");
+	$("#client_phone_list").empty();	
+});
+
+
+$('#id_phone').bind('notext', function () {
+	$("#chk_phone_link").html('Поле пусте');
+	$("#chk_phone_link").prop("onclick", null).off("click");
+	$("#test_client_phone").attr('class', "badge badge-danger");
+	$("#client_phone_list").empty();
+});
+
 
 $('#id_name').bind('hastext', function () {
-	$('.test_client').empty();
-	$('#id_name').after('  <span class="test_client" style="padding-left:10px; color:red;"><a href="javascript:void(0)" id="chk_link" onclick="chk_client()">Check name</a></span>');
+	$("#chk_link").html('Перевірка на наявність клієнта');
+//	$("#chk_link").bind("onclick", chk_client());
+//	$("#chk_link").prop("onclick", chk_client());
+	$("#test_client").attr('class', "badge badge-info");
+	$("#client_list").empty();	
+	//	$('#name_result').empty();
+//	$("#test_client").html('');
+//	$('#id_name').after('<span class="test_client badge badge-info" style="padding-left:10px; color:red;"><h5><a href="javascript:void(0)" class="text-white" id="chk_link" onclick="chk_client()">Перевірка на наявність клієнта</a></h5></span>');
 
 });
-	
+
+$('#id_name').bind('textchange', function () {
+	if ($('#id_name').val().length > 5){
+//		console.log("LEN = " + $('#id_name').val().length);
+		$("#chk_link").bind("onclick", chk_client());
+	}
+});
 
 $('#id_name').bind('notext', function () {
-	$('.test_client').empty();
-	$('#id_name').after('  <span class="test_client" style="padding-left:10px; color:red;">Empty</span>');
+//	$('#name_result').empty();
+//$("#test_client").html('Поле ПІБ пусте');
+	$("#chk_link").html('Поле ПІБ пусте');
+	$("#chk_link").prop("onclick", null).off("click");
+	$("#test_client").attr('class', "badge badge-danger");
+	$("#client_list").empty();
+//	$('#id_name').after('  <span class="test_client" style="padding-left:10px; color:red;">Empty</span>');
 });
+
+
+{% if not request.user|has_group:"admin" %}
+	$("#id_sale_on").parents('div.form-group').hide();
+	$("#id_summ").parents('div.form-group').hide();
+	$("#id_sale").parents('div.form-group').hide();
+	$("#id_reg_shop").parents('div.form-group').hide();
+	$("#id_reg_user").parents('div.form-group').hide();
+{% endif %}
 
 });
 </script>
 
 
 
+
 <body onload="document.getElementById('id_name').focus()">
-    <h1> <span class="badge badge-secondary">Створення/Редагування Клієнта</span></h1>
-    <form action="" method="POST" enctype="multipart/form-data">
-        <table>
-            {{ form.as_table }}
-        </table>
-        <p><input type="submit" value="Зберегти" class="btn btn-success w-100"></p>
-    </form>
+    
+<h1> <span class="badge badge-secondary">Створення/Редагування Клієнта</span></h1>
+
+<div >
+
+<form method="post" novalidate>
+
+{% comment %}
+{% endcomment %}
+
+{% for hidden_field in form.hidden_fields %}
+    {{ hidden_field }}
+{% endfor %}
+
+
+{% if form.non_field_errors %}
+    <div class="alert alert-danger" role="alert">
+      {% for error in form.non_field_errors %}
+        {{ error }}
+      {% endfor %}
+    </div>
+{% endif %}
+
+
+  {% for field in form.visible_fields %}
+    <div class="form-group col-12 col-lg-8 col-xl-6">
+      {{ field.label_tag }}
+
+      {% if form.is_bound %}
+        {% if field.errors %}
+          {{ field|add_attr:"class:form-control is-invalid" }}
+          {% for error in field.errors %}
+            <div class="invalid-feedback">
+              {{ error }}
+            </div>
+          {% endfor %}
+        {% else %}
+	        {{ field|add_attr:"class:form-control is-valid" }}
+        {% endif %}
+      {% else %}
+      	{{ field|add_attr:"class:form-control" }}
+      	{% if field.name == 'name' %}
+      	<div id="name_result" >
+      	<h5><span class="badge badge-info" id="test_client" >
+      	<a href="javascript:void(0)" class="text-white" id="chk_link" onclick="chk_client()"></a>
+      	</span></h5>
+	      	<div id="client_list">
+    	  	</div>
+      	</div>
+      	{% endif %}
+      	
+      	{% if field.name == 'phone' %}
+      	<div id="phone_result" >
+      	<h5><span class="badge badge-info" id="test_client_phone" >
+      	<a href="javascript:void(0)" class="text-white" id="chk_phone_link" onclick="chk_client_phone()"></a>
+      	</span></h5>
+	      	<div id="client_phone_list">
+    	  	</div>
+      	</div>
+      	{% endif %}
+      	
+      {% endif %}
+
+
+      
+      {% if field.help_text %}
+        <small class="form-text text-muted">{{ field.help_text }}</small>
+      {% endif %}
+    </div>
+  {% endfor %}
+
+
+            {#{ form.as_ul }#}        
+     <div class="form-group col-12 col-lg-8 col-xl-6">
+        <input type="submit" value="Зберегти" class="btn btn-success w-100">
+     </div>
+        
+</form>
+</div>
 
 </body>
