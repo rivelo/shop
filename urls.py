@@ -229,12 +229,15 @@ urlpatterns = [
 
     # Component Type operation
     url(r'^category/add/$', catalog.category_add),
-    url(r'^category/view/$', catalog.category_list),
+    url(r'^category/view/$', catalog.category_list, name="category-list"),
     url(r'^category/edit/(?P<id>\d+)$', catalog.category_edit),
     url(r'^category/delete/(?P<id>\d+)$', catalog.category_del),    
     url(r'^category/get/list/$', catalog.category_get_list),
     url(r'^category/lookup/$', catalog.category_lookup),
     url(r'^category/plus/manufacture/lookup/$', catalog.category_manufacture_lookup, name="cat-man-lookup"),
+    url(r'^category/attr/view/$', catalog.category_attr_list, name="category-attr-list"),
+    url(r'^category/attr/values/view/$', catalog.category_attr_values_list, name="category-attr-value-list"),
+
 
     # Catalog operation
     url(r'^catalog/set/type/$', catalog.catalog_set_type),

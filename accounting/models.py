@@ -133,6 +133,13 @@ class Shop(models.Model):
         ordering = ["name", "address"]    
 
 
+#class CashbackRanking(models.Model):
+    #name = models.CharField(max_length=100, verbose_name="Назва рейтингу знижки")
+    #percent = models.
+    #sum = models.
+    #ranking = models.PositiveSmallIntegerField(blank=True, default = 0)
+
+
 #class FOP(models.Model):
 #    FOP =
 #    IBAN = 
@@ -427,7 +434,6 @@ class Photo(models.Model):
                     return True
                 except:
                     return False
-
         return False
 
     def catalog_show(self):
@@ -472,6 +478,64 @@ class YouTube(models.Model):
         ordering = ["date", "description"]    
 
 
+
+class Season(models.Model):
+    name = models.CharField(max_length = 255, )
+    value = models.CharField(max_length = 255, blank=True, null=True)
+    icon = models.CharField(max_length = 255, blank=True, null=True)
+    description = models.CharField(max_length = 255, blank=True, null=True)
+        
+    def __unicode__(self):
+        return u'%s' % self.name
+
+    class Meta:
+        ordering = ["pk", "name"]    
+
+
+class CatalogAttribute(models.Model):
+    name = models.CharField(max_length = 255, )
+    value = models.CharField(max_length = 255, blank=True, null=True)
+    type = models.ManyToManyField(Type, blank = True) # Type have this Attribute
+    icon = models.CharField(max_length = 255, blank=True, null=True)
+    description = models.CharField(max_length = 255, blank=True, null=True)
+    created_date = models.DateTimeField("Дата створення", null=True, blank=True)
+    #updated_date = models.DateTimeField("Дата оновлення", auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now_add=True)
+    updated_user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+
+    def all_values(self):
+        res_val = CatalogAttributeValue.objects.filter(attr_id = self.pk)
+        return res_val
+
+
+    def __unicode__(self):
+        return u'%s' % self.name
+
+    class Meta:
+        ordering = ["pk", "name"]    
+
+
+class CatalogAttributeValue(models.Model):
+    attr_id = models.ForeignKey(CatalogAttribute)
+    value = models.CharField(max_length = 255, blank=True, null=True)
+    value_float = models.FloatField(blank=True, null=True)
+    icon = models.CharField(max_length = 255, blank=True, null=True)
+    description = models.CharField(max_length = 255, blank=True, null=True)
+    created_date = models.DateTimeField(u"Дата створення", null=True, blank=True)
+    updated_date = models.DateTimeField(u"Дата оновлення", auto_now_add=True, null=True, blank=True)
+    updated_user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+
+    def all_items(self):
+        res_val = Catalog.objects.filter(attributes = self.pk)
+        return res_val
+    
+    def __unicode__(self):
+        return u'%s - %s / %s' % (self.attr_id, self.value, self.value_float)
+
+    class Meta:
+        ordering = ["attr_id", "value", "value_float"]    
+
+
 # Main table 
 class Catalog(models.Model):
     ids = models.CharField("code", unique=True, max_length=50)
@@ -487,33 +551,34 @@ class Catalog(models.Model):
     weight = models.FloatField(blank=True, null=True)    
     photo = models.FileField(upload_to = 'upload/catalog/%Y/', blank=True, null=True) # 'media/upload/catalog/%Y/%m/%d'
     photo_url = models.ManyToManyField(Photo, blank=True)
-    year = models.IntegerField(blank=True, null=True)
+    year = models.IntegerField(u'Модельний рік', blank=True, null=True)
     sale_to = models.DateField(auto_now_add=True)
     color = models.CharField(max_length=255, blank=True, null=True)
     price = models.FloatField()
     last_price = models.FloatField(blank=True, null=True)
     currency = models.ForeignKey(Currency)
     sale = models.FloatField()
-    country = models.ForeignKey(Country, null=True)
-    count = models.IntegerField()
-    length = models.FloatField(blank=True, null=True)
+    country = models.ForeignKey(Country, null=True, verbose_name = "Країна виробник")
+    count = models.IntegerField(u"Кількість в магазинах")
+    length = models.FloatField(u"Довжина (для товарів які продаються на метри)", blank=True, null=True)
+    created_date = models.DateTimeField(auto_now_add=False, null=True, blank=True)
+    created_user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='created_user')
     last_update = models.DateTimeField(auto_now_add=False, null=True, blank=True)
-    user_update = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
-    description = models.CharField(max_length=255, blank=True, null=True)
+    user_update = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='updated_user')
+    description = models.CharField(u"Примітки для себе", max_length=255, blank=True, null=True)
     locality = models.CharField("locality", blank=True, null=True, max_length=50)
-    show = models.BooleanField(default=False, verbose_name="Статус відображення")
+    show = models.BooleanField(default=False, verbose_name=u"Статус відображення")
     bike_style = models.ManyToManyField(Bicycle_Type, blank=True) # cyclocross, crosscountry, road, gravel, enduro, downhill, city...
-#    models.ManyToManyField() # field like sizechart, field to shoes
-#    season = winter, summer, ...
-    full_description = models.TextField("Опис товару", blank=True, null=True)
+    season = models.ManyToManyField(Season, blank = True) #    season = winter, summer, ...
+    attributes = models.ManyToManyField(CatalogAttributeValue, blank = True) #    models.ManyToManyField() # field like sizechart, field to shoes
+
+    full_description = models.TextField(u"Опис товару для Web-сторінки", blank=True, null=True)
     youtube_url = models.ManyToManyField(YouTube, blank=True)
 #    наявність у постачальника
-    date = models.DateField("Строк придатності", null=True, blank=True) #Строк придатності
-#    last_changes = models.TextField(blank=True, null=True, verbose_name="Останні зміни в товарі")
+    date = models.DateField(u"Строк придатності", null=True, blank=True) #Строк придатності
     url_web_site = models.CharField(max_length=255, null=True, blank=True, verbose_name="Посилання на офіційний сайт")
     mistake = models.CharField(max_length=255, null=True, blank=True, verbose_name="Помилка в заповненні картки товару")
     mistake_status = models.BooleanField(default=False, verbose_name="Статус помилки")
-    #attr = models.ManyToManyField()
     #search_history
     change_history = models.TextField(blank=True, null=True, verbose_name="History of changes on item Catalog ")
     rating = models.FloatField(blank=True, null=True)   

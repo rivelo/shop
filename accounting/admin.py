@@ -3,8 +3,11 @@
 from django.contrib import admin
 from catalog.accounting.models import Type, Size, Exchange, Manufacturer, Catalog, Country, Dealer, DealerManager, Currency, Rent, Wheel_Size, Bicycle_Storage, Bicycle_Photo, YouTube, PhoneStatus, Bicycle_Parts
 from catalog.accounting.models import CheckPay, Check, Schedules, Shop, CashType, Bank, Discount, FrameSize, ShopDailySales, ClientInvoice, DealerInvoice, Client, WorkTicket, CostType, Costs, ClientMessage, Bicycle_Store
-from catalog.accounting.models import GroupType, WorkStatus, WorkShop, ClientReturn, Bicycle_Sale, Bicycle_Type, WorkGroup
+from catalog.accounting.models import GroupType, WorkStatus, WorkShop, ClientReturn, Bicycle_Sale, Bicycle_Type, WorkGroup, CatalogAttributeValue, CatalogAttribute, Season
+
 from django.contrib.admin.options import ModelAdmin
+
+import datetime
 
 
 def mark_shop_K(ModelAdmin, request, queryset):
@@ -63,7 +66,7 @@ admin.site.register(Manufacturer, ManufacturerAdmin)
 
 class CatalogAdmin(admin.ModelAdmin):
     autocomplete_fields = ('type', 'manufacturer')
-    list_display = ('ids', 'name', 'type', 'size', 'photo', 'weight', 'sale', 'country', 'description') #'manufacturer',
+    list_display = ('ids', 'name', 'type', 'size', 'photo', 'weight', 'sale', 'country', 'created_date', 'description') #'manufacturer',
     ordering = ('-name',)
     search_fields = ('ids', 'name', 'type__name', 'manufacturer__name')
 
@@ -145,7 +148,7 @@ admin.site.register(GroupType, GroupTypeAdmin)
 
 
 class YouTubeAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("url", "date", "user", "description",)
 
 admin.site.register(YouTube, YouTubeAdmin)
 
@@ -205,6 +208,9 @@ admin.site.register(DealerManager)
 admin.site.register(Bicycle_Type)
 admin.site.register(WorkGroup)
 admin.site.register(ShopDailySales)
+admin.site.register(Season)
+admin.site.register(CatalogAttribute)
+#admin.site.register()
 
 admin.site.register(DealerInvoice)
 
@@ -233,3 +239,24 @@ class BicycleStoreAdmin(admin.ModelAdmin):
     actions = [mark_K, mark_M]
     
 admin.site.register(Bicycle_Store, BicycleStoreAdmin)
+
+
+from django.utils import timezone
+from django.utils.timezone import activate
+
+class CatalogAttributeValueAdmin(admin.ModelAdmin):
+    list_display = ("attr_id", "value", "value_float", "icon", "description", "created_date", "updated_user", "updated_date",)
+    readonly_fields = ("updated_date",)
+    
+    def save_model(self, request, obj, form, change):
+        obj.updated_user = request.user
+#        tz = timezone.now()
+        tz = datetime.datetime.now()
+ #       print "\nTIME Zone = " + str(tz)
+ #       print "TIME Now = " + str(datetime.datetime.now()) + "\n"
+#        print "ZONE - " + str(activate('Europe/Kyiv')) # settings.TIME_ZONE))
+        obj.updated_date = tz #datetime.datetime.now() #today()
+#        obj.created_date = datetime.datetime.now()
+        super(CatalogAttributeValueAdmin, self).save_model(request, obj, form, change)
+    
+admin.site.register(CatalogAttributeValue, CatalogAttributeValueAdmin)

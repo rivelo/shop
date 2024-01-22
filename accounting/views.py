@@ -36,6 +36,7 @@ from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,
 from models import Catalog, Client, ClientDebts, ClientCredits, ClientInvoice, ClientOrder, ClientMessage, ClientReturn, InventoryList
 from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType, Discount, Shop
 from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus, YouTube
+from models import CatalogAttributeValue, CatalogAttribute
 
 from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, ClientInvoiceForm, ClientOrderForm, ClientEditForm
 from forms import ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm, BicycleStorage_Form, StorageType_Form
@@ -3189,6 +3190,21 @@ def category_del(request, id):
     del_logging(obj)
     obj.delete()
     return HttpResponseRedirect('/category/view/')    
+
+
+def category_attr_list(request):
+    list = CatalogAttribute.objects.all()
+    context = {'attr_list': list, 'weblink': 'category_attr_list.html'}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
+
+
+def category_attr_values_list(request):
+    list = CatalogAttributeValue.objects.all()
+    context = {'attr_val_list': list, 'weblink': 'category_attr_values_list.html'}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
+
 
 # -------------- Currency and operations ----------------------
 def curency_add(request):

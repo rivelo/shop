@@ -143,7 +143,10 @@ $(document).ready(function() {
 			<a class="dropdown-item" href="/catalog/discount/">Товари зі знижками</a>
 			<a class="dropdown-item" href="/catalog/manufacture/view/">По виробнику</a>
 			<a class="dropdown-item" href="/catalog/search/id/">Пошук</a>
-			<a class="dropdown-item" href="/category/view/">Класифікатор</a>
+		<div class="dropdown-divider"></div>			
+			<a class="dropdown-item" href="{% url 'category-list' %}">Класифікатор</a>
+			<a class="dropdown-item" href="{% url 'category-attr-list' %}">Параметри товарів</a>
+			<a class="dropdown-item" href="{% url 'category-attr-value-list' %}">Значення параметрів</a> 
 		<div class="dropdown-divider"></div>
 			<a class="dropdown-item" href="/catalog/file/photo/list/"><i class="material-icons">photo_library</i> Імпортувати фото</a>
 		<div class="dropdown-divider"></div>
