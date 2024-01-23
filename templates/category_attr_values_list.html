@@ -1,0 +1,108 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Значення параметри товарів</title>
+
+	
+	
+<style type="text/css">
+ 		
+</style>		
+	
+{% load poll_extras %}
+	
+<script type="text/javascript">
+$(document).ready(function() {
+
+
+    $( "#s_client" ).autocomplete({
+    	source: function( request, response ) {
+        	$.ajax({
+                type: "GET",
+                url: "/client/lookup",
+				data: { query: $("#s_client").val() },
+                dataType: "json",
+                success: function( data ) {
+                        	response( $.map( data, function( item ) {
+                            return {
+                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
+                                value: item.fields.name,
+                                idid: item.fields.sale,
+                                pk_id: item.pk                                
+    							}
+                        	}));                                
+                            }
+            })
+        },
+        minLength: 3,
+        select: function( event, ui ) {
+	    	$('#id_client').val(ui.item.pk_id);
+        },
+        open: function() {
+        	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+        },
+        close: function() {
+        	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+        }
+    });
+    
+    
+    
+
+});
+
+
+
+
+
+</script>
+
+<body>
+
+<h1>
+<span class="badge badge-success">Параметри товарів</span> 
+</h1>
+
+
+<div class="container mw-100">
+
+{% for item in attr_val_list %}
+
+
+<div class="alert alert-info" role="alert">
+{{ item.value|default:" - " }} / {{item.value_float|default:" - "}} - {{item.created_date}} [{{item.updated_date}} - {{item.updated_user}}] ({{item.description}})
+</div>
+
+{% for val in item.all_items %}
+<div class="alert alert-dark ml-3 mr-3" role="alert">
+{{val}} - {{val.created_date}}
+</div>
+{% endfor %}
+
+{% endfor %}
+
+
+
+  
+
+  <div class="row justify-content-between">
+    <div class="col-12 col-md-6">
+
+
+{% comment %}
+<div class="input-group mb-3">
+  <input type="text" id="s_client" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="Прізвище, імя клієнта" aria-label="Username" aria-describedby="basic-addon1">
+</div>
+{% endcomment %}
+
+
+
+
+
+	 </div>
+	</div>
+</div>
+
+ 
+</body>
+	
+
+

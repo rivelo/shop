@@ -1,0 +1,199 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Параметри товарів</title>
+
+{#	<script type="text/javascript" src="/media/jquery.searchabledropdown-1.0.8.min.js"></script> #}
+	
+	
+<style type="text/css">
+/*  .custom-combobox {
+    position: relative;
+    display: inline-block;
+  }
+  .custom-combobox-toggle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin-left: -1px;
+    padding: 0;
+  }
+  .custom-combobox-input {
+    margin: 0;
+    padding: 5px 10px;
+  }
+*/
+
+ 		
+</style>		
+	
+{% load poll_extras %}
+	
+<script type="text/javascript">
+$(document).ready(function() {
+
+//	$("#id_work_type").combobox();      
+//	$('.ui-autocomplete-input').css('width','280px');
+
+	$("#s_client").val($('#id_client').val());
+	$("#s_id_work_type").val($('#id_work_type').val());
+	
+    $( "#s_id_work_type" ).autocomplete({
+    	source: function( request, response ) {
+        	$.ajax({
+                type: "POST",
+                url: "/worktype/lookup/",
+				data: { query: $("#s_id_work_type").val() },
+                dataType: "json",
+                success: function( data ) {
+                        	response( $.map( data, function( item ) {
+                            return {
+                                label: item.pk + ": [" + item.model__name + "] "+ item.fields.name + " - " + item.fields.price + "грн",
+                                value: item.fields.name,
+                                idid: item.fields.sale,
+                                id_sale: item.fields.sale,                                
+                                id_price: item.fields.price,
+                                pk_id: item.pk,
+                                w_desc: item.fields.description,
+                                w_plus: item.fields.plus
+    							}
+                        	}));                                
+                            }
+            })
+        },
+        minLength: 3,
+        select: function( event, ui ) {
+        	var sprice = ui.item.id_price / 100 * (100-ui.item.id_sale)
+        	var base = 5
+        	var r = sprice
+        	sprice = parseInt(base * Math.round(r/base))
+	    	//$('#id_price').val(ui.item.id_price);
+        	$('#id_price').val(sprice);
+	    	$('#id_work_type').val(ui.item.pk_id);
+	    	$('#work_desc').html(ui.item.w_desc);
+	    	$("#id_description").val('');
+	    	
+	    	if (ui.item.w_plus) {
+	    		$('#work_plus').html('Ціна +');	
+	    	}
+	    	else{
+	    		$('#work_plus').html('Ціна');
+	    	}
+	    	
+	    	
+        },
+        open: function() {
+        	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+        },
+        close: function() {
+        	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+        }
+    });
+
+    $( "#s_client" ).autocomplete({
+    	source: function( request, response ) {
+        	$.ajax({
+                type: "GET",
+                url: "/client/lookup",
+				data: { query: $("#s_client").val() },
+                dataType: "json",
+                success: function( data ) {
+                        	response( $.map( data, function( item ) {
+                            return {
+                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
+                                value: item.fields.name,
+                                idid: item.fields.sale,
+                                pk_id: item.pk                                
+    							}
+                        	}));                                
+                            }
+            })
+        },
+        minLength: 3,
+        select: function( event, ui ) {
+	    	$('#id_client').val(ui.item.pk_id);
+        },
+        open: function() {
+        	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+        },
+        close: function() {
+        	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+        }
+    });
+    
+    
+    
+	$("#id_description").addClass('form-control');
+	$("#id_date").addClass('form-control');
+//	$("#id_price").attr("class","form-control");
+	
+	{% if work %}
+	$("#s_id_work_type").val('{{ work.name }}');
+	{% endif %}
+	{% if client_name %}
+	$("#s_client").val('{{client_name}}');
+	{% endif %}
+	
+	$("#s_client").focus();
+});
+
+
+
+
+
+</script>
+
+<body>
+
+<h1>
+<span class="badge badge-success">Параметри товарів</span> 
+</h1>
+
+
+<div class="container mw-100">
+
+{% for item in attr_list %}
+
+
+<div class="alert alert-dark" role="alert">
+{{ item.name }} - [{{item.type.all|join:", "}}] ({{item.description}}) - {{item.created_date}}
+</div>
+{% for val in item.all_values %}
+<div class="alert alert-info" role="alert">
+{{val.value|default:" - "}} / {{val.value_float|default:" - "}} - {{val.created_date}}
+</div>
+{% endfor %}
+
+{% endfor %}
+
+
+
+  
+
+  <div class="row justify-content-between">
+    <div class="col-12 col-md-6">
+
+
+
+<div class="input-group mb-3">
+  <input type="text" id="s_client" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="Прізвище, імя клієнта" aria-label="Username" aria-describedby="basic-addon1">
+</div>
+
+
+
+<div class="input-group mb-3">
+  <input type="text"  id="s_id_work_type" class="form-control {% if form.work_type.errors %}  is-invalid {% endif %}" placeholder="Пошук роботи" aria-label="Username" aria-describedby="basic-addon1" value="{{ work.name }}"/>
+</div>
+
+
+
+
+
+
+	 </div>
+	</div>
+</div>
+
+ 
+</body>
+	
+
+
