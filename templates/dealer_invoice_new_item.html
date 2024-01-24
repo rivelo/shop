@@ -503,7 +503,7 @@ function PrintThis(value, index, arr){
    	<th style="width:80px" data-toggle="tooltip" data-html="true" data-placement="left" title="Наявна кількість товару">Наявна кількість</th>
    	<th>Ціна</th>
    	<th data-toggle="tooltip" data-html="true" data-placement="left" title="Користувач що прийняв товар">User</th>
-   	<th data-toggle="tooltip" data-html="true" data-placement="left" title="Номер ящика на складі">Місце</th>
+   	<th data-toggle="tooltip" data-html="true" data-placement="left" title="Номер ящика на складі" hidden>Місце</th>
 </tr> 
 </thead>
 {% endifchanged %}
@@ -557,7 +557,7 @@ function PrintThis(value, index, arr){
 {% endif %}
 
 <td id="userid{{x.id}}" align="center">{{x.user}}</td>
-<td align="center" class="locality_edit" id_locality="{{x.catalog.id}}">
+<td align="center" class="locality_edit" id_locality="{{x.catalog.id}}" hidden>
 {{x.catalog.locality}}
 </td>
 </tr>

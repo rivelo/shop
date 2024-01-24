@@ -65,8 +65,10 @@
 	{{type.invoice.origin_id}} - {{type.invoice.company.name}} - {{type.invoice.manager.name}} [{{type.invoice.price}} {{type.invoice.currency.ids_char}}]
 {% endif %}	        
 	</td>	
-	<td>       
-	[{{type.catalog.ids}} {% if type.catalog.dealer_code %} / {{type.catalog.dealer_code}} {% endif %}] {{type.catalog.manufacturer}} - {{type.catalog.name}}
+	<td>
+	[{{type.catalog.get_code|join:"; "}}] {{type.catalog.manufacturer}} - {{type.catalog.name}} 
+{#	 [ {{type.catalog.ids}} {% if type.catalog.dealer_code %} / {{type.catalog.dealer_code}} {% endif %}] {{type.catalog.manufacturer}} - {{type.catalog.name}} #}
+
 	</td>
 	<td align="center">       
 	<a href="/client/invoice/catalog/{{type.catalog.id}}/add">{{type.count}} </a>

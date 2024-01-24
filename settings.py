@@ -36,7 +36,7 @@ DATABASES = {
 #DATABASE_HOST = '195.154.74.135'             # Set to empty string for localhost. Not used with sqlite3.
 #DATABASE_PORT = '3306'             # Set to empty string for default. Not used with sqlite3.
 
-USE_TZ = True
+USE_TZ = False # True if timezone ON
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name

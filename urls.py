@@ -94,7 +94,7 @@ urlpatterns = [
     url(r'^bicycle-store/add/(?P<id>\d+)/$', catalog.bicycle_store_add),
     url(r'^bicycle-store/add/$', catalog.bicycle_store_add),
     url(r'^bicycle-store/all/view/seller/$', catalog.bicycle_store_list_by_seller, {'all': True}),
-    url(r'^bicycle-store/simple/view/$', catalog.bicycle_store_simple_list ),
+    url(r'^bicycle-store/simple/view/$', catalog.bicycle_store_simple_list, name='bicycle-store-simple' ),
     url(r'^bicycle-store/view/seller/$', catalog.bicycle_store_list_by_seller),
     url(r'^bicycle-store/view/seller/bysize/(?P<size>\d+)/$', catalog.bicycle_store_list_by_seller),
     url(r'^bicycle-store/view/seller/bysize/(?P<size>\d+)/year/(?P<year>\d+)/$', catalog.bicycle_store_list_by_seller),

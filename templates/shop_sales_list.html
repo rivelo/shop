@@ -104,7 +104,8 @@ $(document).ready( function() {
     	<th> {{total_sum.total_cash}} </th>
     	<th> {{total_sum.total_tcash}} </th>
     	<th>{{total_sum.total_ocash}} </th>
-    	<th>{{total_sum.total_cash|add:total_sum.total_tcash|add:total_sum.total_ocash|add:total_sum.total_price}}</th>
+{#    	<th>{{total_sum.total_cash|add:total_sum.total_tcash|add:total_sum.total_ocash|add:total_sum.total_price}}</th> #}
+    	<th>{{total_sum.total_cash|add:total_sum.total_tcash|add:total_sum.total_ocash}}</th>
     	{% else %}
     	<th></th>
     	<th></th>
