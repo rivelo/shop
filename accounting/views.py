@@ -1025,7 +1025,9 @@ def bicycle_store_list_by_seller(request, all=False, size='all', year='all', bra
 
 def bicycle_store_simple_list(request):
     list = Bicycle_Store.objects.filter(count=1)
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_store_simplelist.html', }, context_instance=RequestContext(request, processors=[custom_proc]))    
+    context = {'bicycles': list, 'weblink': 'bicycle_store_simplelist.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)    
 
 
 def bicycle_store_search(request):
@@ -6407,6 +6409,7 @@ def shopdailysales_edit(request, id):
     return render(request, 'index.html', context)
 
 
+from django.utils import timezone
 def shopdailysales_list(request, month=None, year=None, shop_id=None):    
     if auth_group(request.user, 'seller')==False:
         #return HttpResponse('Error: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
@@ -6428,14 +6431,14 @@ def shopdailysales_list(request, month=None, year=None, shop_id=None):
     if auth_group(request.user, 'admin')==True:
         shoplist = Shop.objects.all()
         
-    now = datetime.datetime.now()
+#    now = datetime.datetime.now()
+    now = timezone.now()
     if month == None:
         month = now.month
     if year == None:
         year = now.year
     list = ShopDailySales.objects.filter(date__year=year, date__month=month, shop=shopN)
     total_sum = list.aggregate(total_cash=Sum('cash'), total_tcash=Sum('tcash'), total_price=Sum('price'), total_ocash=Sum('ocash'))
-    sum = 0 
     context = {'shopsales': list, 'total_sum': total_sum, 'l_month': xrange(1,13), 'sel_month':int(month), 'weblink': 'shop_sales_list.html', 'shopName': shopN, 'ShopList' : shoplist}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
@@ -8891,7 +8894,9 @@ def storage_box_rename(request):
 
 def storage_boxes(request):
     boxlist = Catalog.objects.exclude(locality__isnull=True).exclude(locality__exact='').values('locality').annotate(icount=Count('locality')).order_by('locality')
-    return render_to_response("index.html", {"weblink": 'storage_boxes.html', "boxes": boxlist}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    context = {"weblink": 'storage_boxes.html', "boxes": boxlist}
+    context.update(custom_proc(request))
+    return render(request, "index.html", context)    
 
 
 def inventory_list(request, year=None, month=None, day=None):
