@@ -263,7 +263,10 @@ $(document).ready( function() {
 	 }
 	 });
 	
-	
+	$(document).on("click", ".show_hide_sbox_null", function(event) {
+		$("div.zero_class").toggle();
+	});
+
 }); // end ready
 
 
@@ -450,14 +453,20 @@ function PrintInventoryDiv(value, count){
 
 <body>
 
-<h1><span class="badge badge-secondary">Список речей у ящику {{boxname}}</span>
-<a href="{% url 'storage-box-add' %}" > </a>  
-<span class="badge badge-success" title="Додати товар" id="button_additem" data-toggle="tooltip" data-placement="right"><i class="material-icons" style="font-size: 24px" >add</i></span>
+<h1>
 
+<a href="{% url 'storage-boxes-list-by-shop' s_shop_id.id %}" > 
+<span class="badge badge-success" title="Список місць у магазині {{s_shop_id}}" data-toggle="tooltip" data-placement="right"><i class="material-icons" style="font-size: 24px" >widgets</i></span>
+</a>  
+<span class="badge badge-secondary">Список речей у ящику {{boxname}}</span>
+
+<span class="badge badge-success" title="Додати товар" id="button_additem" data-toggle="tooltip" data-placement="right"><i class="material-icons" style="font-size: 24px" >add</i></span>
+<span class="badge badge-dark show_hide_sbox_null" title="Show/hide NULL items" data-toggle="tooltip" data-placement="bottom"><i class="material-icons" style="font-size: 24px" >disabled_visible</i></span>
 
 
 
 {% if request.user|has_group:"admin" %}
+
 <a href="/storage/box/delete/all/empty/" onClick="return confirm('Видалити всі пусті ящики?')">
 <span class="badge badge-dark" title="Delete all empty boxes"><i class="material-icons" style="font-size: 24px" >delete</i></span>
 </a>
@@ -482,7 +491,7 @@ function PrintInventoryDiv(value, count){
 
 
 {% if box_or_storage %}
-
+<!-- Box list -->
 {% for box in box_list %}
 <div class="alert alert-info ml-1" role="alert">
 
@@ -500,10 +509,11 @@ function PrintInventoryDiv(value, count){
 </div>
 {% endfor %}
 
-{% else %}
 
+{% else %}
+<!-- Box entry (list of catalog item) --> 
 {% for storage in box_list %}
-<div class="alert alert-info ml-1" role="alert">
+<div class="alert alert-info ml-1 {{storage.count_zero_html}}" role="alert" >
 
 <div class="d-flex bd-highlight ">
   <div class="p-1 bd-highlight"> 

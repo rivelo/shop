@@ -9293,7 +9293,8 @@ def inventory_get(request):
                 for x in json:
                     x['date_year'] = x['date'].strftime("%Y")  
                     x['date'] = x['date'].strftime("%d/%m/%Y [%H:%M]")
-                    x['edit_date'] = x['edit_date'].strftime("%d/%m/%Y [%H:%M]")
+                    if x['edit_date']:
+                        x['edit_date'] = x['edit_date'].strftime("%d/%m/%Y [%H:%M]")
                 #json = serializers.serialize('json', p_cred_month, fields=('id', 'date', 'price', 'description', 'user', 'user_username'))
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
     return HttpResponse(data_c, content_type='application/json')        

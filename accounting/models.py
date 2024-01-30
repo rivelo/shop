@@ -1230,10 +1230,13 @@ class ClientInvoice(models.Model):
     currency = models.ForeignKey(Currency)
     sale = models.IntegerField(blank = True, null = True, validators=[ MaxValueValidator(100), MinValueValidator(0) ]) 
     pay = models.FloatField(blank = True, null = True)    
-#    date = models.DateField(auto_now_add=False)
-    date = models.DateTimeField(auto_now_add = False)    
+#    pay_status = models.BooleanField(default = False)
+    date = models.DateTimeField(auto_now_add = False)
+#    date_update = models.DateTimeField(auto_now_add = False, blank=True, null=True)    
     description = models.TextField(blank = True, null = True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+#    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='user_create')
+#    user_update = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='user_update')
     chk_del = models.BooleanField(default=False, verbose_name="Мітка на видалення")    
     shop = models.ForeignKey(Shop, blank=True, null=True)
     #storage_box = models.ManyToManyField(StorageBox, blank = True)   
@@ -2085,8 +2088,13 @@ class StorageBox(models.Model):
             status = "badge-warning"
         if self.count > self.count_real:
             status = "badge-danger"
-            
         return status  
+
+    def count_zero_html(self):
+        cssclass = ''
+        if self.count == 0:
+            cssclass = 'zero_class'
+        return cssclass
 
     def get_storage_name(self):
         return u"%s %s" % (self.box_name, self.description)
@@ -2096,4 +2104,24 @@ class StorageBox(models.Model):
  
     class Meta:
         ordering = ["-date_create", "box_name", "catalog"]
-     
+
+
+#===============================================================================
+# 
+# class ClientInvoiceStorageBox(models.Model):
+#     sbox = models.ForeignKey(StorageBox)
+#     cinvoice = models.ForeignKey(ClientInvoice)
+#     count = models.IntegerField()
+#     date_create = models.DateTimeField(auto_now_add = False, blank=False, null=False) 
+#     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+#     
+#      
+# 
+#     def __unicode__(self):
+#         return u'[%s] %s' % (self.sbox, self.cinvoice)
+#  
+#     class Meta:
+#         ordering = ["-date_create", "sbox", ]
+#     
+#          
+#===============================================================================
