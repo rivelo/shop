@@ -576,8 +576,12 @@ urlpatterns = [
     url(r'^exchange/edit/(?P<id>\d+)/$', catalog.exchange_edit),
     url(r'^exchange/delete/(?P<id>\d+)/$', catalog.exchange_del),    
     
-    url(r'^storage/boxes/$', catalog.storage_box_list),
-    url(r'^storage/boxes/list/$', catalog.storage_boxes),
+    url(r'^storage/box/add/$', catalog.storage_box_add, name='storage-box-add'), #new function
+    url(r'^storage/box/(?P<id>\d+)/edit/$', catalog.storage_box_edit, name='storage-box-edit'), #new function
+    url(r'^storage/boxes/$', catalog.storage_boxes_list, name='storage-boxes-list'), #new function
+    url(r'^storage/shop/(?P<id>\d+)/boxes/$', catalog.storage_boxes_list, name='storage-boxes-list-by-shop'), #new function
+    url(r'^storage/box/(?P<id>\d+)/list/$', catalog.storage_box_list, name='storage-box-itemlist'), #new function
+    url(r'^storage/boxes/list/$', catalog.storage_boxes, name="storage_box-list"),
     url(r'^storage/boxes/print/$', catalog.storage_box_list, {'pprint': True}),
     url(r'^storage/box/(?P<boxname>[\w,.]+)/view/$', catalog.storage_box_list),
     url(r'^storage/box/delete/$', catalog.storage_box_delete),
@@ -599,7 +603,8 @@ urlpatterns = [
     url(r'^shop/sale/view/$', catalog.shopdailysales_list, name="shop_dailysales_monthly_cur"),
     url(r'^shop/sale/day/(?P<id>\d+)/delete/$', catalog.shopdailysales_delete),
 
-    url(r'^inventory/list/$', catalog.inventory_list),
+    url(r'^inventory/(?P<id>\d+)/edit/$', catalog.inventory_edit, name='inventory-edit'),
+    url(r'^inventory/list/$', catalog.inventory_list, name='inventory-list'),
     url(r'^inventory/mistake/list/$', catalog.inventory_mistake),
     url(r'^inventory/mistake/not/all/list/$', catalog.inventory_mistake_not_all),
     url(r'^inventory/autocheck/list/$', catalog.inventory_autocheck),
@@ -612,7 +617,7 @@ urlpatterns = [
     url(r'^inventory/year/(?P<year>\d+)/list/$', catalog.inventory_list),
     url(r'^inventory/year/(?P<year>\d+)/month/(?P<month>\d+)/list/$', catalog.inventory_list),
     url(r'^inventory/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/list/$', catalog.inventory_list),
-    url(r'^inventory/add/$', catalog.inventory_add),
+    url(r'^inventory/add/$', catalog.inventory_add, name="inventory-add"),
     url(r'^inventory/get/$', catalog.inventory_get),
     url(r'^inventory/count/get/$', catalog.inventory_get_count),
     url(r'^inventory/get/listid/$', catalog.inventory_get_listid),

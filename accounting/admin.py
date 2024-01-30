@@ -3,7 +3,7 @@
 from django.contrib import admin
 from catalog.accounting.models import Type, Size, Exchange, Manufacturer, Catalog, Country, Dealer, DealerManager, Currency, Rent, Wheel_Size, Bicycle_Storage, Bicycle_Photo, YouTube, PhoneStatus, Bicycle_Parts
 from catalog.accounting.models import CheckPay, Check, Schedules, Shop, CashType, Bank, Discount, FrameSize, ShopDailySales, ClientInvoice, DealerInvoice, Client, WorkTicket, CostType, Costs, ClientMessage, Bicycle_Store
-from catalog.accounting.models import GroupType, WorkStatus, WorkShop, ClientReturn, Bicycle_Sale, Bicycle_Type, WorkGroup, CatalogAttributeValue, CatalogAttribute, Season
+from catalog.accounting.models import GroupType, WorkStatus, WorkShop, ClientReturn, Bicycle_Sale, Bicycle_Type, WorkGroup, CatalogAttributeValue, CatalogAttribute, Season, StorageBox, BoxName, InventoryList
 
 from django.contrib.admin.options import ModelAdmin
 
@@ -210,6 +210,10 @@ admin.site.register(WorkGroup)
 admin.site.register(ShopDailySales)
 admin.site.register(Season)
 admin.site.register(CatalogAttribute)
+admin.site.register(BoxName)
+admin.site.register(StorageBox)
+admin.site.register(InventoryList)
+
 #admin.site.register()
 
 admin.site.register(DealerInvoice)

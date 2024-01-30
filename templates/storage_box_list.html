@@ -1,0 +1,542 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Список речей у ящику {{boxname}}</title>
+
+{% load poll_extras %}  
+
+<style type="text/css">
+
+  span:visited{ text-decoration:none; color:#293d6b; }
+  span:hover{ text-decoration:underline; color:white; } /*#293d6b; } */
+  span {color:#293d6b; cursor: pointer; }
+  
+  p.text-blue {
+/*  		color: blue; */
+  		color: #007bff;
+  }
+    p.text-red {
+  		color: red; 
+  	/*	color: #007bff; */
+  }
+  
+</style>
+
+<script type="text/javascript">
+
+var  myObj = null;
+
+$(document).ready( function() {
+
+	// Ajax request to INVENTORY catalog objects 
+	function ajax_inventory_req(pk, count, box_id){
+//		document.getElementById("ajax_item_list").innerHTML = '';
+//		$('#itemListModal').attr("pk", null);
+		const xhttp = new XMLHttpRequest();
+		// xhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+		xhttp.onload = function() {
+		  	// const myObj = JSON.parse(this.responseText);
+		  	const InvObj = JSON.parse(this.responseText);
+		  	
+		  	if ((InvObj.length == 1 ) && (!InvObj[0].error)) {
+		  		$("#inventory_count").show();
+		  		$("#inventory_count").val('');
+		  		$("#inventory_count").focus();
+		  		$("#error_msg").html('');
+		  		$("#search_item_ModalLabel").html("Додавання товару: <p class='text-blue'>" + InvObj[0].fields['ids'] + ' - ' +  InvObj[0].fields['name'] + "<\p>");
+		  		$("#error_msg").html("<p class='text-blue'>Знайдено!<\p>");
+		  		
+		  		PrintInventoryDiv(InvObj[0]);
+		  		for (i in InvObj){
+		  			console.log("ONE Model [ids] = " + InvObj[i].fields['ids'] + ' - ' +  InvObj[i].fields['name']) 
+		  		}
+		  		$('#itemListModal').attr("pk", InvObj[0].pk);	
+		  	}
+		  	
+		  	if (InvObj.length > 1){
+		  		for (i in myObj){
+		  			console.log("Model [ids] = " + InvObj[i].fields['ids'] + ' - ' +  InvObj[i].fields['name'])
+		  			document.getElementById("ajax_item_list").innerHTML += "<p class='found_item' ids='" + InvObj[i].fields['ids'] + "' >" + InvObj[i].fields['ids'] + ' - ' +  InvObj[i].fields['name'] + "  (" + InvObj[i].pk  +")<\p>";
+		  		}
+		  		// document.getElementById("ajax_item_list").innerHTML += "<p>Found more item!!!<\p>";
+		  		$("#error_msg").html('');
+		  	}
+		  	
+		  	if (InvObj[0].error == true) {
+		  		$("#error_msg").html(InvObj[0].error_msg);
+		  		$("#myInputScannerBarcode").val(InvObj[0].searchText);
+//		  		document.getElementById("itemsList").innerHTML += "<a href='"+myObj.url+"' > Перейти до товару </a>" ;
+		  	}
+
+			document.getElementById("myInputScannerBarcode").focus();
+		}
+		xhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+			      // document.getElementById("barcodes_content").innerHTML =  this.responseText;
+			      console.log("State - " +  this.responseText);
+			}
+		};
+		var c_pk = $('#ModalLabel').attr('pk');
+//		var code_val = document.getElementById("myInputScannerBarcode").value;
+		// const myObj = { 'code_value': code_val };
+		const myObjPost = { 'id': pk, 'box_id': box_id, 'count': count, 'status': false };
+		const myJSON = JSON.stringify(myObjPost);
+		xhttp.open("POST", "{% url 'inventory-add' %}");
+//		xhttp.setRequestHeader("Content-type", "application/json");
+//		xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+		xhttp.setRequestHeader('Content-Type', 'aplication/json');
+		xhttp.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		xhttp.send(myJSON);
+	}
+	
+	
+	
+// Ajax request to find Catalog object by code fields
+	function ajax_cat_req(){
+		document.getElementById("ajax_item_list").innerHTML = '';
+		$('#itemListModal').attr("pk", null);
+		const xhttp = new XMLHttpRequest();
+		xhttp.onload = function() {
+		  	// const myObj = JSON.parse(this.responseText);
+		  	myObj = JSON.parse(this.responseText);
+		  	//cat_model = JSON.parse(myObj)
+		  	console.log("Model = json Parse | len = " + myObj.length)
+		  	console.log("Error [0]  = " + myObj[0].error)
+		  	//console.log("myObj = " + myObj[0].model + " - " + myObj[0].pk + " Fields: [" + myObj[0].fields['ids'] + "] - " + myObj[0].fields['name']);
+
+		  	
+		  	if ((myObj.length == 1 ) && (!myObj[0].error)) {
+		  		$("#inventory_count").show();
+		  		$("#inventory_count").val('');
+		  		$("#inventory_count").focus();
+		  		$("#error_msg").html('');
+		  		$("#search_item_ModalLabel").html("Додавання товару: <p class='text-blue'>" + myObj[0].fields['ids'] + ' - ' +  myObj[0].fields['name'] + "<\p>");
+		  		$("#error_msg").html("<p class='text-blue'>Знайдено!<\p>");
+		  		
+		  		PrintInventoryDiv(myObj[0]);
+		  		for (i in myObj){
+		  			console.log("ONE Model [ids] = " + myObj[i].fields['ids'] + ' - ' +  myObj[i].fields['name']) 
+		  		}
+		  		$('#itemListModal').attr("pk", myObj[0].pk);	
+		  	}
+		  	
+		  	if (myObj.length > 1){
+		  		for (i in myObj){
+		  			console.log("Model [ids] = " + myObj[i].fields['ids'] + ' - ' +  myObj[i].fields['name'])
+		  			document.getElementById("ajax_item_list").innerHTML += "<p class='found_item' ids='" + myObj[i].fields['ids'] + "' >" + myObj[i].fields['ids'] + ' - ' +  myObj[i].fields['name'] + "  (" + myObj[i].pk  +")<\p>";
+		  		}
+		  		// document.getElementById("ajax_item_list").innerHTML += "<p>Found more item!!!<\p>";
+		  		$("#error_msg").html('');
+		  	}
+		  	
+		  	if (myObj[0].error == true) {
+		  		$("#error_msg").html(myObj[0].error_msg);
+		  		$("#myInputScannerBarcode").val(myObj[0].searchText);
+//		  		document.getElementById("itemsList").innerHTML += "<a href='"+myObj.url+"' > Перейти до товару </a>" ;
+		  	}
+
+			document.getElementById("myInputScannerBarcode").focus();
+		}
+		xhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+			      // document.getElementById("barcodes_content").innerHTML =  this.responseText;
+			      console.log("State - " +  this.responseText);
+			}
+		};
+//		var c_pk = $('#exampleModalLabel').attr('pk');
+		var code_val = document.getElementById("myInputScannerBarcode").value;
+		// const myObj = { 'code_value': code_val };
+		const myObjPost = { 'code_value': code_val };
+		const myJSON = JSON.stringify(myObjPost);
+		xhttp.open("POST", "{% url 'catalog-lookup' %}");
+//		xhttp.setRequestHeader("Content-type", "application/json");
+//		xhttp.setRequestHeader("Content-type", 'application/x-www-form-urlencoded; charset=utf-8');
+		xhttp.setRequestHeader("Content-Type", 'application/x-www-form-urlencoded; charset=UTF-8');
+		xhttp.send(myJSON);
+	}
+
+
+	//Event of input field 
+	var input = document.getElementById("myInputScannerBarcode");
+	input.addEventListener("keypress", function(event) {
+		console.log("Key pressed - " + input.value);
+	  if (event.key === "Enter") {
+	    event.preventDefault();
+//	    alert(input.value);
+	    ajax_cat_req();
+	    input.value = '';
+	  }
+
+	});
+
+	
+	// SHOW Modal Inventory dialog
+	$(document).on("click", ".button_inventory", function(event) {
+		$('#show_inventory').modal({
+//				  backdrop: false,
+				  focus: true, 
+				  keyboard: true,
+				});	
+//		document.getElementById("myInputScannerBarcode").focus();
+//		$("#inventory_count").hide();
+//		$("#error_msg").html('');
+		var item = $(this).attr('id-item');
+		var html_table = $('#show_inventory_table');
+		$("#show_inventory_Label").html("Інвентеризація:<br>" + $(this).attr('text-item'));
+		func_add_inventory_table(item, html_table);
+	});	
+
+	
+	
+	// SHOW Modal Search dialog
+	$(document).on("click", "#button_additem", function(event) {
+		$('#itemListModal').modal({
+//				  backdrop: false,
+				  focus: true, 
+				  keyboard: true,
+				});	
+		document.getElementById("myInputScannerBarcode").focus();
+		$("#inventory_count").hide();
+		$("#myInputScannerBarcode").focus();
+		$("#error_msg").html('');
+		$("#search_item_ModalLabel").html("Додавання товару:");
+	});	
+	
+	//HIDE modal dialog
+	$('#itemListModal').on('hidden.bs.modal', function (event) {
+		  $('#itemListModal').attr("pk", null);
+		  console.log("MODAL dialog is HIDE!!!");
+		})
+	
+	// Button ADD item to inventory
+	$(document).on("click", "#m_add_button", function(event) {
+	    console.log ("PK = " + $('#itemListModal').attr("pk") );
+	    if ($('#itemListModal').attr("pk")) {
+	    	//alert ( "ITEM PK = " +  $('#itemListModal').attr("pk") );
+	    	// add ajax function to INVENTORY save
+	    	var pk = $('#itemListModal').attr("pk")
+	    	var icount = $("#myInputCount").val();
+	    	ajax_inventory_req(pk, icount, {{boxname.id}} );
+	    	PrintInventoryDiv(myObj[0], icount);
+	    	
+	    	$("#error_msg").append("<p class='text-blue'>Додано - " + icount + " шт.<\p>");
+	    	$('#itemListModal').attr("pk", null);
+	    	$("#myInputCount").val(1);
+	    	document.getElementById("myInputScannerBarcode").focus();
+	    }
+	    else {
+	    	console.log ( "VAL input = " + document.getElementById("myInputScannerBarcode").value );
+	    	if (document.getElementById("myInputScannerBarcode").value == ""){
+	    		$("#error_msg").append("<p class='text-red'>Поле з кодом пусте!<\p>");
+	    	}
+	    	else {
+	    		ajax_cat_req();
+	    		document.getElementById("myInputScannerBarcode").value = '';
+	    	}
+	    }
+	});
+
+	// Found item add to search input
+	$(document).on("click", ".found_item", function(event) {
+//		alert("click ok - " + $(this).attr('ids'));
+		document.getElementById("myInputScannerBarcode").value = $(this).attr('ids');
+		ajax_cat_req();
+	})
+	
+	
+	$(document).on("click", ".inv_del", function(event) {
+//	$(".inv_del").click(function(){
+//		 console.log($(this).parents("tr").find('td.cat_name').html());
+	if (confirm("Ви дійсно бажаєте видалити запис? \n" + $(this).parents("tr").find('td.cat_name').text() )) {
+	 	var tr_del = $(this).parents("tr");
+			$.ajax({
+	                type: "POST",
+	                url: "/inventory/delete/",
+	                data: {id:  $(this).attr("inv_id") },
+	                dataType: "text",
+	                success:function(data){
+	                	tr_del.remove();
+	                },
+	                error:function(data){
+	                    alert("Виникли проблеми з сервером. " + data.responseText);
+	                    console.log( data );
+	                }
+	            });	
+	 }
+	 });
+	
+	
+}); // end ready
+
+
+
+// Get inventory, create html table (inventory list)
+function func_add_inventory_table(item, html_table) {
+	var Id = item; // $(this).parents('tr').attr('id');
+//	var Id = $(this).attr('cat_id');
+//	$('#table_body').empty();
+	var table_body = html_table;
+	html_table.empty();
+        $.ajax({
+            type: "POST",
+            url: "/inventory/get/",
+            data: { catalog_id: Id },
+            dataType: "json",
+            success:function(msg){
+            	$.each(msg,function(index,item){
+					var fcol = 'class="text-center" data-toggle="tooltip" data-html="true" data-placement="left" title="' + item['user__username'] + '">' + item['date'];
+					var cdesc = "" // item['box_id__name'] + "/" + item['description'];
+					if (item['box_id__name']){
+						cdesc =  item['box_id__name'] + "; "
+					}
+					if (item['description']){
+						cdesc =  cdesc + item['description'] + ";"
+					}
+					var tr_cls = 'class="table-success text-center"';
+					if (item['check_all']) {
+						var class_str = 'class="table-success text-center"'
+						if (item['count'] > item['real_count']) {
+							class_str = 'class="table-yellow text-center"'	
+						} 
+						if (item['count'] < item['real_count']) {
+							class_str = 'class="table-warning text-center"'	
+						} 
+						tr_cls = '<tr ' +class_str+ ' cid="' + item['id'] + '">';
+					}
+					else {
+						tr_cls = '<tr class="" cid="' + item['id'] + '">';
+					} 
+					var count = '<td style="font-weight: bold; text-align: center;" title="' + item['edit_date'] + '" data-toggle="tooltip" data-html="true" data-placement="left" >' + item['count'] + '';
+{% if request.user|has_group:"admin" %}						
+            	    table_body.append(tr_cls+ '<td '+ fcol +'</td><td class="text-center">'+ cdesc +'</td>' + count +'</td><td class="inv_set text-center" style="cursor: pointer;">'+ item['real_count'] +' шт.</td><td>'+ item['check_all'] +'</td><td class="text-center" data-toggle="tooltip" data-html="true" data-placement="top" title="Видалити"><span class="inv_del" inv_id="'+item['id']+'" style="cursor: pointer;"><i class="material-icons">delete_outline</i></span></td>></tr>');
+{% else %}                	    
+            	    table_body.append(tr_cls+ '<td '+ fcol +'</td><td class="text-center">'+ cdesc +'</td>' + count +'</td><td class="text-center">'+ item['real_count'] +' шт.</td><td class="text-center">'+ item['check_all'] +'</td></tr>');
+{% endif %}
+				// $('#inventoryTitle').html("[" +item['catalog__ids'] + "] " + item['catalog__name']);
+                });
+
+            },
+            error:function(msg){
+                alert(msg.responseText);
+            }
+        });      
+}
+
+
+function PrintThis(value, index, arr){
+	console.log("EaCH - " + value.fields.name + " | arr =  " +  arr[index].fields.ids + "| index - " + index);
+	str_input = "<br>[" + value.fields.ids + "] " + value.fields.name + " <a href='/catalog/edit/"+ value.pk  +"' >Перейти до товару?</a>"
+	document.getElementById("barcodes_content").innerHTML += str_input				
+}
+
+
+//function PrintInventoryDiv(value, index, arr){
+function PrintInventoryDiv(value, count){
+	start_str = '<div class="alert alert-info ml-1" role="alert">';
+	end_str = '</div>';
+	if (count) {
+		if (count < value.fields.count){
+			start_str = '<div class="alert alert-warning ml-1" role="alert">';
+		}
+		if (count == value.fields.count){
+			start_str = '<div class="alert alert-success ml-1" role="alert">';
+		}
+		if (count > value.fields.count){
+			start_str = '<div class="alert alert-danger ml-1" role="alert">';
+		}
+		
+		item_str = "" + value.fields.ids + "] " + value.fields.name + " - Знайдено " + count +  " з " + value.fields.count + " шт. <a class='badge badge-light' href='/catalog/edit/"+ value.pk  +"' >Перейти до товару?</a>";
+	}
+	else {
+		item_str = "" + value.fields.ids + "] " + value.fields.name + " - "+ value.fields.count + " шт. <a class='badge badge-light' href='/catalog/edit/"+ value.pk  +"' >Перейти до товару?</a>";
+	}	
+	document.getElementById("itemsList").innerHTML += start_str + item_str + end_str;				
+}
+
+
+</script>
+
+
+
+
+<!-- Modal dialog for Inventory SHOW -->
+<div class="modal fade" id="show_inventory" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="show_inventory_Label">Інвентеризація</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="div_inventory_table">
+
+<table class="table table-bordered table-hover table-condensed table-sm">
+<thead class="thead-dark">
+  <tr>
+    <th class="text-center">Дата</th>
+    <th class="text-center">Місце</th>
+    <th class="text-center">Кількість</th>
+    <th class="text-center">Кількість в базі</th>
+    <th class="text-center">Статус</th>
+{% if request.user|has_group:"admin" %}	    
+    <th>Дія</th>
+{% endif %}    
+  </tr>
+</thead>
+  <tbody id="show_inventory_table">
+  
+  </tbody>
+</table>
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+{#        <button type="button" class="btn btn-primary">Save changes</button> #}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal dialog for Add inventiry and ADD storage -->
+<div class="modal fade" id="itemListModal" ids="" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="search_item_ModalLabel">Додавання товару</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+{#        <form> #}
+          <div class="form-group">
+            <label for="recipient-code" class="col-form-label">Введіть штрихкод або артикул товару:</label>
+            <input type="text" class="form-control w-100 m-2" id="myInputScannerBarcode">
+          </div>
+
+<div class="form-group" id="ajax_item_list">
+
+</div>
+
+          <div class="form-group" id="inventory_count">
+            <label for="recipient-code" class="col-form-label">Введіть кількість товару:</label>
+            <input type="number" min="1" class="form-control w-100 m-2" id="myInputCount" value="1">
+          </div>
+
+
+            
+          
+<div class="form-group" >
+<small class="form-text text-muted">
+  Рядок статусу:
+</small>
+      <label id="error_msg" class="" style="color: red;">
+            Your password must be 8-20 characters long, contain letters and numbers, and must not contain spaces, special characters, or emoji.
+      </label>
+</div>
+
+
+
+{#        </form> #}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="m_add_button">Додати</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<body>
+
+<h1><span class="badge badge-secondary">Список речей у ящику {{boxname}}</span>
+<a href="{% url 'storage-box-add' %}" > </a>  
+<span class="badge badge-success" title="Додати товар" id="button_additem" data-toggle="tooltip" data-placement="right"><i class="material-icons" style="font-size: 24px" >add</i></span>
+
+
+
+
+{% if request.user|has_group:"admin" %}
+<a href="/storage/box/delete/all/empty/" onClick="return confirm('Видалити всі пусті ящики?')">
+<span class="badge badge-dark" title="Delete all empty boxes"><i class="material-icons" style="font-size: 24px" >delete</i></span>
+</a>
+<a href="/storage/box/delete/all/" onClick="return confirm('Видалити всі ящики?')">
+<span class="badge badge-dark" title="Delete all boxes"><i class="material-icons" style="font-size: 24px" >delete_sweep</i></span>
+</a>
+{% endif %}
+</h1>
+
+
+<div class="d-flex flex-row bd-highlight mb-3">
+<div class="row w-100">
+<div class="col-lg-8 col-xs-12 col-sm-12" id="itemsList">
+
+{# <div class="alert alert-info ml-1" role="alert">TEST</div> #}
+
+
+
+
+{# <div class="row"> #}
+{# <div class="col"> #}
+
+
+{% if box_or_storage %}
+
+{% for box in box_list %}
+<div class="alert alert-info ml-1" role="alert">
+
+<div class="d-flex bd-highlight ">
+  <div class="p-1 bd-highlight"> {{ box }} 
+  	<a href="" class="badge badge-light" title="Переглянути вміст ящика"  data-toggle="tooltip" data-placement="right"><i class="material-icons" style="font-size: 24px" >	inventory_2	</i></a>  
+  </div>
+  
+  <div class="ml-auto p-1 bd-highlight">
+  <a href="{% url 'storage-box-edit' box.pk %}" class="text-right" title="Редагувати назву"  data-toggle="tooltip" data-placement="left"><i class="material-icons" style="font-size: 24px" >edit</i></a>
+  </div>
+  
+</div>
+
+</div>
+{% endfor %}
+
+{% else %}
+
+{% for storage in box_list %}
+<div class="alert alert-info ml-1" role="alert">
+
+<div class="d-flex bd-highlight ">
+  <div class="p-1 bd-highlight"> 
+  [{{ storage.catalog.get_code|join:"; " }}] {{storage.catalog.name}} 
+  <span class="badge {{storage.diff_count_color}}" title="{{storage.count}} з {{storage.count_real}} шт." data-toggle="tooltip" data-placement="bottom">{{storage.count}}</span>  
+  </div>
+  
+  <div class="ml-auto p-1 bd-highlight">
+  <span class="mr-2" title="Створено: <br>{{storage.date_create}}" data-toggle="tooltip" data-html="true" data-placement="left"><i class="material-icons" style="font-size: 24px" >calendar_today</i></span>
+  <span class="badge badge-light button_inventory" title="Переглянути інвентаризацію" text-item="{{storage.catalog}}"  id-item="{{storage.catalog.id}}" data-toggle="tooltip" data-placement="right">
+{#  <i class="material-icons" style="font-size: 24px" >inventory_2</i> #} 
+  <i class="material-icons" style="font-size: 24px" >list</i> 
+  </span>
+  
+{#  <a href="{% url 'storage-box-edit' storage.pk %}" class="text-right" title="Редагувати назву"  data-toggle="tooltip" data-placement="left"><i class="material-icons" style="font-size: 24px" >edit</i></a> #}
+  </div>
+</div>
+
+</div>
+{% endfor %}
+
+
+{% endif %}
+
+
+
+
+{# </div></div> #}
+
+</div></div></div>
+
+</body>
+
+    
+
+

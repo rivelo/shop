@@ -36,9 +36,9 @@ from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,
 from models import Catalog, Client, ClientDebts, ClientCredits, ClientInvoice, ClientOrder, ClientMessage, ClientReturn, InventoryList
 from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType, Discount, Shop
 from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus, YouTube
-from models import CatalogAttributeValue, CatalogAttribute
+from models import CatalogAttributeValue, CatalogAttribute, BoxName, StorageBox 
 
-from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, ClientInvoiceForm, ClientOrderForm, ClientEditForm
+from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, ClientInvoiceForm, ClientOrderForm, ClientEditForm, BoxNameForm, BoxNameEditForm, InventoryListForm
 from forms import ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm, BicycleStorage_Form, StorageType_Form
 from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm, DiscountForm 
 from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm, WorkShopFormset, SalaryForm
@@ -4082,7 +4082,9 @@ def catalog_search_id(request):
 
 
 def catalog_search_locality(request):
-    return render_to_response('index.html', {'weblink': 'catalog_search.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'weblink': 'catalog_search.html',}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def catalog_search_by_ids(request):
@@ -4172,9 +4174,9 @@ def catalog_lookup(request):
         rdict = QueryDict(request.body)
         sel_id = rdict.keys()#[0]
         req_dict = json.loads(request.body)
-#        print "DICT  = %s" % sel_id #.items() 
+#        print "DICT  = %s" % req_dict #.items() 
 #        print "DICT [id] = %s" % req_dict['pk']
-        if req_dict['pk']:
+        if req_dict.has_key('pk'):
             pk = int(req_dict['pk'])
             value = req_dict['value']
             obj = Catalog.objects.get(id = pk)#.values('name','id', 'ids', 'dealer_code', 'price')
@@ -4202,18 +4204,21 @@ def catalog_lookup(request):
 #            data = json.dumps(jobj)
         #JS send  setRequestHeader("Content-type", "application/json")
  
-#        print("\nPK = %s | post[pk] = \n" % request.POST)
-#        if request.POST.has_key('pk'):
-#            pk = request.POST['pk']
-#            obj = Catalog.objects.get(id = pk)#.values('name','id', 'ids', 'dealer_code', 'price')
-#            print "OBJ has KEY -  %s" % type(obj) 
-#            data = serializers.serialize('json', [obj,])
-            #data = serializers.serialize("json", model_results, fields=('name','id', 'ids', 'dealer_code', 'price')) # its for Filter
-            #data = json.dumps(model_result)
-            #data = "Request. OK"
-#            return HttpResponse(data, content_type='application/json')
-    return HttpResponse(data, content_type='application/json')    
-    #return HttpResponse(json)
+        if req_dict.has_key('code_value'):
+            code = req_dict['code_value']
+            obj = Catalog.objects.filter(Q(ids__contains=code) | Q(dealer_code__contains=code) | Q(barcode__contains=code) | Q(barcode_ean__contains=code) | Q(barcode_upc__contains=code) | Q(manufacture_article__contains=code))
+            print "\nOBJ = " + str(obj.count()) + "\n"
+            res = serializers.serialize('json', obj)
+            data = simplejson.dumps(res)
+            if obj.count() == 0 :
+                data = [{'error_msg': 'Error: Item not found!', 'error' : True , 'searchText': code}, ]  
+                res = simplejson.dumps(data)
+            if obj.count() > 10 :
+                data = [{'error_msg': 'Знайдено понад 10 товарів з таким кодом, допишіть ще частину коду щоб зменшити список', 'error' : True , 'searchText': code}, ]  
+                res = simplejson.dumps(data)
+                
+
+    return HttpResponse(res, content_type='application/json')    
 
 
 def catalog_get_locality(request):
@@ -4649,8 +4654,6 @@ def client_invoice(request, cid=None, id=None):
         a = ClientInvoice(date=datetime.datetime.today(), price=cat.price, sum=cat.price, sale=int(Catalog.objects.get(id = cid).sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=cat, user = request.user)
         
     if request.method == 'POST':
-        #form = ClientInvoiceForm(request.POST, initial = { instance = a, catalog_id = cid, request = request, 'user': request.user} )
-        #form = ClientInvoiceForm(initial = { 'instance' : a, 'catalog_id' : cid } )
         form = ClientInvoiceForm(request.POST, instance = a, catalog_id=cid, request = request)
         if form.is_valid():
 #            form.save()            
@@ -4693,7 +4696,7 @@ def client_invoice(request, cid=None, id=None):
         form = ClientInvoiceForm(instance = a, catalog_id=cid, request = request)
         #form = ClientInvoiceForm(initial = { 'instance' : a, 'catalog_id' : cid, 'user': request.user})
     nday = 3
-    nbox = cat.locality
+    nbox = cat.get_storage_box()
     b_len = False
     if cat.type.pk == 13:
         b_len = True
@@ -4701,7 +4704,7 @@ def client_invoice(request, cid=None, id=None):
     clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client')).order_by('client__id')
 
     cat_obj = cat.get_discount_item()
-    context = {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len}
+    context = {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_numbers': nbox, 'b_len': b_len}
     context.update(custom_proc(request))
     return render(request, 'index.html',  context)
 
@@ -8841,6 +8844,7 @@ def bicycle_price_set(request):
                 return HttpResponse(c)
 
 
+# -------- old function ----------
 def storage_box_list(request, boxname=None, pprint=False):
     if boxname:
         list = Catalog.objects.filter(locality = boxname)
@@ -8849,9 +8853,11 @@ def storage_box_list(request, boxname=None, pprint=False):
         list = Catalog.objects.exclude(locality__isnull=True).exclude(locality__exact='').values('locality').annotate(icount = Count('locality')).order_by('locality')
         #boxlist = Catalog.objects.exclude(locality__isnull=True).exclude(locality__exact='').values('locality').annotate(icount=Count('locality')).order_by('locality')
     if pprint:
-        return render_to_response('storage_box.html', {'boxes': list, 'pprint': True}, context_instance=RequestContext(request, processors=[custom_proc]))
+        return render(request, 'storage_box.html', {'boxes': list, 'pprint': True})
     cur_year = datetime.date.today().year
-    return render_to_response("index.html", {"weblink": 'storage_box.html', "boxes": list, 'pprint': False, 'cur_year': cur_year}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {"weblink": 'storage_box.html', "boxes": list, 'pprint': False, 'cur_year': cur_year}
+    context.update(custom_proc(request))
+    return render(request, "index.html", context)
 
 
 def storage_box_delete(request, id=None):
@@ -8878,7 +8884,6 @@ def storage_box_delete_all(request, all=False):
     return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;")
 
 
-
 def storage_box_rename(request):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -8897,6 +8902,113 @@ def storage_boxes(request):
     context = {"weblink": 'storage_boxes.html', "boxes": boxlist}
     context.update(custom_proc(request))
     return render(request, "index.html", context)    
+
+@csrf_exempt
+def storage_box_add(request):
+    if not request.user.is_authenticated():
+        context = {'weblink': 'error_message.html', 'mtext': 'Авторизуйтесь щоб виконати дану функцію', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+
+    a = BoxName()
+    userid = request.user
+    shopid = get_shop_from_ip(request.META['REMOTE_ADDR'])
+    if request.method == 'POST':
+        form = BoxNameForm(request.POST)#, request = request)        
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            shop = form.cleaned_data['shop']
+            user = form.cleaned_data['user']
+            description = form.cleaned_data['description']
+            mark_delete = form.cleaned_data['mark_delete']
+            Nbox = BoxName(name=name, shop = shop, user=user, description=description, mark_delete=mark_delete)
+            Nbox.save()
+                            
+            return HttpResponseRedirect( reverse('storage-boxes-list', ) )
+    else:
+        form = BoxNameForm(initial={'user': userid, 'shop': shopid})#, request = request)        
+    context = {"weblink": 'storage_box_add.html', 'form': form, 'add_form': True}
+    context.update(custom_proc(request))
+    return render(request, "index.html", context)  
+
+@csrf_exempt
+def storage_box_edit(request, id):
+    if not request.user.is_authenticated():
+        context = {'weblink': 'error_message.html', 'mtext': 'Авторизуйтесь щоб виконати дану функцію', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+
+    a = BoxName.objects.get(pk=id)
+  #  print "\nBox [%s]" % a
+    if request.method == 'POST':
+#        form = BicycleStorage_Form(request.POST, request.FILES, instance=a)
+        form = BoxNameEditForm(request.POST, instance=a) #, request = request)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect( reverse('storage-boxes-list', ) )
+    else:
+        form = BoxNameEditForm(instance=a)#, request = request)
+    context = {"weblink": 'storage_box_add.html', 'form': form, 'box_id': id}
+    context.update(custom_proc(request))
+    return render(request, "index.html", context)  
+
+
+
+def storage_boxes_list(request, id=None):
+    shopList = Shop.objects.filter(show = True)
+    boxlist = None
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+#    shopN = get_shop_from_ip('192.168.1.1')
+    if id:
+        boxlist = BoxName.objects.filter(shop = id)
+        shopN = Shop.objects.get(pk = id)
+    else:
+        boxlist = BoxName.objects.filter(shop = shopN)
+        #boxlist = BoxName.objects.all()
+     
+    context = {"weblink": 'storage_boxes_list.html', "boxes": boxlist, 'shop_list': shopList, 's_shop_id': shopN}
+    context.update(custom_proc(request))
+    return render(request, "index.html", context)  
+
+
+def storage_box_list(request, id=None):
+    shopList = Shop.objects.filter(show = True)
+    boxname = BoxName.objects.get(pk = id)
+    boxlist = None
+    bs_stat = None
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+    if id:
+        boxlist = StorageBox.objects.filter(box_name = id, )
+        bs_stat = False
+    else:
+        #boxlist = StorageBox.objects.filter(shop = shopN)
+        boxlist = BoxName.objects.all()
+        bs_stat = True
+     
+    context = {"weblink": 'storage_box_list.html', "box_list": boxlist, 'shop_list': shopList, 's_shop_id': shopN, 'boxname': boxname, 'box_or_storage': bs_stat}
+    context.update(custom_proc(request))
+    return render(request, "index.html", context)  
+
+
+@csrf_exempt
+def inventory_edit(request, id):
+    if not auth_group(request.user, 'admin'):
+        context = {'weblink': 'error_message.html', 'mtext': 'Авторизуйтесь щоб виконати дану функцію', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+
+    a = InventoryList.objects.get(pk=id)
+  #  print "\nBox [%s]" % a
+    if request.method == 'POST':
+        form = InventoryListForm(request.POST, instance=a) 
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect( reverse('inventory-list', ) )
+    else:
+        form = InventoryListForm(instance=a)
+    context = {"weblink": 'inventory.html', 'form': form, }
+    context.update(custom_proc(request))
+    return render(request, "index.html", context)  
 
 
 def inventory_list(request, year=None, month=None, day=None):
@@ -8917,12 +9029,11 @@ def inventory_list(request, year=None, month=None, day=None):
          month = datetime.datetime.now().month
          day = datetime.datetime.now().day        
          list = list.filter(date__month = month, date__day = day)
-    #list = InventoryList.objects.filter(date__year = year, date__month = month, date__day = day)
-    #list = InventoryList.objects.filter(date__year = year, date__month = month)
     year_list = InventoryList.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
     month_list = InventoryList.objects.filter(date__year = year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')
-
-    return render_to_response("index.html", {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month}
+    context.update(custom_proc(request))
+    return render(request, "index.html", context)
 
 
 def inventory_mistake(request, year=None, month=None, day=None):
@@ -9013,8 +9124,11 @@ def inventory_fix_catalog(request, cat_id=None, inv_id=None, update=False):
     
     if realCount != isum['csum']:
         print "Real count not equal COUNT"
-    res_str = 'Товар: ' + str(cfix) + '<br>Помилка закриття. Перевірте цей товар вручну.'        
-    return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': res_str}, context_instance=RequestContext(request, processors=[custom_proc]))        
+    res_str = 'Товар: ' + str(cfix) + '<br>Помилка закриття. Перевірте цей товар вручну.'
+    
+    context = {'weblink': 'error_message.html', 'mtext': res_str}
+    context.update(custom_proc(request))         
+    return render(request, 'index.html', context)        
     #return HttpResponse('Fix element = ' + str(cfix) + '\nПомилка закриття. Перевірте цей товар вручну.', content_type="text/plain;charset=UTF-8;;" )
 
 
@@ -9078,6 +9192,7 @@ def inventory_add(request):
     balance = 0
     if request.is_ajax():
         if request.method == 'POST':  
+            
             if auth_group(request.user, 'seller')==False:
                 return HttpResponse('Error: У вас не має прав для редагування')
             POST = request.POST  
@@ -9113,6 +9228,51 @@ def inventory_add(request):
                 c.save()
                 inv = InventoryList(catalog = c, count = count, date = datetime.datetime.now(), user = request.user, description=desc, edit_date = datetime.datetime.now(), check_all = status, real_count=c.count)
                 inv.save()
+            #rdict = QueryDict(request.body)
+            #sel_id = rdict.keys()#[0]
+            req_dict = json.loads(request.body)
+            if req_dict: 
+#                print "\n>>> We are the POST request - JSON <<<<\n"
+                if (req_dict.has_key('id') and req_dict.has_key('box_id') and req_dict.has_key('count') and req_dict.has_key('status')) :
+                    pid = req_dict['id']
+                    count = req_dict['count']
+                    box_id = req_dict['box_id']
+                    status = req_dict['status']
+                    dnow = datetime.datetime.now()
+                    user = request.user
+                    desc = ''
+                    if box_id == '':
+                    #search = "Введіть текст опису"
+                        jsonDict = {"status": "error", "message": "Виберіть місцезнаходження даного товару!"}
+                        return HttpResponse(simplejson.dumps(jsonDict), content_type="aplication/json")           
+                    c = Catalog.objects.get(id = pid)
+                    b = BoxName.objects.get(id = box_id)
+                    shop = get_shop_from_ip(request.META['REMOTE_ADDR'])
+ #                   print "\n BOX = %s; catalog = %s\n" % (b.id, c.id)
+                    inv = InventoryList(catalog = c, count = count, box_id = b, date = datetime.datetime.now(), user = user, description=desc, edit_date = dnow, check_all = status, real_count=c.get_realshop_count(), shop=shop)
+                    inv.save()
+                    inv_str = "[%s] Inventory id = %s; count = %s in %s" % (dnow, inv.id, inv.count, inv.real_count) 
+                    if not StorageBox.objects.filter(catalog = c):
+                        sb = StorageBox(catalog = c, box_name = b, count = count, count_real = c.get_realshop_count(), count_last = 0, shop = shop, date_create = dnow, date_update=dnow, user = user, description=desc)
+                        sb.save()
+                    else:
+                        hist_str = ""
+                        sb_list = StorageBox.objects.filter(catalog = c, box_name = b)
+                        sb = StorageBox.objects.get(pk = sb_list[0].id)
+  #                      print "\nSTORAGE box catalog = " + str(sb[0])
+                        count_last = sb.count
+                        sb.count = sb.count + int(count)
+                        sb.count_real = c.get_realshop_count()
+                        sb.date_create = dnow # date create 
+                        sb.date_update = dnow
+                        if sb.shop != shop:
+                            hist_str = hist_str + "["+ str(dnow) + "] Shop changed - " + str(sb.shop) + " -> " + str(shop) + " by user [" + str(user) + "]"  
+                        sb.shop = shop
+                        sb.user_update = user
+                        if sb.history == None:
+                            sb.history = ""
+                        sb.history = sb.history +  hist_str + "\n" + inv_str
+                        sb.save()
                 
     jsonDict = {"status": "done", "message": "", "id": inv.id, "count": inv.count, "description": inv.description, "user__username": inv.user.username, "date": inv.date.strftime("%d/%m/%Y [%H:%M]"), "check_all":inv.check_all, "real_count":inv.real_count}
     return HttpResponse(simplejson.dumps(jsonDict), content_type="aplication/json")
@@ -9128,14 +9288,14 @@ def inventory_get(request):
             POST = request.POST  
             if POST.has_key('catalog_id'):
                 cid = request.POST['catalog_id']
-                i_list = InventoryList.objects.filter(catalog = cid).values('id', 'count', 'description', 'user', 'user__username', 'date', 'check_all', 'real_count', 'catalog__name', 'catalog__ids')
+                i_list = InventoryList.objects.filter(catalog = cid).values('id', 'count', 'description', 'user', 'user__username', 'date', 'check_all', 'real_count', 'catalog__name', 'catalog__ids', 'box_id__name', 'shop__name', 'edit_date')
                 json = list(i_list)
                 for x in json:
                     x['date_year'] = x['date'].strftime("%Y")  
                     x['date'] = x['date'].strftime("%d/%m/%Y [%H:%M]")
+                    x['edit_date'] = x['edit_date'].strftime("%d/%m/%Y [%H:%M]")
                 #json = serializers.serialize('json', p_cred_month, fields=('id', 'date', 'price', 'description', 'user', 'user_username'))
                 return HttpResponse(simplejson.dumps(json), content_type='application/json')
-
     return HttpResponse(data_c, content_type='application/json')        
 
 @csrf_exempt
@@ -9198,15 +9358,10 @@ def inventory_set(request):
     return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;")
     #return HttpResponse(data_c, content_type='application/json')        
 
-    
+@csrf_exempt    
 def inventory_delete(request, id=None):
     obj = None
     wid = None
-#    if auth_group(request.user, 'admin') == False:
-#        if request.is_ajax():
-#            return HttpResponse('У вас не вистачає повноважень', status=401, content_type="text/plain;charset=UTF-8;")
-            #return HttpResponse("У вас не вистачає повноважень", content_type="text/plain;charset=UTF-8;;charset=UTF-8;charset=UTF-8")
-#        return HttpResponseRedirect('/inventory/list/')
     try:
         if request.is_ajax():
             if request.method == 'POST':  
@@ -9214,7 +9369,7 @@ def inventory_delete(request, id=None):
                 if POST.has_key('id'):
                     wid = request.POST.get( 'id' )
             obj = InventoryList.objects.get(id = wid)
-            print "User = " + str(obj.user) + " - " + str(request.user == obj.user) + " / " + str(auth_group(request.user, 'admin') == False)
+#            print "User = " + str(obj.user) + " - " + str(request.user == obj.user) + " / " + str(auth_group(request.user, 'admin') == False)
             if (request.user != obj.user):
                 if (auth_group(request.user, 'admin') == False):
                     return HttpResponse('У вас не вистачає повноважень', status=401, content_type="text/plain;charset=UTF-8;")

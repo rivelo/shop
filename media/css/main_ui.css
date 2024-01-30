@@ -70,12 +70,17 @@ td.mark_true {
 
 
 td.mark_false {
-		background: #0c5e0c; !important;
+	background: #0c5e0c; !important;
 	color: #FFFFFF;
 	border: #FFFFFF;
 	font-weight: bold;
 }
 
+div.alert-attr-value {
+	background-color: #e0e9bf; !important;
+	color: #181816;
+	border-color: #b0cb4d;
+}
 
 /* Підказки іншого кольору та стилю
 .tooltip-inner {

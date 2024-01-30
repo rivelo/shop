@@ -240,8 +240,8 @@ $('[data-toggle="tooltip"]').tooltip();
 });
 
 
-
 </script>
+
 
 <body onload="document.getElementById('s_client').focus()">
 
@@ -302,9 +302,23 @@ $('[data-toggle="tooltip"]').tooltip();
 {#<span class="badge badge-info">#}
 <i class="material-icons">photo_size_select_actual</i></button>
 {% endif %}
-<span class="label label-green pl-2 pr-2 align-middle"><font size="4" class="align-middle">{{ catalog_obj }}</font></span>
+<span class="label label-green pl-2 pr-2 align-middle"><font size="4" class="align-middle">
+{% if request.user|has_group:"admin" %}
+<a href="{% url 'catalog_edit' catalog_obj.id %}" class="text-white">{{ catalog_obj }}</a>
+{% else %}
+	{{ catalog_obj }}
+{% endif %}
+</font></span>
 </h1>
 </div>
+
+{% if request.user|has_group:"admin" %}
+<div class="col-12 mb-2">
+Status row: 
+<span class="badge badge-light {{catalog_obj.chk_price.1}}">	{{catalog_obj.chk_price.0}} </span>
+</div>
+{% endif %}
+
 </div>
 
 <div class="row mr-1">
@@ -472,9 +486,15 @@ $('[data-toggle="tooltip"]').tooltip();
 
 <div class="col-12 col-md-6">
 <h3>
-<span class="badge badge-info w-100">
-Номер ящика: {{box_number}}
-</span><br>
+<span class="badge badge-info">
+Номер ящика:
+</span>
+{% for box in box_numbers %}
+<span class="badge badge-info">
+{{box.get_storage_name}}<span class="badge badge-light">{{box.count}} шт.</span>
+</span>
+{% endfor %}
+
 {% if cat_sale %}
 <span class="btn btn-outline-warning mt-3 w-100 font-weight-bold">{{cat_sale.name}}: <font size="3">{{ cat_sale.sale }}%</font></span>
 {% endif %}

@@ -2,7 +2,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Інвентеризація товару</title>
 
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+{# <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
 {# <link type="text/css" rel="stylesheet" href="/media/paginator.css"> #}
 
 {# <link rel="stylesheet" href="/media/jquery-ui.min.css"> #} 
@@ -83,6 +83,11 @@ table a
     border: solid 1px purple;
 }
 
+.modal fade {
+	width: 50%;
+}
+
+
 </style>
 
 
@@ -97,11 +102,8 @@ $(document).ready(function() {
  });	
 	
  
- $(".inv_del").click(function(){
-//	 console.log($(this).parents("tr").find('td.cat_name').html());
-//if (confirm("Ви дійсно бажаєте видалити запис? \n" + $(this).parents("tr").find('td.cat_name').html() )) {
+$(document).on("click", ".inv_del", function(event) {
 if (confirm("Ви дійсно бажаєте видалити запис? \n" + $(this).parents("tr").find('td.cat_name').text() )) {
-// 	console.log($(this).parents("tr"));
  	var tr_del = $(this).parents("tr");
 	
 		$.ajax({
@@ -120,26 +122,6 @@ if (confirm("Ви дійсно бажаєте видалити запис? \n" +
  }
  });
 
-/*
- $(document).on("click", ".inv_del", function(event) {
-	 if (confirm("Ви дійсно бажаєте видалити запис?")) {
-	 	var tr_del = $(this).parents("tr");
-			$.ajax({
-	                type: "POST",
-	                url: "/inventory/delete/",
-	                data: {id:  $(this).attr("inv_id") },
-	                dataType: "text",
-	                success:function(data){
-	                	tr_del.remove();
-	                },
-	                error:function(data){
-	                    alert("Виникли проблеми з сервером" + data);
-	                }
-	            });	
-	 }
-	 });
- */
- 
  
 function addZero(i) {
     if (i < 10) {
@@ -277,7 +259,11 @@ $(document).on("click", ".inv_show", function(event) {
 </script> 
 
 
+
+
 <body>
+
+<div class="ml-2 p-2 bd-highlight">
 
 <h1><span class="badge badge-success">Інвентеризація товару</span> 
 {% if request.user|has_group:"admin" %}
@@ -308,22 +294,11 @@ $(document).on("click", ".inv_show", function(event) {
 {% endfor %}
 </h2>
 
-{% comment %}
-<h2>
-За місяць:
-{% with 1|mrange:13 as range %}    
-{% for i in range %}
-    <a class="badge badge-info" href="/inventory/year/{{cur_year}}/month/{{i}}/day/{{sel_day}}/list">{{i}}</a>
-{% endfor %}     
-{% endwith %}
-</h2>    
-{% endcomment %}
-
 {% endif %}
 
 <!-- Modal -->
 <div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="inventoryTitle" aria-hidden="true">
-  <div class="modal-dialog" role="document">
+  <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="inventoryTitle">Інвентеризація</h5>
@@ -336,7 +311,7 @@ $(document).on("click", ".inv_show", function(event) {
 <thead>
   <tr>
     <th>Дата</th>
-    <th>Опис</th>
+    <th>Місце</th>
     <th>Кількість</th>
     <th>Статус</th>
     <th>Кількість в базі</th>
@@ -357,22 +332,26 @@ $(document).on("click", ".inv_show", function(event) {
     </div>
   </div>
 </div>
+<!-- end Modal -->
 
-<table class = "table table-bordered table-hover table-condensed">
+<table class = "table table-bordered table-hover table-condensed table-sm">
+<thead class="thead-dark">
 	<tr>
 		<th>#</th>
-		<th>id</th>
-		<th>Товар</th>
-		<th>Кількість</th>
-		<th>Опис</th>
-		<th>Дата підрахунку</th>
-		<th>Користувач</th>
-		<th>Дата редагування</th>
-		<th>Статус виконання</th>
-		<th>Кількість в базі</th>
-		<th></th>
+		<th class="text-center">id</th>
+		<th class="text-center">Товар</th>
+		<th class="text-center">К-ть</th>
+		<th class="text-center">К-ть<br> в базі</th>
+		<th class="text-center">Місце</th>
+		<th class="text-center">Дата<br>підрахунку</th>
+		<th class="text-center">Користувач</th>
+{#		<th class="text-center">Дата редагування</th> #}
+		<th class="text-center">Статус</th>
+		<th>+/-</th>
 		<th></th>
 	</tr>
+</thead>
+	
 	{% for element in return_list %}
 	<tr inv_id="{{element.id}}" 
 	{% if element.count > element.real_count and element.check_all %}
@@ -393,22 +372,31 @@ $(document).on("click", ".inv_show", function(event) {
 </button>
 		</td>
 		<td class="cat_name">
-		<a href="/invoice/search/result/?name=&id={{element.catalog.ids}}" title="Перейти до товару" data-toggle="tooltip" data-placement="left"><span><i class="material-icons">forward</i></span></a>
+		<a href="/invoice/search/result/?name=&id={{element.catalog.ids}}" title="Перейти до товару" data-toggle="tooltip" data-placement="left" data-html="true"><span><i class="material-icons">forward</i></span></a>
 		{{ element.catalog }}
 		<a href = "{% url 'fix_inventory' element.catalog.id %}" class="badge badge-pill badge-danger"> Inventory </a>
 		</td>
 		<td align="center" class="count_edit">
 		<a href="/client/invoice/catalog/{{element.catalog.id}}/add/" title="Списати товар" data-toggle="tooltip" data-placement="left"> {{ element.count }} </a>
 		</td>
-		<td>{{ element.description }}</td>
-		<td>{{ element.date|date:"l j/m/Y" }} - {{ element.date|time:"H:i" }}</td>
-		<td align="center">{{ element.user }}</td>
-		<td>{{ element.edit_date }}</td>		
-		<td>
-		<span class="inv_set" inv_id="{{element.id}}" style="cursor: pointer;">{{ element.check_all|yesno:"Повністю,Частково"}}</span>
-		</td>
 		<td align="center">
 		<a href="/invoice/catalog/{{element.catalog.id}}/add/" title="Додати товар" data-toggle="tooltip" data-placement="left">{{ element.real_count }}</a>
+		</td>
+		
+		<td class="text-center">{{ element.description }} <br>
+		{% if element.box_id.id %}
+		<a href="{% url 'storage-box-itemlist' element.box_id.id %}" >{{element.box_id}}</a>
+		{% endif %}
+		</td>
+		
+		<td title="останнє редагування - {{ element.edit_date|date:"l j/m/Y" }}" data-toggle="tooltip" data-placement="bottom" class="text-center">
+{#		{{ element.date|date:"l j/m/Y" }} - {{ element.date|time:"H:i" }} #}
+		{{ element.date|date:"j/m/Y" }}<br>{{ element.date|time:"H:i" }}
+		</td>
+{#		<td align="center">{{ element.edit_date }}</td> #}
+		<td class="text-center">{{ element.user }}</td>		
+		<td class="text-center">
+		<span class="inv_set" inv_id="{{element.id}}" style="cursor: pointer;" >{{ element.check_all|yesno:"Повністю,Частково"}}</span>
 		</td>
 		<td align="center">
 		{% if element.count > element.real_count %}
@@ -429,6 +417,13 @@ $(document).on("click", ".inv_show", function(event) {
 		</td>
 	{% if request.user|has_group:"seller" %}
 		<td align="center">
+		{% if request.user|has_group:"admin" %}
+			 <span class="inv_edit" inv_id="{{element.id}}" style="cursor: pointer;" data-toggle="tooltip" data-html="true" data-placement="right" title="Редагувати">
+			 <a href="{% url 'inventory-edit' element.id %}" >
+			 <i class="material-icons">edit</i>
+			 </a>
+			 </span>	
+		{% endif %}	
 		<span class="inv_del" inv_id="{{element.id}}" style="cursor: pointer;" data-toggle="tooltip" data-html="true" data-placement="right" title="Видалити"><i class="material-icons">delete_outline</i></span>
 		</td>
 	{% endif %}
@@ -473,6 +468,7 @@ $(document).on("click", ".inv_show", function(event) {
 </div>
 </div>
 
+</div>
 
 </body>	
 	

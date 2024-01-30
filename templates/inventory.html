@@ -1,0 +1,21 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Редагувати підрахунок</title>
+
+<body onload="document.getElementById('id_name').focus()">
+
+<h1>
+<span class="badge badge-success">Редагування підрахунку</span> 
+</h1>
+
+{# <form action="{% url 'inventory-list' %}" method="POST"> #}
+<form action="" method="POST">
+<table>
+	{{ form.as_ul }}
+</table>
+
+<p><input type="submit" value="Save"></p>
+</form>
+
+</body>
+

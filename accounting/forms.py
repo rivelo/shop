@@ -4,7 +4,7 @@ from django.forms import ModelForm
 from models import Manufacturer, Country, Type, Bicycle_Type, Bicycle, Currency, FrameSize, Bicycle_Store, Catalog, Size, Bicycle_Sale, Bicycle_Order, Wheel_Size, Storage_Type, Bicycle_Storage, Bicycle_Photo 
 from models import DealerManager, DealerPayment, DealerInvoice, Dealer, Bank, ShopDailySales, PreOrder, InvoiceComponentList, ClientOrder, InventoryList, Discount
 from models import Client, ClientDebts, CostType, Costs, ClientCredits, WorkGroup, WorkType, WorkShop, WorkTicket, WorkStatus, Rent, ClientInvoice, CashType, Exchange, Type, ClientMessage, WorkDay, PhoneStatus
-from models import Shop
+from models import Shop, BoxName
 
 from django.contrib.auth.models import User
 import datetime
@@ -437,7 +437,7 @@ class ImportPriceForm(forms.Form):
 
     def clean_change_ids(self):
         data = self.cleaned_data['change_ids']
-        print '\nIDS Work = ' + str(data) + "\n"
+#        print '\nIDS Work = ' + str(data) + "\n"
 #        if not (data):
 #            raise forms.ValidationError("Поставте галочку!")
         return data
@@ -500,6 +500,7 @@ class InvoiceComponentForm(forms.ModelForm):
          )
         choices_field = forms.ChoiceField(choices=CHOICES)
         self.fields['catalog'] = choices_field
+        
     class Meta:
         model = InvoiceComponentList
         fields = '__all__'
@@ -1117,5 +1118,126 @@ class SalaryForm(forms.Form):
 #        fields = '__all__'
 #        exclude = ['cost_type']
 
-           
+class BoxNameEditForm(forms.ModelForm):
+    user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True, ), required=False, label='Користувач')
+
+    def clean(self):
+        cleaned_data = super(BoxNameEditForm, self).clean()
+        name = cleaned_data.get("name")
+        shop = cleaned_data.get("shop")
+        user = cleaned_data.get("user")
+        try:
+            get_user = User.objects.get(pk = user.pk)
+        except:
+            self.add_error('user', "Користувач не увійшов на портал або не вибраний у полі!")
+        try:
+            get_shop = Shop.objects.get(pk = shop.pk)
+        except:
+            self.add_error('shop', "Магазин не вибраний!")
+        if len(name.split('.')) <> 4:
+            self.add_error('name', "В назві не вистачає частини розташування. Перевірте поле уважніше!")
+        if name.find(' ') >= 0 :
+            self.add_error('name', "В назві є пробіли. Виправіть поле!")
+
+        sel_let = ''
+        res = False
+        if shop.name.upper()[0] == u"М":
+            sel_let = 'm'
+        if shop.name.upper()[0] == u"К":
+            sel_let = 'k'
+        if sel_let == name.lower()[0]:
+            res = True
+        if res == False:
+            self.add_error('name', "Місце має не вірну назву або ви вибрали не правильний магазин!")
+
+#        cleaned_data['description'] = "write  test string"
+        return cleaned_data 
+        
+
+    class Meta:
+        model = BoxName
+        fields = '__all__'
+#        exclude = ['name']
     
+
+           
+#class BoxNameForm(forms.ModelForm):
+class BoxNameForm(forms.ModelForm):
+    name = forms.CharField()
+#    shop = forms.ModelChoiceField(initial=0, label="Сума" ,widget=forms.TextInput(attrs={'class': 'form-control'}) )
+    shop = forms.ModelChoiceField(queryset = Shop.objects.all(), required=False, label='Магазин')
+    mark_delete = forms.BooleanField(required=False)
+    description = forms.CharField(label='Опис', widget=forms.Textarea(), max_length=255, required=False)
+    user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True, ), required=False, label='Користувач')
+
+#    def __init__(self, *args, **kwargs):
+#        user = kwargs.pop('bike_id', None)
+#        try:
+#            self.request = kwargs.pop("request")
+#        except:
+#            pass
+  #      instance = kwargs.pop('instance')
+#        print "INST = %s " % instance
+#        super(BoxNameForm, self).__init__(*args, **kwargs)
+
+    def clean_name(self):
+        data_name = self.cleaned_data['name']
+        res = BoxName.objects.filter(name = data_name)
+        if res:
+            raise forms.ValidationError("Місце з такою назвою вже існує!")
+        if len(data_name.split('.')) <> 4:
+            raise forms.ValidationError("В назві не вистачає частини розташування. Перевірте поле уважніше!")
+        if data_name.find(' ') >= 0 :
+            raise forms.ValidationError("В назві є пробіли. Виправіть поле!")
+        # Always return a value to use as the new cleaned data, even if
+        # this method didn't change it.
+        return data_name
+
+    def clean_shop(self):
+        data = self.cleaned_data['shop']
+        try:
+            st = data.name
+        except:
+            raise forms.ValidationError("Магазин не вибраний!")
+        return data
+
+    def clean_user(self):
+        data = self.cleaned_data['user']
+        if not data:
+            raise forms.ValidationError("Користувач не вибраний або не увійшов на портал")
+        if (auth_group(data, 'seller')==False): # and ('price' in self.changed_data):
+            raise forms.ValidationError(u"У вибраного користувача не має доступу до даної функції")
+        return data
+
+    def clean(self):
+        cleaned_data = super(BoxNameForm, self).clean()
+        name = cleaned_data.get('name')
+        shop = cleaned_data.get('shop')
+        sel_let = ''
+        res = False
+        if shop.name.upper()[0] == u"М":
+            sel_let = 'm'
+        if shop.name.upper()[0] == u"К":
+            sel_let = 'k'
+        n0 = name.lower()[0] or ''            
+        if sel_let == name.lower()[0]:
+            res = True
+        if res == False:
+            #raise forms.ValidationError("Місце має не вірну назву або ви вибрали не правильний магазин!")
+            self.add_error('name', "Місце має не вірну назву або ви вибрали не правильний магазин!")
+        return cleaned_data
+      
+    class Meta:
+        model = BoxName
+        fields = '__all__'
+#        exclude = ['name']
+
+
+class InventoryListForm(forms.ModelForm):
+    
+    class Meta:
+        model = InventoryList
+        fields = '__all__'
+        exclude = ['catalog']
+
+

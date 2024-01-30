@@ -25,6 +25,7 @@ from datetime import date
 #from audioop import reverse
 #from Scripts.pilprint import description
 from django.urls import reverse
+from pyexpat import model
 
 
 # Group Type = Group for Component category 
@@ -84,7 +85,8 @@ class Shop(models.Model):
     work_schedule = models.ManyToManyField(Schedules, blank=True) 
     user_list = models.ManyToManyField(User, blank=True)
     description = models.CharField(max_length=255, blank=True)
-    #color = models.CharField(max_length=50, blank=True, , related_name='color (hex value) to show shop in table') 
+    #color = models.CharField(max_length=50, blank=True, , related_name='color (hex value) to show shop in table')
+    #letter =  models.CharField(max_length=50, blank=True,)
 
  
     def get_deb_cred_in_date(self, year, month, day):
@@ -582,6 +584,8 @@ class Catalog(models.Model):
     #search_history
     change_history = models.TextField(blank=True, null=True, verbose_name="History of changes on item Catalog ")
     rating = models.FloatField(blank=True, null=True)   
+    #одиниці виміру
+    #коефіцієнт для системи Сі
 
     def get_discount(self):
         curdate = datetime.date.today()
@@ -707,6 +711,10 @@ class Catalog(models.Model):
             return photos_list
         else:
             return False
+
+    def get_storage_box(self):
+        list = StorageBox.objects.filter(catalog = self)
+        return list
 
     def _get_all_code(self):
         data = 'ids: %s;\n  dealer_code: %s; barcode: %s; barcode_upc: %s; barcode_ean: %s; manufacture_article:%s;'  %  (self.ids, self.dealer_code, self.barcode, self.barcode_upc, self.barcode_ean, self.manufacture_article)
@@ -985,18 +993,35 @@ class DealerInvoice(models.Model):
         ordering = ["payment", "company", "manager", "date"]    
 
 
-#inventory 
+# ---------   inventory -----------------
+ 
+class BoxName(models.Model):
+    name = models.CharField(max_length=255)
+    shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин")
+    user = models.ForeignKey(User, blank=False, null=False)
+    mark_delete = models.BooleanField(default = False, verbose_name="Мітка на видалення")
+    description = models.CharField(max_length=255, blank = True, null = True)    
+    
+    def __unicode__(self):
+        return u'%s (%s) - [%s]' % (self.name, self.description, self.shop)
+
+    class Meta:
+        ordering = ["shop", 'name']
+        
+ 
 class InventoryList(models.Model):
     catalog = models.ForeignKey(Catalog)
     count = models.IntegerField()
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True) # create date
     edit_date = models.DateTimeField(auto_now_add=False, blank = True, null = True)
     description = models.TextField(blank = True, null = True)
     user = user = models.ForeignKey(User, blank=False, null=False)
     real_count = models.IntegerField()
     check_all = models.BooleanField(default=False, verbose_name="Загальна кількість?")
     chk_del = models.BooleanField(default=False, verbose_name="Мітка на видалення")
-    shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин") 
+    shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин")
+    box_id = models.ForeignKey(BoxName, blank=True, null=True, verbose_name="Місце знаходження")
+      
 
     def get_last_year_check(self):
         nday = 360
@@ -1004,6 +1029,10 @@ class InventoryList(models.Model):
         if (self.check_all == True) and ( self.date > cur_date-datetime.timedelta(days=int(nday)) ):
              return True
         return False 
+
+    def get_count_sum_by_year(self, year):
+        sum = InventoryList.objects.filter(date__year = year).aggregate(count_sum = Sum('count'))
+        return sum  
             
     def __unicode__(self):
         return "[%s] - %s (%s) ***%s***" % (self.date, self.count, self.description, self.user) 
@@ -1023,6 +1052,7 @@ class InvoiceComponentList(models.Model):
     description = models.TextField(blank = True, null = True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин") 
+    #storage_box = models.ManyToManyField(StorageBox, blank = True) 
             
     def get_uaprice(self, sdate=None):
         if sdate == None:
@@ -1205,7 +1235,8 @@ class ClientInvoice(models.Model):
     description = models.TextField(blank = True, null = True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     chk_del = models.BooleanField(default=False, verbose_name="Мітка на видалення")    
-    shop = models.ForeignKey(Shop, blank=True, null=True) 
+    shop = models.ForeignKey(Shop, blank=True, null=True)
+    #storage_box = models.ManyToManyField(StorageBox, blank = True)   
 
     def update_sale(self):
         if (self.catalog.sale == 0) and (self.client.sale > self.catalog.sale):
@@ -2026,28 +2057,43 @@ class ClientReturn(models.Model):
 
     class Meta:
         ordering = ["-date", "client"]
-        
-#===============================================================================
-# 
-# class StorageBox(models.Model):
-#     catalog = models.ForeignKey(Catalog)
-#     box_name = models.CharField(max_length=255, blank=True, null=True)
-#     count = models.FloatField(default = 0, blank=True, null=True) #IntegerField()
-#     count_real = models.FloatField(default = 0, blank=True, null=True) #IntegerField()
-#     price = models.FloatField(blank = True, null = True)
-#     sale = models.IntegerField(blank = True, null = True, validators=[ MaxValueValidator(100), MinValueValidator(0) ]) 
-#     date_create = models.DateTimeField(auto_now_add = False, blank=False, null=False)    
-#     date_update = models.DateTimeField(auto_now_add = False, blank=False, null=False)
-#     description = models.TextField(blank = True, null = True)
-#     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
-#     mark_del = models.BooleanField(default=False, verbose_name="Мітка на видалення")    
-#     history = models.TextField(blank = True, null = True)
-#     shop = models.ForeignKey(Shop, blank=True, null=True) 
-#         
-#     def __unicode__(self):
-#         return u'%s' % self.box_name
-# 
-#     class Meta:
-#         ordering = ["box_name", "-date_create", "catalog"]
-#     
-#===============================================================================
+
+
+ 
+class StorageBox(models.Model):
+    catalog = models.ForeignKey(Catalog)
+    box_name = models.ForeignKey(BoxName, blank=True, null=True)
+    count = models.IntegerField(default = 0, blank=True, null=True) #FloatField()
+    count_real = models.IntegerField(default = 0, blank=True, null=True) #IntegerField()
+    count_last = models.IntegerField(default = 0, blank=True, null=True) #IntegerField()
+    shop = models.ForeignKey(Shop, blank=True, null=True)
+    date_create = models.DateTimeField(auto_now_add = False, blank=False, null=False)    
+    date_update = models.DateTimeField(auto_now_add = False, blank=False, null=False)
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='user_create')
+    user_update = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='user_update')
+    mark_del = models.BooleanField(default=False, verbose_name="Мітка на видалення")    
+    history = models.TextField(blank = True, null = True)
+    description = models.CharField(max_length=255, blank = True, null = True)   
+#    price = models.FloatField(blank = True, null = True)
+#    sale = models.IntegerField(blank = True, null = True, validators=[ MaxValueValidator(100), MinValueValidator(0) ]) 
+
+    def diff_count_color(self):
+        status = ""
+        if self.count == self.count_real:
+            status = "badge-success"
+        if self.count != self.count_real:
+            status = "badge-warning"
+        if self.count > self.count_real:
+            status = "badge-danger"
+            
+        return status  
+
+    def get_storage_name(self):
+        return u"%s %s" % (self.box_name, self.description)
+         
+    def __unicode__(self):
+        return u'[%s] %s - %s з %s шт.' % (self.box_name, self.catalog, self.count, self.count_real)
+ 
+    class Meta:
+        ordering = ["-date_create", "box_name", "catalog"]
+     

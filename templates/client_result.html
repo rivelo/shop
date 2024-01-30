@@ -686,6 +686,9 @@ $('.phone').editable('/workticket/edit/', {
 
 
 
+}); // Ready end
+
+
 function show_ret(ciid, item) {
 	//iid = $(this).attr("tvalue");
 	iid = ciid
@@ -697,13 +700,6 @@ function show_ret(ciid, item) {
 	//document.getElementById("ui-id-2").innerHTML = "Повернення: " + ""
 	$("#ui-id-6").html("Повернення: " + $(item).parents('tr').find('td.cat_name > div > div.p-2').html().substr(0, 35));
 }
-
-
-
-
-
-}); // Ready end
-
 </script>
 
 

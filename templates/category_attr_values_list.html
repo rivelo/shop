@@ -1,7 +1,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Значення параметри товарів</title>
 
-	
+<link rel="stylesheet" type="text/css" href="/media/css/main_ui.css">		
 	
 <style type="text/css">
  		
@@ -58,7 +58,7 @@ $(document).ready(function() {
 <body>
 
 <h1>
-<span class="badge badge-success">Параметри товарів</span> 
+<span class="badge badge-success">Параметри товарів (значення):</span> 
 </h1>
 
 
@@ -67,8 +67,8 @@ $(document).ready(function() {
 {% for item in attr_val_list %}
 
 
-<div class="alert alert-info" role="alert">
-{{ item.value|default:" - " }} / {{item.value_float|default:" - "}} - {{item.created_date}} [{{item.updated_date}} - {{item.updated_user}}] ({{item.description}})
+<div class="alert alert-attr-value" role="alert">
+{{ item.value|default:" - " }} / {{item.value_float|default:" - "}} - Дата створення: {{item.created_date}} ; Редагування: {{item.updated_date}} [{{item.updated_user}}] ; Опис: {{item.description}}
 </div>
 
 {% for val in item.all_items %}
