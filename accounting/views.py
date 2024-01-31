@@ -4142,21 +4142,20 @@ def catalog_search_result(request):
 def catalog_lookup(request):
     # Default return list
     data = None
+    data_res = None
     results = []
     if request.method == "GET":
         if request.GET.has_key(u'query'):
             value = request.GET[u'query']
             # Ignore queries shorter than length 3
             if len(value) > 2:
-                #model_results = Catalog.objects.filter(name__icontains=value).values('id', 'ids', 'name', 'price')
                 model_results = Catalog.objects.filter(name__icontains=value)
-#                results = [ x.name for x in model_results ]
-#    json = simplejson.dumps(results)
                 data = serializers.serialize("json", model_results, fields=('name','id', 'ids', 'price'))
+                data_res = data
         else:
             data = "request Error"
+            data_res = data
     if request.is_ajax():
-#        data = "\nAjax - ok\n"
         if request.method == "POST":
             if request.POST.has_key(u'query') and request.POST.has_key(u'type'):
                 value = request.POST[u'query']
@@ -4165,17 +4164,14 @@ def catalog_lookup(request):
                 if len(value) > 2:
                     model_results = Catalog.objects.filter(name__icontains=value, type = type_id)
                     data = serializers.serialize("json", model_results, fields=('name','id', 'ids', 'price'))
-                
+                    data_res = data
             if request.POST.has_key(u'name'):
                 pass
     # JSON Read and Parse
     if request.method == "POST":
-#        print "POST. ID - ok [%s]" % request.body
         rdict = QueryDict(request.body)
         sel_id = rdict.keys()#[0]
         req_dict = json.loads(request.body)
-#        print "DICT  = %s" % req_dict #.items() 
-#        print "DICT [id] = %s" % req_dict['pk']
         if req_dict.has_key('pk'):
             pk = int(req_dict['pk'])
             value = req_dict['value']
@@ -4185,7 +4181,6 @@ def catalog_lookup(request):
             #obj.save()
 #            data = serializers.serialize('json', [obj,])
             #===================================================================
- #           print "\nRES = %s\n" % res#['f_model']
             #data = serializers.serialize('json', res, many = True)
 #            data = serializers.serialize('json', res['f_model'])
             # ndt = { 'msq': res['msg'],'url': res['url'], 'status': res['status'], }
@@ -4198,27 +4193,24 @@ def catalog_lookup(request):
                 res['f_model'] = serializers.serialize('json', res['f_model'])
             #data = json.dumps(res, skipkeys=True)
             data = simplejson.dumps(res)
-#            return JsonResponse([res['f_model'],], safe=False)
-            
-#            jobj = {'error': None, 'text': 'Request - DONE', 'value': 999 }
-#            data = json.dumps(jobj)
-        #JS send  setRequestHeader("Content-type", "application/json")
- 
+            data_res = data
+        print "DICT = %s" % req_dict
         if req_dict.has_key('code_value'):
             code = req_dict['code_value']
             obj = Catalog.objects.filter(Q(ids__contains=code) | Q(dealer_code__contains=code) | Q(barcode__contains=code) | Q(barcode_ean__contains=code) | Q(barcode_upc__contains=code) | Q(manufacture_article__contains=code))
-            print "\nOBJ = " + str(obj.count()) + "\n"
+#            print "\nOBJ = " + str(obj.count()) + "\n"
             res = serializers.serialize('json', obj)
-            data = simplejson.dumps(res)
+#            data = simplejson.dumps(res)
+            data_res = res
             if obj.count() == 0 :
                 data = [{'error_msg': 'Error: Item not found!', 'error' : True , 'searchText': code}, ]  
                 res = simplejson.dumps(data)
             if obj.count() > 10 :
                 data = [{'error_msg': 'Знайдено понад 10 товарів з таким кодом, допишіть ще частину коду щоб зменшити список', 'error' : True , 'searchText': code}, ]  
                 res = simplejson.dumps(data)
-                
+                data_res = res
 
-    return HttpResponse(res, content_type='application/json')    
+    return HttpResponse(data_res, content_type='application/json')    
 
 
 def catalog_get_locality(request):
@@ -9011,7 +9003,7 @@ def inventory_edit(request, id):
     return render(request, "index.html", context)  
 
 
-def inventory_list(request, year=None, month=None, day=None):
+def inventory_list(request, shop_id=None, year=None, month=None, day=None):
     pyear = year
     list = None
     day_list = None
@@ -9028,7 +9020,8 @@ def inventory_list(request, year=None, month=None, day=None):
     if (pyear == None) and (month == None) and (day == None):
          month = datetime.datetime.now().month
          day = datetime.datetime.now().day        
-         list = list.filter(date__month = month, date__day = day)
+         shopId = Shop.objects.all()
+         list = list.filter(date__month = month, date__day = day, shop__in = shopId)
     year_list = InventoryList.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
     month_list = InventoryList.objects.filter(date__year = year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')
     context = {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month}
@@ -9252,7 +9245,7 @@ def inventory_add(request):
                     inv = InventoryList(catalog = c, count = count, box_id = b, date = datetime.datetime.now(), user = user, description=desc, edit_date = dnow, check_all = status, real_count=c.get_realshop_count(), shop=shop)
                     inv.save()
                     inv_str = "[%s] Inventory id = %s; count = %s in %s" % (dnow, inv.id, inv.count, inv.real_count) 
-                    if not StorageBox.objects.filter(catalog = c):
+                    if not StorageBox.objects.filter(catalog = c, box_name = b):
                         sb = StorageBox(catalog = c, box_name = b, count = count, count_real = c.get_realshop_count(), count_last = 0, shop = shop, date_create = dnow, date_update=dnow, user = user, description=desc)
                         sb.save()
                     else:

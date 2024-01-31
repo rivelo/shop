@@ -716,6 +716,14 @@ class Catalog(models.Model):
         list = StorageBox.objects.filter(catalog = self)
         return list
 
+    def get_storage_box_list_to_html(self):
+        list = StorageBox.objects.filter(catalog = self).values_list('box_name__name', 'count', 'count_real')
+        res_list = []
+        for i in list:
+            box_name = u"%s - %s з %s шт."  % (i[0], i[1], i[2])
+            res_list.append(box_name)
+        return res_list
+
     def _get_all_code(self):
         data = 'ids: %s;\n  dealer_code: %s; barcode: %s; barcode_upc: %s; barcode_ean: %s; manufacture_article:%s;'  %  (self.ids, self.dealer_code, self.barcode, self.barcode_upc, self.barcode_ean, self.manufacture_article)
         code_list = (self.ids, self.dealer_code, self.barcode, self.barcode_upc, self.barcode_ean, self.manufacture_article)

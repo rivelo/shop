@@ -703,8 +703,7 @@ $("body").on('click', '#span_show_select', function() {
     	<input type="checkbox" id="maincheck" checked />
     	{#<input type="submit" value="Оплата"><div id="for_pay" style="COLOR: red" BGCOLOR="#D5FFB4"></div>#}
     	</th>
-    	<th>Зал.
-    	</th>
+    	<th>Зал. 	</th> 
     </tr>
     
    
@@ -821,9 +820,9 @@ $("body").on('click', '#span_show_select', function() {
 	</td>
 	
 	{% if type.catalog.get_realshop_count == type.catalog.count %}
-	<td align="center" title="Ящик номер: {{type.catalog.locality}}" data-toggle="tooltip" data-html="true" data-placement="left">
+	<td align="center" title="Ящик номер:<br>{{type.catalog.get_storage_box_list_to_html|join:'<br>'}} <br>Стара назва - {{type.catalog.locality}}" data-toggle="tooltip" data-html="true" data-placement="left">
 	{% else %}
-	<td align="center" bgcolor="yellow" title="Ящик номер: {{type.catalog.locality}}" data-toggle="tooltip" data-html="true" data-placement="left">
+	<td align="center" bgcolor="yellow" title="Ящик номер: {{type.catalog.get_storage_box|join:'; '}} {{type.catalog.locality}}" data-toggle="tooltip" data-html="true" data-placement="left">
 	{% if request.user|has_group:"admin" %} 
 	<span class="badge badge-pill badge-warning" onclick="change_count(this)">{{type.catalog.get_realshop_count}}</span>
 	{% endif %}

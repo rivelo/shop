@@ -1,0 +1,39 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Велосипеди в магазині (для месенджерів)</title>
+
+
+{% load poll_extras %}
+
+<script type="text/javascript">
+
+</script>
+
+
+
+<body>
+
+<h1>Список велосипедів у магазині</h1>
+
+
+{% for type in bicycles %}
+	<p>
+	<b>Тип:</b> {{type.model.type.type}}<br>
+	<b>Виробник:</b> {{type.model.brand.name}}<br>
+	<b>Велосипед: </b>{{type.model.model}} ({{type.model.color}})<br>
+	<b>Розмір рами: </b>{{type.size.letter}} ({{type.size.inch}}" / {{type.size.cm}}cm)<br>
+	<b>Ціна: </b>{{type.model.price}}  грн.<br>
+	<b>Знижка: </b>{{type.model.sale|floatformat:"0"}}% <br>
+	<b>Нова ціна: </b>{{type.model.sale|div:-100|sub:-1|mul:type.model.price|floatformat:"0"}} грн.</p>
+{% endfor %}	
+
+	
+{% for type in bicycles %}
+	{{type.model.type.type}}; {{type.model.brand.name}}; {{type.model.model}} ({{type.model.color}}); {{type.size.letter}}; {{type.size.inch}}"; {{type.model.price}}  грн.; {{type.model.sale|floatformat:"0"}}%; {{type.model.sale|div:-100|sub:-1|mul:type.model.price|floatformat:"0"}} грн.;   
+	<br>
+{% endfor %}
+
+	
+</body>
+
+		

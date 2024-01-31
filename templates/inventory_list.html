@@ -375,6 +375,7 @@ $(document).on("click", ".inv_show", function(event) {
 		<a href="/invoice/search/result/?name=&id={{element.catalog.ids}}" title="Перейти до товару" data-toggle="tooltip" data-placement="left" data-html="true"><span><i class="material-icons">forward</i></span></a>
 		{{ element.catalog }}
 		<a href = "{% url 'fix_inventory' element.catalog.id %}" class="badge badge-pill badge-danger"> Inventory </a>
+		<a href = "{% url 'catalog_edit' element.catalog.id %}" class="badge badge-light" title="Редагувати товар" data-toggle="tooltip" data-placement="bottom" data-html="true"><i class="material-icons">edit</i></a>
 		</td>
 		<td align="center" class="count_edit">
 		<a href="/client/invoice/catalog/{{element.catalog.id}}/add/" title="Списати товар" data-toggle="tooltip" data-placement="left"> {{ element.count }} </a>
@@ -432,6 +433,7 @@ $(document).on("click", ".inv_show", function(event) {
 	<table>
 
 
+{% comment %}
 <div class="row">
 <div class="col-auto mb-1">
 <nav aria-label="Page navigation example">
@@ -467,6 +469,7 @@ $(document).on("click", ".inv_show", function(event) {
 </nav>
 </div>
 </div>
+{% endcomment %}
 
 </div>
 
