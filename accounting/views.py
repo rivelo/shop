@@ -4194,10 +4194,10 @@ def catalog_lookup(request):
             #data = json.dumps(res, skipkeys=True)
             data = simplejson.dumps(res)
             data_res = data
-        print "DICT = %s" % req_dict
+#        print "DICT = %s" % req_dict
         if req_dict.has_key('code_value'):
             code = req_dict['code_value']
-            obj = Catalog.objects.filter(Q(ids__contains=code) | Q(dealer_code__contains=code) | Q(barcode__contains=code) | Q(barcode_ean__contains=code) | Q(barcode_upc__contains=code) | Q(manufacture_article__contains=code))
+            obj = Catalog.objects.filter(Q(ids__icontains=code) | Q(dealer_code__icontains=code) | Q(barcode__contains=code) | Q(barcode_ean__contains=code) | Q(barcode_upc__contains=code) | Q(manufacture_article__icontains=code))
 #            print "\nOBJ = " + str(obj.count()) + "\n"
             res = serializers.serialize('json', obj)
 #            data = simplejson.dumps(res)
@@ -9018,10 +9018,13 @@ def inventory_list(request, shop_id=None, year=None, month=None, day=None):
     if (day != None):
         list = list.filter(date__day = day)
     if (pyear == None) and (month == None) and (day == None):
-         month = datetime.datetime.now().month
-         day = datetime.datetime.now().day        
-         shopId = Shop.objects.all()
-         list = list.filter(date__month = month, date__day = day, shop__in = shopId)
+        month = datetime.datetime.now().month
+        day = datetime.datetime.now().day
+        if shop_id == None:
+            shopId = Shop.objects.all()
+        else:
+            shopId = Shop.objects.filter(id = shop_id)
+        list = list.filter(date__month = month, date__day = day, shop__in = shopId)
     year_list = InventoryList.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
     month_list = InventoryList.objects.filter(date__year = year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')
     context = {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month}

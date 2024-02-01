@@ -60,7 +60,7 @@ $(document).ready( function() {
 		  		$("#error_msg").html('');
 		  	}
 		  	
-		  	if (InvObj[0].error == true) {
+		  	if (myObj[0].error == true) {
 		  		$("#error_msg").html(InvObj[0].error_msg);
 		  		$("#myInputScannerBarcode").val(InvObj[0].searchText);
 //		  		document.getElementById("itemsList").innerHTML += "<a href='"+myObj.url+"' > Перейти до товару </a>" ;
@@ -98,8 +98,8 @@ $(document).ready( function() {
 		  	// const myObj = JSON.parse(this.responseText);
 		  	myObj = JSON.parse(this.responseText);
 		  	//cat_model = JSON.parse(myObj)
-		  	console.log("Model = json Parse | len = " + myObj.length)
-		  	console.log("Error [0]  = " + myObj[0].error)
+//		  	console.log("Model = json Parse | len = " + myObj.length)
+//		  	console.log("Error [0]  = " + myObj[0].error)
 		  	//console.log("myObj = " + myObj[0].model + " - " + myObj[0].pk + " Fields: [" + myObj[0].fields['ids'] + "] - " + myObj[0].fields['name']);
 
 		  	
@@ -127,10 +127,13 @@ $(document).ready( function() {
 		  		$("#error_msg").html('');
 		  	}
 		  	
+		  	if ((myObj != null) && (myObj != "")) {
+		  		console.log("myObj = " +  myObj);		  		
 		  	if (myObj[0].error == true) {
 		  		$("#error_msg").html(myObj[0].error_msg);
 		  		$("#myInputScannerBarcode").val(myObj[0].searchText);
 //		  		document.getElementById("itemsList").innerHTML += "<a href='"+myObj.url+"' > Перейти до товару </a>" ;
+		  	}
 		  	}
 
 			document.getElementById("myInputScannerBarcode").focus();

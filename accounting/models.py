@@ -1014,7 +1014,7 @@ class BoxName(models.Model):
         return u'%s (%s) - [%s]' % (self.name, self.description, self.shop)
 
     class Meta:
-        ordering = ["shop", 'name']
+        ordering = ['-pk', 'shop', 'name']
         
  
 class InventoryList(models.Model):
@@ -2122,7 +2122,6 @@ class StorageBox(models.Model):
 #     count = models.IntegerField()
 #     date_create = models.DateTimeField(auto_now_add = False, blank=False, null=False) 
 #     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
-#     
 #      
 # 
 #     def __unicode__(self):
@@ -2132,4 +2131,34 @@ class StorageBox(models.Model):
 #         ordering = ["-date_create", "sbox", ]
 #     
 #          
+#===============================================================================
+
+#===============================================================================
+# class StorageBoxLog(models.Model):
+#     catalog = models.ForeignKey(Catalog)
+# 
+#     box = models.ForeignKey(StorageBox, blank = True, null = True, on_delete = models.SET_NULL)
+#     add = models.ForeignKey(InvoiceComponentList)
+#     remove = models.ForeignKey(ClientInvoice)
+#     count = models.IntegerField()
+#     user_create = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
+# 
+# 
+# class StorageBoxTransition(models.Model):
+#     sbox_from = models.ForeignKey(StorageBox, related_name='box_from')
+#     sbox_to = models.ForeignKey(StorageBox, blank=True, null=True, related_name='box_send', on_delete=models.SET_NULL)
+#     box_to = models.ForeignKey(BoxName, blank = True, null = True, on_delete = models.SET_NULL)
+#     count_from = models.IntegerField()
+#     count_to = models.IntegerField()
+#     shop_to = models.ForeignKey(Shop, blank=True, null=True)
+#     user_create = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='user_send')
+#     user_accept = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='user_accept')
+#     date_create = models.DateTimeField(auto_now_add = False, blank=True, null=True)
+#     date_accept = models.DateTimeField(auto_now_add = False, blank=True, null=True)
+# 
+#     def __unicode__(self):
+#         return u'%s >> %s / %s з %s шт.' % (self.sbox_from.box_name, self.sbox_to.box_name, self.catalog, self.count, self.sbox_from.count_real)
+#  
+#     class Meta:
+#         ordering = ["-date_create", "sbox_from", "user_create"]
 #===============================================================================
