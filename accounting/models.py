@@ -1029,7 +1029,43 @@ class InventoryList(models.Model):
     chk_del = models.BooleanField(default=False, verbose_name="Мітка на видалення")
     shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин")
     box_id = models.ForeignKey(BoxName, blank=True, null=True, verbose_name="Місце знаходження")
-      
+
+
+    def save(self, **kwargs):
+        #super().save(**kwargs)  # Call the "real" save() method.
+        update_fields = kwargs.get("update_fields")
+        update_fields = ["count"]
+        if "count" in update_fields:
+            if self.pk :
+                obj = InventoryList.objects.values('count').get(pk=self.pk)
+                sbox = StorageBox.objects.filter(catalog = self.catalog, box_name = self.box_id)
+                if obj['count'] != self.count and sbox.count() > 0:
+                    cc = int(self.count) - int(obj['count'])
+                    print "\nSBOX count diff - %s\n" % (cc)
+                    #iobj = StorageBox.objects.get(pk = sbox[0].pk)
+                    iobj = sbox[0]
+                    iobj.count = iobj.count + cc
+                    dnow = datetime.datetime.now()
+                    if iobj.history:
+                        iobj.history = iobj.history + "\n[%s] Change COUNT; Inventory id = %s; count = %s in %s" % (dnow, self.pk, iobj.count, self.catalog.get_realshop_count())
+                    else:
+                        iobj.history = "[%s] Change COUNT; Inventory id = %s; count = %s in %s" % (dnow, self.pk, iobj.count, self.catalog.get_realshop_count())
+                    iobj.save()
+        super(InventoryList, self).save(**kwargs)  # Call the "real" save() method.
+
+    def delete(self, **kwargs):
+        sbox = StorageBox.objects.filter(catalog = self.catalog, box_name = self.box_id)
+        if sbox.count() > 0:
+            iobj = sbox[0]
+            iobj.count = iobj.count - self.count
+            dnow = datetime.datetime.now()
+            if iobj.history:
+                iobj.history = iobj.history + "\n[%s] DELETE Inventory id = %s; count = %s in %s" % (dnow, self.pk, iobj.count, self.catalog.get_realshop_count())
+            else:
+                iobj.history = "[%s] DELETE Inventory id = %s; count = %s in %s" % (dnow, self.pk, iobj.count, self.catalog.get_realshop_count())
+            iobj.save()
+        super(InventoryList, self).delete(**kwargs)
+
 
     def get_last_year_check(self):
         nday = 360
@@ -1925,8 +1961,8 @@ class CheckPay(models.Model):
 class Check(models.Model):
     #ids = models.CharField("code", unique=True, max_length=50)
     check_num = models.IntegerField("mini-fp")
-    checkPay = models.ForeignKey(CheckPay, blank=True, null=True)
-    client = models.ForeignKey(Client)
+    checkPay = models.ForeignKey(CheckPay, blank=True, null=True,  on_delete=models.CASCADE)
+    client = models.ForeignKey(Client) #, on_delete=models.SET_NULL)
     date = models.DateTimeField(auto_now_add=True)
     catalog = models.ForeignKey(ClientInvoice, blank=True, null=True)
     bicycle = models.ForeignKey(Bicycle_Sale, blank=True, null=True)
@@ -2118,7 +2154,7 @@ class StorageBox(models.Model):
 # 
 # class ClientInvoiceStorageBox(models.Model):
 #     sbox = models.ForeignKey(StorageBox)
-#     cinvoice = models.ForeignKey(ClientInvoice)
+#     cinvoice = models.ForeignKey(ClientInvoice, on_delete = models.CASCADE)
 #     count = models.IntegerField()
 #     date_create = models.DateTimeField(auto_now_add = False, blank=False, null=False) 
 #     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
@@ -2138,8 +2174,8 @@ class StorageBox(models.Model):
 #     catalog = models.ForeignKey(Catalog)
 # 
 #     box = models.ForeignKey(StorageBox, blank = True, null = True, on_delete = models.SET_NULL)
-#     add = models.ForeignKey(InvoiceComponentList)
-#     remove = models.ForeignKey(ClientInvoice)
+#     add = models.ForeignKey(InvoiceComponentList, blank = True, null = True, on_delete = models.CASCADE)
+#     remove = models.ForeignKey(ClientInvoice, blank = True, null = True, on_delete = models.CASCADE)
 #     count = models.IntegerField()
 #     user_create = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
 # 

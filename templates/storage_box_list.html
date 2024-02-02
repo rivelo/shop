@@ -167,8 +167,41 @@ $(document).ready( function() {
 	    ajax_cat_req();
 	    input.value = '';
 	  }
-
 	});
+	
+
+	var inputNumber = document.getElementById("myInputCount");
+	inputNumber.addEventListener("keypress", function(event) {
+		console.log("Key pressed - " + input.value);
+	  if (event.key === "Enter") {
+	    event.preventDefault();
+	    if ($('#itemListModal').attr("pk")) {
+	    	//alert ( "ITEM PK = " +  $('#itemListModal').attr("pk") );
+	    	// add ajax function to INVENTORY save
+	    	var pk = $('#itemListModal').attr("pk")
+	    	var icount = $("#myInputCount").val();
+	    	ajax_inventory_req(pk, icount, {{boxname.id}} );
+	    	PrintInventoryDiv(myObj[0], icount);
+	    	
+	    	$("#error_msg").append("<p class='text-blue'>Додано - " + icount + " шт.<\p>");
+	    	$('#itemListModal').attr("pk", null);
+	    	$("#myInputCount").val(1);
+	    	document.getElementById("myInputScannerBarcode").focus();
+	    }
+	    else {
+	    	console.log ( "VAL input = " + document.getElementById("myInputScannerBarcode").value );
+	    	if (document.getElementById("myInputScannerBarcode").value == ""){
+	    		$("#error_msg").append("<p class='text-red'>Поле з кодом пусте!<\p>");
+	    	}
+	    	else {
+	    		ajax_cat_req();
+	    		document.getElementById("myInputScannerBarcode").value = '';
+	    	}
+	    }
+	    }
+	    // end if
+	    });
+	
 
 	
 	// SHOW Modal Inventory dialog
@@ -211,7 +244,7 @@ $(document).ready( function() {
 	
 	// Button ADD item to inventory
 	$(document).on("click", "#m_add_button", function(event) {
-	    console.log ("PK = " + $('#itemListModal').attr("pk") );
+//	    console.log ("PK = " + $('#itemListModal').attr("pk") );
 	    if ($('#itemListModal').attr("pk")) {
 	    	//alert ( "ITEM PK = " +  $('#itemListModal').attr("pk") );
 	    	// add ajax function to INVENTORY save
@@ -270,6 +303,25 @@ $(document).ready( function() {
 		$("div.zero_class").toggle();
 	});
 
+
+	$(document).on("click", ".addprice", function(event) {
+		$.ajax({
+            type: "POST",
+            url: '{% url 'shop-price-print-add' %}', 
+            // "/shop/price/print/add/",
+            data: {id:  $(this).attr("ids"), url: 1},
+            dataType: "text",
+            success:function(msg){
+                alert("Запит: " + msg);
+            },
+            error:function(){
+                alert("При відправці виникли проблеми");
+            }
+        });
+	});
+
+	
+	
 }); // end ready
 
 
@@ -525,6 +577,7 @@ function PrintInventoryDiv(value, count){
   </div>
   
   <div class="ml-auto p-1 bd-highlight">
+  <span class="mr-2 addprice" title="Додати цінник в чергу" data-toggle="tooltip" data-html="true" data-placement="left" ids={{storage.catalog.id}}><i class="material-icons" style="font-size: 24px" >new_label</i></span>
   <span class="mr-2" title="Створено: <br>{{storage.date_create}}" data-toggle="tooltip" data-html="true" data-placement="left"><i class="material-icons" style="font-size: 24px" >calendar_today</i></span>
   <span class="badge badge-light button_inventory" title="Переглянути інвентаризацію" text-item="{{storage.catalog}}"  id-item="{{storage.catalog.id}}" data-toggle="tooltip" data-placement="right">
 {#  <i class="material-icons" style="font-size: 24px" >inventory_2</i> #} 

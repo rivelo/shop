@@ -501,7 +501,7 @@ urlpatterns = [
     url(r'^shop/price/bysearch_name/(?P<id>.*)/print/$', catalog.shop_price_bysearch_name, {'pprint': True}),
     url(r'^shop/price/print/(?P<id>\d+)/add/$', catalog.shop_price_print_add),
 #    url(r'^shop/price/print/add/$', catalog.ajax_price_print'),
-    url(r'^shop/price/print/add/$', catalog.shop_price_print_add),
+    url(r'^shop/price/print/add/$', catalog.shop_price_print_add, name="shop-price-print-add"),
     url(r'^shop/price/print/add/invoice/$', catalog.shop_price_print_add_invoice),
     url(r'^shop/price/print/view/$', catalog.shop_price_print_list, {'pprint': True}, name='label_print_all'),
     url(r'^shop/price/print/view/(?P<user_id>\d+)/byuser/$', catalog.shop_price_print_list, {'pprint': True}, name='label_print_by_user'),
