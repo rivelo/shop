@@ -2,7 +2,8 @@
 from django import forms
 from django.forms import ModelForm
 from models import Manufacturer, Country, Type, Bicycle_Type, Bicycle, Currency, FrameSize, Bicycle_Store, Catalog, Size, Bicycle_Sale, Bicycle_Order, Wheel_Size, Storage_Type, Bicycle_Storage, Bicycle_Photo 
-from models import DealerManager, DealerPayment, DealerInvoice, Dealer, Bank, ShopDailySales, PreOrder, InvoiceComponentList, ClientOrder, InventoryList, Discount
+from models import DealerManager, DealerPayment, DealerInvoice, Dealer, Bank, ShopDailySales, PreOrder, InvoiceComponentList, ClientOrder, InventoryList, Discount 
+from models import ClientInvoiceStorageBox, StorageBox
 from models import Client, ClientDebts, CostType, Costs, ClientCredits, WorkGroup, WorkType, WorkShop, WorkTicket, WorkStatus, Rent, ClientInvoice, CashType, Exchange, Type, ClientMessage, WorkDay, PhoneStatus
 from models import Shop, BoxName
 
@@ -689,12 +690,16 @@ class ClientInvoiceForm(forms.ModelForm):
     #user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True), required=True, label='Користувач')
     user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True), required=True, label='Користувач')
     shop = forms.ModelChoiceField(queryset = Shop.objects.all(), required=False, label='Магазин')
+#    sbox_inv = forms.ModelMultipleChoiceField(queryset = StorageBox.objects.all(), required=False, label="Storage Box")
+    sbox_inv_ids = forms.CharField(widget=forms.HiddenInput(), required=False,)
 
     def __init__(self, *args, **kwargs):
         cid = kwargs.pop('catalog_id', None)
         self.request = kwargs.pop("request")
         super(ClientInvoiceForm, self).__init__(*args, **kwargs)
-        self.fields['catalog'].queryset = Catalog.objects.filter(id = cid)
+        cat_id = Catalog.objects.filter(id = cid)
+        self.fields['catalog'].queryset = cat_id #Catalog.objects.filter(id = cid)
+#        self.fields['sbox_inv'].queryset = StorageBox.objects.filter(catalog_id = cat_id[0].pk)
 
 #    def clean_sale(self):
 #        data = self.cleaned_data['sale']

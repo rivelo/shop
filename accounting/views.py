@@ -36,7 +36,7 @@ from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,
 from models import Catalog, Client, ClientDebts, ClientCredits, ClientInvoice, ClientOrder, ClientMessage, ClientReturn, InventoryList
 from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType, Discount, Shop
 from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus, YouTube
-from models import CatalogAttributeValue, CatalogAttribute, BoxName, StorageBox 
+from models import CatalogAttributeValue, CatalogAttribute, BoxName, StorageBox, ClientInvoiceStorageBox 
 
 from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, ClientInvoiceForm, ClientOrderForm, ClientEditForm, BoxNameForm, BoxNameEditForm, InventoryListForm
 from forms import ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm, BicycleStorage_Form, StorageType_Form
@@ -2618,7 +2618,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
         for cat in cat_list:
             if element['catalog']==cat['id']:
                 element['manufacturer__id']=cat['manufacturer__id']
-                element['manufacturer__name1']=cat['manufacturer__name']
+#                element['manufacturer__name1']=cat['manufacturer__name']
                 element['manufacturer__name']=cat['manufacturer__name']
                 element['locality']=cat['locality']
                 element['type__name_ukr']=cat['type__name_ukr']
@@ -2637,6 +2637,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
             element['get_realshop_count'] = cat_obj.get_realshop_count()
             element['get_discount'] = cat_obj.get_discount()
             element['invoice_price'] = cat_obj.invoice_price()
+            element['box_name'] = cat_obj.get_storage_box_list_to_html()
 #            element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
 #        if element['balance'] == 0:
 #            print "Element = " + str(element)
@@ -4660,7 +4661,17 @@ def client_invoice(request, cid=None, id=None):
             date = form.cleaned_data['date']
             description = form.cleaned_data['description']
             clen = form.cleaned_data['length']
-            shop = form.cleaned_data['shop']            
+            shop = form.cleaned_data['shop']
+#            sbox = form.cleaned_data['sbox_inv']
+#            print "\nSBOX id = %s \n"  % sbox
+            if request.POST.has_key('sbox_count[]') and request.POST.has_key('sbox_ids[]'):
+                sbox_count = request.POST.get('sbox_count[]')
+                sbox_ids = request.POST.get('sbox_ids[]')
+                sbox_count = json.loads(sbox_count)
+                sbox_ids = json.loads(sbox_ids)
+                print "\nSBOX count = %s \n"  % sbox_count
+                print "\nSBOX ids = %s \n"  % type(sbox_ids) 
+                                                
             if (clen is not None) and (cat.type.pk == 13):
                 description = description + '\nlength:' + str(clen)
                 if cat.length is not None:
@@ -4670,8 +4681,16 @@ def client_invoice(request, cid=None, id=None):
             user_id = form.cleaned_data['user']
             if request.user.is_authenticated():
                 user = user_id
-            ClientInvoice(client=client, catalog=catalog, count=count, sum=sum, price=price, currency=currency, sale=sale, pay=pay, date=date, description=description, user=user, shop=shopN).save()
+            ci = ClientInvoice(client=client, catalog=catalog, count=count, sum=sum, price=price, currency=currency, sale=sale, pay=pay, date=date, description=description, user=user, shop=shopN)
+            ci.save()
             
+            index = 0
+            for box in sbox_ids:
+                sbox = StorageBox.objects.get(pk = sbox_ids[index])
+                sb_count = sbox_count[index]
+                if sb_count > 0:  
+                    ClientInvoiceStorageBox(sbox=sbox, cinvoice=ci, count=sb_count, date_create=now, user_create=user).save()
+                index+=index
             cat.count = cat.count - count
             cat.save()
             
@@ -6680,7 +6699,7 @@ def shop_price_print_list(request, user_id = None, pprint=False):
     context.update(custom_proc(request)) 
     return render(request, 'index.html', context)    
     
-
+@csrf_exempt
 def shop_price_print_delete_all(request, user_id = None):
     if auth_group(request.user, 'seller')==False:
         return HttpResponse('Error: У вас не має прав для редагування')
@@ -6693,11 +6712,10 @@ def shop_price_print_delete_all(request, user_id = None):
 #    return render_to_response('index.html', {'weblink': 'manual_price_list.html', 'price_list': list}, context_instance=RequestContext(request, processors=[custom_proc]))
     return HttpResponseRedirect('/shop/price/print/list/')        
 
-
+@csrf_exempt
 def shop_price_print_delete(request, id=None, user_id = None):
     if auth_group(request.user, 'seller')==False:
         return HttpResponse('Error: У вас не має прав для редагування')
-    
     if request.is_ajax():
         if request.method == 'POST':  
             POST = request.POST  

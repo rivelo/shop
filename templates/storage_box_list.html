@@ -572,7 +572,15 @@ function PrintInventoryDiv(value, count){
 
 <div class="d-flex bd-highlight ">
   <div class="p-1 bd-highlight"> 
-  [{{ storage.catalog.get_code|join:"; " }}] {{storage.catalog.name}} 
+
+<span class="mr-2" title="Редагувати опис товару" data-toggle="tooltip" data-html="true" data-placement="left" >
+<a href="{% url 'catalog_id_view' storage.catalog.id %}" >
+<i class="material-icons" style="font-size: 24px" >edit</i>
+</a>   
+</span>
+
+  [{{ storage.catalog.get_code|join:"; " }}] {{storage.catalog.name}}
+
   <span class="badge {{storage.diff_count_color}}" title="{{storage.count}} з {{storage.count_real}} шт." data-toggle="tooltip" data-placement="bottom">{{storage.count}}</span>  
   </div>
   

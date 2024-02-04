@@ -782,6 +782,7 @@ $("body").on('click', '#span_show_select', function() {
 	</td>
 	<td>
 	{{type.description|linebreaks}}
+	{{type.get_ci_sbox|join:"<br>"}}
 	</td>
 
 <td name="{{type.catalog.name}}" >

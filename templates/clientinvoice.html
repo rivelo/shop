@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 5//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Продаж товару: {{ catalog_obj }}</title>
 
@@ -59,6 +59,11 @@
 	border-radius: 5px;
 }
   		
+    p.text-red {
+  		color: red; 
+  }
+
+  		
 </style>	
 	
 <script type="text/javascript">
@@ -72,7 +77,42 @@ $("#id_count").val($("#id_count").val());
 document.getElementById("UserEnter").submit();
 }
 
+//$('#s_client').bind('change', 
+function id2name(){
+
+            $.ajax({
+                type: "GET",
+                url: "/client/lookup/byid/",
+                data: { client_id: $("#s_client").val() },
+                dataType: "json",
+                success:function(msg){
+                	$.each(msg,function(index,item){
+                	$("#s_client").val(item)    
+                    });
+                },
+                error:function(){
+                    alert("При отправке возникли проблемы");
+                }
+            });      
+
+};
+
+
+function sum() {
+	sale = 1 - ((parseFloat(document.getElementById('id_sale').value)||0)/100)
+    res = document.getElementById('result').innerHTML = (parseFloat(document.getElementById("id_count").value||0) * (parseFloat(document.getElementById('id_price').value)||0) * sale).toFixed(2)
+    document.getElementById('result').innerHTML = "Сума: " + document.getElementById('result').innerHTML + " грн."
+    document.getElementById('id_sum').value = res 
+}
+
+//setTimeout(sum, 100)
+//setInterval(sum, 100);
+
+
+
+//Begin Ready Func
 $(document).ready(function() {
+	
 	$("#s_client").val($('#id_client').val());
 	$("#s_client").select();
 	$("#id_sale").attr('sale', $("#id_sale").val() ); 
@@ -97,22 +137,41 @@ $("label[for='id_count']").html("Довжина:");
 $("#id_count").val({{desc_len}});
 {% endif %}
 
+
 $("#UserEnter").submit(function() {
+/*	var selboxes = document.querySelectorAll('.sel-box-number'); 
+	//$(".sel-box-number")
+	var boxes_list_id = new Array();
+	var boxes_list_count = new Array();
+    for (i in selboxes) {
+//    	console.log("SUBMIT main FORM - " + selboxes[i].getAttribute('bs_id') + " | COUNT = " + selboxes[i].getAttribute('bs_count'));
+//    	boxes_list_id[i] = selboxes[i].getAttribute('bs_id');
+    	boxes_list_id[i] = selboxes[i].getAttributeNode('bs_id').value;
+    	boxes_list_count[i] = selboxes[i].getAttributeNode('bs_count');
+//      	boxes_list_count[i] = selboxes[i].getAttribute('bs_count');
+    }
+    console.log("ARRAY = " + boxes_list_id.join());
+    $("#id_description").val("TEST");
+    $("#id_description").val("" + boxes_list_count.join());
+    
+    $("#sbcount").val("[" + boxes_list_count.join() + "]");
+    $("#sbids").val("[" + boxes_list_id.join() + "]");
+ */   
 	$('#but_submit').attr('disabled', 'true');
-      if ($("#id_sum").val()) {
+    if ($("#id_sum").val()) {
       	$("#id_length").val($("#id_count").val());
-//      	$("#id_count").val(Math.round($("#id_count").val()));
       	$("#id_count").val($("#id_count").val());      	
         return true;
-      }
-      $("#id_count").after("FALSE");
-      return false;
+    }
+    $("#id_count").after("FALSE");
+    return false;
 });
 
 
 //$( "input[type='text']" ).change(function(){
 $( "input" ).change(function(){
   sum();
+  check_box_count();
 });
 	
 	$('span.client').click(function(){
@@ -175,48 +234,15 @@ $( "input" ).change(function(){
 //      $(".ac_input").focus();
 //  		$('#id_client').hide();
       
-});
-
-
-//$('#s_client').bind('change', 
-function id2name(){
-
-            $.ajax({
-                type: "GET",
-                url: "/client/lookup/byid/",
-                data: { client_id: $("#s_client").val() },
-                dataType: "json",
-                success:function(msg){
-                	$.each(msg,function(index,item){
-                	$("#s_client").val(item)    
-                    });
-                },
-                error:function(){
-                    alert("При отправке возникли проблемы");
-                }
-            });      
-
-};
-
-
-function sum() {
-	sale = 1 - ((parseFloat(document.getElementById('id_sale').value)||0)/100)
-    res = document.getElementById('result').innerHTML = (parseFloat(document.getElementById("id_count").value||0) * (parseFloat(document.getElementById('id_price').value)||0) * sale).toFixed(2)
-    document.getElementById('result').innerHTML = "Сума: " + document.getElementById('result').innerHTML + " грн."
-    document.getElementById('id_sum').value = res 
-}
-
-//setTimeout(sum, 100)
-//setInterval(sum, 100);
+/*});
 
 $(document).ready(function() {
-/*	console.log("cat.sale = {{catalog_obj.sale}} ");
-	console.log("sale = {{cat_sale.sale}} ");
-	console.log("Form sale = {{form.sale.value}} "); */
+	*/
 
-	if ($("#s_client").val() != '') {
+if ($("#s_client").val() != '') {
 		id2name();
-	}
+}
+	
 {% if request.user|has_group:"admin" %}
 	$("#id_price").attr("readonly", "false");
 {% else %}
@@ -237,8 +263,104 @@ $('#id_sale').val({{form.sale.value}});
 
 $('[data-toggle="tooltip"]').tooltip();	
 
+
+
+$(document).on("click", ".sel-box-number", function(event) {
+	$('#BoxStorageModal').modal({
+//		  backdrop: false,
+		  focus: true, 
+		  keyboard: true,
+		});	
+	$("#search_item_ModalLabel").html("Взято товару з місця: <br>" + $(this).html() );
+	$("#BoxStorageModal").attr("pk", $(this).attr('bs_id'));
+	$("#error_msg").html("");
+	inputNumber.value = $(this).attr('bs_count');
 });
 
+var inputNumber = document.getElementById("myInputCount");
+inputNumber.addEventListener("keypress", function(event) {
+	console.log("Key pressed - " + inputNumber.value);
+  if (event.key === "Enter") {
+    event.preventDefault();
+    if ($('#BoxStorageModal').attr("pk")) {
+    	var pk = $('#BoxStorageModal').attr("pk");
+    	//alert ( "ITEM PK = " + pk ) 
+    	//$('#BoxStorageModal').attr("pk") );
+    	var sCount = '<span class="badge badge-dark box-take-count" title="Взято з місця" data-toggle="tooltip" data-placement="left">' +inputNumber.value+ '</span>';
+    	$(".sel-box-number[bs_id='"+pk+"'] > span.box-take-count").remove();
+    	$(".sel-box-number[bs_id='"+pk+"']").prepend(sCount);
+    	$(".sel-box-number[bs_id='"+pk+"']").attr('bs_count', inputNumber.value);
+    	inputNumber.focus();
+    	$('#BoxStorageModal').modal('hide');
+    }
+    else {
+    	console.log ( "VAL input = " + document.getElementById("myInputCount").value );
+   		$("#error_msg").append("<p class='text-red'>Щось пішло не так. PK атрибут в діалогу пустий!<\p>");
+    }
+    }
+    // end if
+    });
+    //end listener
+
+    
+    $(document).on("click", "#m_add_button", function(event) {
+        if ($('#BoxStorageModal').attr("pk")) {
+        	var pk = $('#BoxStorageModal').attr("pk");
+        	var sCount = '<span class="badge badge-dark box-take-count" style="font-size: large; font-weight: bold;" title="Взято з місця" data-toggle="tooltip" data-placement="left">' +inputNumber.value+ '</span>';
+        	$(".sel-box-number[bs_id='"+pk+"'] > span.box-take-count").remove();
+        	$(".sel-box-number[bs_id='"+pk+"']").prepend(sCount);
+        	$(".sel-box-number[bs_id='"+pk+"']").attr('bs_count', inputNumber.value);
+        	$('#BoxStorageModal').modal('hide');
+        }
+        else {
+       		$("#error_msg").append("<p class='text-red'>Щось пішло не так. PK атрибут в діалогу пустий!<\p>");
+        }        
+    
+    	const selboxes = document.querySelectorAll('.sel-box-number'); 
+    	var boxes_list_id = new Array();
+    	var boxes_list_count = new Array();
+      	for (let i = 0; i < selboxes.length; i++){
+//        	document.getElementById("id_description").value = document.getElementById("id_description").value + "\nID = " + selboxes[i].getAttribute('bs_id');
+//        	document.getElementById("id_description").value = document.getElementById("id_description").value + "\ncount = " + selboxes[i].getAttribute('bs_count');
+        	boxes_list_id[i] = selboxes[i].getAttribute('bs_id');
+//        	boxes_list_id[i] = selboxes[i].getAttributeNode('bs_id').value;
+//        	boxes_list_count[i] = selboxes[i].getAttributeNode('bs_count');
+          	boxes_list_count[i] = selboxes[i].getAttribute('bs_count');
+        };
+//        document.getElementById("id_description").value = document.getElementById("id_description").value + "\n JOIN: " + boxes_list_id.join();
+//        console.log("ARRAY = " + boxes_list_id.join());
+        
+        $("#sbcount").val("[" + boxes_list_count.join() + "]");
+        $("#sbids").val("[" + boxes_list_id.join() + "]");
+        
+//        console.log("SBcount = " + document.getElementById("sbcount").value);
+//        console.log("SBids = " + document.getElementById("sbids").value);
+        
+        check_box_count();
+        
+    	$('#BoxStorageModal').modal('hide');
+    });
+    
+    
+});
+// end Ready
+
+function check_box_count(){
+        var total = 0;
+        var p_st = JSON.parse(document.getElementById("sbcount").value);
+//        for (var i in boxes_list_count) {
+        for (var i in p_st) {
+          	total += parseInt(p_st[i]);
+//          total += parseInt(boxes_list_count[i]);
+        }
+        const res_count = document.getElementById("id_count").value - total
+        if (res_count < 0) {
+        	document.getElementById("place_error").innerHTML = "<p class='text-black'>Кількість проданого товару не сходиться з кількістю взятого!<\p><br>Номер ящика:";	
+    	}
+        else {
+        	document.getElementById("place_error").innerHTML = "Номер ящика:";
+        }
+};
 
 </script>
 
@@ -292,6 +414,36 @@ $('[data-toggle="tooltip"]').tooltip();
   </div>
 </div>
 <!-- Modal PHOTO end -->
+
+
+<!-- Modal dialog for BOX storage COUNT -->
+<div class="modal fade" id="BoxStorageModal" ids="" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="search_item_ModalLabel">Взято товару з місця: </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+<div class="form-group" id="error_msg"> </div>
+
+          <div class="form-group" id="inventory_count">
+            <label for="recipient-code" class="col-form-label">Введіть кількість товару:</label>
+            <input type="number" min="0" class="form-control w-100 m-2" id="myInputCount" value="1">
+          </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="m_add_button">Додати</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <div class="row">
 <div class="col-auto">
@@ -465,32 +617,27 @@ Status row:
 </tr>
 
             {# form.as_ul #}
+<tr>
+{{ form.sbox_inv_ids }}
+
+<input type="hidden" id="sbcount" name="sbox_count[]" value="[]"> 
+<input type="hidden" id="sbids" name="sbox_ids[]" value="[]">
+
+</tr>
             
         </table>
         
     </form>
 </div>
-
-{% comment %}
-<div class="col-auto">
-<h3><span class="badge badge-info">
-Номер ящика:<br>
-{{box_number}}
-</span><br>
-{% if cat_sale %}
-<span class="btn btn-outline-warning mt-3">{{cat_sale.name}}:<br> {{ cat_sale.sale }}%</p></span>
-{% endif %}
-</h3>
-</div>
-{% endcomment %}
+	
 
 <div class="col-12 col-md-6">
 <h3>
-<span class="badge badge-info">
+<span class="badge badge-info" id="place_error">
 Номер ящика:
 </span>
 {% for box in box_numbers %}
-<span class="badge badge-info">
+<span class="badge badge-info sel-box-number" bs_id="{{box.id}}" bs_count="0">
 {{box.get_storage_name}}<span class="badge badge-light">{{box.count}} шт.</span>
 </span>
 {% endfor %}
@@ -518,6 +665,7 @@ Status row:
 </div>
 
 
+
 <div class="row w-100">
 <div class="col" >
 <span class=" badge box_price"> 
@@ -536,7 +684,7 @@ Status row:
 </div>    
 </div>
 
-</div>
+{#</div> #}
 
 </body>    
     

@@ -1010,6 +1010,21 @@ class BoxName(models.Model):
     mark_delete = models.BooleanField(default = False, verbose_name="Мітка на видалення")
     description = models.CharField(max_length=255, blank = True, null = True)    
     
+    def parse_name_by_rack(self):
+        ns = self.name
+        r_num = int(ns.split('.')[1].split('r')[1])
+        return r_num
+
+    def parse_name_by_shelf(self):
+        ns = self.name
+        s_num = int(ns.split('.')[2].split('s')[1])
+        return s_num
+
+    def parse_name_by_box(self):
+        ns = self.name
+        b_num = int(ns.split('.')[3].split('b')[1])
+        return b_num
+    
     def __unicode__(self):
         return u'%s (%s) - [%s]' % (self.name, self.description, self.shop)
 
@@ -1350,6 +1365,14 @@ class ClientInvoice(models.Model):
     
     def get_sale_price(self):
         return self.price * (100 - self.sale)*0.01
+
+    def get_ci_sbox(self):
+        res = ClientInvoiceStorageBox.objects.filter(cinvoice = self)
+        res_list = []
+        for i in res:
+            st = u"Місце: %s - %s шт." % (i.sbox.box_name.name, i.count) 
+            res_list.append(st)
+        return res_list
                 
     def __unicode__(self):
         return u"%s - %s шт." % (self.catalog.name, self.count) 
@@ -2150,24 +2173,25 @@ class StorageBox(models.Model):
         ordering = ["-date_create", "box_name", "catalog"]
 
 
-#===============================================================================
-# 
-# class ClientInvoiceStorageBox(models.Model):
-#     sbox = models.ForeignKey(StorageBox)
-#     cinvoice = models.ForeignKey(ClientInvoice, on_delete = models.CASCADE)
-#     count = models.IntegerField()
-#     date_create = models.DateTimeField(auto_now_add = False, blank=False, null=False) 
-#     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
-#      
-# 
-#     def __unicode__(self):
-#         return u'[%s] %s' % (self.sbox, self.cinvoice)
-#  
-#     class Meta:
-#         ordering = ["-date_create", "sbox", ]
-#     
-#          
-#===============================================================================
+ 
+class ClientInvoiceStorageBox(models.Model):
+    sbox = models.ForeignKey(StorageBox, blank=True, null=True, on_delete = models.SET_NULL)
+    cinvoice = models.ForeignKey(ClientInvoice, on_delete = models.CASCADE)
+    count = models.IntegerField()
+    date_create = models.DateTimeField(auto_now_add = False, blank=False, null=False) 
+    user_create = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='u_create_cl')
+    user_accept = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='u_accept_cl')
+    date_create = models.DateTimeField(blank=True, null=True)
+    date_accept = models.DateTimeField(blank=True, null=True)
+      
+ 
+    def __unicode__(self):
+        return u'[%s] %s' % (self.sbox, self.cinvoice)
+  
+    class Meta:
+        ordering = ["-date_create", "sbox", ]
+     
+          
 
 #===============================================================================
 # class StorageBoxLog(models.Model):
