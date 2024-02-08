@@ -1374,6 +1374,12 @@ class ClientInvoice(models.Model):
             res_list.append(st)
         return res_list
                 
+    def delete(self, **kwargs):
+        ci_sbox = ClientInvoiceStorageBox.objects.filter(cinvoice = self.pk)
+        for i in ci_sbox:
+            i.delete()
+        super(ClientInvoice, self).delete(**kwargs)
+                
     def __unicode__(self):
         return u"%s - %s шт." % (self.catalog.name, self.count) 
         #return self.origin_id 
@@ -2178,12 +2184,67 @@ class ClientInvoiceStorageBox(models.Model):
     sbox = models.ForeignKey(StorageBox, blank=True, null=True, on_delete = models.SET_NULL)
     cinvoice = models.ForeignKey(ClientInvoice, on_delete = models.CASCADE)
     count = models.IntegerField()
-    date_create = models.DateTimeField(auto_now_add = False, blank=False, null=False) 
+#    date_create = models.DateTimeField(auto_now_add = False, blank=False, null=False) 
     user_create = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='u_create_cl')
     user_accept = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='u_accept_cl')
     date_create = models.DateTimeField(blank=True, null=True)
     date_accept = models.DateTimeField(blank=True, null=True)
       
+    def save(self, **kwargs):
+        #super().save(**kwargs)  # Call the "real" save() method.
+        update_fields = kwargs.get("update_fields")
+        update_fields = ["count"]
+        if "count" in update_fields:
+            if self.pk :
+                obj = ClientInvoiceStorageBox.objects.values('count').get(pk=self.pk)
+#                sbox = StorageBox.objects.filter(catalog = self.sbox.catalog, box_name = self.sbox.box_name)
+                sbox = StorageBox.objects.filter(pk = self.sbox.pk)
+                if obj['count'] != self.count and sbox.count() > 0:
+                    cc = int(self.count) - int(obj['count'])
+                    print "\nSBOX count diff = %s\n" % (cc)
+                    #iobj = StorageBox.objects.get(pk = sbox[0].pk)
+                    iobj = sbox[0]
+                    iobj.count_last = iobj.count
+                    iobj.count = iobj.count + cc
+                    dnow = datetime.datetime.now()
+                    iobj.date_update = dnow
+                    
+                    if iobj.history:
+                        iobj.history = iobj.history + "\n[%s] Change COUNT; Client Invoice id = %s; count = %s in %s; diff = %s" % (dnow, self.pk, iobj.count, self.sbox.catalog.get_realshop_count(), cc)
+                    else:
+                        iobj.history = "[%s] Change COUNT; Client Invoice id = %s; count = %s in %s; diff = %s" % (dnow, self.pk, iobj.count, self.sbox.catalog.get_realshop_count(), cc)
+                    iobj.save()
+                    res_save = super(ClientInvoiceStorageBox, self).save(**kwargs)  # Call the "real" save() method.
+            else:
+                print "\n>> Create new CI_StorageBox <<x\n"
+                res_save = super(ClientInvoiceStorageBox, self).save(**kwargs)  # Call the "real" save() method.
+                print "\nSELF ID = %s \n" % self.pk
+                sbox = StorageBox.objects.filter(pk = self.sbox.pk)
+                cc = int(self.count)
+                iobj = sbox[0]
+                iobj.count_last = iobj.count
+                iobj.count = iobj.count - cc
+                dnow = datetime.datetime.now()
+                iobj.date_update = dnow
+                if iobj.history:
+                    iobj.history = iobj.history + "\n[%s] Change COUNT; Client Invoice id = %s; count = %s in %s; diff = -%s" % (dnow, self.pk, iobj.count, self.sbox.catalog.get_realshop_count(), cc)
+                else:
+                    iobj.history = "[%s] Change COUNT; Client Invoice id = %s; count = %s in %s; diff = -%s" % (dnow, self.pk, iobj.count, self.sbox.catalog.get_realshop_count(), cc)
+                iobj.save()
+                
+        
+
+    def delete(self, **kwargs):
+        sbox = StorageBox.objects.get(pk = self.sbox.pk)
+        sbox.count = sbox.count + self.count
+        dnow = datetime.datetime.now()
+        if sbox.history:
+            sbox.history = sbox.history + "\n[%s] DELETE Client Invoice Storage Box id = %s; count = %s; Count SUM = %s" % (dnow, self.pk, self.count, self.sbox.catalog.get_realshop_count())
+        else:
+            sbox.history = "[%s] DELETE Client Invoice Storage Box id = %s; count = %s; Count SUM = %s" % (dnow, self.pk, sbox.count, self.sbox.catalog.get_realshop_count())
+        sbox.save()
+        super(ClientInvoiceStorageBox, self).delete(**kwargs)
+
  
     def __unicode__(self):
         return u'[%s] %s' % (self.sbox, self.cinvoice)

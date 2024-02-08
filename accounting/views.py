@@ -2375,11 +2375,14 @@ def dealer_invoice_list_year(request, year=False, pay='all'):
 
 def dealer_invoice_search(request):
     #query = request.GET.get('q', '')
-    return render_to_response('index.html', {'weblink': 'dealer_invoice_search.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'weblink': 'dealer_invoice_search.html'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html',  context)
 
 
 def dealer_invoice_search_result(request):
     list = None
+    exchange = None
     if 'number' in request.GET and request.GET['number']:
          num = request.GET['number']
          list = DealerInvoice.objects.filter(origin_id__icontains = num)
@@ -2388,10 +2391,11 @@ def dealer_invoice_search_result(request):
     else:
         pass
     now = datetime.datetime.now()
-    exchange = Exchange.objects.filter(date=datetime.date.today)
+    dnow = datetime.datetime.today()
+    exchange = Exchange.objects.filter(date=datetime.date.today())
     try:
-        exchange_d = Exchange.objects.get(date=datetime.date.today, currency=2)
-        exchange_e = Exchange.objects.get(date=datetime.date.today, currency=4)
+        exchange_d = Exchange.objects.get(date=datetime.date.today(), currency=2)
+        exchange_e = Exchange.objects.get(date=datetime.date.today(), currency=4)
         summ = 0
         summ_debt = 0
         #DealerInvoice.objects.filter(date__year=year, date__month=month):
@@ -2410,11 +2414,15 @@ def dealer_invoice_search_result(request):
                     summ_debt = summ_debt + e.price
                     
     except Exchange.DoesNotExist:
-        html = "Не має курсу валют. Введіть <a href=""/exchange/view/"" >курс валют на сьогодні</a> (%s) та спробуйте знову" % now.strftime('%d-%m-%Y %H:%m')
-        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': html, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        html = "Не має курсу валют. Введіть <a href=""/exchange/view/"" >курс валют на сьогодні</a> (%s) та спробуйте знову" % dnow.strftime('%d-%m-%Y %H:%m')
+        context = {'weblink': 'error_message.html', 'mtext': html, 'next': current_url(request)}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
     company_list = list.values("company", "company__name", "company__color").distinct().order_by("company__pk")
     yearlist = DealerInvoice.list_objects.get_year_list()
-    return render_to_response('index.html', {'dealer_invoice': list, 'exchange': exchange, 'exchange_d': exchange_d, 'year_list' :yearlist, 'search_text': num, 'company_list': company_list, 'exchange_e': exchange_e, 'summ': summ, 'summ_debt': summ_debt, 'sel_year':now.year, 'weblink': 'dealer_invoice_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'dealer_invoice': list, 'exchange': exchange, 'exchange_d': exchange_d, 'year_list' :yearlist, 'search_text': num, 'company_list': company_list, 'exchange_e': exchange_e, 'summ': summ, 'summ_debt': summ_debt, 'sel_year':now.year, 'weblink': 'dealer_invoice_list.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 @csrf_exempt
@@ -4639,7 +4647,6 @@ def client_invoice(request, cid=None, id=None):
         #custom_proc(request)
         return render(request, 'index.html', context)
     now = datetime.datetime.now()
-
     if (id):
         client = Client.objects.get(pk = id)
         a = ClientInvoice(client = client, date=datetime.datetime.today(), price=cat.price, sum=cat.price, sale=int(cat.sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=cat, user = request.user)
@@ -4649,7 +4656,6 @@ def client_invoice(request, cid=None, id=None):
     if request.method == 'POST':
         form = ClientInvoiceForm(request.POST, instance = a, catalog_id=cid, request = request)
         if form.is_valid():
-#            form.save()            
             client = form.cleaned_data['client']
             catalog = form.cleaned_data['catalog']
             count = form.cleaned_data['count']
@@ -4669,8 +4675,9 @@ def client_invoice(request, cid=None, id=None):
                 sbox_ids = request.POST.get('sbox_ids[]')
                 sbox_count = json.loads(sbox_count)
                 sbox_ids = json.loads(sbox_ids)
-                print "\nSBOX count = %s \n"  % sbox_count
-                print "\nSBOX ids = %s \n"  % type(sbox_ids) 
+                
+#                print "\nSBOX count = %s \n"  % sbox_count
+#                print "\nSBOX ids = %s \n"  % type(sbox_ids) 
                                                 
             if (clen is not None) and (cat.type.pk == 13):
                 description = description + '\nlength:' + str(clen)
@@ -4685,12 +4692,17 @@ def client_invoice(request, cid=None, id=None):
             ci.save()
             
             index = 0
+            #sb_count = 0
+            print ("Sbox IDS (JSON) = %s \n" % sbox_ids)
+            print ("Sbox IDS count (JSON) = %s \n" % sbox_count)
             for box in sbox_ids:
+                sb_count = 0
                 sbox = StorageBox.objects.get(pk = sbox_ids[index])
                 sb_count = sbox_count[index]
+                print ("Sbox [%s] = %s \n" % (index, sb_count))
                 if sb_count > 0:  
                     ClientInvoiceStorageBox(sbox=sbox, cinvoice=ci, count=sb_count, date_create=now, user_create=user).save()
-                index+=index
+                index+=1
             cat.count = cat.count - count
             cat.save()
             
@@ -4712,7 +4724,7 @@ def client_invoice(request, cid=None, id=None):
     if cat.type.pk == 13:
         b_len = True
         
-    clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client')).order_by('client__id')
+    clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client')).order_by('client__name') #'-client__id',
 
     cat_obj = cat.get_discount_item()
     context = {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_numbers': nbox, 'b_len': b_len}
@@ -8964,7 +8976,7 @@ def storage_box_edit(request, id):
 
 
 
-def storage_boxes_list(request, id=None):
+def storage_boxes_list(request, id=None, boxname=None):
     shopList = Shop.objects.filter(show = True)
     boxlist = None
     shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
@@ -8972,11 +8984,20 @@ def storage_boxes_list(request, id=None):
     if id:
         boxlist = BoxName.objects.filter(shop = id)
         shopN = Shop.objects.get(pk = id)
-    else:
+    if boxname:
+        boxlist = BoxName.objects.filter(name__icontains = boxname)
+    if not boxname and not id:
         boxlist = BoxName.objects.filter(shop = shopN)
         #boxlist = BoxName.objects.all()
-     
-    context = {"weblink": 'storage_boxes_list.html', "boxes": boxlist, 'shop_list': shopList, 's_shop_id': shopN}
+    bname_list  = []
+    tmp = ".".join(boxlist[0].name.split(".")[0:2])
+    for boxn in boxlist.order_by("name"):
+        btmp = ".".join(boxn.name.split(".")[0:2])
+        if btmp != tmp:
+            bname_list.append(btmp)
+            tmp = btmp
+        
+    context = {"weblink": 'storage_boxes_list.html', "boxes": boxlist, 'shop_list': shopList, 's_shop_id': shopN, "bname_list": bname_list}
     context.update(custom_proc(request))
     return render(request, "index.html", context)  
 

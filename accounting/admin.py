@@ -36,6 +36,7 @@ class DealerAdmin(admin.ModelAdmin):
     list_display = ('name','country', 'city', 'street', 'www', 'description', 'director')
     ordering = ('-name',)
     search_fields = ('name',)
+    
 admin.site.register(Dealer, DealerAdmin)
 
 
@@ -211,13 +212,27 @@ admin.site.register(ShopDailySales)
 admin.site.register(Season)
 admin.site.register(CatalogAttribute)
 admin.site.register(BoxName)
-admin.site.register(StorageBox)
 admin.site.register(InventoryList)
-admin.site.register(ClientInvoiceStorageBox)
+admin.site.register(DealerInvoice)
+
+
+
+class StorageBoxAdmin(admin.ModelAdmin):
+    list_display = ("box_name", "catalog", "count", "count_real", "count_last", "user", "shop",)
+    readonly_fields = ("catalog", )
+    ordering = ['-date_create',]
+
+admin.site.register(StorageBox, StorageBoxAdmin)
+
+
+class ClientInvoiceStorageBoxAdmin(admin.ModelAdmin):
+    list_display = ("sbox", "cinvoice", "count", "date_create", "user_create", "user_accept", "date_accept",)
+    readonly_fields = ("cinvoice", "sbox")
+    ordering = ['-date_create',]
+    
+admin.site.register(ClientInvoiceStorageBox, ClientInvoiceStorageBoxAdmin)
 
 #admin.site.register()
-
-admin.site.register(DealerInvoice)
 
 def mark_K(modeladmin, request, queryset):
     queryset.update(shop=Shop.objects.get(name = 'Кавказька'))

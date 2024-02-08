@@ -92,6 +92,17 @@ $(".ren_boxname").click(function() {
 {# <div class="col"> #}
 
 
+<div class="row ">
+<div class="col mb-1">
+{% for bname in bname_list %}
+<span class="badge badge-secondary">
+<a href="{% url 'storage-box-by-name' bname %}"> {{ bname }} </a>
+</span>
+{% endfor %}
+</div>
+</div>
+
+
 {% for box in boxes %}
 <div class="alert alert-info ml-1" role="alert">
 

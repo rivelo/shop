@@ -274,7 +274,12 @@ $(document).on("click", ".sel-box-number", function(event) {
 	$("#search_item_ModalLabel").html("Взято товару з місця: <br>" + $(this).html() );
 	$("#BoxStorageModal").attr("pk", $(this).attr('bs_id'));
 	$("#error_msg").html("");
-	inputNumber.value = $(this).attr('bs_count');
+	if ($(this).attr('bs_count') == 0) {
+		inputNumber.value = $("#id_count").val();
+	}
+	else {
+		inputNumber.value = $(this).attr('bs_count');
+	}
 });
 
 var inputNumber = document.getElementById("myInputCount");

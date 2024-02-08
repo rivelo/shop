@@ -581,6 +581,7 @@ urlpatterns = [
     url(r'^storage/boxes/$', catalog.storage_boxes_list, name='storage-boxes-list'), #new function
     url(r'^storage/shop/(?P<id>\d+)/boxes/$', catalog.storage_boxes_list, name='storage-boxes-list-by-shop'), #new function
     url(r'^storage/box/(?P<id>\d+)/list/$', catalog.storage_box_list, name='storage-box-itemlist'), #new function
+    url(r'^storage/box/name/(?P<boxname>[\w,.]+)/list/$', catalog.storage_boxes_list, name='storage-box-by-name'), #new function
     url(r'^storage/boxes/list/$', catalog.storage_boxes, name="storage_box-list"),
     url(r'^storage/boxes/print/$', catalog.storage_box_list, {'pprint': True}),
     url(r'^storage/box/(?P<boxname>[\w,.]+)/view/$', catalog.storage_box_list),
