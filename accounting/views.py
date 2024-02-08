@@ -8990,13 +8990,16 @@ def storage_boxes_list(request, id=None, boxname=None):
         boxlist = BoxName.objects.filter(shop = shopN)
         #boxlist = BoxName.objects.all()
     bname_list  = []
-    tmp = ".".join(boxlist[0].name.split(".")[0:2])
-    for boxn in boxlist.order_by("name"):
-        btmp = ".".join(boxn.name.split(".")[0:2])
-        if btmp != tmp:
-            bname_list.append(btmp)
-            tmp = btmp
-        
+    try:
+        tmp = ".".join(boxlist[0].name.split(".")[0:2])
+        for boxn in boxlist.order_by("name"):
+            btmp = ".".join(boxn.name.split(".")[0:2])
+            if btmp != tmp:
+                bname_list.append(btmp)
+                tmp = btmp
+    except:
+        pass
+    
     context = {"weblink": 'storage_boxes_list.html', "boxes": boxlist, 'shop_list': shopList, 's_shop_id': shopN, "bname_list": bname_list}
     context.update(custom_proc(request))
     return render(request, "index.html", context)  
