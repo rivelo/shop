@@ -108,7 +108,6 @@ $(document).ready(function() {
 
 //	$('[data-toggle="tooltip"]').tooltip();
 //	$('[data-toggle="tooltip"]').show();
-
 	
 	$("#dialog").hide();
 	$("#dialog_r").hide();
@@ -117,6 +116,14 @@ $(document).ready(function() {
 	$("#dialog_return").hide();
 	
 	$(".profit").hide();
+
+  	$( "#img_repair" ).click(function() {
+  		{% if client_name.check_workticket %}
+  			$("#WorkShopModal").modal('show');
+  		{% else %}
+  			window.location.href = "{% url 'workticket-add-by-client' client_name.id %}";
+  		{% endif %}
+	});
 	
   	$( "#img_bike" ).click(function() {
   		$( "#dialog" ).dialog();
@@ -423,7 +430,6 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 
 
 
-
 	$('#selectall').click(function(event) {  //on click 
         if(this.checked) { // check select status
             $('.chk_inv').each(function() { //loop through each checkbox
@@ -685,21 +691,16 @@ $('.phone').editable('/workticket/edit/', {
 
 
 
-
 }); // Ready end
 
 
 function show_ret(ciid, item) {
-	//iid = $(this).attr("tvalue");
 	iid = ciid
-	console.log("Catalog = " + $(item).parents('tr').find('td.cat_name > div > div.p-2').html()) // + $(item).parents('tr').find('td.cat_name').html())// > td.cat_name').html() );
-	console.log("this = " + item)
 	$("#dialog_return").attr("id_target", iid);
 	$("#dialog_return").dialog("open");
-	//$("ui-id-2").attr("html", "New title");
-	//document.getElementById("ui-id-2").innerHTML = "Повернення: " + ""
-	$("#ui-id-6").html("Повернення: " + $(item).parents('tr').find('td.cat_name > div > div.p-2').html().substr(0, 35));
+	$("#ui-id-7").html("Повернення: <br>" + $(item).parents('tr').find('td.cat_name > div > div.p-2').html().substr(0, 35)); 
 }
+
 </script>
 
 
@@ -750,7 +751,9 @@ function show_ret(ciid, item) {
 
 
 
-<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+<!-- WORKSHOP LIST -->
+
+<div class="modal fade" id="WorkShopModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -762,17 +765,12 @@ function show_ret(ciid, item) {
       <div class="modal-body">
 
 <table id="t_workticket" class = "table table-bordered table-hover table-condensed iTable" width="100%">
-  <script>
-	$( "#img_repair" ).click(function() {
-		window.location.href = "/workticket/add/client/"+ {{client_name.id}} +"/";	
-//    	console.log("/workticket/add/client/"+ {{client_name.id}} +"/");
-  	});
-  </script>
-
 
 {% for ticket in workshopTicket  %}
 {% if ticket.status__name == 'Прийнято' %}
   <tr bgcolor="#CCFF99" > 
+
+{% comment %}
   <script>
   $( "#img_repair" ).unbind(); 
   $( "#img_repair" ).click(function() {
@@ -795,11 +793,15 @@ function show_ret(ciid, item) {
   $('#img_repair').css("opacity", 1);
 
   </script>
+{% endcomment %}
   
 {% else %}
   <tr bgcolor="#FFFFFF">
 {% endif %}  
-  <td title="Майстерня: {{ticket.shop__name}}" data-toggle="tooltip" data-placement="top">{{ticket.date}}</td>
+
+  <td title="Майстерня: {{ticket.shop__name}}" data-toggle="tooltip" data-placement="top">
+  	{{ticket.date}}
+  </td>
   <td title="Створив заявку: {{ticket.user__username}}" data-toggle="tooltip" data-placement="top">
   {% if ticket.bicycle %}
   Велосипед: {{ticket.bicycle}}.
@@ -809,29 +811,27 @@ function show_ret(ciid, item) {
    {{ticket.description}}. 
   <a style="text-align: right;" href="{% url 'workticket_edit' ticket.id %}" title="Редагувати заявку"  data-toggle="tooltip" data-placement="right"><i class="material-icons">edit</i></a>
   </td>
-  <td class="edit_workstatus" id_workticket={{ticket.id}}>
-  {{ticket.status__name}}
-  </td>
-<td class="phone" id_workticket="{{ticket.id}}">       
-	{{ticket.phone_status__name}}
-</td>
+  	<td class="edit_workstatus" id_workticket={{ticket.id}}>
+  		{{ticket.status__name}}
+	</td>
+	<td class="phone" id_workticket="{{ticket.id}}">       
+		{{ticket.phone_status__name}}
+	</td>
 	{% if ticket.phone_user.username %}
 		<td title={{ticket.phone_user__username}} align="center">
 	{% else %}
 		<td align="center" title="{{ticket.phone_user__username}}">
 	{% endif %}       
-	{{ticket.phone_date|date:'d-m-Y H:i'}} 
-	</td>
-	
+		{{ticket.phone_date|date:'d-m-Y H:i'}} 
+		</td>
   </tr>
 {% endfor %}
-
-
 
 </table>
 
       </div>
       <div class="modal-footer">
+      	<button type="button" class="btn btn-success" data-dismiss="modal" onclick="location.href='{% url 'workticket-add-by-client' client_name.id %}'">Створити заявку</button>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
     </div>
@@ -853,12 +853,10 @@ function show_ret(ciid, item) {
 
 
 
-
-
 {# HTML Main #}
 <div class="container-fluid">
 
-<div class="row">
+<div class="row mt-1">
 <div class="col-xs-12 col-sm-9 col-md-9 col-lg-9">
     <h1>
     <span class="badge badge-secondary" >Виписка по клієнту:</span>
@@ -869,33 +867,63 @@ function show_ret(ciid, item) {
     </h1>
 </div>
 
-
+<!-- button toolbar -->
 <div class="col">
-<img style="display: True; opacity: 0.2" id="img_repair" src="/media/images/bicycle-repair.jpg" height="56px" title="Майстерня" data-toggle="modal" data-target="#exampleModalCenter">
-{% if status_msg %}
-<img style="display: True; opacity: 1" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення" data-toggle="tooltip" data-placement="bottom">
+{# <a href="/workticket/add/client/{{client_name.id}}/"> #}
+<a href="/workshop/add/client/{{client_name.id}}/"> 
+<img style="display: True; opacity: 1" id="img_add_work" src="/media/images/workshop_1g.png" height="56px" title="Додати роботу" data-toggle="tooltip" data-placement="bottom">
+</a>
+
+{% if client_name.check_workticket %}
+	{#{client_name.check_workticket}#}
+	<img style="display: True; opacity: 1" id="img_repair" src="/media/images/workshop_3g.png" height="56px" title="Майстерня" data-toggle="tooltip" data-placement="bottom" data-target="#WorkShopModal">
+	{# <img style="display: True; opacity: 0.2" id="img_repair" src="/media/images/bicycle-repair.jpg" height="56px" title="Майстерня" data-toggle="modal" data-target="#exampleModalCenter"> #}
 {% else %}
-<img style="display: True; opacity: 0.2" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення: ВІДСУТНІ" data-toggle="tooltip" data-placement="bottom">
-{% endif %}
-{% if b_bike %}
-<img style="display: True;" id="img_bike" src="/media/images/green-bicycle_ico.png" height="50px" title="Придбані велосипеди" data-toggle="tooltip" data-placement="bottom">
+	<img style="display: True; opacity: 0.2" id="img_repair" src="/media/images/workshop_3g.png" height="56px" title="Майстерня / Створити заявку" data-toggle="tooltip" data-placement="bottom" data-target="#WorkShopModal">
 {% endif %}
 
- <img style="display: None;" id="img_attention" src="/media/images/system-attention-icon.png" height="50px" title="Непроведені операції/роботи"> {# data-toggle="tooltip" data-placement="bottom"> #}
-	
+{% if b_bike %}
+	{# <img style="display: True;" id="img_bike" src="/media/images/green-bicycle_ico.png" height="50px" title="Придбані велосипеди" data-toggle="tooltip" data-placement="bottom"> #}
+	<img style="display: True;" id="img_bike" src="/media/images/bikeincase_green.png" height="50px" title="Придбані велосипеди" data-toggle="tooltip" data-placement="bottom">
+{% endif %}
+
+{% if client_name.check_rent %}
+{#% if status_rent %#}
+<img style="display: True;" id="img_rent" src="/media/images/saddle_1g.png" height="50px" title="Тестові сидіння:<br> {{client_name.show_rent_html|join:'<br>'}}" data-toggle="tooltip" data-placement="bottom" data-html="true">
+{% else %}
+<img style="display: None;" id="img_rent" src="/media/images/saddle_1g.png" height="50px" title="Тестові сидіння" data-toggle="tooltip" data-placement="bottom">
+{% endif %}
+
+{% if client_name.list_order_items %}
+<span class="badge badge-dark" title="Замовлені компонети:">
+{% for item in client_name.list_order_items %}
+{% if item.catalog.type.get_icon_name %}
+	<img class="img_order" src="{{item.catalog.type.get_icon_name}}" height="50px" title="{{item.get_item_name}}" data-toggle="tooltip" data-placement="bottom">
+{% else %}
+	<img class="img_order"  src="/media/images/green_box.png" height="50px" title="{{item.get_item_name}}" data-toggle="tooltip" data-placement="bottom" >
+{% endif %}
+{% endfor %}
+</span>
+{% endif %}
+
+	<img style="display: None;" id="img_attention" src="/media/images/system-attention-icon.png" height="50px" title="Непроведені операції/роботи"> {# data-toggle="tooltip" data-placement="bottom"> #}
+
+{% comment %}	
 {% if status_order %}
 <img style="display: True;" id="img_order" src="/media/images/components_order.png" height="50px" title="Замовлення компонентів">
 {% else %}
 <img style="display: None;" id="img_order" src="/media/images/components_order.png" height="50px" title="Замовлення компонентів">
 {% endif %}
+{% endcomment %}
 
-{% if status_rent %}
-<img style="display: True;" id="img_rent" src="/media/images/test_icon.png" height="50px" title="Тест сидінь">
+
+{% if status_msg %}
+<img style="display: True; opacity: 1" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення" data-toggle="tooltip" data-placement="bottom">
 {% else %}
-<img style="display: None;" id="img_rent" src="/media/images/test_icon.png" height="50px" title="Тест сидінь">
+<img style="display: True; opacity: 0.2" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення: ВІДСУТНІ" data-toggle="tooltip" data-placement="bottom">
 {% endif %}
 
-<span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="56px" height="56px" title="Відправити картку клієнта на Email" data-toggle="tooltip" data-placement="left"></span> 
+{# <span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="56px" height="56px" title="Відправити картку клієнта на Email" data-toggle="tooltip" data-placement="left"></span> #} 
 </div>
   
 </div>
@@ -1223,7 +1251,7 @@ function show_ret(ciid, item) {
 {% endcomment %}
 
 
-
+{% comment %}
 <h3>
 <a class="badge badge-pill badge-secondary" href="/workticket/add/client/{{client_name.id}}/"> 
 Створити заявку на ремонт
@@ -1233,6 +1261,7 @@ function show_ret(ciid, item) {
 </a>
 <a class="badge badge-pill badge-secondary" href="/client/search/"> Пошук клієнта </a>
 </h3>
+{% endcomment %}
 
 
 {% orm_debug %}

@@ -398,7 +398,7 @@ urlpatterns = [
     url(r'^workstatus/delete/(?P<id>\d+)$', catalog.workstatus_delete),
 
     url(r'^workticket/add/$', catalog.workticket_add, name="workshop-ticket-create"),
-    url(r'^workticket/add/client/(?P<id>\d+)/$', catalog.workticket_add),    
+    url(r'^workticket/add/client/(?P<id>\d+)/$', catalog.workticket_add, name="workticket-add-by-client"),    
     url(r'^workticket/view/$', catalog.workticket_list, name="workticket-list"),
     url(r'^workticket/edit/$', catalog.workticket_edit),
     url(r'^workticket/edit/(?P<id>\d+)/$', catalog.workticket_edit, name="workticket_edit"),    

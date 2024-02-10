@@ -2,9 +2,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Замовлення товару</title>
 
-	<link rel="stylesheet" href="/media/jquery-ui.min.css">
-	<script type="text/javascript" src="/media/jquery-ui.min.js"></script>
-	
+{% load poll_extras %}	
 
 <style>
     .ui-combobox {
@@ -118,17 +116,133 @@ $( "#catalog" ).autocomplete({
             }
         });
 
-      
+$("#id_description").attr("rows", 3);
+
 });    
     </script>
 
 
 <body  onload="document.getElementById('catalog').focus()">
+<div class="d-flex flex-row bd-highlight mb-3">
+<div class="row w-100">
+<div class="col-lg-9 col-xs-12 col-sm-12 ml-2">
 
-<h1>Замовлення товару</h1>
+
+<h1><span class="badge badge-secondary">
+Замовлення товару
+</span>
+</h1>
+
+
 <div class="ui-widget" style="margin-top: 2em; font-family: Arial;">    
 
 <form action="" method="POST">
+   
+  <div class="form-row">
+    <div class="col-md-9 col-12 mb-2">
+      <label for="catalog">Товар з каталогу</label>
+      {{form.post_id|add_attr:"class:form-control"}}
+      <input type="text" class="form-control" id="catalog" > {# value="" required>#} 
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+  </div>
+  <div class="form-row">
+      <div class="col-md-9 col-12 mb-2">
+      <label for="s_client">Клієнт</label>
+	{{form.client|add_attr:"class:form-control"}}      
+      <input type="text" class="form-control " id="s_client" > {# class = "is-valid" #}
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+  </div>
+  
+  <div class="form-row">
+    <div class="col-md-9 col-12 mb-3">
+      <label for="validationServer03">Примітки</label>
+      {{form.description|add_attr:"class:form-control"}}
+{#      <textarea class="form-control is-invalid" id="validationServer03" aria-describedby="validationServer03Feedback" required></textarea> #}
+      <div id="validationServer03Feedback" class="invalid-feedback">
+        Please provide a valid city.
+      </div>
+    </div>
+   </div>
+   <div class="form-row">
+    <div class="col-md-2 col-12 mb-3">
+      <label for="validationServer04">Кількість</label>
+{{form.count|add_attr:"class:form-control"}}
+      <div id="validationServer04Feedback" class="invalid-feedback">
+        Please select a valid state.
+      </div>
+    </div>
+    <div class="col-md-4 col-12 mb-3">
+      <label for="validationServer05">Ціна</label>
+    <div class="input-group is-valid"> {# is-invalid #}
+		{{form.price|add_attr:"class:form-control"}}
+      <div class="input-group-append">
+              {{form.currency|add_attr:"class:form-control"}}
+{#        <span class="input-group-text" id="validatedInputGroupPrepend">        </span> #}
+      </div>
+    </div>
+    <div class="invalid-feedback">
+      Example invalid input group feedback
+    </div>
+    
+    </div>
+    
+    <div class="col-md-3 col-12 mb-3">
+      <label for="validationServer05">Сума</label>
+		{{form.sum|add_attr:"class:form-control"}}
+      <div id="validationServer05Feedback" class="invalid-feedback">
+        Please provide a valid zip.
+      </div>
+    </div>
+  </div>
+  
+   <div class="form-row">
+    <div class="col-md-3 col-12 mb-3">
+      <label for="validationServer04">Передоплата</label>
+{{form.pay|add_attr:"class:form-control"}}
+      <div id="validationServer04Feedback" class="invalid-feedback">
+        Please select a valid state.
+      </div>
+    </div>
+    <div class="col-md-3 col-12 mb-3">
+      <label for="validationServer05">Тип оплати</label>
+		{{form.cash_type|add_attr:"class:form-control"}}      
+{#      <input type="text" class="form-control is-invalid" id="validationServer05" aria-describedby="validationServer05Feedback" required> #}
+      <div id="validationServer05Feedback" class="invalid-feedback">
+        Please provide a valid zip.
+      </div>
+    </div>
+    <div class="col-md-3 col-12 mb-3">
+      <label for="validationServer05">Дата</label>
+      {{form.date|add_attr:"class:form-control"}}
+      <div id="validationServer05Feedback" class="invalid-feedback">
+        Please provide a valid zip.
+      </div>
+    </div>
+  </div>
+{% if request.user|has_group:"admin" %}  
+  <div class="form-group">
+    <div class="form-check">
+{#      <input class="form-check-input is-valid" type="checkbox" value="" id="invalidCheck3" aria-describedby="invalidCheck3Feedback" required> #}
+      	{{form.status|add_attr:"class:form-check-input"}}
+      <label class="form-check-label" for="invalidCheck3">
+        Статус виконання замовлення
+      </label>
+      <div  id="invalidCheck3Feedback" class="invalid-feedback">
+        You must agree before submitting.
+      </div>
+    </div>
+  </div>
+{% endif %}  
+  <button class="btn btn-primary w-100" type="submit">Створити замовлення</button>   
+   
+   
+{% comment %}   
    
 <table>
 <tr> 
@@ -146,14 +260,22 @@ $( "#catalog" ).autocomplete({
            {{ form.as_table }}
 </table>
         
-    <p><input type="submit" value="Save" title="Зберегти замовлення"></p>
+    <p><input type="submit" class="w-100" value="Save" title="Зберегти замовлення"></p>
     <input type="hidden" id="val_id_catalog" >
 
     <h3 id="result" style="color:red; background-color:#CCCCCC"}>Сума грн.</h3>
+
+{% endcomment %}
+
+
+</form>
+
+</div>
+</div>
+</div>
     
 </body>
     
-    <br><br>
 
 
 

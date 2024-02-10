@@ -752,7 +752,7 @@ class ClientOrderForm(forms.ModelForm):
     count = forms.IntegerField(min_value=0, initial = 1, label='Кількість')
     price = forms.FloatField(initial=0, label='Ціна')
     sum = forms.FloatField(initial=0, label='Сума')
-    currency = forms.ModelChoiceField(queryset = Currency.objects.all(), label='Валюта')
+    currency = forms.ModelChoiceField(queryset = Currency.objects.all(), label='Валюта', initial=Currency.objects.get(name="Гривня"))
     pay = forms.FloatField(initial=0, label='Передоплата')
     cash_type = forms.ModelChoiceField(queryset = CashType.objects.all(), initial=CashType.objects.get(name="Готівка"))
     date = forms.DateTimeField(initial = datetime.datetime.now, label='Дата',  input_formats=['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d/%m/%Y %H:%M:%S'))

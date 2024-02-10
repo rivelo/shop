@@ -2241,10 +2241,10 @@ def dealer_invoice_list(request, id=False, pay='all', year=None):
     now = datetime.datetime.now()
     year=now.year
             
-    exchange = Exchange.objects.filter(date=datetime.date.today)
+    exchange = Exchange.objects.filter(date=datetime.date.today())
     try:
-        exchange_d = Exchange.objects.get(date=datetime.date.today, currency=2)
-        exchange_e = Exchange.objects.get(date=datetime.date.today, currency=4)
+        exchange_d = Exchange.objects.get(date=datetime.date.today(), currency=2)
+        exchange_e = Exchange.objects.get(date=datetime.date.today(), currency=4)
         summ = 0
         summ_debt = 0
         for e in list: 
@@ -2271,8 +2271,10 @@ def dealer_invoice_list(request, id=False, pay='all', year=None):
         exchange_d = 0
         exchange_e = 0
     company_list = list.values("company", "company__name", "company__color").distinct().order_by("company__pk")        
-    yearlist = DealerInvoice.list_objects.get_year_list()        
-    return render_to_response('index.html', {'dealer_invoice': list, 'sel_company': id, 'sel_year': year, 'exchange': exchange, 'year_list' :yearlist, 'company_list': company_list, 'exchange_d': exchange_d, 'exchange_e': exchange_e, 'summ': summ, 'summ_debt': summ_debt, 'weblink': 'dealer_invoice_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    yearlist = DealerInvoice.list_objects.get_year_list()
+    context = {'dealer_invoice': list, 'sel_company': id, 'sel_year': year, 'exchange': exchange, 'year_list' :yearlist, 'company_list': company_list, 'exchange_d': exchange_d, 'exchange_e': exchange_e, 'summ': summ, 'summ_debt': summ_debt, 'weblink': 'dealer_invoice_list.html', }
+    context.update(custom_proc(request))        
+    return render(request, 'index.html', context)
 
 
 def dealer_invoice_list_month(request, year=False, month=False, pay='all'):
@@ -5349,15 +5351,17 @@ def client_result(request, tdelta = 30, id = None, email=False):
         res = "Такого клієнта не існує, або в нього не має заборгованостей"
     
     try:
-        client_name = Client.objects.values('name', 'forumname', 'id', 'phone', 'birthday', 'email').get(id=user)
+        #client_name = Client.objects.values('name', 'forumname', 'id', 'phone', 'birthday', 'email').get(id=user)
+        client_name = Client.objects.get(id=user)
     except ObjectDoesNotExist:
         client_name = ""
     
     credit_list = None
-    cash_id = CashType.objects.get(id = 6)
+    cash_id = CashType.objects.get(id = 6) # Зарплата
     if auth_group(request.user, "admin") == False:
         #if str(request.user.username.encode('utf8')) == str(client_name['forumname'].encode('utf8')):
-        if request.user.username == client_name['forumname'].encode('utf8'):
+        if request.user.username == client_name.forumname.encode('utf8'):
+        #if request.user.username == client_name['forumname'].encode('utf8'):            
             credit_list = ClientCredits.objects.filter(client=user, date__gt=now-datetime.timedelta(days=tdelta))
         else:    
             credit_list = ClientCredits.objects.filter(client=user, date__gt=now-datetime.timedelta(days=tdelta)).exclude(cash_type = cash_id)
@@ -7369,7 +7373,7 @@ def workshop_payform(request):
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def dealer_payform(request):
     checkbox_list = [x for x in request.POST if x.startswith('checkbox_')]
     print "CHECK BOX = " + str(checkbox_list)
@@ -8112,7 +8116,7 @@ def all_user_salary_report(request, month=None, year=None, day=None, user_id=Non
     context.update(custom_proc(request)) 
     return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def rent_add(request):
     user = None
     if request.user.is_authenticated():
@@ -8153,7 +8157,9 @@ def rent_add(request):
     else:
         form = RentForm(instance = a)
         #form = RentForm()
-    return render_to_response('index.html', {'form': form, 'weblink': 'rent.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'rent.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
     
 
 def rent_edit(request, id):
@@ -8197,8 +8203,10 @@ def rent_edit(request, id):
 
 def rent_list(request):
     now = datetime.datetime.now()
-    list = Rent.objects.filter((Q(status = False)) | Q(date_end__gt=now-datetime.timedelta(days=360)))    
-    return render_to_response('index.html', {'rent': list, 'weblink': 'rent_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    list = Rent.objects.filter((Q(status = False)) | Q(date_end__gt=now-datetime.timedelta(days=360)))
+    context = {'rent': list, 'weblink': 'rent_list.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)    
 
 
 def rent_delete(request, id):

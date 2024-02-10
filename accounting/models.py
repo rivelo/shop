@@ -736,7 +736,14 @@ class Catalog(models.Model):
                 arr.append(i)
 #        print "\nGET all Code - " +  str(arr) #str(code_list)
         return arr
-    get_code = property(_get_all_code) # Перевірка на правильність ціни
+    get_code = property(_get_all_code) # return list of all Catalog code 
+
+    def _get_code_w_name(self):
+        code_str = "[ " + " ".join(self._get_all_code()) + " ] "
+        name_str = self.name
+        res_str = code_str + name_str
+        return res_str
+    get_code_name = property(_get_code_w_name)
 
     def json_barcode(self):
         data = {'ids': self.ids,
@@ -993,6 +1000,14 @@ class DealerInvoice(models.Model):
         list = DealerInvoice.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
 #         Order.objects.filter().extra({'month':"Extract(month from created)"}).values_list('month').annotate(Count('id'))
         return list 
+
+    def chk_invoice_items(self):
+        status = True
+        i_list = InvoiceComponentList.objects.filter(invoice = self.pk)
+        for item in i_list:
+            if item.check_count() == False:
+                status = False
+        return status
             
     def __unicode__(self):
         return "%s - %s - %s [%s %s]" % (self.origin_id, self.company, self.manager, self.price, self.currency) 
@@ -1195,6 +1210,31 @@ class Client(models.Model):
             str = self.phone1[0:3] + '-' + self.phone1[3:6] + '-' + self.phone1[6:8]  + '-' + self.phone1[8:]
         return str 
 
+    def check_rent(self):
+        if self.rent_set.filter(status = False):
+            return True
+        return False 
+    
+    def show_rent_html(self):
+        str_list = []
+        list = self.rent_set.filter(status = False)
+        for item in list:
+            str_list.append( item.catalog.get_code_name )
+        return str_list
+
+    def check_workticket(self):
+        list = self.workticket_set.all()
+        names = ["Ремонтується", "Виконано невидано", "На зберіганні", "Прийнято"]
+        s_list = WorkStatus.objects.filter(name__in = names)
+        status = False
+        for t in list:
+            if t.status in s_list:
+                status = True
+        return status
+
+    def list_order_items(self):
+        list = self.clientorder_set.filter(status = False)
+        return list
     
     def __unicode__(self):
         return u"%s - [%s]" % (self.name, self.forumname)
@@ -1402,10 +1442,18 @@ class ClientOrder(models.Model):
     status = models.BooleanField(default=False, verbose_name="Статус?")
     credit = models.ForeignKey(ClientCredits, blank=True, null=True)
     shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин") 
+
+    def get_item_name(self):
+        res = ""
+        if self.catalog:
+            res = res + self.catalog.get_code_name
+            #res = "Code "
+        if self.description:
+            res = res + self.description.encode('utf8')
+        return res
             
     def __unicode__(self):
         return "%s (%s) - %s шт." % (self.catalog, self.description, self.count) 
-        #return self.origin_id 
 
     class Meta:
         ordering = ["status", "-date", "client"]    

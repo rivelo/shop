@@ -281,6 +281,11 @@ class="icompany{{type.company.id}}">
 	{% endifequal %}
 	<td {% if not type.received %} class="badge-info" {% endif %} ids="{{type.id}}" onclick="check_invoice($(this))">       
 	{{type.received|yesno:"Отримано,В дорозі,Не забрано"}}
+{% if type.chk_invoice_items == False %}
+<div class="alert alert-danger" role="alert">
+	{{type.chk_invoice_items|yesno:",Не співпадає кількість товару!"}}
+</div>	
+{% endif %}
 	</td >
 	<td {% if not type.payment %} class="badge-warning" {% endif %}>       
 	{{type.payment|yesno:"Оплачено,Не оплачено"}}
