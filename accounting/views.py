@@ -4641,9 +4641,10 @@ def client_invoice_shorturl(request, cid=None):
     return render(request, 'index.html', context)
 
 @csrf_exempt
-def client_invoice(request, cid=None, id=None):
+def client_invoice(request, cid=None, id=None, ciid=None):
     shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
-    cat = Catalog.objects.get(id = cid)
+    cat = None
+    a = None
     if not request.user.is_authenticated():
         context = {'weblink': 'guestinvoice.html', 'cat': cat}
         #custom_proc(request)
@@ -4652,6 +4653,13 @@ def client_invoice(request, cid=None, id=None):
     if (id):
         client = Client.objects.get(pk = id)
         a = ClientInvoice(client = client, date=datetime.datetime.today(), price=cat.price, sum=cat.price, sale=int(cat.sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=cat, user = request.user)
+    elif (cid):
+        cat = Catalog.objects.get(id = cid)
+        a = ClientInvoice(date=datetime.datetime.today(), price=cat.price, sum=cat.price, sale=int(Catalog.objects.get(id = cid).sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=cat, user = request.user)
+    elif (ciid):
+        a = ClientInvoice.objects.get(pk = ciid)
+        cat = Catalog.objects.get(id = a.catalog.id)
+        cid = a.catalog.id
     else:
         a = ClientInvoice(date=datetime.datetime.today(), price=cat.price, sum=cat.price, sale=int(Catalog.objects.get(id = cid).sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=cat, user = request.user)
         
@@ -4690,18 +4698,31 @@ def client_invoice(request, cid=None, id=None):
             user_id = form.cleaned_data['user']
             if request.user.is_authenticated():
                 user = user_id
-            ci = ClientInvoice(client=client, catalog=catalog, count=count, sum=sum, price=price, currency=currency, sale=sale, pay=pay, date=date, description=description, user=user, shop=shopN)
+            ci = a
+            #ci = ClientInvoice(client=client, catalog=catalog, count=count, sum=sum, price=price, currency=currency, sale=sale, pay=pay, date=date, description=description, user=user, shop=shopN)
+            ci.client = client
+            ci.catalog=catalog
+            ci.count=count
+            ci.sum=sum
+            ci.price=price
+            ci.currency=currency
+            ci.sale=sale
+            ci.pay=pay
+            ci.date=date
+            ci.description=description 
+            ci.user=user 
+            ci.shop=shopN
             ci.save()
             
             index = 0
             #sb_count = 0
-            print ("Sbox IDS (JSON) = %s \n" % sbox_ids)
-            print ("Sbox IDS count (JSON) = %s \n" % sbox_count)
+#            print ("Sbox IDS (JSON) = %s \n" % sbox_ids)
+#            print ("Sbox IDS count (JSON) = %s \n" % sbox_count)
             for box in sbox_ids:
                 sb_count = 0
                 sbox = StorageBox.objects.get(pk = sbox_ids[index])
                 sb_count = sbox_count[index]
-                print ("Sbox [%s] = %s \n" % (index, sb_count))
+#                print ("Sbox [%s] = %s \n" % (index, sb_count))
                 if sb_count > 0:  
                     ClientInvoiceStorageBox(sbox=sbox, cinvoice=ci, count=sb_count, date_create=now, user_create=user).save()
                 index+=1
@@ -4732,84 +4753,86 @@ def client_invoice(request, cid=None, id=None):
     context = {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_numbers': nbox, 'b_len': b_len}
     context.update(custom_proc(request))
     return render(request, 'index.html',  context)
-
-@csrf_exempt
-def client_invoice_edit(request, id):
-    a = ClientInvoice.objects.get(id=id)
-    s_user = a.user
-    cat = Catalog.objects.get(id = a.catalog.id)
-    if not request.user.is_authenticated():
-        context = {'weblink': 'guestinvoice.html', 'cat': cat}
-        return render(request, 'index.html', context)
-    if (a.pay == a.sum) and ( auth_group(request.user, "admin") == False ):
-        context = {'weblink': 'error_message.html', 'mtext': 'Даний товар вже продано і ви не можете його редагувати'}
-        context.update(custom_proc(request))
-        return render(request, 'index.html', context)
-    
-    now = datetime.datetime.now()
-    old_count = a.count
-    cat_id = a.catalog.id
-    cat = Catalog.objects.get(id = cat_id)
-    if request.method == 'POST':
-        form = ClientInvoiceForm(request.POST, instance = a, catalog_id = cat_id, request = request)
-        if form.is_valid():
-            client = form.cleaned_data['client']
-            catalog = form.cleaned_data['catalog']
-            count = form.cleaned_data['count']
-            price = form.cleaned_data['price']
-            sum = form.cleaned_data['sum']
-            currency = form.cleaned_data['currency']
-            sale = form.cleaned_data['sale']
-            pay = form.cleaned_data['pay']
-            date = form.cleaned_data['date']
-            clen = form.cleaned_data['length']
-            shop = form.cleaned_data['shop']
-            user = form.cleaned_data['user']
-            description = form.cleaned_data['description']
-            if (clen is not None) and (cat.type.pk == 13):
-                if a.description.find('length:')>=0:
-                    old_length = a.description.split('\n')[-1].split('length:')[1]
-                if cat.length is not None:
-                    cat.length = cat.length - float(old_length) + float(clen)
-                else:
-                    cat.length = 0 - float(old_length) + float(clen)
-                description = description + '\nlength:' + str(clen)
-            cat.count = cat.count + (old_count - count)
-            cat.save()
-
-            if (request.user.is_authenticated()) and (request.user.id == s_user.id):
-                user = user
-            else:
-                if auth_group(request.user, "admin") == True:
-                    user = user
-                else:
-                    user = s_user
-            ClientInvoice(id=id, client=client, catalog=catalog, count=count, sum=sum, price=price, currency=currency, sale=sale, pay=pay, date=date, description=description, user=user, shop=shop).save()
-
-            if pay == sum:
-                desc = catalog.name
-                ct = CashType.objects.get(id=1)
-                ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=ct)
-                ccred.save()
-                cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
-                cdeb.save()
-            
-            return HttpResponseRedirect('/client/invoice/view/')
-    else:
-        form = ClientInvoiceForm(instance = a, catalog_id = cat_id, request = request)
-    nday = 3 # користувачі за останні n-днів
-    dlen = None
-    nbox = cat.locality
-    b_len = False
-    if cat.type.pk == 13:
-        b_len = True
-        if a.description.find('length:')>=0:
-            dlen = a.description.split('\n')[-1].split(':')[1]
-    clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client')).order_by('client__id')
-    cat_obj = cat.get_discount_item()    
-    context = {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len, 'desc_len':dlen,}
-    context.update(custom_proc(request))     
-    return render(request, 'index.html', context )
+#===============================================================================
+# 
+# @csrf_exempt
+# def client_invoice_edit(request, id):
+#     a = ClientInvoice.objects.get(id=id)
+#     s_user = a.user
+#     cat = Catalog.objects.get(id = a.catalog.id)
+#     if not request.user.is_authenticated():
+#         context = {'weblink': 'guestinvoice.html', 'cat': cat}
+#         return render(request, 'index.html', context)
+#     if (a.pay == a.sum) and ( auth_group(request.user, "admin") == False ):
+#         context = {'weblink': 'error_message.html', 'mtext': 'Даний товар вже продано і ви не можете його редагувати'}
+#         context.update(custom_proc(request))
+#         return render(request, 'index.html', context)
+#     
+#     now = datetime.datetime.now()
+#     old_count = a.count
+#     cat_id = a.catalog.id
+#     cat = Catalog.objects.get(id = cat_id)
+#     if request.method == 'POST':
+#         form = ClientInvoiceForm(request.POST, instance = a, catalog_id = cat_id, request = request)
+#         if form.is_valid():
+#             client = form.cleaned_data['client']
+#             catalog = form.cleaned_data['catalog']
+#             count = form.cleaned_data['count']
+#             price = form.cleaned_data['price']
+#             sum = form.cleaned_data['sum']
+#             currency = form.cleaned_data['currency']
+#             sale = form.cleaned_data['sale']
+#             pay = form.cleaned_data['pay']
+#             date = form.cleaned_data['date']
+#             clen = form.cleaned_data['length']
+#             shop = form.cleaned_data['shop']
+#             user = form.cleaned_data['user']
+#             description = form.cleaned_data['description']
+#             if (clen is not None) and (cat.type.pk == 13):
+#                 if a.description.find('length:')>=0:
+#                     old_length = a.description.split('\n')[-1].split('length:')[1]
+#                 if cat.length is not None:
+#                     cat.length = cat.length - float(old_length) + float(clen)
+#                 else:
+#                     cat.length = 0 - float(old_length) + float(clen)
+#                 description = description + '\nlength:' + str(clen)
+#             cat.count = cat.count + (old_count - count)
+#             cat.save()
+# 
+#             if (request.user.is_authenticated()) and (request.user.id == s_user.id):
+#                 user = user
+#             else:
+#                 if auth_group(request.user, "admin") == True:
+#                     user = user
+#                 else:
+#                     user = s_user
+#             ClientInvoice(id=id, client=client, catalog=catalog, count=count, sum=sum, price=price, currency=currency, sale=sale, pay=pay, date=date, description=description, user=user, shop=shop).save()
+# 
+#             if pay == sum:
+#                 desc = catalog.name
+#                 ct = CashType.objects.get(id=1)
+#                 ccred = ClientCredits(client=client, date=now, price=pay, description=desc, user=user, cash_type=ct)
+#                 ccred.save()
+#                 cdeb = ClientDebts(client=client, date=now, price=sum, description=desc, user=user, cash=0)
+#                 cdeb.save()
+#             
+#             return HttpResponseRedirect('/client/invoice/view/')
+#     else:
+#         form = ClientInvoiceForm(instance = a, catalog_id = cat_id, request = request)
+#     nday = 3 # користувачі за останні n-днів
+#     dlen = None
+#     nbox = cat.locality
+#     b_len = False
+#     if cat.type.pk == 13:
+#         b_len = True
+#         if a.description.find('length:')>=0:
+#             dlen = a.description.split('\n')[-1].split(':')[1]
+#     clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client')).order_by('client__id')
+#     cat_obj = cat.get_discount_item()    
+#     context = {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_number': nbox, 'b_len': b_len, 'desc_len':dlen,}
+#     context.update(custom_proc(request))     
+#     return render(request, 'index.html', context )
+#===============================================================================
 
 @csrf_exempt
 def client_invoice_set(request):
@@ -8890,17 +8913,17 @@ def storage_box_list(request, boxname=None, pprint=False):
     return render(request, "index.html", context)
 
 
+@csrf_exempt
 def storage_box_delete(request, id=None):
     if request.is_ajax():
         if request.method == 'POST':  
             POST = request.POST  
             if POST.has_key('id'):
-                wid = request.POST.get( 'id' )
-    if wid:
-        id = wid
-    obj = Catalog.objects.get(id=id)
-    obj.locality = ''
-    obj.save()
+                bid = request.POST.get( 'id' )
+    if bid:
+        id = bid
+    obj = StorageBox.objects.get(id=id)
+    obj.delete()
     return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;")
     #return HttpResponseRedirect('/workshop/view/')
 

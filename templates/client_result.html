@@ -889,7 +889,9 @@ function show_ret(ciid, item) {
 
 {% if client_name.check_rent %}
 {#% if status_rent %#}
+<a href="{% url 'rent-list' %}" >
 <img style="display: True;" id="img_rent" src="/media/images/saddle_1g.png" height="50px" title="Тестові сидіння:<br> {{client_name.show_rent_html|join:'<br>'}}" data-toggle="tooltip" data-placement="bottom" data-html="true">
+</a>
 {% else %}
 <img style="display: None;" id="img_rent" src="/media/images/saddle_1g.png" height="50px" title="Тестові сидіння" data-toggle="tooltip" data-placement="bottom">
 {% endif %}

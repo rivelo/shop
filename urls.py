@@ -283,7 +283,8 @@ urlpatterns = [
     url(r'^client/invoice/view/$', catalog.client_invoice_view, name="clientinvoice-view"),
     url(r'^client/invoice/view/notpay/$', catalog.client_invoice_view, {'notpay': True}, name="clientinvoice-now-notpay"),
     url(r'^client/invoice/set/$', catalog.client_invoice_set),
-    url(r'^client/invoice/(?P<id>\d+)/edit/$', catalog.client_invoice_edit, name="client-invoice-edit"),
+#    url(r'^client/invoice/(?P<id>\d+)/edit/$', catalog.client_invoice_edit, name="client-invoice-edit"),
+    url(r'^client/invoice/(?P<ciid>\d+)/edit/$', catalog.client_invoice, name="client-invoice-edit"),
     url(r'^client/invoice/add/$', catalog.client_invoice_add),
     url(r'^client/(?P<cid>\d+)/invoice/add/$', catalog.client_invoice),
 # ajax table for client invoice    
@@ -564,7 +565,7 @@ urlpatterns = [
     url(r'^rent/add/$', catalog.rent_add),
     url(r'^rent/edit/(?P<id>\d+)/$', catalog.rent_edit),
     url(r'^rent/delete/(?P<id>\d+)/$', catalog.rent_delete),    
-    url(r'^rent/view/$', catalog.rent_list),
+    url(r'^rent/view/$', catalog.rent_list, name="rent-list"),
 
     # Curency operation
     url(r'^curency/add/$', catalog.curency_add),

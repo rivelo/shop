@@ -320,6 +320,27 @@ $(document).ready( function() {
         });
 	});
 
+
+	$(".box_del").click(function(){
+	 if (confirm("Ви дійсно бажаєте видалити запис про місце? \n "+ $(this).attr("sb_cat_name") )) { // parents('div.boxN').html() )) {
+		var bitem = $(this).parents('div.boxN')
+		//$(this).parents('div').find('div.box');
+//		$(this).parents('div.boxN').remove(); // find('div.box').remove();
+		$.ajax({
+                type: "POST",
+                url: "/storage/box/delete/",
+                data: { id:  $(this).attr("sbox_id") },
+                dataType: "text",
+                success:function(data){
+//                	$(this).parents('div.boxN').remove();
+                	bitem.remove();
+                },
+                error:function(data){
+                    alert("Виникли проблеми з сервером" + data);
+                }
+            }); 	
+ }
+ });	
 	
 	
 }); // end ready
@@ -568,11 +589,14 @@ function PrintInventoryDiv(value, count){
 {% else %}
 <!-- Box entry (list of catalog item) --> 
 {% for storage in box_list %}
-<div class="alert alert-info ml-1 {{storage.count_zero_html}}" role="alert" >
+<div class="alert alert-info ml-1 {{storage.count_zero_html}} boxN" role="alert" >
 
 <div class="d-flex bd-highlight ">
   <div class="p-1 bd-highlight"> 
 
+{% if request.user|has_group:"admin" %}
+<span class="badge badge-success box_del" sbox_id="{{storage.id}}" sb_cat_name="[{{ storage.catalog.get_code|join:"; " }}] {{storage.catalog.name}}" title="Видалити товар з даного місця" data-toggle="tooltip" data-placement="right"><i class="material-icons" style="font-size: 24px" >delete</i></span>
+{% endif %}
 <span class="mr-2" title="Редагувати опис товару" data-toggle="tooltip" data-html="true" data-placement="left" >
 <a href="{% url 'catalog_id_view' storage.catalog.id %}" >
 <i class="material-icons" style="font-size: 24px" >edit</i>
