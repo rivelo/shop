@@ -4722,12 +4722,16 @@ def client_invoice(request, cid=None, id=None, ciid=None):
                 sb_count = 0
                 sbox = StorageBox.objects.get(pk = sbox_ids[index])
                 sb_count = sbox_count[index]
-#                print ("Sbox [%s] = %s \n" % (index, sb_count))
-                if sb_count > 0:  
-                    ClientInvoiceStorageBox(sbox=sbox, cinvoice=ci, count=sb_count, date_create=now, user_create=user).save()
+                if sb_count > 0:
+                    obj_cisb = sbox.get_ci_sb_by_cinv(ci)
+                    if obj_cisb:  
+                        for i in obj_cisb: 
+                            i.set_count(sb_count, now, user)
+                    else:
+                        ClientInvoiceStorageBox(sbox=sbox, cinvoice=ci, count=sb_count, date_create=now, user_create=user).save()
                 index+=1
-            cat.count = cat.count - count
-            cat.save()
+#            cat.count = cat.count - count
+#            cat.save()
             
             if pay == sum:
                 desc = catalog.name
@@ -4750,7 +4754,7 @@ def client_invoice(request, cid=None, id=None, ciid=None):
     clients_list = ClientInvoice.objects.filter(date__gt=now-datetime.timedelta(days=int(nday))).values('client__id', 'client__name', 'client__sale').annotate(num_inv=Count('client')).order_by('client__name') #'-client__id',
 
     cat_obj = cat.get_discount_item()
-    context = {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_numbers': nbox, 'b_len': b_len}
+    context = {'form': form, 'weblink': 'clientinvoice.html', 'clients_list': clients_list, 'catalog_obj': cat, 'cat_sale':cat_obj, 'box_numbers': nbox, 'b_len': b_len, 'ci_obj': a}
     context.update(custom_proc(request))
     return render(request, 'index.html',  context)
 #===============================================================================
@@ -7280,7 +7284,9 @@ def payform(request):
 #            url =  '<a href="/check/'+str(ichek['check_num'])+'/print/">['+str(ichek['check_num'])+'],</a>'
             #error_msg = error_msg + "["+str(ichek['check_num'])+"]"
         if auth_group(request.user, 'admin')==False:
-            return render_to_response('index.html', {'weblink': 'error_manyclients.html', 'chk_list': chk_list, 'error_msg':error_msg, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+            context = { 'weblink': 'error_manyclients.html', 'chk_list': chk_list, 'error_msg':error_msg, }
+            context.update(custom_proc(request)) 
+            return render(request, 'index.html', context)
         
     for inv in ci:
         if client!=inv.client:

@@ -506,7 +506,6 @@ Status row:
 
 <tr>
 <div class="input-group mb-3">
-
   <div class="input-group-prepend">
     <span class="input-group-text font-weight-bold" title="Кількість" data-toggle="tooltip" data-placement="top">К-ть</span>
   </div>
@@ -643,6 +642,16 @@ Status row:
 </span>
 {% for box in box_numbers %}
 <span class="badge badge-info sel-box-number" bs_id="{{box.id}}" bs_count="0">
+<span class="badge badge-dark box-take-count" style="font-size: large; font-weight: bold;" title="Взято з місця" data-toggle="tooltip" data-placement="left">
+
+{% for i_obj in box.get_ci_sb %} 
+{% if i_obj.cinvoice.pk == ci_obj.pk %}
+{{i_obj.count|floatformat}}
+{% endif %}
+{% endfor %}
+ 
+{#{ci_obj.pk}#}
+</span>
 {{box.get_storage_name}}<span class="badge badge-light">{{box.count}} шт.</span>
 </span>
 {% endfor %}

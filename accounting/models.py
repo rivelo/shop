@@ -1413,11 +1413,33 @@ class ClientInvoice(models.Model):
             st = u"Місце: %s - %s шт." % (i.sbox.box_name.name, i.count) 
             res_list.append(st)
         return res_list
+
+    def save(self, **kwargs):
+        update_fields = kwargs.get("update_fields")
+        update_fields = ["count"]
+        if "count" in update_fields:
+            if self.pk :
+                obj = ClientInvoice.objects.values('count').get(pk=self.pk)
+                cat = Catalog.objects.get(pk = self.catalog.pk)
+                if obj['count'] != self.count :
+                    cc = int(self.count) - int(obj['count'])
+                    cat.count = cat.count - cc
+                    cat.save()
+            else:
+                cat = Catalog.objects.get(pk = self.catalog.pk)
+                cc = int(self.count)
+                cat.count = cat.count - cc
+                cat.save()
                 
+        super(ClientInvoice, self).save(**kwargs)  # Call the "real" save() method.
+ 
     def delete(self, **kwargs):
         ci_sbox = ClientInvoiceStorageBox.objects.filter(cinvoice = self.pk)
         for i in ci_sbox:
             i.delete()
+        cat = Catalog.objects.get(pk = self.catalog.pk)
+        cat.count = cat.count - self.count
+        cat.save() 
         super(ClientInvoice, self).delete(**kwargs)
                 
     def __unicode__(self):
@@ -2219,6 +2241,18 @@ class StorageBox(models.Model):
 
     def get_storage_name(self):
         return u"%s %s" % (self.box_name, self.description)
+    
+    def get_ci_sb(self):
+        res = self.clientinvoicestoragebox_set.all()
+#        res = self.clientinvoicestoragebox_set.filter(cinvoice = ci)
+#        print "\nRES get_ci_sb = %s\n" % res
+        return res
+
+    def get_ci_sb_by_cinv(self, ci):
+#        res = self.clientinvoicestoragebox_set.all()
+        res = self.clientinvoicestoragebox_set.filter(cinvoice = ci)
+#        print "\nRES get_ci_sb = %s\n" % res
+        return res
          
     def __unicode__(self):
         return u'[%s] %s - %s з %s шт.' % (self.box_name, self.catalog, self.count, self.count_real)
@@ -2237,6 +2271,13 @@ class ClientInvoiceStorageBox(models.Model):
     user_accept = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='u_accept_cl')
     date_create = models.DateTimeField(blank=True, null=True)
     date_accept = models.DateTimeField(blank=True, null=True)
+
+    def set_count(self, count, date, user):
+        self.count = count
+        self.date_accept = date
+        self.user_accept = user
+        self.save()
+        return True
       
     def save(self, **kwargs):
         #super().save(**kwargs)  # Call the "real" save() method.
@@ -2249,7 +2290,7 @@ class ClientInvoiceStorageBox(models.Model):
                 sbox = StorageBox.objects.filter(pk = self.sbox.pk)
                 if obj['count'] != self.count and sbox.count() > 0:
                     cc = int(self.count) - int(obj['count'])
-                    print "\nSBOX count diff = %s\n" % (cc)
+#                    print "\nSBOX count diff = %s\n" % (cc)
                     #iobj = StorageBox.objects.get(pk = sbox[0].pk)
                     iobj = sbox[0]
                     iobj.count_last = iobj.count
@@ -2264,9 +2305,9 @@ class ClientInvoiceStorageBox(models.Model):
                     iobj.save()
                     res_save = super(ClientInvoiceStorageBox, self).save(**kwargs)  # Call the "real" save() method.
             else:
-                print "\n>> Create new CI_StorageBox <<x\n"
+#                print "\n>> Create new CI_StorageBox <<x\n"
                 res_save = super(ClientInvoiceStorageBox, self).save(**kwargs)  # Call the "real" save() method.
-                print "\nSELF ID = %s \n" % self.pk
+#                print "\nSELF ID = %s \n" % self.pk
                 sbox = StorageBox.objects.filter(pk = self.sbox.pk)
                 cc = int(self.count)
                 iobj = sbox[0]
