@@ -1,18 +1,79 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Продаж товару: {{ catalog_obj }}</title>
 
-    <h1>Виробники (Manufacture)</h1>
+{% load poll_extras %}     
+
+<body>
+<div class="row">
+<div class="col-auto ml-2">
+<h1>
+<span class="badge badge-secondary">
+    Створити нового виробника (Manufacture)
+</span>
+</h1>
 
     <form action="./" method="POST" enctype="multipart/form-data">
-        <table>
-            {{ form.as_table }}
-        </table>
-        <p><input type="submit" value="Save"></p>
+
+ <div class="form-group">
+    <label for="formGroupExampleInput">Назва</label>
+{#    <input type="text" class="form-control" id="formGroupExampleInput" placeholder="Назва команії"> #}
+    {{form.name|add_attr:"class:form-control "}}
+  </div>
+  <div class="form-group">
+    <label for="formGroupExampleInput2">Сторінка (www)</label>
+{#    <input type="text" class="form-control" id="formGroupExampleInput2" placeholder="Введіть адресу в форматі http://"> #}
+    {{form.www|add_attr:"class:form-control "}}
+  </div>
+
+  <div class="form-group">
+    <label for="formGroupExampleInput2">Країна</label>
+    {{form.country|add_attr:"class:form-control "}}
+  </div>
+
+  <div class="form-group">
+    <label for="formGroupExampleInput2">Примітки</label>
+    {{form.description|add_attr:"class:form-control "}}
+  </div>
+
+  <div class="form-group">
+    <label for="formGroupExampleInput2">Лого:</label>
+    {{form.logo|add_attr:"class:form-control "}}
+  </div>
+  
+<div class="form-group">
+    <div class="form-check">
+    {{form.bikecompany|add_attr:"class:form-control form-check-input"}}
+      <label class="form-check-label" for="gridCheck">
+        Компанія яка виготовляє велосипеди?
+      </label>
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="form-check">
+    {{form.component|add_attr:"class:form-control form-check-input"}}
+    <label class="form-check-label" for="gridCheck">
+  		Компанія яка виготовляє компоненти?
+  	</label>      
+  </div>
+</div>
+
+{#        <table>            {{ form.as_table }}        </table> #}
+{#        <p><input type="submit" value="Save"></p> #}
+        
+<div class="form-group mt-2">
+      <button type="submit" class="btn btn-primary mt-2 w-100 ">Створити</button>
+</div>
+        
     </form>
     <br>
 
-<a href="/manufacturer/view/">Повернутись до списку</a>
-<br>
-<a href="/">HOME</a>
 
 
+
+
+</div>
+</div>
+
+</body>

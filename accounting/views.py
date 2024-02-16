@@ -2031,7 +2031,7 @@ def dealer_add(request):
     #return render_to_response('dealer.html', {'form': form})
     return render_to_response('index.html', {'form': form, 'weblink': 'dealer.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-
+@csrf_exempt
 def dealer_edit(request, id):
     a = Dealer.objects.get(pk=id)
     if request.method == 'POST':
@@ -2041,7 +2041,9 @@ def dealer_edit(request, id):
             return HttpResponseRedirect('/dealer/view/')
     else:
         form = DealerForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'dealer.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'dealer.html'}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
  
 def dealer_del(request, id):
@@ -2054,7 +2056,9 @@ def dealer_del(request, id):
 def dealer_list(request):
     list = Dealer.objects.all()
     #return render_to_response('dealer_list.html', {'dealers': list.values_list()})
-    return render_to_response('index.html', {'dealers': list, 'weblink': 'dealer_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'dealers': list, 'weblink': 'dealer_list.html'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def dealer_manager_add(request):
@@ -3383,7 +3387,7 @@ def exchange_del(request, id):
 
 
 # -------- Catalog ---------------- 
-
+@csrf_exempt
 def manufacturer_add(request):
     a = Manufacturer()
     if request.method == 'POST':
@@ -3404,7 +3408,9 @@ def manufacturer_add(request):
     else:
         form = ManufacturerForm(instance=a)
     #return render_to_response('manufacturer.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'manufacturer.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'manufacturer.html', 'next': current_url(request)}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 @csrf_exempt
 def manufacturer_edit(request, id):
@@ -4662,6 +4668,11 @@ def client_invoice(request, cid=None, id=None, ciid=None):
         cid = a.catalog.id
     else:
         a = ClientInvoice(date=datetime.datetime.today(), price=cat.price, sum=cat.price, sale=int(Catalog.objects.get(id = cid).sale), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=cat, user = request.user)
+
+    if (a.pay == a.sum) and ( auth_group(request.user, "admin") == False ):
+        context = {'weblink': 'error_message.html', 'mtext': 'Даний товар вже продано і ви не можете його редагувати. Зробіть повернення!'}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
         
     if request.method == 'POST':
         form = ClientInvoiceForm(request.POST, instance = a, catalog_id=cid, request = request)
