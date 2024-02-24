@@ -153,6 +153,8 @@ div .price{
 <div class="grid-container">
 {% for price in price_list.object_list %}
 
+{% for i in ''|ljust:price.scount %}
+
   <div class="item{{price.count}}">
   
 {# <div style="background:#FA911D; width:140px; height:140px; float:left;"> #}
@@ -198,9 +200,14 @@ div .price{
 
 </div>
   </div>
+  
+{% endfor %}
+
 {% endfor %}
 
  </div> 
+
+
 
 
 {% comment %}
@@ -258,6 +265,7 @@ div .price{
 
 {# <div>{{price.catalog.id|sale_url:"rivelo.com.ua/component"}}</div> #}
 {% endcomment %}
+
 
 {% comment %}
 <td class="nameTD">

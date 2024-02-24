@@ -6736,8 +6736,9 @@ def shop_price_print_list(request, user_id = None, pprint=False):
     if request.user.is_authenticated():
         user = request.user
     else:
-        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
-    
+        context = {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}
+        context.update(custom_proc(request)) 
+        return render(request, 'index.html', context)
     list = None
     by_user = False
     if user_id :
@@ -6759,7 +6760,6 @@ def shop_price_print_list(request, user_id = None, pprint=False):
     except EmptyPage:
         # If page is out of range (e.g. 9999), deliver last page of results.
         plist = paginator.page(paginator.num_pages)
-            
     if pprint:
         context = {'price_list': plist, 'view': True}
         return render(request, 'manual_price_list.html', context)
