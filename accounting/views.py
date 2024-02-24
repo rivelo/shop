@@ -4103,7 +4103,7 @@ def catalog_search_locality(request):
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def catalog_search_by_ids(request):
     ids = None
     cat_list = None
@@ -4721,8 +4721,12 @@ def client_invoice(request, cid=None, id=None, ciid=None):
             ci.pay=pay
             ci.date=date
             ci.description=description 
-            ci.user=user 
-            ci.shop=shopN
+            ci.user=user
+            if auth_group(request.user, "admin") == True:
+                ci.shop = shop
+            else: 
+                ci.shop=shopN
+            
             ci.save()
             
             index = 0
@@ -4926,7 +4930,7 @@ def client_invoice_delete(request, id=None):
     return HttpResponseRedirect('/client/invoice/view/')
 
 
-def client_invoice_view(request, month=None, year=None, day=None, id=None, notpay=False, shop=None):
+def client_invoice_view(request, month=None, year=None, day=None, id=None, notpay=False, shop=None, client_id=None):
     # upd = ClientInvoice.objects.filter(sale = None).update(sale=0) # update recors with sale = 0
     if year == None:
         year = datetime.datetime.now().year
@@ -4947,6 +4951,9 @@ def client_invoice_view(request, month=None, year=None, day=None, id=None, notpa
     psum = 0
     scount = 0
     sprofit = 0
+
+    if client_id:
+        list = list.filter(client = client_id)
 
     if (shop and shop <> '0'):
         list = list.filter(shop = shop)
@@ -4983,7 +4990,7 @@ def client_invoice_view(request, month=None, year=None, day=None, id=None, notpa
     custom_dict = custom_proc(request)
     context.update(custom_dict)
     return render(request, 'index.html', context)
-#    return render_to_response('index.html', {'sel_year':year, 'sel_month':int(month), 'month_days':days, 'sel_day':day, 'buycomponents': cinvoices, 'sumall':psum, 'sum_profit':sprofit, 'countall':scount, 'weblink': 'clientinvoice_list.html', 'view': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+
 
 @csrf_exempt
 def client_invoice_lookup(request, client_id):
@@ -6628,6 +6635,8 @@ def shop_price_print_add(request, id=None):
                 if len(ids) > 1:
                     for i in ids:
                         cat = Catalog.objects.get(id = i)
+                        if (cat.get_realshop_count() >= s) and (s > 1):
+                            return  HttpResponse("Помилка.\nКількість цінників більша за кількість наявного товару.", content_type="text/plain;charset=UTF-8;")
                         sp = ShopPrice()
                         sp.catalog = cat
                         sp.scount = s
@@ -6636,6 +6645,8 @@ def shop_price_print_add(request, id=None):
                         sp.save()
                 else:
                     cat = Catalog.objects.get(id=ids[0])
+                    if (cat.get_realshop_count() >= s) and (s > 1):
+                        return  HttpResponse("Помилка.\nКількість цінників більша за кількість наявного товару.", content_type="text/plain;charset=UTF-8;")
                     sp = ShopPrice()
                     sp.catalog = cat
                     sp.scount = s
@@ -6711,11 +6722,14 @@ def shop_price_print_list_add(request):
     if request.user.is_authenticated():
         user = request.user
     else:
-        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
-    
+        context = {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
     by_user = False
     plist = None
-    return render_to_response('index.html', {'weblink': 'scan_many_barcode.html', 'price_list': plist, 'by_user' : by_user}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'weblink': 'scan_many_barcode.html', 'price_list': plist, 'by_user' : by_user}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def shop_price_print_list(request, user_id = None, pprint=False):
@@ -8915,7 +8929,7 @@ def bicycle_price_set(request):
 
 
 # -------- old function ----------
-def storage_box_list(request, boxname=None, pprint=False):
+def storage_box_list_old(request, boxname=None, pprint=False):
     if boxname:
         list = Catalog.objects.filter(locality = boxname)
     else:
@@ -8953,7 +8967,8 @@ def storage_box_delete_all(request, all=False):
     
     return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;")
 
-
+#------------- Old function
+@csrf_exempt
 def storage_box_rename(request):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -9068,6 +9083,17 @@ def storage_box_list(request, id=None):
         bs_stat = True
      
     context = {"weblink": 'storage_box_list.html', "box_list": boxlist, 'shop_list': shopList, 's_shop_id': shopN, 'boxname': boxname, 'box_or_storage': bs_stat}
+    context.update(custom_proc(request))
+    return render(request, "index.html", context)  
+
+
+def storage_box_list_by_catalog(request, id):
+    boxlist = StorageBox.objects.filter(catalog = id)
+    boxname = BoxName.objects.filter(id__in = boxlist.values('box_name'))
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+    cat_status = True
+    cat_sel = Catalog.objects.get(id = id)
+    context = {'weblink': 'storage_box_list.html', 'box_list': boxlist, 's_shop_id': shopN, 'boxname': boxname, 'catalog_boxes': cat_status, 'cat_sel': cat_sel}
     context.update(custom_proc(request))
     return render(request, "index.html", context)  
 
@@ -9623,27 +9649,64 @@ def catalog_upload_photos(request):
 
 @csrf_exempt
 def client_invoice_add(request, ids=None):
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
     if request.is_ajax():
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
                 return HttpResponse('Error: У вас не має прав для редагування')
             POST = request.POST  
-            #if POST.has_key('ids'):
             if POST.has_key('ids') and POST.has_key('count'):                
                 ids = request.POST['ids'].split(',')
                 count = request.POST.get('count')
-            if count == '':
-                result = "невірні параметри"
-                return HttpResponse(result, content_type="text/plain;charset=UTF-8;;")
-#                result = "Введіть правильний ID товару для обєднання"
-#                return HttpResponse(result, content_type="text/plain;charset=UTF-8;;charset=UTF-8")
-            client = Client.objects.get(id=138)
-            for i in ids:
-                c_obj = Catalog.objects.get(id = i)
-                ClientInvoice(client=client, catalog = c_obj, count=count, price=c_obj.price, sum=c_obj.price*int(count), currency=c_obj.currency, sale=c_obj.sale, pay=0, user=request.user, date=datetime.datetime.now()).save()
+                if count == '':
+                    result = "невірні параметри"
+                    return HttpResponse(result, content_type="text/plain;charset=UTF-8;;")
+                client = Client.objects.get(id=138)
+                for i in ids:
+                    c_obj = Catalog.objects.get(id = i)
+                    ClientInvoice(client=client, catalog = c_obj, count=count, price=c_obj.price, sum=c_obj.price*int(count), currency=c_obj.currency, sale=c_obj.sale, pay=0, user=request.user, date=datetime.datetime.now(), shop=shopN).save()
+                result = "ok"
+                return HttpResponse(result, content_type="text/plain;charset=UTF-8;")
+            
+    data_res = None                
+    # JSON Read and Parse
+    if request.method == "POST":
+        rdict = QueryDict(request.body)
+        sel_id = rdict.keys()#[0]
+        req_dict = json.loads(request.body)
+        if req_dict.has_key('id') and req_dict.has_key('client_id') and req_dict.has_key('count'):
+            res = ''
+            dres = {}
+            dres['f_model'] = None
+            cat_pk = int(req_dict['id'])
+            value = req_dict['count']
+            client_pk = req_dict['client_id']
+            cat = Catalog.objects.get(id = cat_pk)
+            client = Client.objects.get(id = client_pk)
+            if int(value) > cat.get_realshop_count():
+                res = u"Дана кількість [%s] більша ніж є товару в магазині [%s]" % (value, cat.get_realshop_count())
+                dres['msg'] = res
+                dres['status'] = True
+            else:
+                sum = cat.price * int(value)
+                obj = ClientInvoice(client=client, date=datetime.datetime.today(), price=cat.price, sum=sum, sale=int(cat.sale), pay=0, count=int(value), currency=Currency.objects.get(id=3), catalog=cat, user = request.user, shop=shopN)
+                obj.save()
+                obj.update_sale()
+#                dres['url'] = reverse("catalog_edit", kwargs={"id": self.pk}) #'/catalog/edit/' + str(self.pk) 
+                dres['status'] = False
+                dres['f_model'] = ClientInvoice.objects.filter(pk = obj.pk)
+#                print "\n CAT = " + str(dres['f_model'][0].catalog.pk) + "\n"
+                pk_cat = dres['f_model'][0].catalog.pk
+                dres['f_catalog'] = Catalog.objects.get(pk = pk_cat).json_barcode() 
+                if dres['f_model']:
+                    dres['f_model'] = serializers.serialize('json', dres['f_model'])
+                    #dres['f_catalog'] = serializers.serialize('json', dres['f_catalog'])
+#                dres['f_model'] = json.dumps(dres['f_model'], )
+            #data = json.dumps(res, skipkeys=True)
+            data = simplejson.dumps(dres)
+            data_res = data
+    return HttpResponse(data_res, content_type='application/json')    
                 
-            result = "ok"
-            return HttpResponse(result, content_type="text/plain;charset=UTF-8;;")
 
 
 def check_list(request, year=None, month=None, day=None, all=False, client=None):

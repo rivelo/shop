@@ -47,6 +47,16 @@
 	font-weight: bold; 
 }
 
+.table-hover> tbody> tr:hover{
+    background-color: lightgrey; 
+/*	background-color: transparent;
+    opacity: 0.6; */
+}
+
+table.table-hover tbody tr td:hover {
+/*    background-color: #fb9692; */ 
+    background-color: darkgrey;
+}
 	
 </style>
 
@@ -190,7 +200,7 @@ $("#dialog").dialog({
 			$.ajax({
                 type: "POST",
                 url: "/shop/price/print/add/",
-                data: {id:  $("#dtext").attr("ids"), url: $('#spinner').val()},
+                data: {id:  $("#dtext").attr("ids"), scount: $('#spinner').val()},
                 dataType: "text",
                 success:function(msg){
                     alert("Запит надіслано - " + msg);
@@ -452,7 +462,7 @@ function PrintThis(value, index, arr){
 	<div id="dialog" title="Add price">
 	<p style="font-weight: bold;" id="dtext">Додати цінник до списку друку:</p>
 	<label for="spinner">Кількість:</label>
-  	<input id="spinner" name="value" value="1">
+  	<input id="spinner" name="value" value="1" type="number" class="w-100 pl-2">
 	</div>
 
 
@@ -523,7 +533,14 @@ function PrintThis(value, index, arr){
 	<div class="p-2">{{x.catalog.manufacturer}} - {{x.catalog.name}} [ {{x.catalog.get_code|join:" ][ "}} ]</div>
 	<div class="ml-auto p-2">
 	<span class="badge badge-light addbarcode mr-3" pk="{{x.catalog.pk}}" ids="{{x.catalog.ids}}" c_name="{{x.catalog.name}}" title="Сканування штрихкодів" data-toggle="tooltip" data-placement="right"><i class="material-icons">barcode_reader</i></span>
+	{% if x.catalog.get_storage_box_list_to_html %}
+<a href="{% url 'storage-box-by-catalog' x.catalog.pk %}">
+		<span class="badge badge-light box_place " title="Розташування товару:<br>{{x.catalog.get_storage_box_list_to_html|join:'<br>'}}" data-toggle="tooltip" data-placement="right" data-html="true"><i class="material-icons">shelves</i></span>
+</a>
+	{% endif %}
+	{# <span class="badge badge-light"> #}
 	<a style="text-align: right;" href="{% url 'catalog_edit' x.catalog.id %}" title="Редагувати товар" data-toggle="tooltip" data-placement="right"><i class="material-icons">edit</i></a>
+	{#</span> #}
 	
 	</div>
 </td>

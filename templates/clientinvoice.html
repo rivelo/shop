@@ -70,11 +70,11 @@
 {% load poll_extras %}
 
 function payed() {
-$("#id_pay").val($('#id_sum').val())
-$("#id_length").val($("#id_count").val());
+	$("#id_pay").val($('#id_sum').val())
+	$("#id_length").val($("#id_count").val());
 //$("#id_count").val(Math.round($("#id_count").val()));
-$("#id_count").val($("#id_count").val());
-document.getElementById("UserEnter").submit();
+	$("#id_count").val($("#id_count").val());
+	document.getElementById("UserEnter").submit();
 }
 
 //$('#s_client').bind('change', 
@@ -138,7 +138,17 @@ $("#id_count").val({{desc_len}});
 {% endif %}
 
 
-$("#UserEnter").submit(function() {
+$("#UserEnter").submit(function(evt) {
+	var stat_confirm = true;
+	const selboxes = document.querySelectorAll('.sel-box-number');
+	if (($("#sbids").val() == '[]') && ($("#sbcount").val() == '[]') && selboxes.length != 0) {
+		stat_confirm = confirm("Виберіть місце знаходження даного товару!");
+	};
+	if (stat_confirm == false) {
+		evt.preventDefault();
+//	    window.history.back();		
+		return false;	
+	}
 /*	var selboxes = document.querySelectorAll('.sel-box-number'); 
 	//$(".sel-box-number")
 	var boxes_list_id = new Array();

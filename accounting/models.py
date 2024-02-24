@@ -751,7 +751,7 @@ class Catalog(models.Model):
                 'barcode': self.barcode,
                 'barcode_upc' : self.barcode_upc,
                 'barcode_ean' : self.barcode_ean,
-                'manufacture_article': manufacture_article,
+                'manufacture_article': self.manufacture_article,
                 'name': self.name,
                 'weight': self.weight,
                 'description': self.description,

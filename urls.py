@@ -285,8 +285,9 @@ urlpatterns = [
     url(r'^client/invoice/set/$', catalog.client_invoice_set),
 #    url(r'^client/invoice/(?P<id>\d+)/edit/$', catalog.client_invoice_edit, name="client-invoice-edit"),
     url(r'^client/invoice/(?P<ciid>\d+)/edit/$', catalog.client_invoice, name="client-invoice-edit"),
-    url(r'^client/invoice/add/$', catalog.client_invoice_add),
+    url(r'^client/invoice/add/$', catalog.client_invoice_add, name='client-invoice-add-by-catalog'),
     url(r'^client/(?P<cid>\d+)/invoice/add/$', catalog.client_invoice),
+    url(r'^client/(?P<client_id>\d+)/invoice/sale/$', catalog.client_invoice_view, name="clientinvoice-sale-by-client"),
 # ajax table for client invoice    
     url(r'^client/(?P<client_id>\d+)/invoice/lookup/$', catalog.client_invoice_lookup),
     url(r'^client/invoice/catalog/(?P<cid>\d+)/add/$', catalog.client_invoice),
@@ -584,12 +585,13 @@ urlpatterns = [
     url(r'^storage/box/(?P<id>\d+)/list/$', catalog.storage_box_list, name='storage-box-itemlist'), #new function
     url(r'^storage/box/name/(?P<boxname>[\w,.]+)/list/$', catalog.storage_boxes_list, name='storage-box-by-name'), #new function
     url(r'^storage/boxes/list/$', catalog.storage_boxes, name="storage_box-list"),
-    url(r'^storage/boxes/print/$', catalog.storage_box_list, {'pprint': True}),
-    url(r'^storage/box/(?P<boxname>[\w,.]+)/view/$', catalog.storage_box_list),
-    url(r'^storage/box/delete/$', catalog.storage_box_delete),
+    url(r'^storage/boxes/print/$', catalog.storage_box_list_old, {'pprint': True}), # old function
+    url(r'^storage/box/(?P<boxname>[\w,.]+)/view/$', catalog.storage_box_list_old), # old function
+    url(r'^storage/box/delete/$', catalog.storage_box_delete), # new function
     url(r'^storage/box/delete/all/$', catalog.storage_box_delete_all, {'all': True}),
     url(r'^storage/box/delete/all/empty/$', catalog.storage_box_delete_all),
-    url(r'^storage/box/rename/$', catalog.storage_box_rename),
+    url(r'^storage/box/rename/$', catalog.storage_box_rename), # old function
+    url(r'^catalog/(?P<id>\d+)/storage/box/list/$', catalog.storage_box_list_by_catalog, name='storage-box-by-catalog'),
 
     url(r'^shop/sale/day/add/$', catalog.shopdailysales_add, name='shop-sale-day-add'),
     url(r'^shop/(?P<id>\d+)/sale/day/add/$', catalog.shopdailysales_add, name='shop-id-sale-day-add-by-id'),

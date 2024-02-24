@@ -87,6 +87,60 @@ $(document).ready( function() {
 		xhttp.send(myJSON);
 	}
 	
+
+{% if catalog_boxes %}	
+	// Ajax request to INVENTORY by CATALOG object  
+	function ajax_inventory_cat_req(count, box_id){
+		const xhttp = new XMLHttpRequest();
+		xhttp.onload = function() {
+		  	const InvObj = JSON.parse(this.responseText);
+		  	if ((InvObj.length == 1 ) && (!InvObj[0].error)) {
+/*		  		$("#inventory_count").show();
+		  		$("#inventory_count").val('');
+		  		$("#inventory_count").focus(); */
+		  		$("#error_msg").html(''); 
+		  		$("#search_item_ModalLabel").html("Додавання товару: <p class='text-blue'>" + InvObj[0].fields['ids'] + ' - ' +  InvObj[0].fields['name'] + "<\p>");
+		  		$("#error_msg").html("<p class='text-blue'>Знайдено!<\p>");
+		  		
+		  		PrintInventoryDiv(InvObj[0]);
+		  		for (i in InvObj){
+		  			console.log("ONE Model [ids] = " + InvObj[i].fields['ids'] + ' - ' +  InvObj[i].fields['name']) 
+		  		}
+		  		$('#itemListModal').attr("pk", InvObj[0].pk);	
+		  	}
+		  	
+		  	if (InvObj.length > 1){
+		  		for (i in myObj){
+		  			console.log("Model [ids] = " + InvObj[i].fields['ids'] + ' - ' +  InvObj[i].fields['name'])
+//		  			document.getElementById("ajax_item_list").innerHTML += "<p class='found_item' ids='" + InvObj[i].fields['ids'] + "' >" + InvObj[i].fields['ids'] + ' - ' +  InvObj[i].fields['name'] + "  (" + InvObj[i].pk  +")<\p>";
+		  		}
+		  		// document.getElementById("ajax_item_list").innerHTML += "<p>Found more item!!!<\p>";
+		  		$("#error_msg_cat_count").html('');
+		  	}
+		  	
+/*		  	if (myObj[0].error == true) {
+		  		$("#error_msg_cat_count").html(InvObj[0].error_msg);
+//		  		$("#myInputScannerBarcode").val(InvObj[0].searchText);
+//		  		document.getElementById("itemsList").innerHTML += "<a href='"+myObj.url+"' > Перейти до товару </a>" ;
+		  	}
+*/
+			document.getElementById("myInputScannerBarcode").focus();
+		}
+		xhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+			      console.log("State - " +  this.responseText);
+			}
+		};
+		var pk = {{cat_sel.id}};
+		const myObjPost = { 'id': pk, 'box_id': box_id, 'count': count, 'status': false };
+		const myJSON = JSON.stringify(myObjPost);
+//		xhttp.open("POST", "{% url 'storage-box-by-catalog' cat_sel.id %}");
+		xhttp.open("POST", "{% url 'inventory-add' %}");
+		xhttp.setRequestHeader('Content-Type', 'aplication/json');
+		xhttp.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		xhttp.send(myJSON);
+	}
+{% endif %}		
 	
 	
 // Ajax request to find Catalog object by code fields
@@ -201,8 +255,38 @@ $(document).ready( function() {
 	    }
 	    // end if
 	    });
-	
 
+	
+// SHOW ADD Catalog COUNT to BOX	
+	$(document).on("click", ".add_box", function(event) {
+		$('#CatalogCountModal').modal({
+//			  backdrop: false,
+			  focus: false, 
+			  keyboard: true,
+			});	
+		
+//		$("#CatalogInputCount").focus();
+//		document.getElementById("CatalogInputCount").focus;
+		if (this.getAttribute('box_id') != document.getElementById("CatalogInputCount").getAttribute('box_id') ) {
+			document.getElementById("CatalogInputCount").value = 1; // this.getAttribute('box_id') ;
+			document.getElementById("CatalogInputCount").setAttribute("box_id", this.getAttribute('box_id'));
+			$("#error_msg_cat_count").html('');
+		}
+	});
+	
+	// Button ADD catalog Count to BOX
+	$(document).on("click", "#button_add_cat_count", function(event) {
+    	var icount = $("#CatalogInputCount").val();
+    	var boxid = $("#CatalogInputCount").attr('box_id');
+    	ajax_inventory_cat_req( icount, boxid );
+
+    	$("#error_msg_cat_count").append("<p class='text-blue'>Додано - " + icount + " шт.<\p>");
+    	$("#CatalogInputCount").val(1);
+    	document.getElementById("CatalogInputCount").focus;
+    	$("#CatalogInputCount").focus();
+		
+	});	
+	
 	
 	// SHOW Modal Inventory dialog
 	$(document).on("click", ".button_inventory", function(event) {
@@ -241,7 +325,12 @@ $(document).ready( function() {
 		  $('#itemListModal').attr("pk", null);
 		  console.log("MODAL dialog is HIDE!!!");
 		})
-	
+
+	// Change focus to input field in Modal Dialog 	
+	$('.modal').on('shown.bs.modal', function() {
+		$(this).find('[autofocus]').focus();
+	});		
+		
 	// Button ADD item to inventory
 	$(document).on("click", "#m_add_button", function(event) {
 //	    console.log ("PK = " + $('#itemListModal').attr("pk") );
@@ -476,8 +565,9 @@ function PrintInventoryDiv(value, count){
 </div>
 
 
+
 <!-- Modal dialog for Add inventiry and ADD storage -->
-<div class="modal fade" id="itemListModal" ids="" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal" id="itemListModal" ids="" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -487,24 +577,18 @@ function PrintInventoryDiv(value, count){
         </button>
       </div>
       <div class="modal-body">
-{#        <form> #}
           <div class="form-group">
             <label for="recipient-code" class="col-form-label">Введіть штрихкод або артикул товару:</label>
-            <input type="text" class="form-control w-100 m-2" id="myInputScannerBarcode">
+            <input type="text" class="form-control w-100 m-2" id="myInputScannerBarcode" autofocus/>
           </div>
 
 <div class="form-group" id="ajax_item_list">
-
 </div>
-
           <div class="form-group" id="inventory_count">
             <label for="recipient-code" class="col-form-label">Введіть кількість товару:</label>
             <input type="number" min="1" class="form-control w-100 m-2" id="myInputCount" value="1">
           </div>
 
-
-            
-          
 <div class="form-group" >
 <small class="form-text text-muted">
   Рядок статусу:
@@ -514,9 +598,6 @@ function PrintInventoryDiv(value, count){
       </label>
 </div>
 
-
-
-{#        </form> #}
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -527,18 +608,64 @@ function PrintInventoryDiv(value, count){
 </div>
 
 
+
+<!-- Modal dialog ADD catalog count to BOX -->
+<div class="modal fade" id="CatalogCountModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Додати товар: {{cat_sel}}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+          <div class="form-group" id="catalog_count_to_box">
+            <label for="recipient-code" class="col-form-label">Введіть кількість товару:</label>
+            <input type="number" min="1" class="form-control w-100 m-2" id="CatalogInputCount" value="1">
+          </div>
+
+
+<div class="form-group" >
+<small class="form-text text-muted">
+  Рядок статусу:
+</small>
+      <label id="error_msg_cat_count" class="" style="color: red;">
+
+      </label>
+</div>
+
+      </div>
+            
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрити</button>
+        <button type="button" class="btn btn-primary" id="button_add_cat_count">Додати</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
 <body>
 
 <h1>
 
 <a href="{% url 'storage-boxes-list-by-shop' s_shop_id.id %}" > 
 <span class="badge badge-success" title="Список місць у магазині {{s_shop_id}}" data-toggle="tooltip" data-placement="right"><i class="material-icons" style="font-size: 24px" >widgets</i></span>
-</a>  
-<span class="badge badge-secondary">Список речей у ящику {{boxname}}</span>
+</a>
 
+
+{% if catalog_boxes %}
+<span class="badge badge-secondary" style="text-align: left;">Список місць де знаходиться товар: <br>{{cat_sel}}</span>  
+{% else %}
+
+<span class="badge badge-secondary">Список речей у ящику {{boxname}}</span>
 <span class="badge badge-success" title="Додати товар" id="button_additem" data-toggle="tooltip" data-placement="right"><i class="material-icons" style="font-size: 24px" >add</i></span>
 <span class="badge badge-dark show_hide_sbox_null" title="Show/hide NULL items" data-toggle="tooltip" data-placement="bottom"><i class="material-icons" style="font-size: 24px" >disabled_visible</i></span>
 
+{% endif %}
 
 
 {% if request.user|has_group:"admin" %}
@@ -553,12 +680,44 @@ function PrintInventoryDiv(value, count){
 </h1>
 
 
+
+{% if catalog_boxes %}
+
+<div class="d-flex flex-row bd-highlight mb-3">
+<div class="row w-100">
+<div class="col-lg-8 col-xs-12 col-sm-12" id="boxList">
+
+{% for box in box_list %}
+<div class="alert alert-info ml-1" role="alert">
+
+<div class="d-flex bd-highlight ">
+  <div class="p-1 bd-highlight">
+  {{box}} 
+{#{ box.storagebox }#}  	 
+  	<a href="{% url 'storage-box-itemlist' box.box_name.id %}" class="badge badge-light" title="Переглянути вміст ящика"  data-toggle="tooltip" data-placement="right"><i class="material-icons" style="font-size: 24px" >	inventory_2	</i></a>  
+  	<span class="badge badge-light add_box" box_id="{{box.box_name.id}}" title="Додати до місця: {{box.box_name.name}}"  data-toggle="tooltip" data-placement="right"><i class="material-icons" style="font-size: 24px" >	move_to_inbox	</i></span>
+  </div>
+  
+  <div class="ml-auto p-1 bd-highlight">
+  <a href="{% url 'storage-box-edit' box.box_name.pk %}" class="text-right" title="Редагувати назву"  data-toggle="tooltip" data-placement="left"><i class="material-icons" style="font-size: 24px" >edit</i></a>
+  </div>
+  
+</div>
+
+</div>
+{% endfor %}
+
+</div>
+</div>
+</div>
+
+
+{% else %}
 <div class="d-flex flex-row bd-highlight mb-3">
 <div class="row w-100">
 <div class="col-lg-8 col-xs-12 col-sm-12" id="itemsList">
 
 {# <div class="alert alert-info ml-1" role="alert">TEST</div> #}
-
 
 
 
@@ -632,6 +791,8 @@ function PrintInventoryDiv(value, count){
 {# </div></div> #}
 
 </div></div></div>
+
+{% endif %}
 
 </body>
 

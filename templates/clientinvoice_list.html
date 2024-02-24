@@ -7,7 +7,7 @@
     
     <link type="text/css" rel="stylesheet" href="/media/paginator.css">
     <link rel="stylesheet" type="text/css" href="/media/autocomplete.css">
-    <link rel="stylesheet" type="text/css" href="/media/css/table.css"> 
+    <link rel="stylesheet" type="text/css" href="/media/css/table.css">  
     
 {#	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> #}
 {#    <link rel="stylesheet" type="text/css" href="/media/css/tooltip.css"> #}
@@ -40,6 +40,20 @@ width: 150px;
 	z-index: 999; !important;
 /*	z-index: 1050; */
 }
+
+.left {
+    float: left
+}
+
+.right {
+    float: right;
+}
+
+  p.text-blue {
+/*  		color: blue; */
+  		color: #007bff;
+  }
+
 
 </style>
 
@@ -224,7 +238,7 @@ $( "#dialog_delete" ).dialog({
 		jQuery.each(inv_chk, function() {
 			var id = $(this).attr('name').replace('checkbox_','')
 			inv_ids.push(id);
-			console.log ( $("tr[ci_id='"+id+"']").find('td.client > a').text() ); 			 
+//			console.log ( $("tr[ci_id='"+id+"']").find('td.client > a').text() ); 			 
 		})
 
 	$.ajax({
@@ -235,22 +249,21 @@ $( "#dialog_delete" ).dialog({
        success:function(msg){
        	if (msg == "ok"){
        		alert("Товари видалено");
+       		for (let i = 0; i<inv_ids.length; i++ ){
+       			$("tr[ci_id='"+ inv_ids[i] +"']").remove();
+       		}
        	}
       	else {
       		alert("Помилка: " + msg);
       	}
        },
        error:function(){
-        alert("При отправке возникли проблемы");
+        alert("Виникла помилка");
        }
     });
                 
       	$( this ).dialog( "close" );
 	
-/*	else {
-	alert("Введіть причину обміну/повернення");
-	}
-*/	
     },
     "Відмінити": function() {
        	$( this ).dialog( "close" );	
@@ -269,10 +282,14 @@ $("#dialog_addprice").dialog({
 			$.ajax({
                 type: "POST",
                 url: "/shop/price/print/add/",
-                data: {id:  $("#dtext").attr("ids"), url: $('#spinner_').val()},
+                data: {
+                	id:  $("#dtext").attr("ids"), 
+//                	url: $('#spinner_').val(),
+                	scount: $("#spinner_addprice").val()
+                },
                 dataType: "text",
                 success:function(msg){
-                    alert("Запит надіслано " + msg);
+                    alert("Запит надіслано. \n" + msg);
                 },
                 error:function(){
                     alert("При відправці виникли проблеми");
@@ -347,6 +364,52 @@ $("body").on('click', '#clear_basket', function() {
 //	$("#buy_c").html('<b>Продати товари:</b>');
     $("#dialog_delete").dialog("open");
 });
+
+// Scan and Sale many CatalogInvoice Modal Dialog
+$("body").on('click', '.add_client_invoice_by_scanner', function() { 
+$('#SaleMany').modal({
+//	  backdrop: false,
+	  focus: false, 
+	  keyboard: true,
+	});	
+
+$("#manySaleModalLabel").html("Продати багато <br>Клієнт: " + $(this).attr('c_name'));
+$('#SaleMany').attr("c_pk", $(this).attr('c_pk'));
+//$('#SaleMany').attr("cat_pk", );
+$('#sale_count').val(1);
+document.getElementById("cat-name").value = '';
+});
+
+
+// Enter on Input Field
+$('#cat-name').keyup(function (e) { 
+    if (e.keyCode === 13) {
+    	ajax_cat_req();
+       	$('#sale_count').focus();
+    }
+});
+
+$('#sale_count').keyup(function (e) {
+    if (e.keyCode === 13) {
+    	var count = $('#sale_count').val();
+    	var client_id = $('#SaleMany').attr("c_pk");
+    	var cat_id = $('#SaleMany').attr("cat_pk");
+    	ajax_client_invoice_req(client_id, count, cat_id);
+       	$('#cat-name').focus();
+    }
+});
+
+
+$("body").on('click', '#button_save_quick_sale', function() {
+//	$("#cat-name").trigger('focus'); // .focus();
+	// $("#cat-name").focus();
+	document.location = '/client/'+ $('#SaleMany').attr("c_pk") +'/invoice/sale/';
+});
+
+  
+$('.modal').on('shown.bs.modal', function() {
+	  $(this).find('[autofocus]').focus();
+	});
 
 
 $( "#client_name" ).autocomplete({
@@ -468,10 +531,6 @@ function calc_sum() {
 }
 
 function change_count(item){
-/*	console.log("TR = " + item.tagName); 
-	console.log("ATTR = " + $(item).parents('tr').attr('ci_id'));
-	console.log("ATTR count = " + $(item).html()); */
-	//console.log("ATTR = " + $(item).parents('td').parents('tr').attr('ci_id'));
 	var rcount, pk
 	pk = $(item).parents('tr').attr('cat_id');
 	rcount = $(item).html();
@@ -503,6 +562,101 @@ $("body").on('click', '#span_show_select', function() {
 //	$("#q_search").hide();
 	$("#q_search").toggle();
 });
+
+
+//Ajax request to find Catalog object by code fields
+function ajax_cat_req(){
+	var  myObj = null;
+	document.getElementById("ajax_item_list").innerHTML = '';
+	$('#SaleMany').attr("pk", null);
+	const xhttp = new XMLHttpRequest();
+	xhttp.onload = function() {
+	  	myObj = JSON.parse(this.responseText);
+	  	if ((myObj.length == 1 ) && (!myObj[0].error)) {
+	  		$("#inventory_count").focus();
+	  		$("#error_msg").html('');
+	  		$("#manySaleModalLabel").html("Виписування товару: <p class='text-blue'>" + myObj[0].fields['ids'] + ' - ' +  myObj[0].fields['name'] + "<\p>");
+	  		$("#error_msg").html("<p class='text-blue'>Знайдено!<\p>");
+/*	  		for (i in myObj){
+	  			console.log("ONE Model [ids] = " + myObj[i].fields['ids'] + ' - ' +  myObj[i].fields['name']) 
+	  		} */
+	  		$('#SaleMany').attr("cat_pk", myObj[0].pk);	// found id of Catalog
+	  	}
+	  	
+	  	if (myObj.length > 1){
+	  		for (i in myObj){
+	  			console.log("Model [ids] = " + myObj[i].fields['ids'] + ' - ' +  myObj[i].fields['name'])
+	  			document.getElementById("ajax_item_list").innerHTML += "<p class='found_item' ids='" + myObj[i].fields['ids'] + "' >" + myObj[i].fields['ids'] + ' - ' +  myObj[i].fields['name'] + "  (" + myObj[i].pk  +")<\p>";
+	  		}
+	  		$("#manySaleModalLabel").html("Продати багато товару:");
+	  		$("#error_msg").html('');
+	  	}
+	  	
+	  	if ((myObj != null) && (myObj != "")) {
+	  		console.log("myObj = " +  myObj);		  		
+	  	if (myObj[0].error == true) {
+	  		$("#error_msg").html(myObj[0].error_msg);
+	  		$("#cat-name").val(myObj[0].searchText);
+	  	}
+	  	}
+
+		document.getElementById("sale_count").focus();
+	}
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+		      console.log("State - " +  this.responseText);
+		}
+	};
+	var code_val = document.getElementById("cat-name").value;
+	const myObjPost = { 'code_value': code_val };
+	const myJSON = JSON.stringify(myObjPost);
+	xhttp.open("POST", "{% url 'catalog-lookup' %}");
+	xhttp.setRequestHeader("Content-Type", 'application/x-www-form-urlencoded; charset=UTF-8');
+	xhttp.send(myJSON);
+}
+
+
+function ajax_client_invoice_req(client_id, count, cat_id){
+	const xhttp = new XMLHttpRequest();
+	xhttp.onload = function() {
+	  	const InvObj = JSON.parse(this.responseText);
+
+	  	if (InvObj.status === false) {
+	  		$("#error_msg").html("<p class='text-blue' >Додано!</p>");
+	  		
+	  		let p = document.createElement("p");
+	  		p.innerHTML = InvObj.f_catalog['name'] + " - " + count + " шт."; 
+	  		document.getElementById("catalog_scan_ids").after(p);
+	  		
+	  		document.getElementById("cat-name").value = '';
+	  		document.getElementById("cat-name").focus();
+	  		
+//	  		document.getElementById("catalog_scan_ids").after(InvObj.f_catalog['name'] + " - " + count + " шт.");
+	  	}
+	  	
+	  	if (InvObj.status === true) {
+	  		$("#error_msg").html(InvObj.msg + "<br> Змініть кількість!");
+	  		document.getElementById("sale_count").focus();
+	  	}
+	  	
+		// document.getElementById("cat-name").focus();
+	}
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+		      console.log("State - " +  this.responseText);
+		}
+	};
+/*	var c_pk = $('#ModalLabel').attr('c_pk');
+	var cat_pk = $('#ModalLabel').attr('cat_pk'); */
+	var c_pk = client_id
+	var cat_pk = cat_id
+	const myObjPost = { 'id': cat_pk, 'client_id': c_pk, 'count': count };
+	const myJSON = JSON.stringify(myObjPost);
+	xhttp.open("POST", "{% url 'client-invoice-add-by-catalog' %}");
+	xhttp.setRequestHeader('Content-Type', 'aplication/json');
+	xhttp.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+	xhttp.send(myJSON);
+}
 
 </script>
 
@@ -566,8 +720,8 @@ $("body").on('click', '#span_show_select', function() {
 <div class="del_container">Вибрані товари:</div>
 	<p style="font-weight: bold;" id="dtext">Додати цінник до списку друку:</p>
 	<label for="spinner_addprice">Кількість:</label>
-  	<input id="spinner_addprice" name="value" value="1">
-
+	<input id="spinner" name="value" value="1" type="number" class="w-100 pl-2">	
+{#  	<input id="spinner_addprice" name="value" value="1"> #}
 </div>
 
 
@@ -607,6 +761,59 @@ $("body").on('click', '#span_show_select', function() {
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
       </div>
 </form>      
+    </div>
+  </div>
+</div>
+
+
+<!-- Vertically centered modal -->
+
+<div class="modal " id="SaleMany" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="manySaleModalLabel">Продати багато</h5> 
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          
+          <div class="form-group">
+            <label for="recipient-name" class="col-form-label">Введіть штрихкод або код товару:</label>
+            <input type="text" class="form-control" id="cat-name" autofocus/>
+          </div>
+
+<div class="form-group" id="ajax_item_list">
+</div>
+          <div class="form-group">
+            <label for="recipient-name" class="col-form-label">Введіть кількість:</label>
+            <input type="number" class="form-control" id="sale_count">
+          </div>
+
+<div class="form-group" >
+<small class="form-text text-muted">
+  Рядок статусу:
+</small>
+      <label id="error_msg" class="" style="color: red;">
+         
+      </label>
+</div>
+
+<div class="form-group" >
+<small class="form-text text-muted">
+  Відскановані товари:
+</small>
+      <label id="catalog_scan_ids" class="" style="color: blue;">
+         
+      </label>
+</div>
+          
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрити</button>
+        <button type="button" class="btn btn-primary" id="button_save_quick_sale">Перейти до оплати</button>
+      </div>
     </div>
   </div>
 </div>
@@ -726,8 +933,10 @@ $("body").on('click', '#span_show_select', function() {
 	</td>
 	<td class="client">
 	<a href="/client/result/search/?id={{type.client.id}}">
-	{{type.client.name}} {% if type.client.forumname %} ({{type.client.forumname}}) {% endif %}       
-	</a>
+	{{type.client.name}} {% if type.client.forumname %} ({{type.client.forumname}}) {% endif %}
+	</a>    
+	<span class="badge badge-light add_client_invoice_by_scanner mr-3 right" c_pk="{{type.client.pk}}" c_name="{{type.client.name}}" title="Швидкий продаж для клієнта: {{type.client.name}}" data-toggle="tooltip" data-placement="right"><i class="material-icons">barcode_reader</i></span>	    
+	
 	</td>
 	<td class="cat_name" >       
 	{% if request.user|has_group:"admin" %} 

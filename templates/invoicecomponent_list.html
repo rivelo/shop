@@ -845,7 +845,10 @@ $("#dialog").dialog({
 			$.ajax({
                 type: "POST",
                 url: "/shop/price/print/add/",
-                data: {id:  $("#dtext").attr("ids"), url: $('#spinner').val()},
+                data: {
+                	id:  $("#dtext").attr("ids"), 
+                	scount: $('#spinner').val()
+                	},
                 dataType: "text",
                 success:function(msg){
 //                    alert("Все отлично ушло на сервер - " + msg);
@@ -1982,9 +1985,8 @@ function show_tr_year(obj){
 <!-- Dialog to add print price -->
 	<div id="dialog" title="Add price">
 	<p id="dtext">Додати цінник до списку друку</p>
-{#	<p><a href="{% url 'shop-price-by-search-id-print' 398478 %}">Друкувати</a></p> #}
 	<label for="spinner">Кількість:</label>
-  	<input id="spinner" name="value" value="1">
+  	<input id="spinner" name="value" value="1" type="number" class="w-100 pl-2">	
 	</div>
 
 
