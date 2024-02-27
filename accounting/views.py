@@ -1236,12 +1236,14 @@ def bicycle_sale_list(request, year=False, month=False, id=None):
         month = datetime.datetime.now().month
         #list = Bicycle_Sale.objects.all().order_by('date')
         if (id != None):
-            list = Bicycle_Sale.objects.filter(pk = id).order_by('date')
+            #list = Bicycle_Sale.objects.filter(pk = id).order_by('date')
+            list = Bicycle_Sale.objects.filter(model__id = id).order_by('date')
         else:
             list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
     if (year != False) & (month != False) & (id == None):
         list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
-    header_bike = Bicycle_Sale.objects.filter().extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')
+#    header_bike = Bicycle_Sale.objects.filter().extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('date')
+    header_bike = Bicycle_Sale.objects.annotate(year=ExtractYear('date')).values('year').annotate(pk_count = Count('pk')).order_by('year')  
     psum = 0
     price_summ = 0
     profit_summ = 0
@@ -1254,7 +1256,9 @@ def bicycle_sale_list(request, year=False, month=False, id=None):
             psum = psum + item.sum
         if item.service == False:
             service_summ =  service_summ + 1
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'header_links':header_bike, 'price_summ':price_summ, 'profit_summ':profit_summ, 'pay_sum':psum, 'service_summ':service_summ, 'month': month, 'year':year, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'bicycles': list, 'weblink': 'bicycle_sale_list.html', 'header_links':header_bike, 'price_summ':price_summ, 'profit_summ':profit_summ, 'pay_sum':psum, 'service_summ':service_summ, 'month': month, 'year':year, }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 #Bicycle sale list for all (WORK VERSION)
@@ -1280,6 +1284,7 @@ def bicycle_sale_list_by_brand(request, year=False, month=False, id=None, all=Fa
             list = Bicycle_Sale.objects.filter(date__year=year, date__month=month).order_by('date')
         if (year != False) & (month != False) & (id <> None):
             list = Bicycle_Sale.objects.filter(model__model__brand=id, date__year=year, date__month=month).order_by('date')
+#            list = Bicycle_Sale.objects.filter(model__id = id).order_by('date')
             brand = list[0].model.model.brand.name
         if (month == False) & (id == None):
             list = Bicycle_Sale.objects.filter(date__year=year).order_by('date')

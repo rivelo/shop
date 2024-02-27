@@ -151,7 +151,8 @@ $("body").on("click", "#frame_size", function(e){
 	</a> 
 	</td>
 	<td>
-	<a href="/bicycle/sale/id/{{type.get_client.0.pk}}/view/" title="Детальніше">{{type.model}}</a>       
+	<a href="/bicycle/sale/id/{{type.id}}/view/" title="Детальніше">{{type.model}}</a>       
+{#	<a href="/bicycle/sale/id/{{type.get_client.0.pk}}/view/" title="Детальніше">{{type.model}}</a> #}
 	</td>
       
 {% if user.is_authenticated %}

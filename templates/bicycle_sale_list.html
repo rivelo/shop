@@ -51,7 +51,7 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
     {% if group.name == 'admin' %}
 <h5>
 {% for item in header_links %}
-<a href="{% url 'bicycle-sale-by-year' item.year %}" class="badge badge-warning"> Рік {{item.year}} ({{item.pk_count}})  </a> 
+ <a href="{% url 'bicycle-sale-by-year' item.year %}" class="badge badge-warning"> Рік {{item.year}} ({{item.pk_count}})  </a>  
 {% endfor %}
 </h5>
 	{% endif %}
@@ -169,7 +169,9 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 		<th title="Сума продажів без знижок">
 {% if request.user|has_group:"admin" %}			
 		{{price_summ_full|floatformat:"0"}} грн
-		<p>Знижка = {{price_summ_full|sub:price_summ}} грн.</p> 
+{% if price_summ_full %}		
+	<p>Знижка = {{price_summ_full|sub:price_summ}} грн.</p>
+{% endif %}  
 {#		<p>Знижка = {{price_summ_full}} грн.</p> #}
 {% endif %}		 
 		</th>

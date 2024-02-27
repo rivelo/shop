@@ -114,8 +114,8 @@ urlpatterns = [
 
     url(r'^bicycle/sale/add/(?P<id>\d+)/$', catalog.bicycle_sale_add),
     url(r'^bicycle/sale/add/$', catalog.bicycle_sale_add),
-#    url(r'^bicycle/sale/id/(?P<id>\d+)/view/$', catalog.bicycle_sale_list'),
-    url(r'^bicycle/sale/id/(?P<id>\d+)/view/$', catalog.bicycle_sale_list_by_brand),
+    url(r'^bicycle/sale/id/(?P<id>\d+)/view/$', catalog.bicycle_sale_list),
+#    url(r'^bicycle/sale/id/(?P<id>\d+)/view/$', catalog.bicycle_sale_list_by_brand),
     url(r'^bicycle/sale/view/$', catalog.bicycle_sale_list_by_brand),
     url(r'^bicycle/sale/year/(?P<year>\d+)/view/$', catalog.bicycle_sale_list_by_brand, name='bicycle-sale-by-year'),
     url(r'^bicycle/sale/year/(?P<year>\d+)/month/(?P<month>\d+)/view/$', catalog.bicycle_sale_list_by_brand, name='bicycle-sale-by-year-month'),
