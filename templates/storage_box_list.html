@@ -160,7 +160,8 @@ $(document).ready( function() {
 		  	if ((myObj.length == 1 ) && (!myObj[0].error)) {
 		  		$("#inventory_count").show();
 		  		$("#inventory_count").val('');
-		  		$("#inventory_count").focus();
+//		  		$("#inventory_count").focus();
+		  		$("#myInputCount").focus();
 		  		$("#error_msg").html('');
 		  		$("#search_item_ModalLabel").html("Додавання товару: <p class='text-blue'>" + myObj[0].fields['ids'] + ' - ' +  myObj[0].fields['name'] + "<\p>");
 		  		$("#error_msg").html("<p class='text-blue'>Знайдено!<\p>");
@@ -190,7 +191,7 @@ $(document).ready( function() {
 		  	}
 		  	}
 
-			document.getElementById("myInputScannerBarcode").focus();
+//			document.getElementById("myInputScannerBarcode").focus();
 		}
 		xhttp.onreadystatechange = function() {
 			if (this.readyState == 4 && this.status == 200) {
