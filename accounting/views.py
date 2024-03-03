@@ -9158,7 +9158,7 @@ def inventory_mistake(request, year=None, month=None, day=None):
     year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
     #im = InventoryList.objects.filter(check_all = True, date__gt = year_ago).annotate(mdate=Max('date', distinct=True)).order_by('catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')
 #    im = InventoryList.objects.filter(Q(date__gt = year_ago), ( (Q(real_count = F('count')) & Q(check_all = False)) | (Q(real_count__gt = F('count')) & Q(check_all = True)) | (Q(real_count__lt = F('count')) & Q(check_all = True)) )).annotate(mdate=Max('date', distinct=True)).order_by('-check_all', 'catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date')
-    im = InventoryList.objects.filter(Q(date__gt = year_ago), ( (Q(real_count = F('count')) & Q(check_all = False)) | (Q(real_count__gt = F('count')) & Q(check_all = True)) | (Q(real_count__lt = F('count')) & Q(check_all = True)) )).order_by('-check_all', 'catalog__manufacturer', 'catalog__id')
+    im = InventoryList.objects.filter(Q(date__gt = year_ago), ( (Q(real_count__lt = F('count')) & Q(check_all = False)) | (Q(real_count__gt = F('count')) & Q(check_all = True)) | (Q(real_count__lt = F('count')) & Q(check_all = True)) )).order_by('-check_all', 'catalog__manufacturer', 'catalog__id')
     #list = im.filter(Q(real_count__lt = F('count')) | Q(real_count__gt = F('count')))#.values('id', 'catalog', )
     #list = im.exclude( Q(real_count = F('count')) & Q(check_all = True) ) 
     #list = im.exclude( check_all = True, real_count__gt = F('count'), real_count__lt = F('count'))
@@ -9169,7 +9169,9 @@ def inventory_mistake(request, year=None, month=None, day=None):
     day_list = []
     year_list = InventoryList.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
     month_list = InventoryList.objects.filter(date__year = year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')
-    return render_to_response("index.html", {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month}
+    context.update(custom_proc(request))
+    return render(request, "index.html", context)
 
 
 def inventory_autocheck(request, year=None, month=None, day=None, update=False):
@@ -9301,7 +9303,9 @@ def inventory_fix(request, year=None, month=None, day=None, update=False):
     month_list = InventoryList.objects.filter(date__year = year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')
 #    list = im.values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'edit_date')
 #    return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
-    return render_to_response("index.html", {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month}
+    context.update(custom_proc(request))
+    return render(request, "index.html", context)
 
 @csrf_exempt
 def inventory_add(request):
