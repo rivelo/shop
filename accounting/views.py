@@ -1906,12 +1906,16 @@ def bicycle_storage_type_add(request):
 def bicycle_storage_type_list(request):
     #list = Bicycle_Order.objects.all().order_by("-date")
     list = Storage_Type.objects.all().order_by("id")
-    return render_to_response('index.html', {'list': list, 'weblink': 'storage_type_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'list': list, 'weblink': 'storage_type_list.html', }
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
+
 
 from django.contrib import messages
 from django.shortcuts import  redirect
 from django.utils.encoding import smart_str    
 
+@csrf_exempt
 def bicycle_storage_add(request):
     if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
         return HttpResponseRedirect('/bicycle/storage/view/')
@@ -1974,7 +1978,9 @@ def bicycle_storage_add(request):
         form = BicycleStorage_Form()        
 
     #return render_to_response('bicycle.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_storage.html', 'text': 'Додати велосипед на зберігання'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'form': form, 'weblink': 'bicycle_storage.html', 'text': 'Додати велосипед на зберігання'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
 
 
 def bicycle_storage_edit(request, id):
@@ -2005,7 +2011,9 @@ def bicycle_storage_edit(request, id):
 def bicycle_storage_list(request):
     #list = Bicycle_Order.objects.all().order_by("-date")
     list = Bicycle_Storage.objects.all().order_by("-date")
-    return render_to_response('index.html', {'list': list, 'weblink': 'bicycle_storage_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'list': list, 'weblink': 'bicycle_storage_list.html', 'next': current_url(request)}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def bicycle_storage_delete(request, id):
@@ -5529,7 +5537,9 @@ def workgroup_edit(request, id):
 
 def workgroup_list(request, id=None):
     list = WorkGroup.objects.all().order_by("tabindex")
-    return render_to_response('index.html', {'workgroups': list, 'weblink': 'workgroup_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    context = {'workgroups': list, 'weblink': 'workgroup_list.html', 'next': current_url(request)}
+    context.update(custom_proc(request)) 
+    return render(request, 'index.html', context)
 
 
 def workgroup_delete(request, id):
@@ -8053,8 +8063,10 @@ def worktype_report(request, id, month=None, year=None, day=None,  limit=None):
         cinvoices = paginator.page(paginator.num_pages)
     user_id = request.user.id
     user = User.objects.get(id=user_id)
-            
-    return render_to_response('index.html', {'sel_user':user, 'sel_year':year, 'years': year_list, 'sel_month':month, 'month_list':month_list, 'sel_day':day, 'month_days':days, 'workshop': cinvoices, 'sumall':psum, 'countall':scount, 'work_type': work_type,  'weblink': 'report_worktype.html', 'view': True, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    
+    context = {'sel_user':user, 'sel_year':year, 'years': year_list, 'sel_month':month, 'month_list':month_list, 'sel_day':day, 'month_days':days, 'workshop': cinvoices, 'sumall':psum, 'countall':scount, 'work_type': work_type,  'weblink': 'report_worktype.html', 'view': True, 'next': current_url(request)}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
     
 
 
