@@ -3,19 +3,20 @@
 <title>Цінники на велосипеди</title>
 
 
-<link rel="stylesheet" type="text/css" href="/media/css/table.css">
+ {# <link rel="stylesheet" type="text/css" href="/media/css/table.css"> #}  
 
 {% if view == False %}
-  	<link rel="stylesheet" href="/media/css/bootstrap.min.css"> 
+   	<link rel="stylesheet" href="/media/css/bootstrap.min.css">  
 
-	<script type="text/javascript" src="/media/js/jquery.js"></script>
-  	<script src="/media/js/popper.min.js"></script>
-  	<script src="/media/js/bootstrap.min.js"></script>   	
+	<script type="text/javascript" src="/media/js/jquery.js"></script>  
+{#  	<script src="/media/js/popper.min.js"></script> #} 
+  	<script src="/media/js/bootstrap.min.js"></script>    	
 
 {% endif %}
 
 
 <style>
+
 .no-gutters {
   margin-right: 0;
   margin-left: 0;
@@ -27,22 +28,37 @@
   }
 }
 
+.bike{
+	width: 50%;
+}
+
 .list-group-item {
 font-size: 20px;
 }
 
+{% comment %}
+@media print{
+	@page {size: landscape}
+}
+{% endcomment %}
+
 @media print {
         /* avoid cutting tr in half */
+ @page {size: landscape}    
+     
  div .row {
             margin-top:-8px;
             padding-top:8px;
+{% comment %}            
             page-break-inside:avoid;
-  page-break-before: always;
-  break-before: always;
-  page-break-inside: avoid;
-  break-inside: avoid;             
+  			page-break-before: always;
+  			break-before: always;
+  			page-break-inside: avoid;
+  			break-inside: avoid;
+{% endcomment %}  			             
         }
 }
+
 
 </style>
 
@@ -58,9 +74,10 @@ font-size: 20px;
 
 <div class="container-fluid">
 <div class="row no-gutters">
+{# <div class="row "> #}
 
 {% for bike in bicycles %}
-<div class="col-xs-6 col-lg-6">
+<div class="col-xs-6 col-lg-6 bike">
 <div class="card">
   <div class="card-body"><!-- Начало текстового контента -->
   	<img class="card-img-top" src="/media/{{bike.model.brand.logo}}">
@@ -106,139 +123,13 @@ font-size: 20px;
 
 </div>
 {% if forloop.counter|divisibleby:"2"  %}
-</div><div class="row no-gutters">
+</div>
+<p style="page-break-after: always"></p>
+<div class="row no-gutters">
+
 {% endif %}
 
 {% endfor %}
 
-
-{% comment %}
-<div class="row no-gutters">
-{% if forloop.counter|divisibleby:"2"  %}
-</div><div class="row no-gutters">
-{% endif %}
-
-
-
 </div>
 
-
-
-
-
-
-
-{# comment #}
-
-<table BORDER=1 CELLPADDING=4>  
-<tr>
-{% for bike in bicycles %}
-
-
-<td>
-
-
-<table>
-<tr>
-
-	<td COLSPAN="3" align="center">
-	<img src="/media/{{bike.model.brand.logo}}" width="150px">
-	</td>
-</tr>
-
-<tr>
-	<td>
-<b>	Виробник </b>
-	</td>	
-	<td>       
-	{{bike.model.brand.name}}
-	</td>
-</tr>
-
-<tr>
-	<td>       
-<b>	Модель </b>
-	</td>
-	<td width = 190>       
-	<a href="">{{bike.model.model}}</a> ({{bike.model.year.year}})
-	</td>
-</tr>
-	
-
-<!--
-<tr>
-	<td>
-	Вага
-	</td>
-	<td>       
-	{{type.weight}}
-	</td>	
-</tr>
--->
-
-<tr>
-	<td>
-<b>	Країна виробника </b>
-	</td>
-	<td>
-	{{bike.model.brand.country}}
-	</td>	
-</tr>
-<tr>
-	<td>
-<b>	Тип велосипеду </b>
-	</td>
-	<td>
-	{{bike.model.type}}
-	</td>	
-</tr>
-
-{% if bike.model.sale > 0 %}
-<tr>
-	<td>
-<FONT COLOR=black FACE="Geneva, Arial" SIZE=3><s>Ціна</s></FONT> 	
-	</td>
-	<td>       
-<FONT COLOR=black FACE="Geneva, Arial" SIZE=3><s>{{bike.model.price}} грн.  </s></FONT>	
-	</td>
-</tr>
-<tr>
-	<td>
-<b><FONT COLOR=black FACE="Geneva, Arial" SIZE=3> Нова ціна </FONT></b> 	
-	</td>
-	<td>       
-<b><FONT COLOR=black FACE="Geneva, Arial" SIZE=3>{{bike.model.sale|div:-100|sub:-1|mul:bike.model.price|floatformat:"0"}} грн.  </FONT></b>	
-	</td>
-</tr>       
-
-{% else %}
-<tr> 	
-	<td>
-<b><FONT COLOR=black FACE="Geneva, Arial" SIZE=3>Ціна</FONT></b> 	
-	</td>
-	<td>       
-<b><FONT COLOR=black FACE="Geneva, Arial" SIZE=3>{{bike.model.price}} грн.</FONT></b>	
-	</td>
-</tr>
-{% endif %}	
-       
-
-
-</table>
-
-</td>
-
-
-{% if forloop.counter|divisibleby:"2"  %}
-</tr><tr>
-{% endif %}
-
-{% if forloop.counter|divisibleby:"6"  %}
-</table>
-<br style="page-break-after: always">
-<table BORDER=0 CELLPADDING=4> 
-{% endif %}
- 
-{% endfor %}   
-
-{% endcomment %}   

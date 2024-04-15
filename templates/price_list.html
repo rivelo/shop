@@ -7,8 +7,16 @@
 <link rel="stylesheet" type="text/css" href="/media/css/table.css">
  -->
  
-<script type="text/javascript" src="/media/js/jquery.js"></script>
-<script type="text/javascript" src="/media/jquery.qrcode-0.7.0.min.js"></script>
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+ 
+<script type="text/javascript" src="/media/js/jquery.qrcode.js"></script>
+<script type="text/javascript" src="/media/js/qrcode.js"></script>
+
+{# <script type="text/javascript" src="/media/jquery.qrcode-0.7.0.min.js"></script> #}
+
+
+
+
 
 <script language="JavaScript">
 function qrcode(){
@@ -129,6 +137,9 @@ span a {
 		font-size: large;
 		}     
 
+@media print{
+	@page {size: landscape}
+}
      
 </style>
 
@@ -152,6 +163,8 @@ span a {
 
 <body>
 
+
+
 {% for type in catalog %}
 
 
@@ -161,7 +174,7 @@ span a {
 <tr>
 {% with type.id|sale_url:request.get_host as url_buy %}  
 <td class="qr" >
-<img src="{{url_buy|qr:"140x140"}}" />
+<img src="{{url_buy|qr:"140x140"}}" style="width:130px;"/>
 </td>
 {% endwith %}
 
@@ -207,7 +220,7 @@ span a {
 <tr>
 {% with type.id|sale_url:request.get_host as url_buy %}  
 <td rowspan="5" class="nameTD" style="border-bottom: 1px solid black;">
-<img src="{{url_buy|qr:"100x100"}}" />
+<img src="{{url_buy|qr:"100x100"}}" style="width:130px;"/>
 </td>
 {% endwith %}
 </tr>

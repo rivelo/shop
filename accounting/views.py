@@ -8400,19 +8400,21 @@ def client_history_cred(request):
         
             if 'clientId' in request.POST and request.POST['clientId']:
                 clientId = request.POST['clientId']
-                cday = request.POST['cred_day']
-                n_day = int(cday) - 30;
+#                cday = request.POST['cred_day']
+#                n_day = int(cday) - 30;
                 p_cred_month = None
                 cash_id = CashType.objects.get(id = 6) # заробітна плата
                 if auth_group(request.user, "admin") == False:
                     client_name = Client.objects.values('name', 'forumname', 'id', 'phone', 'birthday', 'email').get(id = clientId)
                     if str(request.user.username).lower() == str(client_name['forumname'].lower()):
-                        p_cred_month = ClientCredits.objects.filter(client = clientId, date__gt=now-datetime.timedelta(days=int(cday)), date__lt=now-datetime.timedelta(days=n_day)).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
+#                        p_cred_month = ClientCredits.objects.filter(client = clientId, date__gt=now-datetime.timedelta(days=int(cday)), date__lt=now-datetime.timedelta(days=n_day)).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
+                        p_cred_month = ClientCredits.objects.filter(client = clientId).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')                        
                     else:
-                        p_cred_month = ClientCredits.objects.filter(client = clientId, date__gt=now-datetime.timedelta(days=int(cday)), date__lt=now-datetime.timedelta(days=n_day)).exclude(cash_type = cash_id).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
+#                        p_cred_month = ClientCredits.objects.filter(client = clientId, date__gt=now-datetime.timedelta(days=int(cday)), date__lt=now-datetime.timedelta(days=n_day)).exclude(cash_type = cash_id).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
+                        p_cred_month = ClientCredits.objects.filter(client = clientId).exclude(cash_type = cash_id).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')                        
                 else: 
-                    p_cred_month = ClientCredits.objects.filter(client = clientId, date__gt=now-datetime.timedelta(days=int(cday)), date__lt=now-datetime.timedelta(days=n_day)).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
-                
+#                    p_cred_month = ClientCredits.objects.filter(client = clientId, date__gt=now-datetime.timedelta(days=int(cday)), date__lt=now-datetime.timedelta(days=n_day)).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
+                    p_cred_month = ClientCredits.objects.filter(client = clientId).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')                
                 #p_cred_month = ClientCredits.objects.filter(client = clientId).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
                 #p_cred_month = ClientCredits.objects.filter(client = cid, date__month = cmonth, date__year = cyear).values('id', 'price', 'description', 'user', 'user__username', 'date')
                 json = list(p_cred_month)

@@ -104,7 +104,9 @@ def qr(value,size="120x120"):
         Usage:
         <img src="{{object.code|qr:"120x130"}}" />
     """
-    return "http://chart.apis.google.com/chart?chs=%s&cht=qr&chl=%s&choe=UTF-8&chld=H|0" % (size, value)
+#    return "http://chart.apis.google.com/chart?chs=%s&cht=qr&chl=%s&choe=UTF-8&chld=H|0" % (size, value)
+#    return "https://chart.googleapis.com/chart?chs=%s&cht=qr&chl=%s&choe=UTF-8&chld=H|0" % (size, value)
+    return "https://api.qrserver.com/v1/create-qr-code/?data=%s&amp;size=%s" % (value, size )
 
 
 @register.filter

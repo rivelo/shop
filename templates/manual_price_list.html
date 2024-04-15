@@ -142,6 +142,10 @@ div .price{
 
 }*/
 
+ @page {size: landscape}
+
+}
+
 </style>
 
 
@@ -160,7 +164,7 @@ div .price{
 {# <div style="background:#FA911D; width:140px; height:140px; float:left;"> #}
 <div style="background:#FA911D; height:97%; float:left;">
 {% with price.catalog.id|sale_url:request.get_host as url_buy %}  
-<img src="{{url_buy|qr:"140x140"}}" />
+<img src="{{url_buy|qr:"140x140"}}" style="width:140px;"/>
 {% endwith %}
 </div>
 
