@@ -1,17 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
+<title>Створити групу для робіт</title>
 
-    <h1>Додати до майстерні групу робіт </h1>
+<link rel="stylesheet" type="text/css" href="/media/css/main_ui.css">
+
+
+{% load poll_extras %}
+
+<body>
+<h1>
+<span class="badge badge-success m-2 p-2">
+    Додати до майстерні групу робіт 
+</span>
+</h1>
+
     <form action="" method="POST" enctype="multipart/form-data">
-        <table>
-            {{ form.as_table }}
-        </table>
-        <p><input type="submit" value="Save"></p>
+
+
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <span class="input-group-text" id="basic-addon1">Назва</span>
+  </div>
+  {{form.name|add_attr:"class:form-control"}}
+</div>
+
+
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <span class="input-group-text">Опис</span>
+  </div>
+  {{form.description|add_attr:"class:form-control"}}
+{#  <textarea class="form-control" aria-label="With textarea" id="s_descr"></textarea> #}
+</div>
+
+
+<div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <span class="input-group-text" id="basic-addon1">Порядковий номер</span>
+  </div>
+  {{form.tabindex|add_attr:"class:form-control"}}
+</div>
+
+        
+            {#{ form.as_p }#}
+            
+        <p><input type="submit" value="Створити" class="btn btn-primary w-100" ></p>
     </form>
-    
-<br>
-<a href="/workgroup/view/">Групи робіт</a>
-    <br>
-<a href="/">HOME</a>
 
 
+<span class="badge badge-secondary">
+<a href="/workgroup/view/">Групи робіт    
+</a>
+</span>
+
+</body>

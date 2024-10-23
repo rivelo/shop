@@ -3104,7 +3104,7 @@ def invoice_import(request):
     return render(request, 'index.html', context)    
 
 
-# --------------- Classification ---------
+# --------------- Find Category or Manufacture (Ajax) and show LIST in html field---------
 @csrf_exempt
 def category_manufacture_lookup(request):
     data = None
@@ -3116,7 +3116,7 @@ def category_manufacture_lookup(request):
                 value = request.POST[u'query']
                 if len(value) >= 2:
                     model_results_type = Type.objects.filter(Q(name__icontains = value) | Q(name_ukr__icontains = value)).order_by('name')
-                    print ("LEN type %s " %  len(model_results_type))
+#                    print ("LEN type %s " %  len(model_results_type))
                     if len(model_results_type):
 #                        data1 = serializers.serialize("json", model_results_type, fields = ('id', 'name_ukr', 'name'))
                         for mod in model_results_type:
@@ -3127,12 +3127,12 @@ def category_manufacture_lookup(request):
                             res.append(d_res)
                             
                     model_results_manuf = Manufacturer.objects.filter(Q(name__icontains = value)).order_by('name')
-                    print ("LEN type %s " %  len(model_results_manuf))
+#                    print ("LEN type %s " %  len(model_results_manuf))
                     if len(model_results_manuf):
 #                        data2 = serializers.serialize("json", model_results_manuf, fields = ('id', 'name', 'www', ))
                         for mod in model_results_manuf:
                             d_res = {}
-                            print ("Manufacture Name =  %s " %  (mod.name))
+ #                           print ("Manufacture Name =  %s " %  (mod.name))
                             d_res["id"] = mod.id
                             d_res["name"] = ">> %s <<" % (mod.name.upper())
                             d_res["url"] = reverse('invoice-manufacture-id-list', args=[mod.pk])
@@ -5515,21 +5515,36 @@ def client_lookup_by_id(request):
 
 
 # --------------- WorkShop -----------------
+@csrf_exempt
 def workgroup_add(request):
+    if auth_group(request.user, 'admin')==False:
+        #return HttpResponse('Error: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас не має доступу до даної дії. Можливо ви не є адміністратором?.', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+   
     if request.method == 'POST':
         form = WorkGroupForm(request.POST)
         if form.is_valid():
             name = form.cleaned_data['name']
             description = form.cleaned_data['description']
-            WorkGroup(name=name, description=description).save()
+            tabindex = form.cleaned_data['tabindex']
+            WorkGroup(name = name, description = description, tabindex = tabindex).save()
             return HttpResponseRedirect('/workgroup/view/')
     else:
         form = WorkGroupForm()
-    return render_to_response('index.html', {'form': form, 'weblink': 'workgroup.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'form': form, 'weblink': 'workgroup.html'})
 
 
+@csrf_exempt
 def workgroup_edit(request, id):
     a = WorkGroup.objects.get(pk=id)
+    if auth_group(request.user, 'admin')==False:
+        msg_txt = u'У вас не має можливості редагувати групу - [ %s ]' % (a.name)
+        context = {'weblink': 'error_message.html', 'mtext':  msg_txt}
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+    
     if request.method == 'POST':
         form = WorkGroupForm(request.POST, instance=a)
         if form.is_valid():
@@ -5537,7 +5552,7 @@ def workgroup_edit(request, id):
             return HttpResponseRedirect('/workgroup/view/')
     else:
         form = WorkGroupForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'workgroup.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'form': form, 'weblink': 'workgroup.html', 'next': current_url(request)})
 
 
 def workgroup_list(request, id=None):
@@ -5555,6 +5570,12 @@ def workgroup_delete(request, id):
 
 
 def worktype_add(request):
+    if auth_group(request.user, 'admin')==False:
+        #return HttpResponse('Error: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас не має можливості додавати роботу. Можливо ви не є адміністратором?.', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+    
     if request.method == 'POST':
         form = WorkTypeForm(request.POST)
         if form.is_valid():
@@ -5570,6 +5591,12 @@ def worktype_add(request):
 
 
 def worktype_edit(request, id):
+    if auth_group(request.user, 'admin')==False:
+        #return HttpResponse('Error: У вас не має доступу до даної дії. Можливо ви не авторизувались.')
+        context = {'weblink': 'error_message.html', 'mtext': 'У вас не має можливості змінювати роботу.', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+    
     a = WorkType.objects.get(pk=id)
     if request.method == 'POST':
         form = WorkTypeForm(request.POST, instance=a)

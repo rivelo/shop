@@ -1888,7 +1888,6 @@ class WorkType(models.Model):
     plus = models.BooleanField(default = False, verbose_name="Сума+")
     sale = models.FloatField(default = 0, blank=True, null=True)
     #timer = models.Datetime
-    
     #user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
 
     def work_count(self):
