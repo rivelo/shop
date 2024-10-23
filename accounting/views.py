@@ -1718,26 +1718,31 @@ def dictfetchall(cursor):
 def bicycle_sale_report(request):
     if auth_group(request.user, 'admin') == False:
         return HttpResponseRedirect('/')
-    query = "SELECT EXTRACT(year FROM date) as year, EXTRACT(month from date) as month, MONTHNAME(date) as month_name, COUNT(*) as bike_count, sum(price) as s_price FROM accounting_bicycle_sale GROUP BY year,month;"
+#    query = "SELECT EXTRACT(year FROM date) as year, EXTRACT(month from date) as month, MONTHNAME(date) as month_name, COUNT(*) as bike_count, sum(price) as s_price FROM accounting_bicycle_sale GROUP BY year,month;"
     #sql2 = "SELECT sum(price) FROM accounting_clientdebts WHERE client_id = %s;"
     #user = id;
     list = None
-    try:
-        cursor = connection.cursor()
-        cursor.execute(query)
-        list = dictfetchall(cursor)
-        #list = cursor.execute(sql1, )   
-    except TypeError:
-        res = "Помилка"
+    #===========================================================================
+    # try:
+    #     cursor = connection.cursor()
+    #     cursor.execute(query)
+    #     list = dictfetchall(cursor)
+    #     #list = cursor.execute(sql1, )   
+    # except TypeError:
+    #     res = "Помилка"
+    #===========================================================================
+    list = Bicycle_Sale.objects.annotate(year=ExtractYear('date'), month=ExtractMonth('date')).values('year', 'month').annotate(suma=Sum("price"), bike_count=Count('pk')).order_by()
     sum = 0
     bike_sum = 0
     for month in list:
-         sum = sum + month['s_price']
-         bike_sum = bike_sum + month['bike_count']
-
+        sum = sum + month['suma']
+        bike_sum = bike_sum + month['bike_count']
+#        sum = sum + month['s_price']
+#        bike_sum = bike_sum + month['bike_count']
     context = {'bicycles': list, 'all_sum': sum, 'bike_sum': bike_sum, 'weblink': 'bicycle_sale_report.html', }
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
+
 
 
 def bicycle_sale_report_by_brand(request):
@@ -1879,7 +1884,7 @@ def bike_lookup(request):
         message = "Error"
     return HttpResponse(data)                
 
-
+@csrf_exempt
 def bicycle_storage_type_add(request):
     if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
         return HttpResponseRedirect('/bicycle/storage/type/view/')
@@ -1900,7 +1905,7 @@ def bicycle_storage_type_add(request):
         form = StorageType_Form()        
 
     #return render_to_response('bicycle.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_storage.html', 'text': 'Вид зберігання'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'form': form, 'weblink': 'bicycle_storage.html', 'text': 'Вид зберігання'})
 
 
 def bicycle_storage_type_list(request):
@@ -2776,7 +2781,7 @@ def invoicecomponent_sum(request):
     if auth_group(request.user, 'admin') == False:
         return HttpResponseRedirect("/.")
 #    list = InvoiceComponentList.objects.all().aggregate(price_sum=Sum('catalog__price'))
-    list = Catalog.objects.filter(count__gt=0).values('id', 'name', 'count', 'price')
+    list = Catalog.objects.filter(count__gt=0).values('id', 'name', 'count', 'price').order_by("count")
     #.annotate(sum_catalog=Sum('count'))
     #aggregate(price_sum=Sum('count'))
     psum = 0
@@ -2786,7 +2791,7 @@ def invoicecomponent_sum(request):
         scount = scount + item['count']
         psum = psum + (item['price'] * item['count'])
         counter = counter + 1
-    paginator = Paginator(list, 50)
+    paginator = Paginator(list, 100)
     page = request.GET.get('page')
     if page == None:
         page = 1
@@ -2799,7 +2804,7 @@ def invoicecomponent_sum(request):
         # If page is out of range (e.g. 9999), deliver last page of results.
         catalog = paginator.page(paginator.num_pages)
         
-    return render_to_response('index.html', {'allpricesum':psum, 'countsum': scount, 'counter': counter, 'catalog': catalog, 'weblink': 'invoicecomponent_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'allpricesum':psum, 'countsum': scount, 'counter': counter, 'catalog': catalog, 'weblink': 'invoicecomponent_report.html', 'next': current_url(request)})
 
 
 def invoicecomponent_del(request, id):
@@ -5285,7 +5290,8 @@ def client_order_delete(request, id):
 # Report sold components by month 
 def client_invoice_report(request):
     if auth_group(request.user, "admin") == False:
-        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу до даної сторінки!', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        #return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу до даної сторінки!', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        return render(request, 'index.html', {'weblink': 'error_message.html', 'mtext': 'У вас немає доступу до даної сторінки!'} )
     query = "SELECT EXTRACT(year FROM date) as year, EXTRACT(month from date) as month, MONTHNAME(date) as month_name, COUNT(*) as bike_count, sum(pay) as s_price FROM accounting_clientinvoice GROUP BY year,month;"
     #sql2 = "SELECT sum(price) FROM accounting_clientdebts WHERE client_id = %s;"
     #user = id;
@@ -5295,7 +5301,6 @@ def client_invoice_report(request):
         cursor.execute(query)
         list = dictfetchall(cursor)
         #list = cursor.execute(sql1, )   
-        
     except TypeError:
         res = "Помилка"
         
@@ -5304,9 +5309,8 @@ def client_invoice_report(request):
     for month in list:
          sum = sum + month['s_price']
          bike_sum = bike_sum + month['bike_count']
-
     #list = Bicycle_Sale.objects.all().order_by('date')
-    return render_to_response('index.html', {'bicycles': list, 'all_sum': sum, 'bike_sum': bike_sum, 'weblink': 'clientinvoice_sale_report.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'bicycles': list, 'all_sum': sum, 'bike_sum': bike_sum, 'weblink': 'clientinvoice_sale_report.html', 'next': current_url(request)})
 
 
 def client_search(request):
@@ -5314,6 +5318,7 @@ def client_search(request):
     context = {'weblink': 'client_search.html', 'next': current_url(request)}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
+
 
 @csrf_exempt
 def client_search_result(request):
@@ -5561,7 +5566,7 @@ def worktype_add(request):
             return HttpResponseRedirect('/worktype/view/')
     else:
         form = WorkTypeForm()
-    return render_to_response('index.html', {'form': form, 'weblink': 'worktype.html', 'add_edit_text': 'Створити', 'workID': None}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'form': form, 'weblink': 'worktype.html', 'add_edit_text': 'Створити', 'workID': None})
 
 
 def worktype_edit(request, id):
@@ -6094,7 +6099,7 @@ def workshop_add(request, id=None, id_client=None):
             return HttpResponseRedirect('/workshop/view/')
     else:
         if work != None:
-            form = WorkShopForm(initial={'work_type': work.id, 'price': work.get_sale_price, 'user': request.user, 'shop': shopN}, client_id=wclient)
+            form = WorkShopForm(initial={'work_type': work.id, 'price': work.get_sale_price, 'user': request.user, 'shop': shopN}, client_id=wclient, request = request)
         elif wclient != None:
             form = WorkShopForm(initial={'client': wclient.id, 'user': request.user, 'shop': shopN, }, client_id=wclient, request = request)
         else:        
@@ -6529,7 +6534,7 @@ def shopdailysales_list(request, month=None, year=None, shop_id=None):
         year = now.year
     list = ShopDailySales.objects.filter(date__year=year, date__month=month, shop=shopN)
     total_sum = list.aggregate(total_cash=Sum('cash'), total_tcash=Sum('tcash'), total_price=Sum('price'), total_ocash=Sum('ocash'))
-    context = {'shopsales': list, 'total_sum': total_sum, 'l_month': xrange(1,13), 'sel_month':int(month), 'weblink': 'shop_sales_list.html', 'shopName': shopN, 'ShopList' : shoplist}
+    context = {'shopsales': list, 'total_sum': total_sum, 'l_month': xrange(1,13), 'sel_month':int(month), 'weblink': 'shop_sales_list.html', 'shopName': shopN, 'shopID': shop_id, 'ShopList' : shoplist}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
@@ -6927,7 +6932,7 @@ def costtype_add(request):
 
 def costtype_list(request):
     list = CostType.objects.all()
-    return render_to_response('index.html', {'costtypes': list, 'weblink': 'costtype_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'costtypes': list, 'weblink': 'costtype_list.html', 'next': current_url(request)})
 
 
 def costtype_delete(request, id):

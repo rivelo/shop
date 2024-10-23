@@ -32,7 +32,9 @@
 	{{forloop.counter}}
 	</td>
 	<td>
-	{{item.id}}
+	<a href="{% url 'catalog_id_view' item.id %}" title="Редагувати товар">
+		{{item.id}}
+	</a>
 	</td>
 	<td>
 	{{item.name}}

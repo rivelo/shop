@@ -2261,6 +2261,28 @@ class StorageBox(models.Model):
         ordering = ["-date_create", "box_name", "catalog"]
 
 
+#===============================================================================
+# class StorageBoxTransfer(models.Model):
+#     sbox_from = models.ForeignKey(StorageBox, blank=True, null=True, on_delete = models.SET_NULL)
+#     to_box = models.ForeignKey(BoxName, blank=True, null=True)
+#     count = models.IntegerField(default = 0, blank=True, null=True) #FloatField()
+#     count_real = models.IntegerField(default = 0, blank=True, null=True) #IntegerField()
+#     count_last = models.IntegerField(default = 0, blank=True, null=True) #IntegerField()
+#     
+#     user_create = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL,)# related_name='u_create_cl')
+# #    user_accept = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL, related_name='u_accept_cl')
+#     date_create = models.DateTimeField(blank=True, null=True)
+#     date_accept = models.DateTimeField(blank=True, null=True)
+# 
+# 
+#     def __unicode__(self):
+#         return u'[%s] %s - %s з %s шт.' % (self.box_name, self.catalog, self.count, self.count_real)
+#  
+#     class Meta:
+#         ordering = ["-date_create",] # "box_from", "box_to", "catalog"]
+#===============================================================================
+    
+
  
 class ClientInvoiceStorageBox(models.Model):
     sbox = models.ForeignKey(StorageBox, blank=True, null=True, on_delete = models.SET_NULL)

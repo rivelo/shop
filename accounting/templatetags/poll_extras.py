@@ -10,6 +10,8 @@ import re
 import datetime
 from django.http import HttpRequest
 from catalog.accounting.models import Shop
+import calendar
+
 
 register = template.Library()
 
@@ -245,4 +247,10 @@ def check_uid(value):
     except:
         res = ''
     return res
+
+
+@register.filter
+def month_name(month_number):
+    month_number = int(month_number)
+    return calendar.month_name[month_number]
 

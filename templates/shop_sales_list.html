@@ -33,7 +33,12 @@ $(document).ready( function() {
     {% if month == sel_month %}
     	<a href="/shop/sale/view/month/{{month}}" class="badge badge-success select">{{month}}</a>
     {% else %}
-    	<a href="/shop/sale/view/month/{{month}}" class="badge badge-success">{{month}}</a>
+    	{% if request.user|has_group:"admin" %}
+    	<a href="/shop/{{shopID}}/sale/view/month/{{month}}/" class="badge badge-success">{{month}}</a>
+    	{% else %}
+    	<a href="/shop/sale/view/month/{{month}}/" class="badge badge-success">{{month}}</a>
+    	{% endif %}
+    	
     {% endif %}
     
     {% endfor %}

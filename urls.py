@@ -604,8 +604,9 @@ urlpatterns = [
     url(r'^shop/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/shop/(?P<shop>\d+)/view/$', catalog.shopdailysales_view, name="shop-daily-sales-by-shop"), # day CASA by SHOP
     url(r'^shop/sale/day/edit/(?P<id>\d+)/$', catalog.shopdailysales_edit),
     url(r'^shop/sale/view/year/(?P<year>\d+)/month/(?P<month>\d+)/$', catalog.shopdailysales_list),    
-    url(r'^shop/sale/view/month/(\d+)/$', catalog.shopdailysales_list, name="shop_dailysales_monthly"),
-    url(r'^shop/(?P<shop_id>\d+)/sale/view/month/(\d+)/$', catalog.shopdailysales_list, name="shop_id_dailysales_monthly"),
+    url(r'^shop/sale/view/month/(?P<month>\d+)/$', catalog.shopdailysales_list, name="shop_dailysales_monthly"),
+    url(r'^shop/(?P<shop_id>\d+)/sale/view/month/(?P<month>\d+)/$', catalog.shopdailysales_list, name="shop_id_dailysales_monthly"),
+    url(r'^shop/(?P<shop_id>\d+)/sale/view/month/(?P<month>\d+)/year/(?P<year>\d+)/$', catalog.shopdailysales_list, name="shop_id_dailysales_monthly"),
     url(r'^shop/sale/view/$', catalog.shopdailysales_list, name="shop_dailysales_monthly_cur"),
     url(r'^shop/sale/day/(?P<id>\d+)/delete/$', catalog.shopdailysales_delete),
 
