@@ -208,6 +208,8 @@ urlpatterns = [
     url(r'^invoice/category/view/$', catalog.invoicecomponent_list, {'focus': 2, 'mc_search': True}),
     #url(r'^invoice/category/view/$', catalog.invoicecomponent_list_by_category'),
 #    url(r'^invoice/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list_by_category'),
+    url(r'^invoice/attribute/val/(?P<attr_val_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-val-id-list"),
+    url(r'^invoice/attribute/(?P<attr_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-id-list"),
     url(r'^invoice/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="category-id-list"),
     url(r'^invoice/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True}, name="category-id-list-all"),
     url(r'^invoice/list/(?P<limit>\d+)/view/$', catalog.invoicecomponent_list),
@@ -261,6 +263,8 @@ urlpatterns = [
     url(r'^catalog/lookup/$', catalog.catalog_lookup, name="catalog-lookup"),
     url(r'^catalog/get/locality/$', catalog.catalog_get_locality),
     url(r'^catalog/search/$', catalog.catalog_search_by_ids), # POST AJAX
+    url(r'^catalog/attribute/lookup/$', catalog.catalog_attr_lookup), # POST AJAX
+    url(r'^catalog/add/attribute/$', catalog.catalog_add_attr), # POST AJAX
 
     # Client
     url(r'^client/(?P<id>\d+)$', catalog.client_data, name="client-data"),

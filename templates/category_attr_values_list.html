@@ -68,7 +68,7 @@ $(document).ready(function() {
 
 
 <div class="alert alert-attr-value" role="alert">
-{{ item.value|default:" - " }} / {{item.value_float|default:" - "}} - Дата створення: {{item.created_date}} ; Редагування: {{item.updated_date}} [{{item.updated_user}}] ; Опис: {{item.description}}
+<a href="{% url 'invoice-attribute-val-id-list' item.id %}" >{{ item.value|default:" - " }} / {{item.value_float|default:" - "}}</a> - Дата створення: {{item.created_date}} ; Редагування: {{item.updated_date}} [{{item.updated_user}}] ; Опис: {{item.description}}
 </div>
 
 {% for val in item.all_items %}

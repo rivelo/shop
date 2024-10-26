@@ -2541,7 +2541,7 @@ def invoicecomponent_add(request, mid=None, cid=None):
 
 
 
-def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None, all=False, mc_search=False):
+def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None, attr_val_id=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None, all=False, mc_search=False):
     #company_list = Manufacturer.objects.none()
     company_list = Manufacturer.objects.all().only('id', 'name')
     #type_list = Type.objects.none() 
@@ -2552,6 +2552,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
     id_list=[]
     zsum = 0
     zcount = 0
+    head_text = ''
 # Search by Name field    
     if 'name' in request.GET and request.GET['name']:
         name = request.GET['name'].strip()
@@ -2599,6 +2600,21 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
         else:
             list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)
         cat_name = type_list.get(id=cid)
+    if attr_val_id:
+        cav = CatalogAttributeValue.objects.filter(id = attr_val_id).values('value', 'value_float', 'attr_id__name')
+        head_text = cav.first()['attr_id__name'] + ' >>> ' + cav.first()['value']
+        if all == True:        
+            list = InvoiceComponentList.objects.filter(catalog__attributes__id=attr_val_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        else:
+            list = InvoiceComponentList.objects.filter(catalog__attributes__id=attr_val_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)
+    if attr_id:
+        ca = CatalogAttribute.objects.filter(id = attr_id).values('name')
+        head_text = ca.first()['name']
+        if all == True:        
+            list = InvoiceComponentList.objects.filter(catalog__attributes__attr_id=attr_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        else:
+            list = InvoiceComponentList.objects.filter(catalog__attributes__attr_id=attr_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)
+
     if isale == True:
         list = InvoiceComponentList.objects.filter(catalog__sale__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
     if enddate == True:
@@ -2686,7 +2702,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, limit=0, focu
 #    vars.update({'type_obj': categ})
     
     cur_year = datetime.date.today().year        
-    vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'cur_year': cur_year, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'qsearch_lookup' : mc_search}
+    vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'cur_year': cur_year, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'qsearch_lookup' : mc_search, 'head_text': head_text}
     vars.update(custom_proc(request))
     return render(request, 'index.html', vars)
 
@@ -4247,6 +4263,59 @@ def catalog_lookup(request):
 
     return HttpResponse(data_res, content_type='application/json')    
 
+
+@csrf_exempt
+def catalog_attr_lookup(request):
+    data = None
+    results = []
+    if request.is_ajax():
+        if request.method == "POST":
+            if request.POST.has_key(u'query') and request.POST.has_key(u'type'):
+                value = request.POST[u'query']
+                type_id = request.POST[u'type'] #[5, 84]
+                t_ids = Type.objects.filter(id__in = type_id.split(','))
+
+                if len(value) > 2:
+                    model_results = CatalogAttribute.objects.filter(name__icontains=value, type__in = t_ids)
+                    #model_results = CatalogAttribute.objects.all()
+                    attr_val_array = CatalogAttributeValue.objects.filter(attr_id__in = model_results)
+                    #data = serializers.serialize("json", model_results, fields=('name','id', 'description',))
+                    data = serializers.serialize("json", attr_val_array, fields=('value', 'value_float', 'description'))
+            if request.POST.has_key(u'name'):
+                pass
+            attr_name = "Not found"
+            if model_results.first():
+                attr_name = model_results.first().name
+            json = simplejson.dumps({'attr_name': attr_name, 'status': False, 'msg': u'Ajax: Щось пішло не так', 'data': data})    
+#    return HttpResponse(data_res, content_type='application/json')
+    return HttpResponse(json, content_type='application/json')
+
+
+@csrf_exempt
+def catalog_add_attr(request):
+    data = None
+    type_id = None
+    cat_ids = None
+    msg = u'Ajax: Запит виконано успішно'
+    attr_name = "Not found"
+    if request.is_ajax():
+        if request.method == "POST":
+            if request.POST.has_key(u'ids') and request.POST.has_key(u'attr_id'):
+                attr_id = request.POST[u'attr_id']
+                ids = request.POST[u'ids'] 
+                cat_ids = Catalog.objects.filter(id__in = ids.split(','))
+#                print "CAt = %s" % cat_ids.count()
+                try:
+                    type_id = CatalogAttributeValue.objects.get(id = int(attr_id))
+                    for cat in cat_ids:
+                        cat.attributes.add( type_id ) 
+                except:
+                    msg = u'Ajax: Щось пішло не так'
+                data = serializers.serialize("json", cat_ids, fields=('id', 'name', 'ids', 'dealer_code'))
+            
+    json = simplejson.dumps({'attr_name': attr_name, 'status': True, 'msg': msg, 'data': data})
+    return HttpResponse(json, content_type='application/json')
+        
 
 def catalog_get_locality(request):
     sel_id = None

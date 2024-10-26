@@ -559,6 +559,7 @@ $(document).ready(function() {
 {% endif %}	
 	$("#iTable_length").append('  <a href="javascript:void(0);" id="print_phpbb" val="0" class="badge badge-dark text-white">TEXT</a>');
 	$("#iTable_length").append('  <a href="javascript:void(0);" id="change_type" val="0" class="badge badge-dark text-white">Змінити категорію</a>');
+	$("#iTable_length").append('  <a href="javascript:void(0);" id="add_param" val="0" class="badge badge-info text-white">Властивості</a>');
 	$("#iTable_length").append('  <a href="javascript:void(0);" id="price_tag_button" val="0" class="badge badge-dark text-white">Цінники</a>');
 	
 
@@ -968,6 +969,64 @@ $("#dialog_change_type").dialog({
         }
       } 
 });
+
+
+$("#dialog_add_param").dialog({
+    autoOpen: false,
+      resizable: false,
+      modal: true,
+      width: '80%',
+      open: function( event, ui ) {
+        $('#s_param').val(""); //очищення поля
+        $("#sel_c_param").empty();
+      },
+      buttons: {
+        "Додати": function() {
+            
+            $.ajax({
+                type: "POST",
+                url: "/catalog/add/attribute/",
+                data: {attr_id:  $("#s_param").attr('attr_id'), ids:  $("#sel_c_param").attr("ids") },
+//                dataType: "text",
+                dataType: "json",
+                success:function(data){
+//                    var st = JSON.stringify(data);
+//                    var p = jQuery.parseJSON(st);
+//                    console.log('Data = ' + data);
+ //                   console.log('JSON = ' + st + " | status " + st['status']);
+ //                   console.log('P parse = ' + p + " | status " + p['status']);
+                    console.log('JSON status >>> ' + data['msg']);
+                    
+                $("#dialog_add_param").dialog('widget').find("button:contains('Додати')").button("option", "disabled", true);
+                if (data['status'] == false){
+                    alert("Помилка: " + msg);
+                    $("#dialog_add_param").dialog('widget').find("button:contains('Додати')").button("option", "disabled", false);
+                }
+                if (data['status'] == true) {
+                    $("#dialog_add_param").dialog("close");
+                    $("#dialog_add_param").dialog('widget').find("button:contains('Додати')").button("option", "disabled", false);
+
+                    var table = $('#iTable').DataTable();
+                    var row_list = $("#sel_c_param").attr("index").split(',');
+                    //row_list.splice( $.inArray($("#sale_p").attr("index"), row_list), 1 );
+                    for (index = row_list.length-1; index >= 0; --index) {
+                        console.log("change cell ["+ index +"] = " +  table.cell(row_list[index],10).data() );
+                        table.cell(row_list[index],10).data($("#sel_c").val());
+                    } 
+                    //table.row(row_list).remove().draw();
+                }
+                },
+                error:function(){
+                    alert("При відправці виникла помилка. Параметр msg - має невірне значення ");
+                },
+       })
+       },
+        "Відмінити": function() {
+          $( this ).dialog( "close" );
+        }
+      } 
+});
+
 
 $("#dialog_change_sale").dialog({
 	autoOpen: false,
@@ -1567,7 +1626,7 @@ $("body").on('click', '#print_phpbb', function() {
 	var table = $('#iTable').DataTable();
     var ids = []
 	table.rows({ selected: true }).eq( 0 ).each( function (idx) {
-		console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
+//		console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
 		ids.push( $(table.row( idx ).node()).attr('id') );
 	});
 	$.post( "/invoice/print/forum/", { ids: ids.join() } )
@@ -1578,7 +1637,7 @@ $("body").on('click', '#print_phpbb', function() {
 		//data = data.replace(/\n/g, "<br>");
 		data_plaintext = data
 		data = data.replace(/\n/g, "<br>");
-		console.log("replace = " + data );	
+//		console.log("replace = " + data );	
     $("#dialog_print").dialog("open");
     $("#print_container").html(data);
     document.getElementById("copyTarget").value = data_plaintext
@@ -1592,11 +1651,56 @@ $("body").on('click', '#change_type', function() {
 	var table = $('#iTable').DataTable();
     var ids = []
     var index = []
-	table.rows({ selected: true }).eq( 0 ).each( function (idx) {
-		console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
+
+ // get some cells using a css class name:
+    var someSelectedCells = table.cells(".c_name").data();
+    for (var i = 0; i < someSelectedCells.length; i++) {
+//      console.log("cname SOME = " + someSelectedCells[i]);
+    }
+    
+    table.rows({ selected: true }).eq( 0 ).each( function (idx) {
+		//var row_sel = $(table.row( idx ).node())[0];
+
+		console.log('Cell one  = ' + table.cell( idx, 6 ).data());
+//	table.cells().eq(0).each( function ( index ) {
+	table.cells(idx).every( function ( index ) {
+	    var data = this.data();
+	    console.log('Data = ' + data);
+	    console.log('Data NODE = ' + this.cell.node());
+    // ... do something with data(), or cell.node(), etc
+    } );
+		console.log("IDX = " + idx);
+		var row_sel = $(table.row( idx ));
+		console.dir( table.row(idx) ); //.cells(idx, ".c_name") );
+		console.log("ROW sel Class cname = " + table.row(idx).cells(idx, ".c_name").data() );
+		
+		for (const col in ($(table.row( idx ).node())[0].cells)) { // table.row( idx ).node())[0]){ // $(table.row( idx )[0].cells)){
+			console.log("COL val = " + col);
+		}
+		
+		console.dir(table.row( idx ).node().cells);
+		console.log( "Row select = " + table.row( idx ).node().cells.item(0) ); // [].namedItem("td.c_name") ); //.namedItem("c_name") - name or id search );
+	    
+		// JQuery method
+	    var jqf_col = $('tr#'+$(table.row( idx ).node()).attr('id')).find('td.c_name');
+	    console.dir(jqf_col);
+		console.log("JQuery find = " +  jqf_col[0].innerText); // nodeName. .find(".c_name:first");
+		
+		//console.log("Node = " + row_sel.cells[3].innerText ); // nodeName. .find(".c_name:first");
+		//.find(".c_name:first")		
+		console.log( "C-name = " + $(table.row( idx ).node())[0] );		
+		console.dir($(table.row( idx ).node())[0] );
+		console.dir($(table.row( idx ).node())[0].cells );
+		for (var i=0; i < $(table.row( idx ).node())[0].cells.length; i++){
+			console.log("FORloop by COL in sel ROW  = " + table.cell(idx, i+1).data());
+			console.log("FORloop innerText  = " + table.cell(idx, i+1).node().className ); //innerText
+			console.dir(table.cell(idx, i+1));
+		}
+			// $("#td_"+$(this).attr('ids')).nextAll(".c_name:first").html(); 		
+		console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') + " - " + table.cell( idx,6 ).data() ); //typeof(table.cell( idx,6 ).data()) );
 		ids.push( $(table.row( idx ).node()).attr('id') );
 		index.push( idx );
-		$("#sel_c").append("<br>[<mark class='mark_id' indx='"+idx+"'>" + $(table.row( idx ).node()).attr('id') +"</mark>]"+ table.cell( idx,5 ).data());
+		$("#sel_c").append("<br>[<mark class='mark_id' indx='"+idx+"'>" + $(table.row( idx ).node()).attr('id') +"</mark>]"+ "  " + jqf_col[0].innerText + table.cell( idx,5 ).data() ); //$(table.row( idx ).node())[0].innerText);
 	});
 	$("#sel_c").attr({"ids": ids});
 	$("#sel_c").attr({"index": index});
@@ -1636,6 +1740,95 @@ $("body").on('click', '#change_type', function() {
 	
 });
 
+$("body").on('click', '#add_param', function() {
+    $("#dialog_add_param").dialog("open");
+    var table = $('#iTable').DataTable();
+    var ids = []
+    var index = []
+    var type_ids = []
+    
+    table.rows({ selected: true }).eq( 0 ).each( function (idx) {
+        //var row_sel = $(table.row( idx ).node())[0];
+
+        // JQuery method
+        var jqf_col = $('tr#'+$(table.row( idx ).node()).attr('id')).find('td.c_name');
+        var jqf_col_type = $('tr#'+$(table.row( idx ).node()).attr('id')).find('td.edit_type');
+        console.dir(table.cell( idx, 3 ).node());
+        console.log("JQuery find = " +  jqf_col[0].innerText + " | " +   table.cell( idx, 2 ).node().getAttribute('cat_id') );//jqf_col_type[0].innerText); // nodeName. .find(".c_name:first"); getAttribute('id_type')
+        
+        
+/*         console.log('Cell one  = ' + table.cell( idx, 6 ).data()); // dont change col number after show/hide columns in table
+        console.log("IDX [sel row num] = " + idx);
+        var row_sel = $(table.row( idx ));
+        console.dir( table.row() ); //.row(idx) ); //.cells(idx, ".c_name") );
+        console.log("ROW sel Class cname = " + table.row(idx).data()); //cells("c_name").data() );
+        
+        console.dir(table.row( idx ).node().cells);
+        
+        for (let item in table.row( idx ).node().cells)  {
+            //var data = this.data();
+            console.log("EVERY = " + item);
+            // ... do something with data(), or this.node(), etc
+        };
+        		
+               
+        console.log( "C-name = " + $(table.row( idx ).node())[0] );     
+        console.dir($(table.row( idx ).node())[0] );
+        console.dir($(table.row( idx ).node())[0].cells );
+
+        for (var i=0; i < $(table.row( idx ).node())[0].cells.length; i++){
+            console.log("FORloop by COL in sel ROW  = " + table.cell(idx, i+1).data());
+            console.log("FORloop innerText  = " + table.cell(idx, i+1).node() ); //innerText
+            console.dir(table.cell(idx, i+1));
+        }
+ */        
+       
+        console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id')); // + " - " + table.cell( idx,6 ).data() ); //typeof(table.cell( idx,6 ).data()) );
+        ids.push( $(table.row( idx ).node()).attr('id') );
+        index.push( idx );
+        type_ids.push( jqf_col_type );
+        $("#s_param").attr('type_id', table.cell( idx, 2 ).node().getAttribute('cat_id'));
+        $("#sel_c_param").append("<br>[<mark class='mark_id' indx='"+idx+"'>" + $(table.row( idx ).node()).attr('id') +"</mark>]"+ "  " + jqf_col[0].innerText + table.cell( idx,5 ).data() ); //$(table.row( idx ).node())[0].innerText);
+    });
+    $("#sel_c_param").attr({"ids": ids});
+    $("#sel_c_param").attr({"index": index});
+    
+
+    $( "#s_param" ).autocomplete({
+        source: function( request, response ) {
+            $.ajax({
+                type: "POST",
+                url: "/catalog/attribute/lookup/",
+                data: { query: $("#s_param").val(), type: $("#s_param").attr('type_id') }, //$("#s_param").attr('type_id') },
+                dataType: "json",
+                success: function( data ) {
+//                    console.log("Data[attr_name] = " + data['attr_name']);
+                    var dp = JSON.parse(data['data'])
+                    response( $.map( dp, function( item ) {
+                            return {
+                                label: data['attr_name'] + " >>> " + item.pk + ": " + item.fields.value + " / "+ item.fields.value_float + " | " + item.fields.description ,
+                                value: item.fields.name,
+                                pk_id: item.pk                                
+                                }
+                            }));                                
+                            }
+            })
+        },
+        minLength: 3,
+        select: function( event, ui ) {
+//            console.log("Type ID = " + ui.item.pk_id);
+            $('#s_param').attr('attr_id', ui.item.pk_id);
+        },
+        open: function() {
+            $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+        },
+        close: function() {
+            $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+        }
+    });
+    
+    
+});
 
 $("body").on('click', '#c_join', function() {
 	$("#jtext").html('<b>Обєднати товари:</b>');
@@ -1910,6 +2103,7 @@ function show_tr_year(obj){
      <h1>
      <span id="span_show_select" class="badge badge-secondary" title="Показати/приховати рядок вибору по категорії/виробнику" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">unfold_more</i></span>
      <span class="badge badge-secondary">Список наявного товару</span> <span class="badge badge-info" id="c_c">{{company_name|capfirst}}{{category_name|capfirst}}</span>
+     <span class="badge badge-info">{{head_text}}</span>
 
 {% if category_name %}     
 	 <a href="{% url 'category-id-list' category_id %}" title="Показати наявні записи" data-toggle="tooltip" data-placement="top">
@@ -2011,6 +2205,13 @@ function show_tr_year(obj){
 	<label for="spinner">Категорія:</label>
   	<input type="text" id="s_category" name="value" value="" class="w-100">
 	</div>
+
+<!-- Dialog to change parametr/attribute -->
+    <div id="dialog_add_param" title="Додавання параметрів" >
+    <p id="sel_c_param">Додати пераметр/властивість компонентам:</p>
+    <label for="spinner">Параметр/властивість:</label>
+    <input type="text" id="s_param" name="value" value="" class="w-100">
+    </div>
 
 <!-- Dialog to add components to basket -->
 	<div id="dialog_b_buy" title="Продати товар">
@@ -2192,7 +2393,7 @@ function show_tr_year(obj){
 	<span class="photoModalbutton" pk_catalog={{type.catalog}} title="Фото"  data-toggle="tooltip" data-placement="right"><i class="material-icons">photo_library</i></span>
 {% endif %}	
 	</td>
-	<td class="c_name">
+	<td class="c_name" data-name="[{{type.catalog__ids}}] {% if type.catalog__dealer_code %} [{{type.catalog__dealer_code}}] {% endif %} - ({{type.catalog__manufacturer__name}}) {{type.catalog__name}}">
 <div class="div_c_name">	
 	[{{type.catalog__ids}}] {% if type.catalog__dealer_code %} [{{type.catalog__dealer_code}}] {% endif %}- ({{type.catalog__manufacturer__name}}) {{type.catalog__name}}  
 
@@ -2228,9 +2429,9 @@ local_offer
 	</a>
 	</td>
 {% if type.new_arrival %}	
-	<td align="center" bgcolor="#c8c2f9" class="sale_td_url" title="Продати товар" data-toggle="tooltip" data-placement="top">
+	<td align="center" bgcolor="#c8c2f9" class="sale_td_url" title="Продати товар" data-toggle="tooltip" data-placement="top" data-order="{{type.balance|floatformat}}">
 {% else %}
-	<td align="center" class="sale_td_url" title="Продати товар" data-toggle="tooltip" data-placement="top">
+	<td align="center" class="sale_td_url" title="Продати товар" data-toggle="tooltip" data-placement="top" data-order="{{type.balance|floatformat}}">
 {% endif %}	
 {% ifequal type.sum_catalog type.c_sale %}
 	{{type.sum_catalog|sub:type.c_sale|floatformat}} 
