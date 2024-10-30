@@ -50,6 +50,42 @@ $(document).ready(function() {
 });
 
 
+//Delete in all catalog items some attribute value 
+function delete_all_attr_val_by_id(data){
+    var param; 
+    param = $(data).parents('div.row_attr_val');
+    console.log("click on = " + param.attr('cat_id'));
+    console.log("Param id = " + param.attr('attr_val_id'));
+    console.log("Param id = " + param.attr('attr_name'));
+    console.log("Text = " + $(param).children('div.cat_name').text());
+    var p_text;
+    p_text = $(param).children('div.cat_name').text()
+    //$(param).children('div.attr_val_text').find('a:first').text()
+    var confirm_st;
+    confirm_st = confirm("Ви точно хочете видалити значення параметру: <<"+ param.attr('attr_name') +">> \nу товарі " + p_text + "?");
+    if (confirm_st == false) {
+        console.log("confirm - Cancel");
+        //param.remove();
+        
+        return null;
+    };
+        $.ajax({
+                type: "POST",
+                url: "/catalog/delete/attribute/",
+                data: { c_attr_val_id: param.attr('attr_val_id'), cat_id: param.attr('cat_id') }, 
+                dataType: "json",
+                success: function( data ) {
+                            if (data.status == false){
+                                alert("Сталася помилка: " + data.msg);
+                            }
+                            else {
+                            	$(param).parents('div.cat_item:first').remove();                            	
+                            }
+                            console.log("Status = " + data.status);
+                            }
+        });
+    
+};
 
 
 
@@ -72,8 +108,18 @@ $(document).ready(function() {
 </div>
 
 {% for val in item.all_items %}
-<div class="alert alert-dark ml-3 mr-3" role="alert">
-{{val}} - {{val.created_date}}
+<div class="alert alert-dark ml-3 mr-3 cat_item" role="alert" >
+<div class="container mw-100">
+  <div class="row row_attr_val" cat_id="{{val.id}}" attr_val_id="{{item.id}}" attr_name='{{ item.value|default:" - " }}'>
+    <div class="col-11 cat_name">
+{{val}} - {{val.created_date}}        
+    </div>
+    <div class="col offset text-right" >
+        <i class="material-icons" style="font-size: 24px; color:red;" title="Видалити параметр <<{{ item.value|default:" - " }}>> ?" data-toggle="tooltip" data-placement="top" onclick="delete_all_attr_val_by_id(this);">delete</i>
+    </div>
+  </div>
+</div>
+
 </div>
 {% endfor %}
 

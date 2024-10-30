@@ -4268,6 +4268,7 @@ def catalog_lookup(request):
 def catalog_attr_lookup(request):
     data = None
     results = []
+    model_results = None
     if request.is_ajax():
         if request.method == "POST":
             if request.POST.has_key(u'query') and request.POST.has_key(u'type'):
@@ -4276,17 +4277,23 @@ def catalog_attr_lookup(request):
                 t_ids = Type.objects.filter(id__in = type_id.split(','))
 
                 if len(value) > 2:
-                    model_results = CatalogAttribute.objects.filter(name__icontains=value, type__in = t_ids)
+                    #model_results = None
+                    if value == u'всі' or value == u'all':
+                        model_results = CatalogAttribute.objects.filter(type__in = t_ids)
+                    else:
+                        model_results = CatalogAttribute.objects.filter(name__icontains=value, type__in = t_ids)
                     #model_results = CatalogAttribute.objects.all()
-                    attr_val_array = CatalogAttributeValue.objects.filter(attr_id__in = model_results)
+                    #attr_val_array = CatalogAttributeValue.objects.filter(attr_id__in = model_results)
+                    attr_val_array = CatalogAttributeValue.objects.filter(attr_id__in = model_results).select_related('attr_id')
+                    for i in attr_val_array:
+                        results.append({'attr_id': i.attr_id.id, 'attr_name': i.attr_id.name, 'value': i.value, 'value_float': i.value_float, 'id': i.pk, 'description': i.description})
+                    #attr_val_array = CatalogAttributeValue.objects.filter(attr_id__in = model_results).prefetch_related('attr_id')
                     #data = serializers.serialize("json", model_results, fields=('name','id', 'description',))
-                    data = serializers.serialize("json", attr_val_array, fields=('value', 'value_float', 'description'))
-            if request.POST.has_key(u'name'):
-                pass
+                    data = serializers.serialize("json", attr_val_array, fields=('value', 'value_float', 'description', 'attr_id.name', 'attr_id'))
             attr_name = "Not found"
             if model_results.first():
                 attr_name = model_results.first().name
-            json = simplejson.dumps({'attr_name': attr_name, 'status': False, 'msg': u'Ajax: Щось пішло не так', 'data': data})    
+            json = simplejson.dumps({'attr_name': attr_name, 'status': False, 'msg': u'Ajax: Щось пішло не так', 'data': results})    
 #    return HttpResponse(data_res, content_type='application/json')
     return HttpResponse(json, content_type='application/json')
 
@@ -4317,6 +4324,68 @@ def catalog_add_attr(request):
     return HttpResponse(json, content_type='application/json')
         
 
+@csrf_exempt
+def catalog_del_attr(request):
+    data = None
+    type_id = None
+    cat_ids = None
+    msg = u'Ajax: Запит виконано успішно'
+    status = True
+    
+#     if auth_group(request.user, "admin") == False:
+#         status = False
+#         msg = 'У вас немає доступу для видалення'
+#         json = simplejson.dumps({'status': status, 'msg': msg, 'data': data})    
+#         return HttpResponse(json, content_type='application/json')
+    
+    if request.is_ajax():
+        if request.method == "POST":
+            # delete one attr in one catalog item
+            if request.POST.has_key(u'c_attr_val_id') and request.POST.has_key(u'cat_id'):
+                attr_id = request.POST[u'c_attr_val_id']
+                cat_id = request.POST[u'cat_id']
+                try:
+                    catv = CatalogAttributeValue.objects.get(id = attr_id)
+                    #cat = Catalog.objects.get(id = cat_id)
+                    cat_ids = Catalog.objects.filter(id = cat_id)
+                    cat_ids[0].attributes.remove( catv ) 
+                except:
+                    status = False
+                    msg = u'Ajax: Щось пішло не так. Можливо товар або дана властивість вже не існує.'
+                    
+                data = serializers.serialize("json", cat_ids, fields=('id', 'name', 'ids', 'dealer_code'))
+#            else:
+#                msg = u'Помилка: параметр c_attr_val_id не знайдено!'
+#                status = False
+                
+            # delete one attr in maby catalog items
+            if request.POST.has_key(u'attr_val_id'):
+                if auth_group(request.user, "admin") == False:
+                    status = False
+                    msg = 'У вас немає доступу для видалення'
+                    json = simplejson.dumps({'status': status, 'msg': msg, 'data': data})    
+                    return HttpResponse(json, content_type='application/json')
+                attr_id = request.POST[u'attr_val_id']
+                catv = CatalogAttributeValue.objects.filter(id__in = attr_id)
+                cat_ids = Catalog.objects.filter(attributes__in = catv)
+                try:
+#                    type_id = CatalogAttributeValue.objects.get(id = int(attr_id))
+                    for cat in cat_ids:
+                        cat.attributes.remove( catv[0] ) 
+                except:
+                    msg = u'Ajax: Щось пішло не так'
+                    
+                data = serializers.serialize("json", cat_ids, fields=('id', 'name', 'ids', 'dealer_code'))
+            else:
+                #msg = u'Помилка: параметр attr_val_id не знайдено!'
+                #status = False
+                pass
+                
+    json = simplejson.dumps({'status': status, 'msg': msg, 'data': data})    
+    return HttpResponse(json, content_type='application/json')
+
+
+@csrf_exempt
 def catalog_get_locality(request):
     sel_id = None
     if request.method == 'POST':
@@ -8657,6 +8726,36 @@ def invoice_new_edit(request):
     results = {'value': c[0]['rcount'], 'user': c[0]['user__username'], 'id':c[0]['id']}
     json = simplejson.dumps(results)
     return HttpResponse(json, content_type='application/json')
+
+
+@csrf_exempt
+def invoice_sales_by_year(request):
+    results = None
+    year_count = []
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'seller')==False:
+                return HttpResponse('Error: У вас не має прав для редагування')
+            POST = request.POST  
+            if POST.has_key('catid'):
+                cat_id = request.POST.get('catid')
+                year_list = ClientInvoice.objects.filter(catalog__id = cat_id).extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('count')).order_by('-year')
+#    month_list = WorkShop.objects.filter(work_type__id=id).filter(date__year = year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')                
+#                print "Year list = %s" % year_list 
+                for i in year_list:
+                    year_count.append({'year': i[0], 'count': i[1] })
+#                obj = InvoiceComponentList.objects.get(id = id)
+#                obj.user = request.user
+#                obj.shop = get_shop_from_ip(request.META['REMOTE_ADDR'])
+ #               obj.save()
+  #              c = InvoiceComponentList.objects.filter(id = id).values('rcount', 'user__username', 'id')
+#    results = {'value': year_list[0], 'user': request.user, 'count': year_list[0]['count']}
+                #y_list = serializers.serialize('json', year_list, fields=('year', 'count'))
+                results = {'year_count': year_count, 'status': True}
+    json = simplejson.dumps(results)
+    #json = simplejson.dumps(year_list)
+    return HttpResponse(json, content_type='application/json')
+
     
 @csrf_exempt
 def photo_url_add(request):

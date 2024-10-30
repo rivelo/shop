@@ -139,20 +139,52 @@ $(document).ready(function() {
 	{% endif %}
 	
 	$("#s_client").focus();
+
+
+	
+
 });
 
-
-
+//Delete in all catalog items some attribute value 
+function delete_all_attr_val_by_id(data){
+    var param; 
+    param = $(data).parents('div.row_attr_val');
+    console.log("click on = " + param.attr('attr_val_id'));
+    console.dir($(data).parents('div.attr_val_text'));
+    console.log("Text = " + $(param).children('div.attr_val_text').find('a:first').text());
+    var p_text;
+    p_text = $(param).children('div.attr_val_text').find('a:first').text()
+    var confirm_st;
+    confirm_st = confirm("Ви точно хочете видалити значення параметру: \n<<"+ p_text +">> \n?");
+    if (confirm_st == false) {
+    	console.log("confirm - Cancel");
+    	return null;
+    };
+        $.ajax({
+                type: "POST",
+                url: "/catalog/delete/attribute/",
+                data: { attr_val_id:  param.attr('attr_val_id')},
+                dataType: "json",
+                success: function( data ) {
+                            if (data.status == false){
+                            	alert("Сталася помилка: " + data.msg);
+                            }                   
+                            console.log("Status = " + data.status);
+                            }
+        });
+    
+};
 
 
 </script>
+
+
 
 <body>
 
 <h1>
 <span class="badge badge-success">Параметри товарів</span> 
 </h1>
-
 
 <div class="container mw-100">
 
@@ -164,8 +196,21 @@ $(document).ready(function() {
 
 {% for val in item.all_values %}
 <div class="alert alert-attr-value" role="alert">
-<a href="{% url 'invoice-attribute-val-id-list' val.id %}" >{{val.value|default:" - "}} / {{val.value_float|default:" - "}}</a> - {{val.created_date}}
+<div class="container mw-100">
+  <div class="row row_attr_val" attr_val_id="{{val.id}}">
+    <div class="col-11 attr_val_text">
+        <a href="{% url 'invoice-attribute-val-id-list' val.id %}" >{{val.value|default:" - "}} / {{val.value_float|default:" - "}}</a> - {{val.created_date}}
+    </div>
+    <div class="col offset text-right" >
+{% if request.user|has_group:"admin" %}    
+        <i class="material-icons" style="font-size: 24px; color:red;" title="Видалити параметр в усіх товарів?" data-toggle="tooltip" data-placement="top" onclick="delete_all_attr_val_by_id(this);">delete</i>
+{% endif %}
+    </div>
+  </div>
 </div>
+
+</div>
+
 {% endfor %}
 
 {% endfor %}

@@ -228,6 +228,7 @@ urlpatterns = [
     url(r'^invoice/sale/list/$', catalog.invoicecomponent_list, {'isale': True}),
     url(r'^invoice/enddate/list/$', catalog.invoicecomponent_list, {'enddate': True}),
     url(r'^invoice/print/forum/$', catalog.invoicecomponent_print),
+    url(r'^invoice/sales/by/year/$', catalog.invoice_sales_by_year), # AJAX for load group sales by Year
 
     # Component Type operation
     url(r'^category/add/$', catalog.category_add),
@@ -265,6 +266,7 @@ urlpatterns = [
     url(r'^catalog/search/$', catalog.catalog_search_by_ids), # POST AJAX
     url(r'^catalog/attribute/lookup/$', catalog.catalog_attr_lookup), # POST AJAX
     url(r'^catalog/add/attribute/$', catalog.catalog_add_attr), # POST AJAX
+    url(r'^catalog/delete/attribute/$', catalog.catalog_del_attr), # POST AJAX
 
     # Client
     url(r'^client/(?P<id>\d+)$', catalog.client_data, name="client-data"),
