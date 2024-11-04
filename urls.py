@@ -222,9 +222,10 @@ urlpatterns = [
     url(r'^invoice/edit/(?P<id>\d+)/$', catalog.invoicecomponent_edit),
     url(r'^invoice/report/$', catalog.invoice_report),
     url(r'^invoice/all/report/$', catalog.invoicecomponent_sum),
-    url(r'^invoice/search/$', catalog.invoice_search),
+    url(r'^invoice/search/$', catalog.invoice_search), # Form for search invoicecomponennt by NAME and ID
     #url(r'^invoice/search/result/$', catalog.invoice_search_result'),
     url(r'^invoice/search/result/$', catalog.invoicecomponent_list),
+    url(r'^invoice/search/by/id/(?P<by_id>\d+)$', catalog.invoicecomponent_list, name="serch-invoicecomponennts-by-id"),
     url(r'^invoice/sale/list/$', catalog.invoicecomponent_list, {'isale': True}),
     url(r'^invoice/enddate/list/$', catalog.invoicecomponent_list, {'enddate': True}),
     url(r'^invoice/print/forum/$', catalog.invoicecomponent_print),
@@ -294,6 +295,7 @@ urlpatterns = [
     url(r'^client/invoice/add/$', catalog.client_invoice_add, name='client-invoice-add-by-catalog'),
     url(r'^client/(?P<cid>\d+)/invoice/add/$', catalog.client_invoice),
     url(r'^client/(?P<client_id>\d+)/invoice/sale/$', catalog.client_invoice_view, name="clientinvoice-sale-by-client"),
+    url(r'^client/(?P<client_id>\d+)/invoice/sale/all/$', catalog.client_invoice_view, {'day': 'all', 'all': 'all', 'notpay': True}, name="clientinvoice-all-sales-by-client"),
 # ajax table for client invoice    
     url(r'^client/(?P<client_id>\d+)/invoice/lookup/$', catalog.client_invoice_lookup),
     url(r'^client/invoice/catalog/(?P<cid>\d+)/add/$', catalog.client_invoice),
@@ -316,6 +318,8 @@ urlpatterns = [
     url(r'^client/invoice/report/$', catalog.client_invoice_report),
     url(r'^client/invoice/check/$', catalog.client_invoice_check, {'param': 'print'}),
     url(r'^client/invoice/check/email/$', catalog.client_invoice_check, {'param': 'email'}),
+    url(r'^client/invoice/get/boxes/$', catalog.client_invoice_get_boxes), # AJAX request
+    url(r'^client/invoice/add/boxes/$', catalog.client_invoice_add_boxes), # AJAX request
     url(r'^client/workshop/check/$', catalog.client_workshop_check, {'param': 'print'}),
     url(r'^client/workshop/check/email/$', catalog.client_workshop_check, {'param': 'email'}),
     

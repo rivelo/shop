@@ -1,16 +1,16 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Каса за день</title>
-<link rel="stylesheet" href="/media/jquery-ui.min.css">
-<script src="/media/jquery-ui.min.js"></script>
+{# <link rel="stylesheet" href="/media/jquery-ui.min.css"> #}
+{# <script src="/media/jquery-ui.min.js"></script> #}
 
 <script type="text/javascript">
 $(document).ready( function() {
-	$("#id_cash").after("<b id='prev_day' val='{{lastcasa.price}}'>+ "+{{lastcasa.price}}+" грн. за минулий день {{lastcasa.date}} </b>");
+	$("#id_cash").after("<b id='prev_day' val='{{lastcasa.price}}' class='ml-1'>+ "+{{lastcasa.price}}+" грн. за минулий день {{lastcasa.date}} </b>");
 	var wprev_day = parseFloat($("#prev_day").attr("val")) + parseFloat($("#id_cash").attr("value"));
 	//$("#prev_day").after("<b style='color:red'>Сума = "+ wprev_day +"</b>");
-	$("#id_tcash").after("<b style='color:red'>Сума в касі = "+ wprev_day +" грн</b>");
+	$("#id_tcash").after("<b style='color:red' class='ml-2'>Сума в касі = "+ wprev_day +" грн</b>");
 	
-	$("#id_price").after("<b style='color:red' id='day_sum'>Каса за день = "+ 0 +" грн.</b>");
+	$("#id_price").after("<b style='color:red' id='day_sum' class='ml-2'>Каса за день = "+ 0 +" грн.</b>");
 
 
 $("#id_price").change(function() {
@@ -25,9 +25,73 @@ $('#id_cash').attr('readonly','true')
 $('#id_tcash').attr('readonly','true')
 $('#id_ocash').attr('readonly','true')
 
+$("label[for='id_price']").html('Сума на наступний день:');
+$("label[for='id_price']").parents('th').css("width", "130");
+
+
+
+$(document).on("click", "#btn_calc", function(event) {
+    var ci_id = $(this).parents('tr').attr('ci_id');
+    var cat_id = $(this).parents('tr').attr('cat_id');
+    $("#calc_div").toggle();
+});
+
+
+$('#myList a').on('click', function (event) {
+    event.preventDefault()
+    $(this).tab('show')
+//    console.log("click work - " + $(this).attr('href') );
+    var tab = $(this).attr('href');
+    $(tab).children('input').focus();
+//    console.log("Input val  = " + $(tab).children('input').val());
+  })
+
 })
+
+
+$(document).on("change", ".calc_input", function(event){
+    var input_val = parseInt($(this).val());
+	$(this).attr('count',  input_val);
+//	$('#myList a.active').attr('href')
+    var nominal;
+    if ( $('#myList a.active').attr('href') == "#m_any"){
+    	nominal = 1;
+    }
+    else {
+    	nominal = parseInt( $('#myList a.active').attr('href').split("#m_")[1] )
+    }
+	var input_sum = input_val * nominal; //parseInt( $('#myList a.active').attr('href').split("#m_")[1] )
+	$(this).attr('sum', input_sum);
+	var tab = $('#myList a.active').attr('href')
+	$(tab).children('div.sum_block').html('Сума ' + input_sum + ' грн.');
+	console.log("change - " + $(this).val() + " | SUM = " + $(this).attr('sum') + " | COUNT = " + $(this).attr('count'));
+	var str_plus = '';
+	var sum_all = 0;
+	$('.calc_input').each(function( index ) {
+		  console.log( index + ": " + $( this ).attr('sum') );
+		  if ( $(this).attr('sum') > 0) { 
+			    str_plus = str_plus + "+ " + $( this ).attr('sum') + " грн. ";
+			    sum_all = sum_all + parseInt($(this).attr('sum'));
+		  };
+	});
+	$("#suma_alert").html(str_plus + " = <b>" + sum_all +" грн.</b>"); //"+ " + input_sum + " грн.");
+});
+
 </script>
 
+<style>
+
+#id_description {
+    width: 100%;
+}
+
+</style
+
+
+
+<div class="container-fluid">
+<div class="row">
+<div class="col-12">
     <h1><span class="badge badge-secondary">Денна каса за {{s_day}}.{{s_month}}.{{s_year}} {# {% now "jS F Y" %} #} 
 {#    <span class="badge badge-info">Shop - {{shopname.shop_cash_sum_by_day.0.name}}</span> #}
     <span class="badge badge-info">{{shopname}}</span>
@@ -67,3 +131,112 @@ $('#id_ocash').attr('readonly','true')
         </table>
         <p><input type="submit" value="Save"></p>
     </form>
+</div>
+</div>
+
+<div class="row ">
+<div class="col-12">
+<button type="button" class="btn btn-info w-100" id="btn_calc">Калькулятор</button>
+</div>
+</div>
+        <div class="alert alert-secondary sum_block" role="alert" id="suma_alert">
+            Сума: 0 грн.
+        </div>
+
+
+<div class="row" id="calc_div" style="display:none;">
+<div role="tabpanel"   class="col-md-2 col-sm-6">
+  <!-- List group -->
+  <div class="list-group" id="myList" role="tablist">
+    <a class="list-group-item list-group-item-action active" data-toggle="list" href="#m_1000" role="tab">1000</a>
+    <a class="list-group-item list-group-item-action" data-toggle="list" href="#m_500" role="tab">500</a>
+    <a class="list-group-item list-group-item-action" data-toggle="list" href="#m_200" role="tab">200</a>
+    <a class="list-group-item list-group-item-action" data-toggle="list" href="#m_100" role="tab">100</a>
+    <a class="list-group-item list-group-item-action" data-toggle="list" href="#m_50" role="tab">50</a>
+    <a class="list-group-item list-group-item-action" data-toggle="list" href="#m_20" role="tab">20</a>
+    <a class="list-group-item list-group-item-action" data-toggle="list" href="#m_10" role="tab">10</a>
+    <a class="list-group-item list-group-item-action" data-toggle="list" href="#m_5" role="tab">5</a>
+    <a class="list-group-item list-group-item-action" data-toggle="list" href="#m_2" role="tab">2</a>
+    <a class="list-group-item list-group-item-action" data-toggle="list" href="#m_1" role="tab">1</a>
+    <a class="list-group-item list-group-item-action" data-toggle="list" href="#m_any" role="tab">Решта</a>
+  </div>
+</div>  
+<div class="col-md-3 col-sm-6">
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div class="tab-pane active" id="m_1000" role="tabpanel">
+        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
+        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
+            Сума: 0 грн.
+        </div>
+    </div>
+    <div class="tab-pane" id="m_500" role="tabpanel">
+        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
+        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
+            Сума: 0 грн.
+        </div>
+    </div>
+    <div class="tab-pane" id="m_200" role="tabpanel">
+        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
+        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
+            Сума: 0 грн.
+        </div>
+    </div>
+    <div class="tab-pane" id="m_100" role="tabpanel">
+        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
+        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
+            Сума: 0 грн.
+        </div>
+    </div>
+    <div class="tab-pane" id="m_50" role="tabpanel">
+        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
+        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
+            Сума: 0 грн.
+        </div>
+    </div>
+    <div class="tab-pane" id="m_20" role="tabpanel">
+        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
+        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
+            Сума: 0 грн.
+        </div>
+    </div>
+    <div class="tab-pane" id="m_10" role="tabpanel">
+        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
+        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
+            Сума: 0 грн.
+        </div>
+    </div>
+    <div class="tab-pane" id="m_5" role="tabpanel">
+        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
+        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
+            Сума: 0 грн.
+        </div>
+    </div>
+    <div class="tab-pane" id="m_2" role="tabpanel">
+        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
+        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
+            Сума: 0 грн.
+        </div>
+    </div>
+    <div class="tab-pane" id="m_1" role="tabpanel">
+        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
+        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
+            Сума: 0 грн.
+        </div>
+    </div>
+    <div class="tab-pane" id="m_any" role="tabpanel">
+        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
+        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
+            Сума: 0 грн.
+        </div>
+    </div>
+    
+    
+    
+  </div>
+</div>
+</div>
+
+
+</div>
+    

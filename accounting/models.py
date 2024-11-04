@@ -26,6 +26,7 @@ from datetime import date
 #from Scripts.pilprint import description
 from django.urls import reverse
 from pyexpat import model
+from ctypes.test.test_pep3118 import s_bool
 
 
 # Group Type = Group for Component category 
@@ -530,6 +531,11 @@ class CatalogAttributeValue(models.Model):
     def all_items(self):
         res_val = Catalog.objects.filter(attributes = self.pk)
         return res_val
+
+    def get_text_value(self):
+        tval = self.value#.encode('utf8')
+        tname = self.attr_id.name#.encode('utf8')
+        return [tval, tname] 
     
     def __unicode__(self):
         return u'%s - %s / %s' % (self.attr_id, self.value, self.value_float)
@@ -871,9 +877,18 @@ class Catalog(models.Model):
         return ('Price OK! ', color) #+ str(cprice)
     chk_price = property(_get_chk_price) # Перевірка на правильність ціни
 
+    # Get all attributes
+    def get_attribute_values(self):
+        res = []
+        attr = self.attributes.all() 
+        for i in attr:
+            (a_val, a_name) = i.get_text_value()
+            hh = { 'attr_name': a_name, 'value': a_val, 'id': i.id}
+            res.append(hh)
+        return (res)
     
     def __unicode__(self):
-        return "[%s] %s - %s" % (self.ids, self.manufacturer, self.name)
+        return u"[%s] %s - %s" % (self.ids, self.manufacturer, self.name)
 
     class Meta:
         ordering = ["type"]    
@@ -1343,7 +1358,7 @@ class ClientInvoice(models.Model):
     def update_sale(self):
         if (self.catalog.sale == 0) and (self.client.sale > self.catalog.sale):
             self.sale = self.client.sale
-            self.sum = self.count * ((1-(self.client.sale/100.0)) * self.price)
+            self.sum = float(self.count) * ((1-(float(self.client.sale)/100.0)) * float(self.price))
             self.save()
         if (self.catalog.sale <> 0):
             self.sale = self.catalog.sale
@@ -1410,7 +1425,10 @@ class ClientInvoice(models.Model):
         res = ClientInvoiceStorageBox.objects.filter(cinvoice = self)
         res_list = []
         for i in res:
-            st = u"Місце: %s - %s шт." % (i.sbox.box_name.name, i.count) 
+            try:
+                st = u"Місце: %s - %s шт." % (i.sbox.box_name.name, i.count)
+            except:
+                st = u"Місце: Видалене!" 
             res_list.append(st)
         return res_list
 
@@ -2239,7 +2257,12 @@ class StorageBox(models.Model):
         return cssclass
 
     def get_storage_name(self):
-        return u"%s %s" % (self.box_name, self.description)
+        return u"%s - %s" % (self.box_name, self.description)
+
+    def get_storage_boxes_name(self):
+        s_boxes = {'box_name': self.box_name.name, 'box_desc': self.box_name.description, 'count': self.count, 'box_shop': self.box_name.shop.name, 'shop': self.shop.name, 'sb_desc': self.description, 's_box_id': self.id}
+        return s_boxes
+
     
     def get_ci_sb(self):
         res = self.clientinvoicestoragebox_set.all()

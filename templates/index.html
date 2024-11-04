@@ -9,7 +9,7 @@
    <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=0.6, shrink-to-fit=no"> 
 
     <!-- Bootstrap CSS -->
 <link rel="stylesheet" href="/media/css/jquery-ui.min.css">
@@ -98,13 +98,15 @@ $(function () {
 <!--  <div id="header"> {% include "top.html" %} </div> --> 
 {# <div id="header1"> {% include "top.html" %} {% include "menu.html" %} </div> #}
   
+{#<div class="row no-gutters"> </div> #}
+{% include "top.html" %}
+
+
 <div class="row no-gutters">
-  <div class="col-xs-12 col-lg-12">{% include "top.html" %}</div>
+<div class="col">
 {#  <div class="col-xs-12">{% include "menu.html" %}</div> #} 
+{% include "menu.html" %}</div>
 </div>
-
-{% include "menu.html" %}
-
   
   <div id="main_content"> 
       {% include weblink %}

@@ -82,6 +82,11 @@ div.alert-attr-value {
 	border-color: #b0cb4d;
 }
 
+label.bold_green_label {
+	color: #2c6b1c; /*#B4886B;*/ 
+	font-weight: bold;
+}
+
 /* Підказки іншого кольору та стилю
 .tooltip-inner {
   background-color: #73AD21 !important;

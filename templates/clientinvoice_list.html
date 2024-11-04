@@ -27,6 +27,11 @@
 
 <style>
 
+label {
+color: #2c6b1c; /*#B4886B;*/ 
+font-weight: bold;
+}
+
 label.ressum {
 color: #B4886B;
 font-weight: bold;
@@ -54,6 +59,9 @@ width: 150px;
   		color: #007bff;
   }
 
+span.click_count {
+    font-size: 12pt;"
+}
 
 </style>
 
@@ -61,6 +69,16 @@ width: 150px;
 
 
 <script type="text/javascript">
+
+function resize_dialog_width(lim_width) { 
+	if ($( window ).width() >= lim_width){ 
+		  return ($( window ).width() / 2); 
+		} 
+	else {
+		  return ($( window ).width() - 50);
+		} 
+};
+
 
 function res() {
 	var sum = 0;
@@ -90,18 +108,20 @@ $("#dialog_client").dialog({
 	autoOpen: false,
     resizable: true,
     modal: true,
-    width: 450,
+    width: resize_dialog_width(1024),
 //      position: "center",
 	open: function( event, ui ) {
 		$('.context-menu').remove(); //видалення меню
 		$(".container").empty();
-		$("#inv_count").spinner({min: 0,max: 1000,});
+//		$("#inv_count").spinner({min: 0,max: 1000,});
 		var inv_chk = $(".mc:checked")
 		jQuery.each(inv_chk, function() {
 			var id = $(this).attr('name').replace('checkbox_','')
-			$(".container").append("<br>[<mark class='mark_id'>" + $(this).attr('name').replace('checkbox_','') +"</mark>]");
-			$(".container").append("<br> " + $("tr[ci_id='"+id+"']").find('td.cat_name').text() ); 			 
+			$(".container").append("<mark class='mark_id'>" + $(this).attr('name').replace('checkbox_','') +"</mark>");
+			$(".container").append(" " + $("tr[ci_id='"+id+"']").find('td.cat_name').text() );
+			$(".container").append("<br>");
 		})
+		$('.mark_id').hide();
 	},
       buttons: {
         "Додати": function() {
@@ -110,9 +130,11 @@ $("#dialog_client").dialog({
 		jQuery.each(inv_chk, function() {
 			var id = $(this).attr('name').replace('checkbox_','')
 			inv_ids.push(id);
-			console.log ( $("tr[ci_id='"+id+"']").find('td.client > a').text() ); 			 
-			$("tr[ci_id='"+id+"']").find('td.client > a').text($("#dialog_client").attr("client_name")) ;
-			$("tr[ci_id='"+id+"']").find('td.client > a').attr("href", "/client/result/search/?id=" + $("#dialog_client").val()) ;
+			console.log("For each = " + id);
+//			console.log ( $("tr[ci_id='"+id+"']").find('td.client > a').text() ); 			 
+			$("tr[ci_id='"+id+"']").find('td.client').find('a.cname').text($("#dialog_client").attr("client_name")) ;
+			$("tr[ci_id='"+id+"']").find('td.client').find('a.cname').attr("href", "/client/result/search/?id=" + $("#dialog_client").val()) ;
+			$("tr[ci_id='"+id+"']").find('td.client').find('div.quick_func').hide();
 			if ($("#inv_count").val() > 0) {
 				$("tr[ci_id='"+id+"']").find('td.tcount').text($("#inv_count").val());
 				var sum = $("tr[ci_id='"+id+"']").find('td.tprice').text() * $("#inv_count").val();
@@ -141,6 +163,8 @@ $("#dialog_client").dialog({
         }
       },
       close: function( event, ui ) {
+    	  $('#client_name').val('');
+    	  $('#inv_count').val(0);
 //      	$("#slider1_container").remove();
       }
 });
@@ -150,7 +174,7 @@ $( "#dialog_return" ).dialog({
 	modal: true,
 	closeOnEscape: true,
 	autoOpen: false,
-	width: 380,
+	width: function () { if ($( window ).width() >= 1024) { return $( window ).width()/2 } else {return ($( window ).width() - 50)} },
 	open: function( event, ui ) {
 		$('.context-menu').remove(); //видалення меню
 		$("#sp_count").spinner({
@@ -221,7 +245,7 @@ $( "#dialog_delete" ).dialog({
 	modal: true,
 	closeOnEscape: true,
 	autoOpen: false,
-	width: 400,
+	width: resize_dialog_width(1024),
 	open: function( event, ui ) {
 		$('.del_container').empty()
 		$('.context-menu').remove(); //видалення меню
@@ -275,19 +299,131 @@ $( "#dialog_delete" ).dialog({
 });
 
 
-$("#dialog_addprice").dialog({
+function box_element(box_name, box_desc, shop, count, box_id) {
+    var ins_dom = ''; 
+    var counters = '';
+    counters = '<span class="click_count badge badge-secondary ml-2 mr-2" ">1</span><span class="click_count badge badge-secondary mr-2">2</span><span class="click_count badge badge-secondary mr-2">3</span><span class="click_count badge badge-secondary mr-2">5</span><span class="click_count badge badge-secondary mr-2">10</span>'
+    ins_dom = '<div class="box_block"><h2> <span class="badge badge-primary">' + box_name + '</span> - ' + box_desc + ' ['+ shop +'] </h2>' +
+        '<label for="spinner_addcount">Кількість:</label>' +
+        '<input class="spinner_addcount ml-2 w-50" box_id="'+ box_id +'" name="value" value="0" type="number" min=0 max="'+ count +'" >' +counters+ '</div> <hr>';
+return ins_dom;
+};
+
+$("#dialog_addboxname").dialog({
 	autoOpen: false,
+      resizable: true,
+      width: resize_dialog_width(1024),
+      modal: true,
+      open: function( event, ui ) {
+          $('#dialog_addboxname').find('.box_container').empty()
+          $('.context-menu').remove(); //видалення меню
+//          console.log("ITEM id = " + $("#dtext_item").attr("ids") );
+          $.ajax({
+              type: "POST",
+               url: "/client/invoice/get/boxes/",
+               data: {cat_id:  $("#dtext_item").attr("ids"), ci_id: $("#dtext_item").attr("ci_id")},
+               dataType: "json",
+              success:function(data){
+               if (data['status'] == true){
+                   for (let i = 0; i < data['boxes'].length; i++ ) {
+                       var b_name = data['boxes'][i].name['box_name'];
+                       var box_desc = data['boxes'][i].name['box_desc']
+                       var shop_n = data['boxes'][i].name['box_shop']
+                       var b_count = data['boxes'][i].name['count']
+                       var box_id = data['boxes'][i].name['s_box_id']
+                       $('#dialog_addboxname').find('div.box_container').append(box_element(b_name, box_desc, shop_n, b_count, box_id));
+//                       console.log("Box ["+ i +"] = " + data['boxes'][i]);
+                   }
+               }
+               else {
+                  alert("Помилка: " + data['boxes']);
+               }
+              },
+              error:function(msg){
+            	  alert("При відправці виникла помилка:\n " + msg.responseJSON['reason']);
+              }
+           });
+      },      
+      buttons: {
+        "Додати": function() {
+        	arr_res = []
+        	for ( let j=0; j < $(".spinner_addcount").length; j++ ) {
+        		console.log("BoxId - " + $('.spinner_addcount')[j].getAttribute('box_id'));
+        		console.log("Box_count - " + $('.spinner_addcount')[j].value );
+        		var boxid = $('.spinner_addcount')[j].getAttribute('box_id');
+        		var box_count = $('.spinner_addcount')[j].value;
+        		var box = {'boxid': boxid, 'count': box_count};
+        		arr_res.push(box); 
+        	}
+			$.ajax({
+                type: "POST",
+                url: "/client/invoice/add/boxes/",
+                dataType: "json",
+                data: {
+                	ci_id: $("#dtext_item").attr("ci_id"),
+                	boxes: JSON.stringify(arr_res)
+                },
+                success: function(data){
+                	var ciid = data['ci_id']
+                	//alert("Запит надіслано успішно. \nCLI_INV_id = " + ciid);
+                    //$("tr[ci_id=" + ciid +" ]").hide();
+                    $("tr[ci_id=" + ciid +" ]").find("td.ci_desc").empty();
+                    for (let i=0; i < data['boxes'].length; i++){
+                    	var tmp_name = data['boxes'][i].name;
+                        $("tr[ci_id=" + ciid +" ]").find("td.ci_desc").append("<p class='mb-1' style='font-size: smaller;'>" + tmp_name + "</p>");
+                    };
+                },
+                error: function(msg){
+                	alert("При відправці виникла помилка:\n " + msg.responseJSON['reason']);
+                }
+            });
+        
+          $( this ).dialog( "close" );
+        },
+        "Відмінити": function() {
+          $( this ).dialog( "close" );
+        }
+      }
+});
+
+
+$(document).on("click", ".addboxname", function(event) {
+    $("#dtext_item").attr({"ids": $(this).attr('ids')});
+    $("#dtext_item").attr( {"ci_id": $(this).attr('ci_id')} );
+//    var spinner = $("#spinner").spinner();
+/*    $("#spinner").val(1); */
+    $("#dialog_addboxname").dialog("open");
+    $("#catalog_name").remove();
+    $("#dtext_item").append("<span id='catalog_name'>" + $(this).parents('tr').find('td.cat_name').html() + "</span>");
+});
+
+
+$(document).on("dblclick", ".ci_desc", function(event) {
+	var ci_id = $(this).parents('tr').attr('ci_id');
+    var cat_id = $(this).parents('tr').attr('cat_id');
+    $("#dtext_item").attr({"ids": cat_id});
+    $("#dtext_item").attr( {"ci_id": ci_id} );
+    $("#dialog_addboxname").dialog("open");
+    $("#catalog_name").remove();
+    $("#dtext_item").append("<span id='catalog_name'>" + $(this).parents('tr').find('td.cat_name').html() + "</span>");
+
+});
+
+
+$("#dialog_addprice").dialog({
+    autoOpen: false,
       resizable: false,
+      width:$( window ).width()/2,
       modal: true,
       buttons: {
         "Додати": function() {
-			$.ajax({
+            $.ajax({
                 type: "POST",
                 url: "/shop/price/print/add/",
                 data: {
-                	id:  $("#dtext").attr("ids"), 
-//                	url: $('#spinner_').val(),
-                	scount: $("#spinner_addprice").val()
+                    id:  $("#dtext").attr("ids"), 
+//                  url: $('#spinner_').val(),
+                    scount: $("#spinner_addprice").val()
                 },
                 dataType: "text",
                 success:function(msg){
@@ -315,7 +451,8 @@ $(document).on("click", ".addprice", function(event) {
 //	console.log($(this).parents('tr').find('td.cat_name').html());
 	$("#dialog_addprice").dialog("open");
 	$("#catalog_name").remove();
-	$("#dtext").after("<span id='catalog_name'>" + $(this).parents('tr').find('td.cat_name').html() + "</span>");
+//	$("#dtext").after("<span id='catalog_name'>" + $(this).parents('tr').find('td.cat_name').html() + "</span>");
+	$('.item_container').append("<span id='catalog_name'>" + $(this).parents('tr').find('td.cat_name').html() + "</span>");
 });
 
 
@@ -408,7 +545,14 @@ $("body").on('click', '#button_save_quick_sale', function() {
 	document.location = '/client/'+ $('#SaleMany').attr("c_pk") +'/invoice/sale/';
 });
 
-  
+$("body").on('click', '.click_count', function() {
+    var num = $(this).parents('div.box_block');
+    console.log("SPIN val = " + num.children('.spinner_addcount').val() );
+    console.dir($(this));
+	console.log("click on - " + $(this).html());
+	num.children('.spinner_addcount').val($(this).html());
+});
+
 $('.modal').on('shown.bs.modal', function() {
 	  $(this).find('[autofocus]').focus();
 	});
@@ -479,6 +623,7 @@ $( "#client_name" ).autocomplete({
 
 
 $("#sp_cash").click(function(){
+	$("#print_sum").toggle();
 	calc_sum();
 });
 
@@ -498,8 +643,13 @@ $("#show_date").click(function(){
 });
 {% endif %}
 
+// Go to attr_val item
+$("span.c_attr_val").on( "dblclick", function( ui ) {
+    var url = $(this).attr('link'); 
+    window.location.href = $(this).attr('link');
 });
 
+});
 
 function show_ret(ciid, item) {
 	//iid = $(this).attr("tvalue");
@@ -513,7 +663,8 @@ function show_ret(ciid, item) {
 	$("#dialog_return").dialog("open");
 	//$("ui-id-2").attr("html", "New title");
 	//document.getElementById("ui-id-2").innerHTML = "Повернення: " + ""
-	$("#ui-id-2").html("Повернення: " + $(item).parents('tr').find('td.cat_name').html());
+	
+	$("#item_return").html("Повернення: " + $(item).parents('tr').find('td.cat_name').html());
 }
 
 
@@ -529,7 +680,7 @@ function show_client() {
 
 function calc_sum() {
 	var dsum = $("#sp_count").val() * $("#dialog_return").attr("price");  
-	$("#print_sum").html("Сума: " + dsum);
+	$("#print_sum").html("Сума: " + dsum + " грн.");
 }
 
 function change_count(item){
@@ -702,45 +853,75 @@ function ajax_client_invoice_req(client_id, count, cat_id){
 
 
 <!-- ДІАЛОГИ Begin -->
-<div id="dialog_client" title="Змінити клієнта" id_target="">
-<label>Клієнт</label>
-<input id="client_name" value="" style="width: 350px;">
-<br>
-<label>Введіть кількість</label>
-<input id="inv_count" value="0" max="1000" style="width: 260px;">
-<div class="container">Вибрані товари:</div>
-</div>
+<div id="dialog_client" title="Змінити клієнта" id_target="" >
+<label for="client_name">Клієнт</label>
+<input id="client_name" value=""  class="w-100">
 
+<br>
+<label for="inv_count" class="mt-2">Введіть кількість</label>
+<input id="inv_count" value="0" max="1000" type="number" class="w-100">
+
+<label class="mt-2">Вибрані товари:</label>
+<div class="container">Вибрані товари:</div>
 
 <div id="dialog_delete" title="Видалити товари" id_target="">
 <div class="del_container">Вибрані товари:</div>
 </div>
 
-
-<!-- Dialog to add print price -->
-<div id="dialog_addprice" title="Додати цінник в чергу" id_target="">
-<div class="del_container">Вибрані товари:</div>
-	<p style="font-weight: bold;" id="dtext">Додати цінник до списку друку:</p>
-	<label for="spinner_addprice">Кількість:</label>
-	<input id="spinner" name="value" value="1" type="number" class="w-100 pl-2">	
-{#  	<input id="spinner_addprice" name="value" value="1"> #}
 </div>
 
 
+<!-- Dialog to add print price -->
+<div id="dialog_addprice" title="Додати цінник в чергу" id_target="">
+{# <div class="del_container">Вибрані товари:</div> #}
+	<label id="dtext">Додати цінник до списку друку:</label>
+	<div class="item_container mb-5"></div>
+	<label for="spinner_addprice">Кількість:</label>
+{#	<input id="spinner" name="value" value="1" type="number" class="w-100 pl-2"> #}	
+  	<input id="spinner_addprice" name="value" value="1" class="w-100 " type="number" > 
+</div>
+
+
+<!-- Dialog for add boxname to clientinvoice item -->
+<div id="dialog_addboxname" title="Вибрати ящик з якого взяли товар" id_target="">
+
+<div id="dtext_item">
+<label>Товар:</label>
+</div>
+
+<label>Наявні ящики:</label>
+<div class="box_container">
+<h2>
+    <span class="badge badge-primary">
+    {{buycomponents.object_list.0.catalog.get_storage_box_list_to_html|join:'<br>'}}
+    </span>
+     - опис місця знаходження 
+</h2>  
+    <label for="spinner_addcount">Кількість:</label>
+    <input id="spinner_addcount" name="value" value="0" type="number" class="w-100 pl-2">   
+</div>    
+     
+</div>
+
+
+<!-- Dialog for return clientinvoice item -->
 <div id="dialog_return" title="Повернення/Обмін" id_target="" price="1">
-<label>Введіть причину відмови/повернення</label>
+<label>Товар:</label>
+<div id="item_return"> </div>
+<label class="mt-2">Введіть причину відмови/повернення</label>
 {# <textarea  name="dreturn" id="msg_return" value="" wrap="soft" cols="42" rows="7"></textarea> #}
 <textarea  name="dreturn" id="msg_return" value="" class="w-100" rows="9"></textarea>
 <br>
 <label>Введіть кількість</label>
 <input id="sp_count" value="1" max="5">
 <br>
-<label>Готівка</label>
+<label>Видача готівки: </label>
 <input type="checkbox" id="sp_cash" >
-<label id="print_sum" class="ressum">Сума:</label>
+<br><label id="print_sum" class="ressum" style="display:none;">Сума:</label>
 </div>
 
 
+<!-- Діалог про помилку в описі товару -->
 <div class="modal fade" id="ModalError" tabindex="-1" aria-labelledby="errorMLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -774,7 +955,7 @@ function ajax_client_invoice_req(client_id, count, cat_id){
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="manySaleModalLabel">Продати багато</h5> 
+        <h5 class="modal-title" id="manySaleModalLabel">Продати багато/швидко</h5> 
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -836,7 +1017,7 @@ function ajax_client_invoice_req(client_id, count, cat_id){
    <h1>
    <span class="badge badge-dark">Список проданого товару</span> 
    <span id="span_show_select" class="badge badge-secondary" title="Показати/приховати рядок вибору дня/місяця" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">unfold_more</i></span>
-   <span class="badge badge-info" id="show_date">{{sel_day}}/{{sel_month}}/{{sel_year}}</span> 
+   <span class="badge badge-info" id="show_date">{{sel_day}}/{{show_month}}/{{sel_year}}</span> 
    <span id="clear_basket"><img src="/media/images/Ecommerce Return.ico" title="видалити всі відмічені" width="32" height="32" data-toggle="tooltip" data-html="true" data-placement="right"> </span>
 {#   <a href="/workshop/playsound/" ><span class="badge badge-dark mt-250"><i class="material-icons" style="font-size: 28px" >notification_important</i></span></a> #}
    <a href="notpay/" ><span class="badge badge-dark mt-250"><i class="material-icons" style="font-size: 28px" >check_box</i></span></a>
@@ -934,29 +1115,55 @@ function ajax_client_invoice_req(client_id, count, cat_id){
  -->	
 	</td>
 	<td class="client">
-	<a href="/client/result/search/?id={{type.client.id}}">
+	<div class="row ">
+	<div class="col">
+	<a href="/client/result/search/?id={{type.client.id}}" class="cname">
 	{{type.client.name}} {% if type.client.forumname %} ({{type.client.forumname}}) {% endif %}
-	</a>    
-	<span class="badge badge-light add_client_invoice_by_scanner mr-3 right" c_pk="{{type.client.pk}}" c_name="{{type.client.name}}" title="Швидкий продаж для клієнта: {{type.client.name}}" data-toggle="tooltip" data-placement="right"><i class="material-icons">barcode_reader</i></span>	    
-	
+	</a>
+	</div>
+	<div class="quick_func col-md-auto ">    
+	<span class="badge badge-light add_client_invoice_by_scanner mr-2 right" c_pk="{{type.client.pk}}" c_name="{{type.client.name}}" title="Швидкий продаж для клієнта: {{type.client.name}}" data-toggle="tooltip" data-placement="right"><i class="material-icons">barcode_reader</i></span>	    
+	<a href="{% url 'clientinvoice-all-sales-by-client' type.client.pk %}">
+	   <span class="badge badge-light mr-2 right" c_pk="{{type.client.pk}}" c_name="{{type.client.name}}" title="Переглянути всі непроведені покупки клієнта: {{type.client.name}}. <br>За {{sel_year}} рік" data-html="true" data-toggle="tooltip" data-placement="right"><i class="material-icons">toc</i></span>
+	</a>
+	</div>
+	</div>
 	</td>
-	<td class="cat_name" >       
+	<td class="cat_name" >
+<div class="row">        
+<div class="cat_id_name col">
 	{% if request.user|has_group:"admin" %} 
 		<a href="/catalog/id/{{type.catalog.id}}/view/"> [{{type.catalog.ids}}] </a>
 	{% else %} 
 		[{{type.catalog.ids}}]
 	{% endif %}
 		{{type.catalog.name}}
+</div>
+<div class="cat_attr col-md-auto">
+{% for c_attr in  type.catalog.get_attribute_values %}
+		<span class="badge badge-secondary c_attr_val" data-toggle="tooltip" data-placement="top" data-html="true" title="{{c_attr.attr_name}}" link="{% url 'invoice-attribute-val-id-list' c_attr.id %}">
+		      {{c_attr.value}}
+		</span>
+
+{% endfor %}
+        {% if not type.catalog.get_attribute_values %}
+            <a href="{% url 'serch-invoicecomponennts-by-id' type.catalog.id %}">Додати атрибути</a>
+        {% else %}
+            <a href="{% url 'serch-invoicecomponennts-by-id' type.catalog.id %}" title="Перейти до роботи з товаром: [{{type.catalog.ids}}] {{type.catalog.name}}" data-html="true" data-toggle="tooltip" data-placement="right">...</a>
+        {% endif %}
 		
 		{% if type.catalog.mistake_status %}
-		<span class="alert alert-danger" role="alert" title="Помилка в описі товару - {% if type.catalog.mistake %} {{ type.catalog.mistake }} {% else %} Потрібен переклад. {% endif %}<br>Редагувати товар" data-toggle="tooltip" data-placement="right" data-html="true">
-			<a href="{% url 'catalog_edit' type.catalog.id %}"  class="text-dark">
+		<span class="badge badge-light" title="Помилка в описі товару - {% if type.catalog.mistake %} {{ type.catalog.mistake }} {% else %} Потрібен переклад. {% endif %}<br>Редагувати товар" data-toggle="tooltip" data-placement="right" data-html="true">
+		{# <span class="alert alert-danger" role="alert" title="Помилка в описі товару - {% if type.catalog.mistake %} {{ type.catalog.mistake }} {% else %} Потрібен переклад. {% endif %}<br>Редагувати товар" data-toggle="tooltip" data-placement="right" data-html="true"> #}
+			<a href="{% url 'catalog_edit' type.catalog.id %}"  class="text-danger">
 			<span class="material-icons">
 			warning
 			</span>
 			</a>
 		</span>
 		{% endif %}
+</div>		
+</div>
 	</td>
 	<td align="center" class="tcount" data-toggle="tooltip" data-placement="top" title="Переглянути попередні продажі" data-html="true" ci_id="{{type.id}}" start_count="{{type.count}}">       
 	<a href="{% url 'client-catalog-sale' type.catalog.id %}" >{{type.count|floatformat}}</a>
@@ -991,7 +1198,7 @@ function ajax_client_invoice_req(client_id, count, cat_id){
 	<label class="op_datetime">{{type.date|date:'d.m.Y H:i' }}</label> 
 	{{type.date|date:'H:i' }}
 	</td>
-	<td>
+	<td class="ci_desc">
 	{{type.description|linebreaks}}
 	{{type.get_ci_sbox|join:"<br>"}}
 	</td>
@@ -1010,6 +1217,7 @@ function ajax_client_invoice_req(client_id, count, cat_id){
 <a class="dropdown-item" href="#" onclick="show_ret(ciid={{type.id}}, this);return false">Обмін/Повернення</a>
 <a class="dropdown-item" href="#" onclick="show_client();return false">Змінити клієнта/кількість</a>
 <a class="dropdown-item addprice" ids="{{type.catalog.id}}" href="#">Додати цінник в чергу</a>
+<a class="dropdown-item addboxname" ids="{{type.catalog.id}}" ci_id="{{type.id}}" href="#">Додати/змінити місце</a>
 <a class="dropdown-item mark_wrong" ids="{{type.catalog.id}}" href="#">Помилка в описі товару</a>
   
 {#    <div class="dropdown-divider"></div> #}
@@ -1032,16 +1240,16 @@ function ajax_client_invoice_req(client_id, count, cat_id){
 	</td>
 	
 	{% if type.catalog.get_realshop_count == type.catalog.count %}
-	<td align="center" title="Ящик номер:<br>{{type.catalog.get_storage_box_list_to_html|join:'<br>'}} <br>Стара назва - {{type.catalog.locality}}" data-toggle="tooltip" data-html="true" data-placement="left">
+{#	   <td align="center" title="Ящик номер:<br>{{type.catalog.get_storage_box_list_to_html|join:'<br>'}} <br>Стара назва - {{type.catalog.locality}}" data-toggle="tooltip" data-html="true" data-placement="left"> #}
+       <td align="center" title="Ящик номер:<br>{{type.catalog.get_storage_box_list_to_html|join:'<br>'}} " data-toggle="tooltip" data-html="true" data-placement="left">	   
 	{% else %}
-	<td align="center" bgcolor="yellow" title="Ящик номер: {{type.catalog.get_storage_box|join:'; '}} {{type.catalog.locality}}" data-toggle="tooltip" data-html="true" data-placement="left">
-	{% if request.user|has_group:"admin" %} 
-	<span class="badge badge-pill badge-warning" onclick="change_count(this)">{{type.catalog.get_realshop_count}}</span>
-	{% endif %}
+	   <td align="center" bgcolor="yellow" title="Ящик номер: {{type.catalog.get_storage_box|join:'; '}} {{type.catalog.locality}}" data-toggle="tooltip" data-html="true" data-placement="left">
+	   {% if request.user|has_group:"admin" %} 
+	       <span class="badge badge-pill badge-warning" onclick="change_count(this)">{{type.catalog.get_realshop_count}}</span>
+	   {% endif %}
 	{% endif %}
  
 	{{type.catalog.count}} 
-
 
 	</td>
 </tr>

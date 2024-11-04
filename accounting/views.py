@@ -2541,7 +2541,7 @@ def invoicecomponent_add(request, mid=None, cid=None):
 
 
 
-def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None, attr_val_id=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None, all=False, mc_search=False):
+def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None, attr_val_id=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None, all=False, mc_search=False, by_id=None):
     #company_list = Manufacturer.objects.none()
     company_list = Manufacturer.objects.all().only('id', 'name')
     #type_list = Type.objects.none() 
@@ -2588,6 +2588,9 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
 #                    id = id.replace(' ', '')
 #                    list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')                    
 #                    list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+    if by_id:
+        list = InvoiceComponentList.objects.filter(catalog__id = by_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')        
+        
     if mid:
         if all == True:
             list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
@@ -2860,9 +2863,9 @@ def invoicecomponent_edit(request, id):
     context.update(custom_proc(request)) 
     return render(request, 'index.html', context)
 
-
+# Сторінка для пошуку наявного товару в магазині за його кодом або назвою
 def invoice_search(request):
-    return render_to_response('index.html', {'weblink': 'invoice_search.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'weblink': 'invoice_search.html', 'next': current_url(request)})
 
 # Пошук товару по назві і артикулу (стара функція)
 #===============================================================================
@@ -4901,8 +4904,6 @@ def client_invoice(request, cid=None, id=None, ciid=None):
                     else:
                         ClientInvoiceStorageBox(sbox=sbox, cinvoice=ci, count=sb_count, date_create=now, user_create=user).save()
                 index+=1
-#            cat.count = cat.count - count
-#            cat.save()
             
             if pay == sum:
                 desc = catalog.name
@@ -5039,6 +5040,7 @@ def client_invoice_set(request):
                 
             return HttpResponse("Помилка", content_type="text/plain;charset=UTF-8;")
 
+
 @csrf_exempt
 def client_invoice_delete(request, id=None):
     if request.is_ajax():
@@ -5086,12 +5088,14 @@ def client_invoice_delete(request, id=None):
     return HttpResponseRedirect('/client/invoice/view/')
 
 
-def client_invoice_view(request, month=None, year=None, day=None, id=None, notpay=False, shop=None, client_id=None):
+def client_invoice_view(request, month=None, year=None, day=None, id=None, notpay=False, shop=None, client_id=None, all=None):
     # upd = ClientInvoice.objects.filter(sale = None).update(sale=0) # update recors with sale = 0
+    show_month = month
     if year == None:
         year = datetime.datetime.now().year
     if month == None:
         month = datetime.datetime.now().month
+        show_month = month 
     if day == None:
         day = datetime.datetime.now().day
 #        list = ClientInvoice.objects.filter(date__year=year, date__month=month, date__day=day).order_by("-date", "-id").values('id', 'client__id', 'client__name', 'sum', 'count', 'catalog__ids', 'catalog__name', 'price', 'currency__name', 'sale', 'pay', 'date', 'description', 'user__username', 'catalog__count', 'catalog__locality', 'catalog__pk', 'client__forumname')
@@ -5110,6 +5114,9 @@ def client_invoice_view(request, month=None, year=None, day=None, id=None, notpa
 
     if client_id:
         list = list.filter(client = client_id)
+    if client_id and all:
+        list = ClientInvoice.objects.filter(date__year=year, client = client_id).order_by("-date", "-id")
+        show_month = 'all'
 
     if (shop and shop <> '0'):
         list = list.filter(shop = shop)
@@ -5127,7 +5134,8 @@ def client_invoice_view(request, month=None, year=None, day=None, id=None, notpa
     if shop == None:
         shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
         shop = shopN.id or 0
-        list = list.filter(shop = shop)
+        if all != 'all':
+            list = list.filter(shop = shop)
         
     paginator = Paginator(list, 15)
     page = request.GET.get('page')
@@ -5142,7 +5150,8 @@ def client_invoice_view(request, month=None, year=None, day=None, id=None, notpa
         # If page is out of range (e.g. 9999), deliver last page of results.
         cinvoices = paginator.page(paginator.num_pages)
         
-    context = {'sel_year':year, 'sel_month':int(month), 'month_days':days, 'sel_day':day, 'buycomponents': cinvoices, 'shops': shops, "shop": int(shop), 'sumall':psum, 'sum_profit':sprofit, 'countall':scount, 'weblink': 'clientinvoice_list.html', 'view': True,} 
+#    context = {'sel_year':year, 'sel_month':int(month), 'month_days':days, 'sel_day':day, 'buycomponents': cinvoices, 'shops': shops, "shop": int(shop), 'sumall':psum, 'sum_profit':sprofit, 'countall':scount, 'weblink': 'clientinvoice_list.html', 'view': True,} 
+    context = {'sel_year':year, 'sel_month':month, 'show_month': show_month, 'month_days':days, 'sel_day':day, 'buycomponents': cinvoices, 'shops': shops, "shop": int(shop), 'sumall':psum, 'sum_profit':sprofit, 'countall':scount, 'weblink': 'clientinvoice_list.html', 'view': True,}
     custom_dict = custom_proc(request)
     context.update(custom_dict)
     return render(request, 'index.html', context)
@@ -9931,7 +9940,131 @@ def client_invoice_add(request, ids=None):
     return HttpResponse(data_res, content_type='application/json')    
                 
 
+@csrf_exempt
+def client_invoice_get_boxes(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            if auth_group(request.user, 'seller') == False:
+                print "Error USER - Seller"
+                result = 'Error: У вас не має прав для внесення змін'
+                return HttpResponse(result, content_type='application/json')
+            
+            POST = request.POST  
+            if POST.has_key('cat_id') and POST.has_key('ci_id'):
+                ids = request.POST['cat_id']
+                ci_id = request.POST['ci_id']
+                c_inv = ClientInvoice.objects.get(id = ci_id)
+                catalog = Catalog.objects.get(id = ids)
+                if c_inv.pay == c_inv.sum:
+                    res = "Товар [" + str(c_inv.id) + "]" + str(c_inv.catalog) + " вже продано і йому не можна додати/змінити місце!"
+                    context = { 'status': '400', 'reason': res }
+                    response = HttpResponse(json.dumps(context), content_type='application/json')
+                    response.status_code = 400
+                    return response
+                boxes = catalog.get_storage_box()
+                a_box = []
+                for sbox in boxes:
+                    a_box.append({'name': sbox.get_storage_boxes_name(), 'id': sbox.id, 'count': sbox.count})
+#                    a_box.append({'name': sbox.get_storage_name(), 'id': sbox.id, 'count': sbox.count })
+                result = simplejson.dumps({'status': True, 'boxes': a_box})
+                #result = 'ok - ' + c_inv.catalog.name 
+                return HttpResponse(result, content_type='application/json')
+                #return HttpResponse(result, content_type="text/plain;charset=UTF-8;")
+            else:
+                res = 'Помилка запиту. Параметри не знайдені!'
+                context = { 'status': '400', 'reason': res }
+                response = HttpResponse(json.dumps(context), content_type='application/json')
+                response.status_code = 400
+                return response
+        else:
+            result = 'Помилка запиту'
+            print "Error AJAX request"
+            #return HttpResponse(result, content_type="text/plain;charset=UTF-8;")
+            return HttpResponse(result, content_type='application/json')
+    else:
+        result = 'Помилка запиту. Its not AJAX request'
+        return HttpResponse(result, content_type='application/json')    
+        
+        
+@csrf_exempt
+def client_invoice_add_boxes(request):
+    if request.is_ajax():
+        if request.method == 'POST':
+            if auth_group(request.user, 'seller') == False:
+                print "Error USER - Seller"
+                result = 'Error: У вас не має прав для внесення змін'
+                return HttpResponse(result, content_type='application/json')
+            
+            POST = request.POST  
+            if POST.has_key('ci_id') and POST.has_key('boxes'):
+                ci_id = request.POST['ci_id']
+                boxes = request.POST['boxes']
+                c_inv = ClientInvoice.objects.get(id = ci_id)
+                if c_inv.check_payment():
+                    res = "Товар [" + str(c_inv.id) + "]" + str(c_inv.catalog) + " вже продано і йому не можна додати/змінити місце!"
+                    context = { 'status': '400', 'reason': res }
+                    response = HttpResponse(json.dumps(context), content_type='application/json')
+                    response.status_code = 400
+                    return response
+                box_dct = json.loads(boxes)
+                count_sum = 0 
+#                print "BOXES = %s" % boxes
+                for i in box_dct:
+                    print "Box id = %s | COUNT = %s" % (i['boxid'], i['count'])
+                    count_sum = count_sum + int(i['count'])
 
+                if count_sum > c_inv.count:
+                    res = "Ви вибрали більше товару ніж хочете продати! \n(Вибрано %s шт. - Продаєте %s шт.)" % (count_sum, int(c_inv.count))
+                    #result = simplejson.dumps(res)
+                    context = { 'status': '400', 'reason': res }
+                    response = HttpResponse(json.dumps(context), content_type='application/json')
+                    #response = HttpResponse(simplejson.dumps(context), content_type='application/json')
+                    response.status_code = 400
+                    return response
+                
+                now = datetime.datetime.now()
+                index = 0
+                user = request.user
+                for box in box_dct: #sbox_ids:
+                    sb_count = 0
+                    sbox = StorageBox.objects.get(pk = box['boxid'])
+                    sb_count = int(box['count']) #sbox_count[index]
+                    print "SB COUNT = %s" % sb_count
+                    if sb_count > 0:
+                        obj_cisb = sbox.get_ci_sb_by_cinv(c_inv)
+                        if obj_cisb:  
+                            for i in obj_cisb: 
+                                i.set_count(sb_count, now, user)
+                        else:
+                            ClientInvoiceStorageBox(sbox=sbox, cinvoice=c_inv, count=sb_count, date_create=now, user_create=user).save()
+                    if sb_count == 0:
+                        obj_cisb = sbox.get_ci_sb_by_cinv(c_inv)
+                        if obj_cisb:  
+                            for i in obj_cisb: 
+                                i.delete()
+                    index+=1
+                #boxes = c_inv.catalog.get_storage_box()
+                a_box = []
+                for sbox in c_inv.get_ci_sbox():
+                    a_box.append({ 'name': sbox, 'id': c_inv.id, 'count': c_inv.count })
+#                    a_box.append({'name': sbox.get_storage_name(), 'id': sbox.id, 'count': sbox.count })
+                result = simplejson.dumps({'ci_id': c_inv.id, 'status': True, 'boxes': a_box})
+                #result = 'ok - ' + c_inv.catalog.name 
+                return HttpResponse(result, content_type='application/json')
+                #return HttpResponse(result, content_type="text/plain;charset=UTF-8;")
+            else:
+                result = 'Помилка запиту. Параметри не знайдені!'
+                return HttpResponse(result, content_type='application/json')
+        else:
+            result = 'Помилка запиту'
+            print "Error AJAX request"
+            #return HttpResponse(result, content_type="text/plain;charset=UTF-8;")
+            return HttpResponse(result, content_type='application/json')
+    else:
+        result = 'Помилка запиту. Its not AJAX request'
+        return HttpResponse(result, content_type='application/json')    
+
+        
 def check_list(request, year=None, month=None, day=None, all=False, client=None):
     list = None
     listPay = None
