@@ -26,7 +26,7 @@ from datetime import date
 #from Scripts.pilprint import description
 from django.urls import reverse
 from pyexpat import model
-from ctypes.test.test_pep3118 import s_bool
+#from ctypes.test.test_pep3118 import s_bool
 
 
 # Group Type = Group for Component category 
