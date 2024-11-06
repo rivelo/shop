@@ -2260,7 +2260,7 @@ class StorageBox(models.Model):
         return u"%s - %s" % (self.box_name, self.description)
 
     def get_storage_boxes_name(self):
-        s_boxes = {'box_name': self.box_name.name, 'box_desc': self.box_name.description, 'count': self.count, 'box_shop': self.box_name.shop.name, 'shop': self.shop.name, 'sb_desc': self.description, 's_box_id': self.id}
+        s_boxes = {'box_name': self.box_name.name, 'box_id': self.box_name.id, 'box_desc': self.box_name.description, 'count': self.count, 'box_shop': self.box_name.shop.name, 'shop': self.shop.name, 'sb_desc': self.description, 's_box_id': self.id}
         return s_boxes
 
     

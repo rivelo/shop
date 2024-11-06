@@ -9576,7 +9576,6 @@ def inventory_add(request):
             #sel_id = rdict.keys()#[0]
             req_dict = json.loads(request.body)
             if req_dict: 
-#                print "\n>>> We are the POST request - JSON <<<<\n"
                 if (req_dict.has_key('id') and req_dict.has_key('box_id') and req_dict.has_key('count') and req_dict.has_key('status')) :
                     pid = req_dict['id']
                     count = req_dict['count']
@@ -9585,8 +9584,17 @@ def inventory_add(request):
                     dnow = datetime.datetime.now()
                     user = request.user
                     desc = ''
+                    if int(count) <= 0:
+#                        print "\n>>> We are the POST request - JSON [COUNT] =  %s <<<<\n" % count
+#                        jsonDict = {"status": "error", "message": "Введіть кількість більшу за нуль!"}
+#                        return HttpResponse(simplejson.dumps(jsonDict), content_type="aplication/json")
+                        res = "Введіть кількість більшу за нуль!"
+                        context = { 'status': '400', 'reason': res }
+                        response = HttpResponse(json.dumps(context), content_type='application/json')
+                        response.status_code = 400
+                        return response
+                               
                     if box_id == '':
-                    #search = "Введіть текст опису"
                         jsonDict = {"status": "error", "message": "Виберіть місцезнаходження даного товару!"}
                         return HttpResponse(simplejson.dumps(jsonDict), content_type="aplication/json")           
                     c = Catalog.objects.get(id = pid)
@@ -9615,12 +9623,15 @@ def inventory_add(request):
                         sb.user_update = user
                         if sb.history == None:
                             sb.history = ""
-                        sb.history = sb.history +  hist_str + "\n" + inv_str
+                        sb.history = sb.history +  hist_str.decode('utf-8') + "\n" + inv_str.decode('utf-8')
                         sb.save()
-                
-    jsonDict = {"status": "done", "message": "", "id": inv.id, "count": inv.count, "description": inv.description, "user__username": inv.user.username, "date": inv.date.strftime("%d/%m/%Y [%H:%M]"), "check_all":inv.check_all, "real_count":inv.real_count}
-    return HttpResponse(simplejson.dumps(jsonDict), content_type="aplication/json")
-    #search = "ok"
+    jsonDict = {"status": "done", "message": "Запит виконано", "id": inv.id, "count": inv.count, "description": inv.description, "user__username": inv.user.username, "check_all":inv.check_all, "real_count":inv.real_count} #, "date": inv.date.strftime("%d/%m/%Y [%H:%M]")
+    jsonDict.update(sb_boxname = str(sb.box_name))
+    jsonDict.update(sb_count = sb.count)
+    jsonDict.update(count_add = count)
+#    return HttpResponse(simplejson.dumps(jsonDict), content_type="aplication/json")
+  #  jsonDict = {"status": "done", "message": "OK!"}
+    return HttpResponse(simplejson.dumps(jsonDict), content_type='application/json')
     #return HttpResponse(search, content_type="text/plain;charset=UTF-8;")
 
 @csrf_exempt
@@ -9967,15 +9978,22 @@ def client_invoice_get_boxes(request):
                     a_box.append({'name': sbox.get_storage_boxes_name(), 'id': sbox.id, 'count': sbox.count})
 #                    a_box.append({'name': sbox.get_storage_name(), 'id': sbox.id, 'count': sbox.count })
                 result = simplejson.dumps({'status': True, 'boxes': a_box})
-                #result = 'ok - ' + c_inv.catalog.name 
                 return HttpResponse(result, content_type='application/json')
-                #return HttpResponse(result, content_type="text/plain;charset=UTF-8;")
+            if POST.has_key('cat_id_only'):
+                ids = request.POST['cat_id_only']
+                catalog = Catalog.objects.get(id = ids)
+                boxes = catalog.get_storage_box()
+                a_box = []
+                for sbox in boxes:
+                    a_box.append({'name': sbox.get_storage_boxes_name(), 'id': sbox.id, 'count': sbox.count, })
+                result = simplejson.dumps({'status': True, 'boxes': a_box})
+                return HttpResponse(result, content_type='application/json')
             else:
-                res = 'Помилка запиту. Параметри не знайдені!'
+                res = 'Помилка запиту. Параметр не знайдено!'
                 context = { 'status': '400', 'reason': res }
                 response = HttpResponse(json.dumps(context), content_type='application/json')
                 response.status_code = 400
-                return response
+                return response            
         else:
             result = 'Помилка запиту'
             print "Error AJAX request"

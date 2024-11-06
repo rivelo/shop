@@ -227,6 +227,16 @@ cursor: pointer;
         
 <script type="text/javascript">
 
+function resize_dialog_width(lim_width) { 
+    if ($( window ).width() >= lim_width){ 
+          return ($( window ).width() / 2); 
+        } 
+    else {
+          return ($( window ).width() - 50);
+        } 
+};
+
+
 function copy2clipboard() {
 	  var copyText = document.getElementById("print_container").innerText;
 	  var copyTextInput = document.getElementById("inputLink");
@@ -1366,7 +1376,130 @@ $("#dialog_edit_email").dialog({
       }
 });
 
+
+
+function box_element(box_name, box_desc, shop, count, box_id) {
+    var ins_dom = ''; 
+    var counters = '';
+    counters = '<span class="click_count badge badge-secondary ml-2 mr-2" ">1</span><span class="click_count badge badge-secondary mr-2">2</span><span class="click_count badge badge-secondary mr-2">3</span><span class="click_count badge badge-secondary mr-2">5</span><span class="click_count badge badge-secondary mr-2">10</span>'
+    ins_dom = '<div class="box_block"><h2> <span class="badge badge-primary">' + box_name + '</span> - ' + box_desc + ' ['+ shop +'] </h2>' +
+        '<label for="spinner_addcount">Кількість:</label>' +
+        '<input class="spinner_addcount ml-2 w-50" box_id="'+ box_id +'" name="value" value="0" type="number" min=0 max="'+ count +'" >' +counters+ '</div> <hr>';
+return ins_dom;
+};
+
+$("#dialog_addboxname").dialog({
+    autoOpen: false,
+      resizable: true,
+      width: resize_dialog_width(1024),
+      modal: true,
+      open: function( event, ui ) {
+          $('#dialog_addboxname').find('.box_container').empty()
+//          console.log("ITEM id = " + $("#dtext_item").attr("ids") );
+          $.ajax({
+              type: "POST",
+               url: "/client/invoice/get/boxes/",
+               data: { cat_id_only:  $("#dtext_item").attr("ids") },  
+               dataType: "json",
+              success:function(data){
+               if (data['status'] == true){
+                   for (let i = 0; i < data['boxes'].length; i++ ) {
+                       var b_name = data['boxes'][i].name['box_name'];
+                       var box_desc = data['boxes'][i].name['box_desc']
+                       var shop_n = data['boxes'][i].name['box_shop']
+                       var b_count = data['boxes'][i].name['count']
+                       var box_id = data['boxes'][i].name['box_id']
+                       $('#dialog_addboxname').find('div.box_container').append(box_element(b_name, box_desc, shop_n, b_count, box_id));
+//                       console.log("Box ["+ i +"] = " + data['boxes'][i]);
+                   }
+               }
+               else {
+                  alert("Помилка: " + data['boxes']);
+               }
+              },
+              error:function(msg){
+                  alert("При відправці виникла помилка:\n " + msg.responseJSON['reason']);
+              }
+           });
+      },      
+      buttons: {
+        "Додати": function() {
+            arr_res = []
+            for ( let j=0; j < $(".spinner_addcount").length; j++ ) {
+//                console.log("BoxId - " + $('.spinner_addcount')[j].getAttribute('box_id'));
+//                console.log("Box_count - " + $('.spinner_addcount')[j].value );
+                var boxid = $('.spinner_addcount')[j].getAttribute('box_id');
+                var box_count = $('.spinner_addcount')[j].value;
+                var box = {'boxid': boxid, 'count': box_count};
+                arr_res.push(box); 
+            }
+            for (let i=0; i < arr_res.length; i++){
+               json_data = {
+                       id: $("#dtext_item").attr("ids"),
+                       box_id: arr_res[i].boxid,
+                       count: arr_res[i].count,
+                       status: true 
+                   };
+               if (arr_res[i].count > 0) {
+            $.ajax({
+                type: "POST",
+                url: "/inventory/add/",
+                dataType: "json",
+                data: JSON.stringify(json_data),
+                contentType: "application/json; charset=utf-8",
+                success: function(data){
+                    //var jsd = jQuery.parseJSON(data);
+                    console.log("Data response = " + data['sb_boxname']);
+                    if (data['status']=="done"){
+                    	alert("Запит надіслано успішно. Додано +" + data['count'] + " шт. в ящик " + data['sb_boxname']);
+                    };
+                    //alert("Запит надіслано успішно. \nCLI_INV_id = " + ciid);
+                    //$("tr[ci_id=" + ciid +" ]").hide();
+//                    $("tr[ci_id=" + ciid +" ]").find("td.ci_desc").empty();
+/*                    for (let i=0; i < data['boxes'].length; i++){
+                        var tmp_name = data['boxes'][i].name;
+                        $("tr[ci_id=" + ciid +" ]").find("td.ci_desc").append("<p class='mb-1' style='font-size: smaller;'>" + tmp_name + "</p>");
+                    };*/
+                },
+                error: function(msg){
+                    alert("При відправці виникла помилка:\n " + msg.responseJSON['reason']);
+                }
+            });
+               }
+            };
+            
+          $( this ).dialog( "close" );
+        },
+        "Відмінити": function() {
+          $( this ).dialog( "close" );
+        }
+      }
 });
+
+
+$(document).on("click", ".addboxname", function(event) {
+    console.log("Click is Work! ID = " + $(this).parents('tr').attr('id'));	
+    $("#dtext_item").attr({"ids": $(this).parents('tr').attr('id')});
+    $("#dialog_addboxname").dialog("open");
+    $("#catalog_name").remove();
+    $("#dtext_item").append("<span id='catalog_name'>" + $(this).parents('tr').find('td.c_name').attr('data-name') + "</span><hr>");
+//    $("#dtext_item").append("<div class='row' id='catalog_name'><div class='col'>" + $(this).parents('tr').find('td.c_name').html() + "</div></div><hr>");
+  //  catalog_item
+});
+
+
+$("body").on('click', '.click_count', function() {
+    var num = $(this).parents('div.box_block');
+    console.log("SPIN val = " + num.children('.spinner_addcount').val() );
+    console.dir($(this));
+    console.log("click on - " + $(this).html());
+    num.children('.spinner_addcount').val($(this).html());
+});
+
+
+}); //end Ready function
+
+
 
 $(document).on("click", ".c_youtube", function(event) {
 //	console.log("IDs = " + $(this).attr('ids'));
@@ -2078,6 +2211,27 @@ function show_year_sales(cell){
 {# <body onload="document.getElementById('tsearch_field').focus()"> #}
 <body> 
 
+<!-- Dialog for add boxname to clientinvoice item -->
+<div id="dialog_addboxname" title="Виберіть ящик куди покласти товар" id_target="">
+<div id="dtext_item">
+<label>Товар:</label>
+<div class="row catalog_item">
+</div>
+</div>
+
+<label>Наявні ящики:</label>
+<div class="box_container">
+<h2>
+    <span class="badge badge-primary">
+    назва місця
+    </span>
+     - опис місця знаходження 
+</h2>  
+    <label for="spinner_addcount">Кількість:</label>
+    <input id="spinner_addcount" name="value" value="0" type="number" class="w-100 pl-2">   
+</div>    
+</div>
+
 <!-- Modal PHOTO -->
 <div class="modal fade" id="photoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered" role="document">
@@ -2447,6 +2601,9 @@ function show_year_sales(cell){
 	{% endif %}
 </div>	
 <div class="price_tag">
+<span class="material-icons addboxname" title="Додати товар до ящику" data-toggle="tooltip" data-html="true" data-placement="left">
+input
+</span>
 <a href="{% url 'shop-price-by-search-id-print' type.catalog__ids %}" title="Друкувати цінник">
 <span class="material-icons">
 local_offer

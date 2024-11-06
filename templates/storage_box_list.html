@@ -92,8 +92,10 @@ $(document).ready( function() {
 	// Ajax request to INVENTORY by CATALOG object  
 	function ajax_inventory_cat_req(count, box_id){
 		const xhttp = new XMLHttpRequest();
+		var r_stat = true;
 		xhttp.onload = function() {
-		  	const InvObj = JSON.parse(this.responseText);
+		  	
+			const InvObj = JSON.parse(this.responseText);
 		  	if ((InvObj.length == 1 ) && (!InvObj[0].error)) {
 /*		  		$("#inventory_count").show();
 		  		$("#inventory_count").val('');
@@ -118,6 +120,17 @@ $(document).ready( function() {
 		  		$("#error_msg_cat_count").html('');
 		  	}
 		  	
+		  	if (xhttp.status == 400) { // HTTP error?
+                const obj = JSON.parse(xhttp.response);
+//                alert("Сталась помилка <<Ready>>: " + obj['reason']); 
+                console.log("Error (/inventory/add/): " + obj['reason']);
+                $("#error_msg_cat_count").append("<p class='text-red'>Сталась помилка!<br>" + obj['reason'] + "<\p>");
+		  	}
+		  	else {
+	            var icount = $("#CatalogInputCount").val();
+	            $("#error_msg_cat_count").append("<p class='text-blue'>Додано - " + count + " шт.<\p>");   
+		  	}
+		  	
 /*		  	if (myObj[0].error == true) {
 		  		$("#error_msg_cat_count").html(InvObj[0].error_msg);
 //		  		$("#myInputScannerBarcode").val(InvObj[0].searchText);
@@ -125,12 +138,24 @@ $(document).ready( function() {
 		  	}
 */
 			document.getElementById("myInputScannerBarcode").focus();
-		}
-		xhttp.onreadystatechange = function() {
+		} //end load
+		
+/* 		xhttp.onreadystatechange = function(msg_data) {
 			if (this.readyState == 4 && this.status == 200) {
-			      console.log("State - " +  this.responseText);
+//			      console.log("State - " +  this.responseText);
+			      alert("Сталась помилка: " + msg_data) //.responseJSON['reason']);
+			      r_stat = false;
+			      return false;
 			}
+            if (this.readyState == 4 && this.status == 400) {
+                alert("Сталась помилка <<Ready>>: " + msg_data.statusText);//.responseJSON['reason']);
+                console.dir(msg_data);
+                r_stat = false;
+                return false;
+            }
+			
 		};
+ */		
 		var pk = {{cat_sel.id}};
 		const myObjPost = { 'id': pk, 'box_id': box_id, 'count': count, 'status': false };
 		const myJSON = JSON.stringify(myObjPost);
@@ -139,6 +164,8 @@ $(document).ready( function() {
 		xhttp.setRequestHeader('Content-Type', 'aplication/json');
 		xhttp.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 		xhttp.send(myJSON);
+        console.log("Send myJSON - " + r_stat);		
+		return r_stat;
 	}
 {% endif %}		
 	
@@ -279,9 +306,18 @@ $(document).ready( function() {
 	$(document).on("click", "#button_add_cat_count", function(event) {
     	var icount = $("#CatalogInputCount").val();
     	var boxid = $("#CatalogInputCount").attr('box_id');
-    	ajax_inventory_cat_req( icount, boxid );
-
-    	$("#error_msg_cat_count").append("<p class='text-blue'>Додано - " + icount + " шт.<\p>");
+    	var status_ajax = ajax_inventory_cat_req( icount, boxid );
+    	
+/*     	console.log("Status after ajax = " + status_ajax);
+    	if (status_ajax == true){
+    		var icount = $("#CatalogInputCount").val();
+    		$("#error_msg_cat_count").append("<p class='text-blue'>Додано - " + icount + " шт.<\p>");	
+    	}
+    	else{
+    		$("#error_msg_cat_count").append("<p class='text-red'>Сталась помилка!<\p>");
+    	}
+ */    		
+    	
     	$("#CatalogInputCount").val(1);
     	document.getElementById("CatalogInputCount").focus;
     	$("#CatalogInputCount").focus();
