@@ -312,8 +312,11 @@ $(document).ready(function() {
           Моє меню
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-        	<a class="dropdown-item" href="/qrscanner/">Сканер QR кодів {{shop_name}}</a> 
-        	<a class="dropdown-item" href="/qrscanner2/">Сканер QR кодів 2</a>
+{#        	<a class="dropdown-item" href="/qrscanner/">Сканер QR кодів {{shop_name}}</a> #} 
+{#        	<a class="dropdown-item" href="/qrscanner2/">Сканер QR кодів 2</a> #}
+            <a class="dropdown-item" href="{% url 'category-attr-list' %}">Параметри товарів</a>
+            <a class="dropdown-item" href="{% url 'category-attr-value-list' %}">Значення параметрів</a> 
+        	<div class="dropdown-divider"></div>
 			<a class="dropdown-item" href="/report/sales/user/report/">Продажі за місяць</a>
  			<a class="dropdown-item" href="/report/workshop/byuser/">Роботи за місяць</a>
  			<div class="dropdown-divider"></div>

@@ -9,6 +9,7 @@ $(document).ready( function() {
 	var wprev_day = parseFloat($("#prev_day").attr("val")) + parseFloat($("#id_cash").attr("value"));
 	//$("#prev_day").after("<b style='color:red'>Сума = "+ wprev_day +"</b>");
 	$("#id_tcash").after("<b style='color:red' class='ml-2'>Сума в касі = "+ wprev_day +" грн</b>");
+	$("#id_tcash").attr('day_casa_sum', wprev_day);
 	
 	$("#id_price").after("<b style='color:red' id='day_sum' class='ml-2'>Каса за день = "+ 0 +" грн.</b>");
 
@@ -43,6 +44,7 @@ $('#myList a').on('click', function (event) {
 //    console.log("click work - " + $(this).attr('href') );
     var tab = $(this).attr('href');
     $(tab).children('input').focus();
+    $(tab).children('input').select();
 //    console.log("Input val  = " + $(tab).children('input').val());
   })
 
@@ -74,7 +76,8 @@ $(document).on("change", ".calc_input", function(event){
 			    sum_all = sum_all + parseInt($(this).attr('sum'));
 		  };
 	});
-	$("#suma_alert").html(str_plus + " = <b>" + sum_all +" грн.</b>"); //"+ " + input_sum + " грн.");
+	var res_sum = sum_all - parseFloat($("#id_tcash").attr('day_casa_sum'))
+	$("#suma_alert").html(str_plus + " = <b>" + sum_all +" грн.</b> | <text class='resSum'>Різниця = " + res_sum + "</text>"); //"+ " + input_sum + " грн.");
 });
 
 </script>
@@ -83,6 +86,11 @@ $(document).on("change", ".calc_input", function(event){
 
 #id_description {
     width: 100%;
+}
+
+.resSum {
+  //  font-weight: bold;
+    color: red;
 }
 
 </style
