@@ -209,7 +209,11 @@ urlpatterns = [
     #url(r'^invoice/category/view/$', catalog.invoicecomponent_list_by_category'),
 #    url(r'^invoice/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list_by_category'),
     url(r'^invoice/attribute/val/(?P<attr_val_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-val-id-list"),
+    url(r'^invoice/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-values-ids-list"),
     url(r'^invoice/attribute/(?P<attr_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-id-list"),
+    url(r'^invoice/year/(?P<sel_year>\d+)/attribute/val/(?P<attr_val_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-val-id-list"),
+    url(r'^invoice/year/(?P<sel_year>\d+)/attribute/(?P<attr_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-id-list"),
+    
     url(r'^invoice/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="category-id-list"),
     url(r'^invoice/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True}, name="category-id-list-all"),
     url(r'^invoice/list/(?P<limit>\d+)/view/$', catalog.invoicecomponent_list),
@@ -239,9 +243,10 @@ urlpatterns = [
     url(r'^category/get/list/$', catalog.category_get_list),
     url(r'^category/lookup/$', catalog.category_lookup),
     url(r'^category/plus/manufacture/lookup/$', catalog.category_manufacture_lookup, name="cat-man-lookup"),
-    url(r'^category/attr/view/$', catalog.category_attr_list, name="category-attr-list"),
+    url(r'^category/attr/view/$', catalog.category_attr_list, {'show_attr': True}, name="category-attr-list"),
     url(r'^category/attr/values/view/$', catalog.category_attr_values_list, name="category-attr-value-list"),
 
+    url(r'^attr/filter/$', catalog.category_attr_list, name="attr-filter"),
 
     # Catalog operation
     url(r'^catalog/set/type/$', catalog.catalog_set_type),

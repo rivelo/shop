@@ -2541,7 +2541,7 @@ def invoicecomponent_add(request, mid=None, cid=None):
 
 
 
-def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None, attr_val_id=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None, all=False, mc_search=False, by_id=None):
+def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None, attr_val_id=None, attr_val_ids=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None, all=False, mc_search=False, by_id=None):
     #company_list = Manufacturer.objects.none()
     company_list = Manufacturer.objects.all().only('id', 'name')
     #type_list = Type.objects.none() 
@@ -2549,10 +2549,13 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
     company_name = '' 
     cat_name = ''
     list = None
-    id_list=[]
+    id_list = []
     zsum = 0
     zcount = 0
     head_text = ''
+    head_text_array = []
+    attr_ids_list = []
+      
 # Search by Name field    
     if 'name' in request.GET and request.GET['name']:
         name = request.GET['name'].strip()
@@ -2610,6 +2613,18 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
             list = InvoiceComponentList.objects.filter(catalog__attributes__id=attr_val_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
         else:
             list = InvoiceComponentList.objects.filter(catalog__attributes__id=attr_val_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)
+    if attr_val_ids:
+        f_str_ids = re.findall("[\+]\d+", attr_val_ids)
+        for i in f_str_ids:
+            attr_ids_list.append(i.split('+')[1])
+        cav = CatalogAttributeValue.objects.filter(id__in = attr_ids_list).values('value', 'value_float', 'attr_id__name')
+        for i in cav:
+            tmp_text = i['attr_id__name'] + ' >>> ' + i['value']
+            head_text_array.append(tmp_text)
+        if all == True:        
+            list = InvoiceComponentList.objects.filter(catalog__attributes__id__in = attr_ids_list).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        else:
+            list = InvoiceComponentList.objects.filter(catalog__attributes__id__in = attr_ids_list).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)
     if attr_id:
         ca = CatalogAttribute.objects.filter(id = attr_id).values('name')
         head_text = ca.first()['name']
@@ -2705,7 +2720,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
 #    vars.update({'type_obj': categ})
     
     cur_year = datetime.date.today().year        
-    vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'cur_year': cur_year, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'qsearch_lookup' : mc_search, 'head_text': head_text}
+    vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'cur_year': cur_year, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'qsearch_lookup' : mc_search, 'head_text': head_text, 'head_text_array': head_text_array}
     vars.update(custom_proc(request))
     return render(request, 'index.html', vars)
 
@@ -3240,10 +3255,11 @@ def category_del(request, id):
     return HttpResponseRedirect('/category/view/')    
 
 
-def category_attr_list(request):
+def category_attr_list(request, show_attr=False):
     list = CatalogAttribute.objects.all()
     context = {'attr_list': list, 'weblink': 'category_attr_list.html'}
     context.update(custom_proc(request)) 
+    context.update({'show_attr': show_attr})
     return render(request, 'index.html', context)
 
 
@@ -4266,6 +4282,7 @@ def catalog_attr_lookup(request):
     data = None
     results = []
     model_results = None
+    msg = ''
     if request.is_ajax():
         if request.method == "POST":
             if request.POST.has_key(u'query') and request.POST.has_key(u'type'):
@@ -4290,7 +4307,10 @@ def catalog_attr_lookup(request):
             attr_name = "Not found"
             if model_results.first():
                 attr_name = model_results.first().name
-            json = simplejson.dumps({'attr_name': attr_name, 'status': False, 'msg': u'Ajax: Щось пішло не так', 'data': results})    
+                msg = u'Ajax: Виконано!'
+            else:
+                msg = u"Параметрів для цього товару не знайдено"
+            json = simplejson.dumps({'attr_name': attr_name, 'status': False, 'msg': msg, 'data': results})    
 #    return HttpResponse(data_res, content_type='application/json')
     return HttpResponse(json, content_type='application/json')
 
@@ -8742,7 +8762,7 @@ def invoice_sales_by_year(request):
             POST = request.POST  
             if POST.has_key('catid'):
                 cat_id = request.POST.get('catid')
-                year_list = ClientInvoice.objects.filter(catalog__id = cat_id).extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('count')).order_by('-year')
+                year_list = ClientInvoice.objects.filter(catalog__id = cat_id).extra({'year':"Extract(year from date)"}).values_list('year').annotate(Sum('count')).order_by('-year')
 #    month_list = WorkShop.objects.filter(work_type__id=id).filter(date__year = year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')                
 #                print "Year list = %s" % year_list 
                 for i in year_list:

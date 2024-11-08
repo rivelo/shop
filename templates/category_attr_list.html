@@ -34,56 +34,68 @@
 {% load poll_extras %}
 	
 <script type="text/javascript">
+
+function alert_add(attr_id, attr_name){
+    var res = ""
+        res += '<div class="alert alert-primary alert-dismissible fade show attr_selected" role="alert" a_id="'+ attr_id +'">' +
+        '<a href="/invoice/attribute/val/' + attr_id + '/view/"><strong>'+ attr_name +'</strong></a> ' +
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' + 
+        '<span aria-hidden="true">&times;</span>' + 
+        '</button></div>'
+    return res;
+};
+
+
+
 $(document).ready(function() {
-
-//	$("#id_work_type").combobox();      
-//	$('.ui-autocomplete-input').css('width','280px');
-
-	$("#s_client").val($('#id_client').val());
-	$("#s_id_work_type").val($('#id_work_type').val());
+	$("#main_link").hide();
+	$("#s_category").val($('#id_client').val());
+	$("#s_attr_val").val($('#id_work_type').val());
 	
-    $( "#s_id_work_type" ).autocomplete({
+    $( "#s_attr_val" ).autocomplete({
     	source: function( request, response ) {
-        	$.ajax({
-                type: "POST",
-                url: "/worktype/lookup/",
-				data: { query: $("#s_id_work_type").val() },
-                dataType: "json",
-                success: function( data ) {
-                        	response( $.map( data, function( item ) {
-                            return {
-                                label: item.pk + ": [" + item.model__name + "] "+ item.fields.name + " - " + item.fields.price + "грн",
-                                value: item.fields.name,
-                                idid: item.fields.sale,
-                                id_sale: item.fields.sale,                                
-                                id_price: item.fields.price,
-                                pk_id: item.pk,
-                                w_desc: item.fields.description,
-                                w_plus: item.fields.plus
-    							}
-                        	}));                                
-                            }
-            })
+    		 $.ajax({
+                 type: "POST",
+                 url: "/catalog/attribute/lookup/",
+                 data: { query: $("#s_attr_val").val(), type: $("#s_attr_val").attr('type_id') }, //$("#s_param").attr('type_id') },
+                 dataType: "json",
+                 success: function( data ) {
+//                     console.log("Data[attr_name] = " + data['attr_name']);
+                     //var dp = JSON.parse(data['data'])
+                     var dp = data['data']
+/*                     for (const j in data){
+                         console.log("HAsh = " + data[j]);
+                     }; */
+                     response( $.map( dp, function( item ) {
+                            console.log("data map = " + item);                                               
+                             return {
+                                 label: item['attr_name'] + " >>> " + item.value + " / "+ item.value_float + " | " + item.description ,
+//                                 label: item['attr_name'] + " >>> " + item.id + ": " + item.value + " / "+ item.value_float + " | " + item.description ,
+                                 value: item.value,
+                                 pk_id: item.id                                
+                                 }
+                             }));                                
+                             }
+             })    		
         },
         minLength: 3,
         select: function( event, ui ) {
-        	var sprice = ui.item.id_price / 100 * (100-ui.item.id_sale)
-        	var base = 5
-        	var r = sprice
-        	sprice = parseInt(base * Math.round(r/base))
-	    	//$('#id_price').val(ui.item.id_price);
-        	$('#id_price').val(sprice);
-	    	$('#id_work_type').val(ui.item.pk_id);
-	    	$('#work_desc').html(ui.item.w_desc);
-	    	$("#id_description").val('');
-	    	
-	    	if (ui.item.w_plus) {
-	    		$('#work_plus').html('Ціна +');	
-	    	}
-	    	else{
-	    		$('#work_plus').html('Ціна');
-	    	}
-	    	
+        	
+        	var a_div = alert_add(ui.item.pk_id, ui.item.label)
+        	$("#show_attr_url").append(a_div);
+            $('#s_attr_val').val("all");
+            $('#s_attr_val').select();
+            $("#main_link").show();
+            var arr = [];
+            var st = '';
+            var span_list = ''; 
+            $("div.attr_selected").each(function( index ) {
+                arr.push($(this).attr("a_id"));
+                st += "+" + $(this).attr("a_id")
+                span_list += '<span class="badge badge-info mr-1">' + $(this).text() + '</span>';
+                })
+                $("#main_link").html("<strong>Фільтр: </strong><a href='/invoice/attribute/values/"+ st +"/view/'><strong>ID = "+ st +"</strong></a> " + span_list);
+                
 	    	
         },
         open: function() {
@@ -91,22 +103,24 @@ $(document).ready(function() {
         },
         close: function() {
         	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+        	$('#s_attr_val').val("all");
+            $('#s_attr_val').select();
         }
     });
 
-    $( "#s_client" ).autocomplete({
+    $( "#s_category" ).autocomplete({
     	source: function( request, response ) {
         	$.ajax({
-                type: "GET",
-                url: "/client/lookup",
-				data: { query: $("#s_client").val() },
+                type: "POST",
+                url: "/category/lookup/",
+				data: { query: $("#s_category").val() },
                 dataType: "json",
                 success: function( data ) {
                         	response( $.map( data, function( item ) {
                             return {
-                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
+                                label: item.pk + ": [" + item.fields.name_ukr + "] "+ item.fields.name,
                                 value: item.fields.name,
-                                idid: item.fields.sale,
+//                                idid: item.fields.name_ukr,
                                 pk_id: item.pk                                
     							}
                         	}));                                
@@ -115,7 +129,10 @@ $(document).ready(function() {
         },
         minLength: 3,
         select: function( event, ui ) {
-	    	$('#id_client').val(ui.item.pk_id);
+	    	//$('#s_attr_val').val(ui.item.pk_id);
+	    	$('#s_attr_val').val("all");
+	    	$('#s_attr_val').select();
+	    	$("#s_attr_val").attr('type_id', ui.item.pk_id);
         },
         open: function() {
         	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
@@ -132,13 +149,13 @@ $(document).ready(function() {
 //	$("#id_price").attr("class","form-control");
 	
 	{% if work %}
-	$("#s_id_work_type").val('{{ work.name }}');
+	$("#s_attr_val").val('{{ work.name }}');
 	{% endif %}
 	{% if client_name %}
-	$("#s_client").val('{{client_name}}');
+	$("#s_category").val('{{client_name}}');
 	{% endif %}
 	
-	$("#s_client").focus();
+	$("#s_category").focus();
 
 
 	
@@ -176,6 +193,45 @@ function delete_all_attr_val_by_id(data){
 };
 
 
+/*
+function hasClass(elem, className) {
+    return elem.classList.contains(className);
+}
+
+document.addEventListener('click', function (e) {
+    if (hasClass(e.target, 'close')) {
+        // .bu clicked
+        console.log("Close");
+        // Do your thing
+    } else if (hasClass(e.target, 'test')) {
+        // .test clicked
+        // Do your other thing
+    }
+}, false);*/
+
+$(document).on("close.bs.alert", ".alert", function(event) {
+//$(document).on("click", "button.close", function(event) {
+//$('.attr_selected').on('closed.bs.alert', function () {
+    //var del_id = $(this).parent('div.attr_selected').attr("a_id");
+    var arr = [];
+    var del_id = $(this).attr("a_id");
+    var del_elem = $(this);
+    del_elem.remove();
+    var st = '';
+    var span_list = '';
+    console.log("DELETE = " + del_id);
+    $("div.attr_selected").each(function( index ) {
+        arr.push($(this).attr("a_id"));
+        st += "+" + $(this).attr("a_id")
+        span_list += '<span class="badge badge-info mr-1">' + $(this).text() + '</span>';
+        })
+//    const num = del_id;
+//    const idx = arr.indexOf(num);
+//    arr.splice(idx, idx !== -1 ? 1 : 0);
+    var res_arr = "+" + arr.join("+")
+    $("#main_link").html("<strong>Фільтр: </strong><a href='/invoice/attribute/values/"+ res_arr +"/view/'><strong>ID = "+ res_arr +"</strong></a> " + span_list);
+  })
+
 </script>
 
 
@@ -188,6 +244,35 @@ function delete_all_attr_val_by_id(data){
 
 <div class="container mw-100">
 
+<div class="alert alert-warning alert-dismissible fade show" role="alert" id="main_link">
+  Фільтр:
+<!--   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>  --> 
+</div>
+
+<div class="row justify-content-between">
+    <div class="col-12 col-md-6">
+
+<div class="input-group mb-3">
+  <input type="text" id="s_category" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="Назва категорії товару" aria-label="Username" aria-describedby="basic-addon1">
+</div>
+
+<div class="input-group mb-3">
+  <input type="text"  id="s_attr_val" class="form-control {% if form.work_type.errors %}  is-invalid {% endif %}" placeholder="Пошук властивостей/атрибутів. [Всі] або [all] - виводить повний перелік належних атрибутів." aria-label="Username" aria-describedby="basic-addon1" value="{{ work.name }}"/>
+</div>
+
+<div id="show_attr_url" href="">
+
+{#    <h1><span class="badge badge-primary" id="show_attr_url" href=""></span></h1> #}
+</div>
+
+     </div>
+</div>
+
+
+
+{% if show_attr %}
 {% for item in attr_list %}
 
 <div class="alert alert-dark" role="alert">
@@ -215,32 +300,9 @@ function delete_all_attr_val_by_id(data){
 
 {% endfor %}
 
+{% endif %}
 
 
-  
-
-  <div class="row justify-content-between">
-    <div class="col-12 col-md-6">
-
-
-
-<div class="input-group mb-3">
-  <input type="text" id="s_client" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="Прізвище, імя клієнта" aria-label="Username" aria-describedby="basic-addon1">
-</div>
-
-
-
-<div class="input-group mb-3">
-  <input type="text"  id="s_id_work_type" class="form-control {% if form.work_type.errors %}  is-invalid {% endif %}" placeholder="Пошук роботи" aria-label="Username" aria-describedby="basic-addon1" value="{{ work.name }}"/>
-</div>
-
-
-
-
-
-
-	 </div>
-	</div>
 </div>
 
  

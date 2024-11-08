@@ -1896,42 +1896,9 @@ $("body").on('click', '#add_param', function() {
     var type_ids = []
     
     table.rows({ selected: true }).eq( 0 ).each( function (idx) {
-        //var row_sel = $(table.row( idx ).node())[0];
-
         // JQuery method
         var jqf_col = $('tr#'+$(table.row( idx ).node()).attr('id')).find('td.c_name');
         var jqf_col_type = $('tr#'+$(table.row( idx ).node()).attr('id')).find('td.edit_type');
-        console.dir(table.cell( idx, 3 ).node());
-        console.log("JQuery find = " +  jqf_col[0].innerText + " | " +   table.cell( idx, 2 ).node().getAttribute('cat_id') );//jqf_col_type[0].innerText); // nodeName. .find(".c_name:first"); getAttribute('id_type')
-        
-        
-/*         console.log('Cell one  = ' + table.cell( idx, 6 ).data()); // dont change col number after show/hide columns in table
-        console.log("IDX [sel row num] = " + idx);
-        var row_sel = $(table.row( idx ));
-        console.dir( table.row() ); //.row(idx) ); //.cells(idx, ".c_name") );
-        console.log("ROW sel Class cname = " + table.row(idx).data()); //cells("c_name").data() );
-        
-        console.dir(table.row( idx ).node().cells);
-        
-        for (let item in table.row( idx ).node().cells)  {
-            //var data = this.data();
-            console.log("EVERY = " + item);
-            // ... do something with data(), or this.node(), etc
-        };
-        		
-               
-        console.log( "C-name = " + $(table.row( idx ).node())[0] );     
-        console.dir($(table.row( idx ).node())[0] );
-        console.dir($(table.row( idx ).node())[0].cells );
-
-        for (var i=0; i < $(table.row( idx ).node())[0].cells.length; i++){
-            console.log("FORloop by COL in sel ROW  = " + table.cell(idx, i+1).data());
-            console.log("FORloop innerText  = " + table.cell(idx, i+1).node() ); //innerText
-            console.dir(table.cell(idx, i+1));
-        }
- */        
-       
-        console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id')); // + " - " + table.cell( idx,6 ).data() ); //typeof(table.cell( idx,6 ).data()) );
         ids.push( $(table.row( idx ).node()).attr('id') );
         index.push( idx );
         type_ids.push( jqf_col_type );
@@ -2175,6 +2142,13 @@ $("body").on('click', '#price_tag_button', function() {
 	}
 })
 
+$("body").on('click', '#th_sum_prev_count', function() {
+    var sum_prev_count = 0;
+    $("td.prev_sales").each(function( index ) {
+	   sum_prev_count +=  parseFloat( $( this ).text() ) 
+    })
+    $(this).text(sum_prev_count);
+});
 
 function show_tr_year(obj){
 	$( "#table_body").find( "tr:not([iyear*='{{cur_year}}'])" ).toggle();
@@ -2201,8 +2175,6 @@ function show_year_sales(cell){
                     else {
                         var st_lines = ""                    	
                     	for (i in data.year_count) {
-                    		console.log("Year [" + data.year_count[i]['year'] + "] - " + data.year_count[i]['count']);
-                    		//$('#sales_alert').alert();
                     		st_lines = st_lines + "Year [" + data.year_count[i]['year'] + "] - " + data.year_count[i]['count'] + " шт.<br>"
                     	}
                     	
@@ -2312,6 +2284,9 @@ function show_year_sales(cell){
      <span id="span_show_select" class="badge badge-secondary" title="Показати/приховати рядок вибору по категорії/виробнику" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">unfold_more</i></span>
      <span class="badge badge-secondary">Список наявного товару</span> <span class="badge badge-info" id="c_c">{{company_name|capfirst}}{{category_name|capfirst}}</span>
      <span class="badge badge-info">{{head_text}}</span>
+     {% for item in head_text_array %}
+        <span class="badge badge-info">{{item}}</span>
+     {% endfor %}
 
 {% if category_name %}     
 	 <a href="{% url 'category-id-list' category_id %}" title="Показати наявні записи" data-toggle="tooltip" data-placement="top">
@@ -2755,7 +2730,7 @@ local_offer
     	<th></th>
     	<th></th>
     	<th></th>
-    	<th></th>
+    	<th id="th_sum_prev_count"></th>
     	<th>Сума: {{zcount|floatformat}}</th>
     	<th></th>    	
     	<th>{{zsum}} грн.</th>

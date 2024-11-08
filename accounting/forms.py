@@ -1143,7 +1143,8 @@ class BoxNameEditForm(forms.ModelForm):
             self.add_error('name', "В назві не вистачає частини розташування. Перевірте поле уважніше!")
         if name.find(' ') >= 0 :
             self.add_error('name', "В назві є пробіли. Виправіть поле!")
-
+        if BoxName.objects.filter(name = name).count() != 0:
+            self.add_error('name', "Така назва місця вже існує!")
         sel_let = ''
         res = False
         if shop.name.upper()[0] == u"М":
@@ -1224,9 +1225,13 @@ class BoxNameForm(forms.ModelForm):
             sel_let = 'm'
         if shop.name.upper()[0] == u"К":
             sel_let = 'k'
-        n0 = name.lower()[0] or ''            
-        if sel_let == name.lower()[0]:
-            res = True
+        n0 = None           
+        try:
+            n0 = name.lower()[0] or ''
+            if sel_let == name.lower()[0]:
+                res = True
+        except:
+            n0 = ''
         if res == False:
             #raise forms.ValidationError("Місце має не вірну назву або ви вибрали не правильний магазин!")
             self.add_error('name', "Місце має не вірну назву або ви вибрали не правильний магазин!")
