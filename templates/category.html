@@ -2,21 +2,137 @@
 <html lang="en">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-<h1>Створення нового типу компонентів</h1>
-    <form action="" method="POST">
-        <table>
-            {{ form.as_ul }}
-        </table>
-        <p><input type="submit" value="Save"></p>
-    </form>
+{% load poll_extras %}
 
-    
-<br>    
-<a href="/category/view/"></a>
-<br>    
-<a href="/">HOME</a>
+<div class="container ml-0 mt-1 mb-1">
+<div class="row">
+<div class="col-auto mb-1">
+    <span class="badge badge-secondary "><h1>Створення нового типу компонентів</h1></span>
+</div>
+</div>
 
-          
-    
+<div class="row">
+{% if form.non_field_errors %}
+<div class="col-12">
+    <div class="alert alert-danger" role="alert">
+      {% for error in form.non_field_errors %}
+        {{ error }}
+      {% endfor %}
+    </div>
+</div>
+{% endif %}
+</div>
 
+<div class="row">
+<div class="col-12">
+<form action="" method="POST">
+  <div class="form-row">
+    <div class="col-md-6 mb-3">
+      <label for="validationServer01">Name (Англійською)</label>
+      {{ form.name|add_attr:"class:form-control" }}
+{#      <input type="text" class="form-control is-valid" id="validationServer01" value="Mark" required> #}
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+    <div class="col-md-6 mb-3">
+      <label for="validationServer02">Назва (Українською)</label>
+      {{ form.name_ukr|add_attr:"class:form-control" }}
+{#      <input type="text" class="form-control is-valid" id="validationServer02" value="Otto" required> #}
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="col-md-6 ">  
+  <div class="mb-3">
+    <label for="validationTextarea">Description</label>
+    {{ form.description|add_attr:"class:form-control" }}
+{#    <textarea class="form-control is-invalid" id="validationTextarea" placeholder="Required example textarea" required></textarea> #}
+    <div class="invalid-feedback">
+      Please enter a message in the textarea.
+    </div>
+  </div>
+  </div>
+    <div class="col-md-6">  
+  <div class="mb-3">
+    <label for="validationTextarea">Опис</label>
+    {{ form.description_ukr|add_attr:"class:form-control" }}
+{#    <textarea class="form-control is-invalid" id="validationTextarea" placeholder="Required example textarea" required></textarea> #}
+    <div class="invalid-feedback">
+      Please enter a message in the textarea.
+    </div>
+  </div>
+  </div>
+  </div>
+  <div class="form-row">
+    <div class="col-md-6">
+      <label for="validationServer01">Synonim (Англійською)</label>
+      {{ form.synonym|add_attr:"class:form-control" }}
+{#      <input type="text" class="form-control is-valid" id="validationServer01" value="Mark" required> #}
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+    <div class="col-md-6">
+      <label for="validationServer02">Синонім (Українською)</label>
+      {{ form.synonym_ukr|add_attr:"class:form-control" }}      
+{#      <input type="text" class="form-control is-valid" id="validationServer02" value="Otto" required> #}
+      <div class="valid-feedback">
+        Looks good!
+      </div>
+    </div>
+  </div>
 
+  
+  <div class="form-row">
+    <div class="col-md-6 mb-3">
+      <label for="validationServer03">Bike order (порядок сортування при створенні велосипеду)</label>
+      {{ form.bike_order|add_attr:"class:form-control" }}
+{#      <input type="text" class="form-control is-invalid" id="validationServer03" aria-describedby="validationServer03Feedback" required> #}
+      <div id="validationServer03Feedback" class="invalid-feedback">
+        Please provide a valid city.
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <label for="validationServer04">Група</label>
+      {{ form.group|add_attr:"class:form-control" }}
+<!--       <select class="custom-select is-invalid" id="validationServer04" aria-describedby="validationServer04Feedback" required>
+        <option selected disabled value="">Група</option>
+        <option>...</option>
+      </select>  -->
+      <div id="validationServer04Feedback" class="invalid-feedback">
+        Please select a valid state.
+      </div>
+    </div>
+    <div class="col-md-3 mb-3 mt-auto">
+  <div class="form-group">
+    <div class="form-check">
+      <label class="form-check-label" for="invalidCheck3">
+        Наявність іконки
+      </label>
+      {{ form.ico_status|add_attr:"class:form-control" }}
+{#      <input class="form-check-input is-invalid" type="checkbox" value="" id="invalidCheck3" aria-describedby="invalidCheck3Feedback" required> #}
+      <div  id="invalidCheck3Feedback" class="invalid-feedback">
+        You must agree before submitting.
+      </div>
+    </div>
+  </div>
+    </div>
+  </div>
+  
+  <div class="form-row">
+    <div class="col">
+
+  <button class="btn btn-success w-100" type="submit">Додати</button>
+</div>
+</div>  
+  
+  
+</form>
+
+</div>
+</div>
+
+</div>

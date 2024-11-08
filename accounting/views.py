@@ -3207,23 +3207,17 @@ def category_lookup(request):
                 data = serializers.serialize("json", model_results, fields = ('id', 'name_ukr', 'name') )
     return HttpResponse(data)                
 
-
+@csrf_exempt
 def category_add(request):
     a = Type()
     if request.method == 'POST':
         form = CategoryForm(request.POST, instance = a)
         if form.is_valid():
-            name = form.cleaned_data['name']
-            description = form.cleaned_data['description']
-            name_ukr = form.cleaned_data['name_ukr']
-            description_ukr = form.cleaned_data['description_ukr']
-
-            Type(name=name, description=description, name_ukr=name_ukr, description_ukr=description_ukr).save()
+            form.save();
             return HttpResponseRedirect('/category/view/')
     else:
         form = CategoryForm(instance = a)
-    #return render_to_response('category.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'category.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'form': form, 'weblink': 'category.html'})
 
 @csrf_exempt
 def category_edit(request, id):

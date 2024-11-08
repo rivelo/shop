@@ -220,6 +220,17 @@ cursor: pointer;
     float:right;
 }
 
+.smallText {
+    font-size: 12pt;
+}
+
+
+#catalog_name {
+    font-style: bold;
+    font-weight: bold;
+    color: #2c6b1c;
+}
+
 </style>
         
 
@@ -1382,7 +1393,7 @@ function box_element(box_name, box_desc, shop, count, box_id) {
     var ins_dom = ''; 
     var counters = '';
     counters = '<span class="click_count badge badge-secondary ml-2 mr-2" ">1</span><span class="click_count badge badge-secondary mr-2">2</span><span class="click_count badge badge-secondary mr-2">3</span><span class="click_count badge badge-secondary mr-2">5</span><span class="click_count badge badge-secondary mr-2">10</span>'
-    ins_dom = '<div class="box_block"><h2> <span class="badge badge-primary">' + box_name + '</span> - ' + box_desc + ' ['+ shop +'] </h2>' +
+    ins_dom = '<div class="box_block"><h2><a href="/storage/box/'+ box_id +'/list/" title="Перейти до ящика: '+ box_name +'" data-toggle="tooltip" data-html="true" data-placement="bottom"> <span class="badge badge-primary">' + box_name + '</span></a> - <small class="smallText">' + box_desc + ' ['+ shop +'] </small></h2>' +
         '<label for="spinner_addcount">Кількість:</label>' +
         '<input class="spinner_addcount ml-2 w-50" box_id="'+ box_id +'" name="value" value="0" type="number" min=0 max="'+ count +'" >' +counters+ '</div> <hr>';
 return ins_dom;
@@ -1478,11 +1489,12 @@ $("#dialog_addboxname").dialog({
 
 
 $(document).on("click", ".addboxname", function(event) {
-    console.log("Click is Work! ID = " + $(this).parents('tr').attr('id'));	
+//    console.log("Click is Work! ID = " + $(this).parents('tr').attr('id'));	
     $("#dtext_item").attr({"ids": $(this).parents('tr').attr('id')});
     $("#dialog_addboxname").dialog("open");
     $("#catalog_name").remove();
-    $("#dtext_item").append("<span id='catalog_name'>" + $(this).parents('tr').find('td.c_name').attr('data-name') + "</span><hr>");
+    $("#dtext_item").append("<span id='catalog_name'>" + $(this).parents('tr').find('td.c_name').attr('data-name') + "<hr></span>");
+//    $('#dialog_addboxname > [data-toggle="tooltip"]').tooltip();
 //    $("#dtext_item").append("<div class='row' id='catalog_name'><div class='col'>" + $(this).parents('tr').find('td.c_name').html() + "</div></div><hr>");
   //  catalog_item
 });
@@ -2218,7 +2230,6 @@ function show_year_sales(cell){
 <div class="row catalog_item">
 </div>
 </div>
-
 <label>Наявні ящики:</label>
 <div class="box_container">
 <h2>
