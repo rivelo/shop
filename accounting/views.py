@@ -3274,8 +3274,13 @@ def category_attr_list(request, show_attr=False):
     return render(request, 'index.html', context)
 
 
-def category_attr_values_list(request):
-    list = CatalogAttributeValue.objects.all()
+def category_attr_values_list(request, aid=None):
+    list = None
+    if aid :
+        cattr_id = CatalogAttribute.objects.filter(pk = int(aid))
+        list = CatalogAttributeValue.objects.filter(pk = aid)
+    else:        
+        list = CatalogAttributeValue.objects.all()
     context = {'attr_val_list': list, 'weblink': 'category_attr_values_list.html'}
     context.update(custom_proc(request)) 
     return render(request, 'index.html', context)
@@ -4300,20 +4305,16 @@ def catalog_attr_lookup(request):
                 value = request.POST[u'query']
                 type_id = request.POST[u'type'] #[5, 84]
                 t_ids = Type.objects.filter(id__in = type_id.split(','))
-
-                if len(value) > 2:
+                if len(value) >= 2:
                     #model_results = None
                     if value == u'всі' or value == u'all':
                         model_results = CatalogAttribute.objects.filter(type__in = t_ids)
                     else:
                         model_results = CatalogAttribute.objects.filter(name__icontains=value, type__in = t_ids)
-                    #model_results = CatalogAttribute.objects.all()
-                    #attr_val_array = CatalogAttributeValue.objects.filter(attr_id__in = model_results)
-                    attr_val_array = CatalogAttributeValue.objects.filter(attr_id__in = model_results).select_related('attr_id')
+                    attr_val_array = CatalogAttributeValue.objects.filter(Q(value__icontains = value) | Q(attr_id__name__icontains = value), attr_id__type__in = t_ids).select_related('attr_id')
+                    #attr_val_array = CatalogAttributeValue.objects.filter(attr_id__in = model_results).select_related('attr_id')
                     for i in attr_val_array:
                         results.append({'attr_id': i.attr_id.id, 'attr_name': i.attr_id.name, 'value': i.value, 'value_float': i.value_float, 'id': i.pk, 'description': i.description})
-                    #attr_val_array = CatalogAttributeValue.objects.filter(attr_id__in = model_results).prefetch_related('attr_id')
-                    #data = serializers.serialize("json", model_results, fields=('name','id', 'description',))
                     data = serializers.serialize("json", attr_val_array, fields=('value', 'value_float', 'description', 'attr_id.name', 'attr_id'))
             attr_name = "Not found"
             if model_results.first():
@@ -4322,7 +4323,6 @@ def catalog_attr_lookup(request):
             else:
                 msg = u"Параметрів для цього товару не знайдено"
             json = simplejson.dumps({'attr_name': attr_name, 'status': False, 'msg': msg, 'data': results})    
-#    return HttpResponse(data_res, content_type='application/json')
     return HttpResponse(json, content_type='application/json')
 
 

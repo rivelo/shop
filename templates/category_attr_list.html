@@ -78,7 +78,7 @@ $(document).ready(function() {
                              }
              })    		
         },
-        minLength: 3,
+        minLength: 2,
         select: function( event, ui ) {
         	
         	var a_div = alert_add(ui.item.pk_id, ui.item.label)
@@ -286,7 +286,10 @@ $(document).on("close.bs.alert", ".alert", function(event) {
 <div class="container mw-100">
   <div class="row row_attr_val" attr_val_id="{{val.id}}">
     <div class="col-11 attr_val_text">
-        <a href="{% url 'invoice-attribute-val-id-list' val.id %}" >{{val.value|default:" - "}} / {{val.value_float|default:" - "}}</a> - {{val.created_date}}
+        <a href="{% url 'invoice-attribute-val-id-list' val.id %}" title="Перейти до продажу товарів" data-toggle="tooltip" data-placement="top">{{val.value|default:" - "}} / {{val.value_float|default:" - "}}</a> - {{val.created_date}}
+        <a href="{% url 'category-id-attr-value-list' val.id %}" >
+        <i class="material-icons ml-2" title="Переглянути товари з цим атрибутом. Можливість видалити атрибут." data-toggle="tooltip" data-placement="top">input</i>
+        </a>
     </div>
     <div class="col offset text-right" >
 {% if request.user|has_group:"admin" %}    

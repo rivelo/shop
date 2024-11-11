@@ -1917,14 +1917,9 @@ $("body").on('click', '#add_param', function() {
                 data: { query: $("#s_param").val(), type: $("#s_param").attr('type_id') }, //$("#s_param").attr('type_id') },
                 dataType: "json",
                 success: function( data ) {
-//                    console.log("Data[attr_name] = " + data['attr_name']);
                     //var dp = JSON.parse(data['data'])
                     var dp = data['data']
-                    for (const j in data){
-                    	console.log("HAsh = " + data[j]);
-                    };
                     response( $.map( dp, function( item ) {
-                    	   console.log("data map = " + item);                                            	
                             return {
                                 //label: data['attr_name'] + " >>> " + item.pk + ": " + item.fields.value + " / "+ item.fields.value_float + " | " + item.fields.description ,
                                 label: item['attr_name'] + " >>> " + item.id + ": " + item.value + " / "+ item.value_float + " | " + item.description ,
@@ -1935,9 +1930,8 @@ $("body").on('click', '#add_param', function() {
                             }
             })
         },
-        minLength: 3,
+        minLength: 2,
         select: function( event, ui ) {
-//            console.log("Type ID = " + ui.item.pk_id);
             $('#s_param').attr('attr_id', ui.item.pk_id);
         },
         open: function() {

@@ -198,6 +198,7 @@ urlpatterns = [
     url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}),
     url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True}),
     url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True}),    
+    url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}),
 #    url(r'^invoice/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list_by_manufacturer'),
     url(r'^invoice/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-manufacture-id-list"),    
     url(r'^invoice/manufacture/(?P<mid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True}, name="manufacture_id_list_all"),
@@ -216,6 +217,8 @@ urlpatterns = [
     url(r'^invoice/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True}, name="invoice-attribute-values-ids-list"),
     url(r'^invoice/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-cat-attribute-values-ids-list"),
     url(r'^invoice/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True}, name="invoice-cat-attribute-values-ids-list"),
+    url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-cat-attribute-values-ids-list"),
+    url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': True}, name="invoice-cat-attribute-values-ids-list"),
     
     url(r'^invoice/attribute/(?P<attr_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-id-list"),
     url(r'^invoice/year/(?P<sel_year>\d+)/attribute/val/(?P<attr_val_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-val-id-list"),
@@ -225,6 +228,7 @@ urlpatterns = [
     url(r'^invoice/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}),
     url(r'^invoice/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True}),
     url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True}),
+    url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}),
     url(r'^invoice/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True}, name="category-id-list-all"),
     url(r'^invoice/list/(?P<limit>\d+)/view/$', catalog.invoicecomponent_list),
     url(r'^invoice/price/update/(?P<upday>\d+)/view/$', catalog.invoicecomponent_list),
@@ -255,6 +259,7 @@ urlpatterns = [
     url(r'^category/plus/manufacture/lookup/$', catalog.category_manufacture_lookup, name="cat-man-lookup"),
     url(r'^category/attr/view/$', catalog.category_attr_list, {'show_attr': True}, name="category-attr-list"),
     url(r'^category/attr/values/view/$', catalog.category_attr_values_list, name="category-attr-value-list"),
+    url(r'^category/attr/(?P<aid>\d+)/values/view/$', catalog.category_attr_values_list, name="category-id-attr-value-list"),
 
     url(r'^attr/filter/$', catalog.category_attr_list, name="attr-filter"),
 
