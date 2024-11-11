@@ -148,7 +148,9 @@ $(document).ready(function() {
 			<a class="dropdown-item" href="/catalog/manufacture/view/">По виробнику</a>
 			<a class="dropdown-item" href="/catalog/search/id/">Пошук</a>
 		<div class="dropdown-divider"></div>			
-			<a class="dropdown-item" href="{% url 'category-list' %}">Класифікатор</a>
+			<a class="dropdown-item" href="{% url 'category-list' %}"><i class="material-icons">category</i> Класифікатор</a>
+			<a class="dropdown-item" href="{% url 'category-add' %}">Створити нову групу</a>
+			<div class="dropdown-divider"></div>
 			<a class="dropdown-item" href="{% url 'category-attr-list' %}">Параметри товарів</a>
 			<a class="dropdown-item" href="{% url 'category-attr-value-list' %}">Значення параметрів</a> 
 		<div class="dropdown-divider"></div>

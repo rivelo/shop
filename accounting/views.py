@@ -2548,13 +2548,14 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
     type_list = Type.objects.all()
     company_name = '' 
     cat_name = ''
-    list = None
+    list = None # QuerySet
     id_list = []
     zsum = 0
     zcount = 0
     head_text = ''
     head_text_array = []
     attr_ids_list = []
+    list_res = None
       
 # Search by Name field    
     if 'name' in request.GET and request.GET['name']:
@@ -2565,9 +2566,11 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
             return render(request, 'index.html', context)
         if name.isdigit() == True and (len(name) >= 12):
             id = name
-            list = InvoiceComponentList.objects.filter( Q(catalog__barcode__icontains=id) | Q(catalog__barcode_upc__icontains=id) | Q(catalog__barcode_ean__icontains=id) ).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')#.order_by('catalog__pk')            
+#            list = InvoiceComponentList.objects.filter( Q(catalog__barcode__icontains=id) | Q(catalog__barcode_upc__icontains=id) | Q(catalog__barcode_ean__icontains=id) ).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')#.order_by('catalog__pk')            
+            list = InvoiceComponentList.objects.filter( Q(catalog__barcode__icontains=id) | Q(catalog__barcode_upc__icontains=id) | Q(catalog__barcode_ean__icontains=id) )            
         else:
-            list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__dealer_code', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')        
+            list = InvoiceComponentList.objects.filter(catalog__name__icontains=name)        
+            #list = InvoiceComponentList.objects.filter(catalog__name__icontains=name).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__dealer_code', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
 # Search by Id field
     elif  'id' in request.GET and request.GET['id']:
         id = request.GET['id'].strip()
@@ -2575,44 +2578,52 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
             context = {'weblink': 'error_message.html', 'mtext': u'[%s] Введіть більше символів  для пошуку' % id, }
             context.update(custom_proc(request))
             return render(request, 'index.html', context)
-        print ("Get id - OK | %s|" % id)
+#        print ("Get id - OK | %s|" % id)
         if id.isdigit() == True and (len(id) >= 12):
-            print " is Barcode = %s" % id
-            list = InvoiceComponentList.objects.filter( Q(catalog__barcode__icontains=id) | Q(catalog__barcode_upc__icontains=id) | Q(catalog__barcode_ean__icontains=id) ).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')#.order_by('catalog__pk')            
-        
+#            print " is Barcode = %s" % id
+            list = InvoiceComponentList.objects.filter( Q(catalog__barcode__icontains=id) | Q(catalog__barcode_upc__icontains=id) | Q(catalog__barcode_ean__icontains=id) )            
+            #list = InvoiceComponentList.objects.filter( Q(catalog__barcode__icontains=id) | Q(catalog__barcode_upc__icontains=id) | Q(catalog__barcode_ean__icontains=id) ).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')#.order_by('catalog__pk')            
         try:
             # Parse QR code from item
             id_res = re.search(r"(?<=rivelo.com.ua/component/)[0-9]+", id.lower()).group()
-            list = InvoiceComponentList.objects.filter(Q(catalog__id=id_res)).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')            
+            list = InvoiceComponentList.objects.filter(Q(catalog__id=id_res))            
+#            list = InvoiceComponentList.objects.filter(Q(catalog__id=id_res)).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')            
         except:
             if not list:               
-                list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) | Q(catalog__manufacture_article__icontains=id) ).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').order_by('catalog__manufacturer')
-#                if not list.count():
-#                    id = id.replace(' ', '')
-#                    list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')                    
-#                    list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) ).values('catalog').annotate(sum_catalog=Sum('count')).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+                list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) | Q(catalog__manufacture_article__icontains=id) ).order_by('catalog__manufacturer')
+#                list = InvoiceComponentList.objects.filter(Q(catalog__ids__icontains=id) | Q(catalog__dealer_code__icontains=id) | Q(catalog__manufacture_article__icontains=id) ).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').order_by('catalog__manufacturer')                
     if by_id:
-        list = InvoiceComponentList.objects.filter(catalog__id = by_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')        
-        
+        list = InvoiceComponentList.objects.filter(catalog__id = by_id)        
+#        list = InvoiceComponentList.objects.filter(catalog__id = by_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')        
+
+    if list == None:
+        list = InvoiceComponentList.objects.all()
+
     if mid:
         if all == True:
-            list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+            list = list.filter(catalog__manufacturer__id=mid)
+#            list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')            
         else:
-            list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)
+#            list = InvoiceComponentList.objects.filter(catalog__manufacturer__id=mid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)
+            list = list.filter(catalog__manufacturer__id=mid).exclude(catalog__count = 0)            
         company_name = Manufacturer.objects.get(id=mid)
     if cid:
         if all == True:        
-            list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+            list = list.filter(catalog__type__id=cid)
+            #list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')            
         else:
-            list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)
+            list = list.filter(catalog__type__id=cid).exclude(catalog__count = 0)
+#            list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)            
         cat_name = type_list.get(id=cid)
     if attr_val_id:
         cav = CatalogAttributeValue.objects.filter(id = attr_val_id).values('value', 'value_float', 'attr_id__name')
         head_text = cav.first()['attr_id__name'] + ' >>> ' + cav.first()['value']
         if all == True:        
-            list = InvoiceComponentList.objects.filter(catalog__attributes__id=attr_val_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+            list = list.filter(catalog__attributes__id=attr_val_id)
+#            list = InvoiceComponentList.objects.filter(catalog__attributes__id=attr_val_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')            
         else:
-            list = InvoiceComponentList.objects.filter(catalog__attributes__id=attr_val_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)
+            list = list.filter(catalog__attributes__id=attr_val_id).exclude(catalog__count = 0)
+#            list = InvoiceComponentList.objects.filter(catalog__attributes__id=attr_val_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)
     if attr_val_ids:
         f_str_ids = re.findall("[\+]\d+", attr_val_ids)
         for i in f_str_ids:
@@ -2621,42 +2632,53 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
         for i in cav:
             tmp_text = i['attr_id__name'] + ' >>> ' + i['value']
             head_text_array.append(tmp_text)
-        if all == True:        
-            list = InvoiceComponentList.objects.filter(catalog__attributes__id__in = attr_ids_list).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
-        else:
-            list = InvoiceComponentList.objects.filter(catalog__attributes__id__in = attr_ids_list).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)
+        for i in attr_ids_list:
+            if all == True:        
+                list = list.filter(catalog__attributes__id = i)
+            #list = InvoiceComponentList.objects.filter(catalog__attributes__id__in = attr_ids_list).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')            
+            else:
+                list = list.filter(catalog__attributes__id = i).exclude(catalog__count = 0)
+            #list = InvoiceComponentList.objects.filter(catalog__attributes__id__in = attr_ids_list).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)
     if attr_id:
         ca = CatalogAttribute.objects.filter(id = attr_id).values('name')
         head_text = ca.first()['name']
         if all == True:        
-            list = InvoiceComponentList.objects.filter(catalog__attributes__attr_id=attr_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+            list = list.filter(catalog__attributes__attr_id=attr_id)
+#            list = InvoiceComponentList.objects.filter(catalog__attributes__attr_id=attr_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')            
         else:
-            list = InvoiceComponentList.objects.filter(catalog__attributes__attr_id=attr_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)
+            list = list.filter(catalog__attributes__attr_id=attr_id).exclude(catalog__count = 0)
+#            list = InvoiceComponentList.objects.filter(catalog__attributes__attr_id=attr_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)            
 
     if isale == True:
-        list = InvoiceComponentList.objects.filter(catalog__sale__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+        list = list.filter(catalog__sale__gt = 0)
+#        list = InvoiceComponentList.objects.filter(catalog__sale__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
     if enddate == True:
-        list = InvoiceComponentList.objects.filter(catalog__date__isnull = False, catalog__count__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update', 'catalog__date').order_by('-catalog__date')
-
+        list = list.filter(catalog__date__isnull = False, catalog__count__gt = 0).order_by('-catalog__date')
+#        list = InvoiceComponentList.objects.filter(catalog__date__isnull = False, catalog__count__gt = 0).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update', 'catalog__date').order_by('-catalog__date')        
     if upday != 0:
         curdate=datetime.datetime.today()
         update = curdate - datetime.timedelta(days=int(upday))
-        list = InvoiceComponentList.objects.filter(catalog__last_update__gt = update).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
-    
+        list = list.filter(catalog__last_update__gt = update)
+#        list = InvoiceComponentList.objects.filter(catalog__last_update__gt = update).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')        
+        
+#    list_res = list.values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')    
+    list_res = list.values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
     if limit == 0:
         try:
             if enddate == True:
-                list = list.annotate(sum_catalog=Sum('count')).order_by("catalog__date")
+                list_res = list_res.annotate(sum_catalog=Sum('count')).order_by("catalog__date")
             else:
-                list = list.annotate(sum_catalog=Sum('count')).order_by("catalog__type")
+                list_res = list_res.annotate(sum_catalog=Sum('count')).order_by("catalog__type")
         except:
-            list = InvoiceComponentList.objects.none()        
+            list_res = InvoiceComponentList.objects.none()
     else:
-        list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__dealer_code', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
+        list_res = list.values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__dealer_code', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
+#        list_res = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__dealer_code', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').annotate(sum_catalog=Sum('count')).order_by("catalog__type")        
 #        list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__id').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
-        list = list[:limit]
-    
-    for item in list:
+        list_res = list_res[:limit]
+
+
+    for item in list_res:
         id_list.append(item['catalog'])
 
     new_list = []
@@ -2672,7 +2694,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
 
     cat_list = Catalog.objects.filter(pk__in=id_list).values('type__name_ukr', 'description', 'locality', 'id', 'manufacturer__id', 'manufacturer__name', 'photo_url', 'youtube_url', 'last_update', 'user_update__username')        
 #    arrive_list = Catalog.objects.filter(pk__in = id_list).new_arrival()
-    for element in list:
+    for element in list_res:
         element['balance']=element['sum_catalog']
         element['c_sale']=0
         for sale in sale_list:
@@ -2707,22 +2729,11 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
 #            element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
 #        if element['balance'] == 0:
 #            print "Element = " + str(element)
-    
-# update count field in catalog table            
-        #upd = Catalog.objects.get(pk = element['catalog'])
-        #upd.count = element['balance'] 
-        #upd.save()
-
-#    calendar = embeded_calendar()
-#    cat_discount = cat_name.get_discount()
-#    vars.update({'cat_discount': cat_discount})
-#    categ = type_list.get(id=cid)
-#    vars.update({'type_obj': categ})
-    
     cur_year = datetime.date.today().year        
-    vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'cur_year': cur_year, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'qsearch_lookup' : mc_search, 'head_text': head_text, 'head_text_array': head_text_array}
+    vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list_res, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'cur_year': cur_year, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'qsearch_lookup' : mc_search, 'head_text': head_text, 'head_text_array': head_text_array}
     vars.update(custom_proc(request))
     return render(request, 'index.html', vars)
+
 
 @csrf_exempt
 def invoicecomponent_print(request):

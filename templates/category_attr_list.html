@@ -94,7 +94,8 @@ $(document).ready(function() {
                 st += "+" + $(this).attr("a_id")
                 span_list += '<span class="badge badge-info mr-1">' + $(this).text() + '</span>';
                 })
-                $("#main_link").html("<strong>Фільтр: </strong><a href='/invoice/attribute/values/"+ st +"/view/'><strong>ID = "+ st +"</strong></a> " + span_list);
+                var cat_id = $('#s_attr_val').attr('type_id');
+                $("#main_link").html("<strong>Фільтр: </strong><a href='/invoice/category/"+ cat_id +"/attribute/values/"+ st +"/view/'><strong>ID = "+ st +"</strong></a> " + span_list);
                 
 	    	
         },
@@ -219,7 +220,7 @@ $(document).on("close.bs.alert", ".alert", function(event) {
     del_elem.remove();
     var st = '';
     var span_list = '';
-    console.log("DELETE = " + del_id);
+//    console.log("DELETE = " + del_id);
     $("div.attr_selected").each(function( index ) {
         arr.push($(this).attr("a_id"));
         st += "+" + $(this).attr("a_id")
@@ -228,8 +229,9 @@ $(document).on("close.bs.alert", ".alert", function(event) {
 //    const num = del_id;
 //    const idx = arr.indexOf(num);
 //    arr.splice(idx, idx !== -1 ? 1 : 0);
-    var res_arr = "+" + arr.join("+")
-    $("#main_link").html("<strong>Фільтр: </strong><a href='/invoice/attribute/values/"+ res_arr +"/view/'><strong>ID = "+ res_arr +"</strong></a> " + span_list);
+    var res_arr = "+" + arr.join("+");
+    var cat_id = $('#s_attr_val').attr('type_id');
+    $("#main_link").html("<strong>Фільтр: </strong><a href='/invoice/category/"+ cat_id +"attribute/values/"+ res_arr +"/view/'><strong>ID = "+ res_arr +"</strong></a> " + span_list);
   })
 
 </script>
