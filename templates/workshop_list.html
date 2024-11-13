@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Майстерня</title>
+<title>Виконані роботи за {{sel_day}}.{{sel_month}}.{{sel_year}}</title>
 
 <link rel="stylesheet" type="text/css" href="/media/css/table.css"> 
 
@@ -79,8 +79,15 @@ $(".w_del").click(function(){
     	res();
 	});
  
-});
+    $("td.work_price").click( function() {
+    	console.log("Click work");
+        $(this).children("div.mul_price").toggle();
+    });
+	
+    $("div.mul_price").hide();
     
+}); // end Ready func
+
 </script>
 
 <body onLoad="res()">
@@ -209,8 +216,11 @@ $(".w_del").click(function(){
 	<span class="badge badge-success" title="Заявка: {{type.ticket}}">{{type.ticket.id}}</span>
 	</td>	
 	
-	<td align='center'>       
+	<td align='center' class="work_price">       
 	{{type.price}}
+	<div class="mul_price" >
+	<span class="badge badge-dark">x2</span> <span class="badge badge-dark ml-2">x3</span>
+	</div>
 	</td>
 	<td>       
 	{{type.description|linebreaks}}

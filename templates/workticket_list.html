@@ -2,19 +2,9 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Майстерня/Заявки</title>
 
-{# <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> #}
-
-{#<link rel="stylesheet" href="/media/jquery-ui.min.css">#}
-
 <link rel="stylesheet" href="/media/css/table.css">
-
-{#<script src="/media/jquery-ui.min.js"></script>#}
 <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 
-{# <link type="text/css" rel="stylesheet" href="/media/css/jquery.qtip.min.css" /> #}
-{#<script type="text/javascript" src="/media/js/jquery.qtip.min.js"></script>#}
-
-{#<link rel="stylesheet" type="text/css" href="/media/table.css"> #}
 
 <style>
 
@@ -33,6 +23,33 @@
   width: 500px;
   
 }
+
+
+/* виконано */
+    a.w_done_done {
+        background-color: #ffffff;
+        color: black;
+    }
+/* виконано не видано */
+    a.w_done {
+        background-color: #bbbbbb;
+    }
+    
+/* не виконано */
+    a.w_false {
+        background-color: red;
+    }
+/*      // Ремонтується */
+    a.w_working {
+        background-color: #FFFF99;
+        color: black;
+    }
+/*      // прийнято */
+    a.w_true {
+        background-color: #CCFF99;
+        color: black;
+    }
+
 
 </style> 
 
@@ -136,8 +153,7 @@ $('.phone').editable('/workticket/edit/', {
 
 {% load poll_extras %}
 
-<br>
-<h2 id="b_year">
+<h2 id="b_year" class="mt-2 ml-1">
     За рік: 
     {% for year in year_ticket %}
     {# if sel_year == year.0 and status == None #} 
@@ -177,12 +193,31 @@ $('.phone').editable('/workticket/edit/', {
 {% endif %}	
 
 {% for wstatus in wstatus_list %}
-{# 	<a href="{% url 'workticket-list-by-status' wstatus.id %}" class="w_true badge badge-pill badge-success">{{wstatus.name}}</a> #}
+
 {% if wstatus.id == status %} 
-	<a href="{% url 'workticket-list-by-status-by-shop' wstatus.id shop %}" class="w_true badge badge-pill badge-success select">{{wstatus.name}}</a>
-{% else %}	
-	<a href="{% url 'workticket-list-by-status-by-shop' wstatus.id shop %}" class="w_true badge badge-pill badge-success">{{wstatus.name}}</a>
-{% endif %}	
+    <a href="{% url 'workticket-list-by-status-by-shop' wstatus.id shop %}" class="badge badge-pill badge-success select 
+{% else %}  
+    <a href="{% url 'workticket-list-by-status-by-shop' wstatus.id shop %}" class="badge badge-pill badge-success 
+{% endif %}
+
+{% ifequal wstatus.name 'Виконано' %}
+ w_done_done
+{% endifequal %}
+{% ifequal wstatus.name 'Ремонтується' %}
+ w_working
+{% endifequal %}
+{% ifequal wstatus.name 'Виконано не видано' %}
+ w_done
+{% endifequal %}
+{% ifequal wstatus.name 'Прийнято' %}
+ w_true
+{% endifequal %}
+{% ifequal wstatus.name 'Віддано без ремонта' %}
+ w_false
+{% endifequal %}
+
+">{{wstatus.name}}</a>
+	
 {% endfor %}
 
 </h2>    

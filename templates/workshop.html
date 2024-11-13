@@ -170,7 +170,23 @@ $(document).ready(function() {
 	{% endif %}
 	
 	$("#s_client").focus();
-});
+
+
+	$('.check_works').click(function(){
+	    var res = '';
+	    $('input.check_works').each(function (){
+	    	if($(this).prop('checked')) {
+	    		console.log("Checked for -  " + $(this).attr('wid')); 
+	    		res = res +  $(this).attr('wid') + ';' 
+	    	}
+	    });
+	    console.log("Click on work - " + $(this).attr('wid'));
+	    console.log('Checked = ' + res)
+	    
+	    $("input[name=depend_works]").val(res);	    
+	}); 
+	
+}); // end Ready
 
 
 function doublePrice(){
@@ -367,6 +383,7 @@ function percentPrice(p){
 </tr>   
            
 	</table>        
+ <input type="hidden" id="" name="depend_works" value="" /> 	
     </form>
     
     <br>
@@ -387,7 +404,7 @@ function percentPrice(p){
 {% endfor %}    
 </div>
 
-<div id="button_cloud" class="col-13">
+<div id="button_cloud" class="col-13 mt-3">
 	<button type="button" class="btn btn-info col-12 mb-10">Збільшення тарифів / кількості:</button>
 	
       <button type="button" class="btn btn-dark" onclick="doublePrice()" title="Збільшити суму у 2 рази">x2</button>
@@ -398,10 +415,15 @@ function percentPrice(p){
     
 </div>
 <br>
-<div id="works_cloud" class="col-13">
+<div id="works_cloud" class="col-13 mb-1">
 	<button type="button" class="btn btn-secondary col-12 mb-10">Дотичні роботи:</button>
 	{% for wd in work.dependence_work.all %}
-      <a href="/workshop/add/{{wd.pk}}"><button type="button" class="btn btn-light" onclick="" title="Виписати роботу">{{wd}}</button></a>
+{#      <a href="/workshop/add/{{wd.pk}}"><button type="button" class="btn btn-light" onclick="" title="Виписати роботу">{{wd}}</button></a> #}
+<div class="btn-group-toggle" data-toggle="buttons" >
+  <label class="btn btn-info active">
+    <input type="checkbox" class="check_works" wid={{wd.id}}> {{wd}}<span class="badge badge-secondary ml-2">{{wd.price}} грн.</span>
+  </label>
+</div>        
     {% endfor %}
 </div>
 
@@ -412,6 +434,7 @@ function percentPrice(p){
     <div class="col-12 col-md-6" id="depence_component">
 {#  	<span class="btn btn-dark"><a class="text-light" href="/invoice/category/{{dependence_comp.pk}}/view/">{{dependence_comp}}</a></span> #} 
 	</div>
+	
 </div>
 
 </div>

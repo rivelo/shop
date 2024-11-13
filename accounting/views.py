@@ -5801,7 +5801,7 @@ def worktype_list(request, id=None):
 #    list = WorkType.objects.all()
 #    return render_to_response('index.html', {'worktypes': list, 'weblink': 'worktype_list.html'})
 #===============================================================================
-
+@csrf_exempt
 def worktype_join(request, id1=None, id2=None, ids=None):
     if auth_group(request.user, 'admin')==False:
         #return HttpResponseRedirect('/')
@@ -5861,9 +5861,9 @@ def worktype_delete(request, id):
     obj = WorkType.objects.get(id=id)
     del_logging(obj)
     obj.delete()
-    return HttpResponseRedirect('/worktype/view/')
+    return HttpResponseRedirect('/workgroup/view/')
 
-
+@csrf_exempt
 def worktype_depence_add(request):
     if request.is_ajax():
         if request.method == 'POST': 
@@ -5888,7 +5888,6 @@ def worktype_depence_add(request):
                 d['msg'] = 'Парамтри не передано або вони невірні'
                 response = JsonResponse(d)
                 return response
-                       
     else:
         return HttpResponse('Error: Щось пішло не так під час запиту')     
 
@@ -6370,8 +6369,10 @@ def workshop_edit(request, id):
         return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не є влаником даної роботи або не залогувались на порталі. Робота створена користувачем - <b>' + str(owner)+ '</b>'}, context_instance=RequestContext(request, processors=[custom_proc]))             
     
     if request.method == 'POST':
+        print "<<< POST >>>"
         form = WorkShopForm(request.POST, instance=a, wticket_id=a.ticket, request = request, client_id=a.client)
         if form.is_valid():
+            print "VALID form!"
             client = form.cleaned_data['client']
             date = form.cleaned_data['date']
             work_type = form.cleaned_data['work_type']
@@ -8229,7 +8230,6 @@ def worktype_report(request, id, month=None, year=None, day=None,  limit=None):
         return HttpResponseRedirect('/')    
 
     work_type = WorkType.objects.get(id=id)
-        
     if year == None:
         year = datetime.datetime.now().year
     if month <> None:
@@ -8272,8 +8272,6 @@ def worktype_report(request, id, month=None, year=None, day=None,  limit=None):
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
     
-
-
 
 def user_workshop_report(request,  month=None, year=None, day=None, user_id=None):
     if request.user.is_authenticated() and user_id == None:

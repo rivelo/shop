@@ -837,7 +837,8 @@ class WorkShopForm(forms.ModelForm):
     hour = forms.IntegerField(initial = 0, required=False, label='Витрачені (Години)')
     time = forms.IntegerField(initial = 0, required=False, label='Витрачені (Хвилини)')
     ticket = forms.ModelChoiceField(queryset = WorkTicket.objects.all(), required=False, label='Заявка на ремонт')
-    #ticket = forms.ModelChoiceField(queryset = WorkTicket.objects.filter(status = WorkStatus.objects.filter( name='Ремонтується' )), required=False, label='Заявка на ремонт')    
+    #ticket = forms.ModelChoiceField(queryset = WorkTicket.objects.filter(status = WorkStatus.objects.filter( name='Ремонтується' )), required=False, label='Заявка на ремонт')
+    depend_works = forms.CharField(widget=forms.HiddenInput(), required=False)    
 
     def __init__(self, *args, **kwargs):
         cid = kwargs.pop('client_id', None)
@@ -891,19 +892,27 @@ class WorkShopForm(forms.ModelForm):
         mtime = cleaned_data.get("time")
         ticket = cleaned_data.get("ticket")
         client = cleaned_data.get("client")
-        get_client = Client.objects.get(pk = client.pk)
+        try:
+            get_client = Client.objects.get(pk = client.pk)
+        except:
+            self.add_error('client', "Виберіть клієнта. Без цього не можливе продовження")
         try:
             get_ticket = WorkTicket.objects.get(pk = ticket.pk)
             if get_client.id != get_ticket.client.id:
                 self.add_error('client', "Клієнт не підходить під заявку. Виберіть іншого клієнта або заявку")
         except:
             pass
+        try:
+            dep_works = cleaned_data.get("depend_works")
+            print "DEP WORK - %s " % dep_works 
+        except:
+            pass
             #self.add_error('client', "Клієнт підходить")
-        
 #        print "\nChange field Time!!!" + str(self.has_changed())
         res = int(htime) * 60 + int(mtime)
 #        self.time = 111
         cleaned_data['time'] = res
+#        print "TIME min >>> %s " % res
         return cleaned_data 
  
 #         try:
@@ -922,9 +931,19 @@ class WorkShopForm(forms.ModelForm):
 #===============================================================================
 
     def save(self, commit=True):
-#        client = Client.objects.get(id = self.cleaned_data['client'])
-#        work = WorkType.objects.get(id = self.cleaned_data['work_type'])
         self.time = self.cleaned_data['time']
+        dw = self.cleaned_data['depend_works']
+        arr_work = dw.split(";")[0:-1]
+        wt = WorkType.objects.filter(pk__in = arr_work)
+        cl = self.cleaned_data['client']
+        ticket = self.cleaned_data['ticket'] 
+        user = self.cleaned_data['user']
+        shop = self.cleaned_data['shop']
+        description = self.cleaned_data['description']
+        get_client = Client.objects.get(pk = cl.pk)
+        #get_ticket = WorkTicket.objects.get(pk = ticket.pk)
+        for i in wt:
+            WorkShop(client = get_client, work_type = i, price = i.price, user = user, shop = shop, ticket = ticket, description = description).save()        
         #self.time = int(self.cleaned_data['hour']) *60 + int(self.time)  
         return super(WorkShopForm, self).save(commit)
     
