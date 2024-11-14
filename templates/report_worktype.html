@@ -5,6 +5,14 @@
 <link type="text/css" rel="stylesheet" href="/media/paginator.css">
 
 
+<style>
+
+.main_header {
+    white-space: normal;
+}
+
+</style>
+
 
 <script language="JavaScript">
 
@@ -35,12 +43,11 @@ $(document).ready(function() {
 	                success: function( data ) {
 	                        	response( $.map( data, function( item ) {
 	                            return {
-	                                label: item.pk + ": [" + item.model__name + "] "+ item.fields.name + " - " + item.fields.price + "грн",
-	                                value: item.fields.name,
-	                                idid: item.fields.sale,
-	                                id_sale: item.fields.sale,                                
-	                                id_price: item.fields.price,
-	                                pk_id: item.pk
+	                                label: item.id + ": " + item.name + " - " + item.price + "грн",
+	                                value: item.name,
+	                                id_sale: item.sale,                                
+	                                id_price: item.price,
+	                                pk_id: item.id
 	    							}
 	                        	}));                                
 	                            }
@@ -48,15 +55,7 @@ $(document).ready(function() {
 	        },
 	        minLength: 3,
 	        select: function( event, ui ) {
-	        	//var sprice = ui.item.id_price / 100 * (100-ui.item.id_sale)
-	        	//var base = 5
-	        	//var r = sprice
-	        	//sprice = parseInt(base * Math.round(r/base))
-		    	//$('#id_price').val(ui.item.id_price);
-	        	//$('#id_price').val(sprice);
-		    	//$('#id_work_type').val(ui.item.pk_id);
 		    	$("#s_id_work_type").attr("value", ui.item.pk_id);
-		    	console.log("WORK id = " + ui.item.pk_id);
 	        },
 	        open: function() {
 	        	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
@@ -105,13 +104,27 @@ function join_worktype(item){
 
 <body onLoad="resWorkshop()">
 
-<span class="badge badge-secondary m-1  w-100">
-<h1>Список виконаної роботи [{{work_type.name}}] ({{sel_day}}/{{sel_month}}/{{sel_year}}) <a href="/workshop/add/{{work_type.id}}" class="badge badge-success"><i class="material-icons">add_circle_outline</i></a></h1>
-<span class="badge bg-info text-dark mb-1" id="work_join_button" onClick="if(confirm(join_atext())) join_worktype(this);"><h5>перейменувати в -></h5></span> 
-<input type="text"  id="s_id_work_type" class="form-control {% if form.work_type.errors %}  is-invalid {% endif %}" placeholder="Пошук роботи" aria-label="Username" aria-describedby="basic-addon1" value="{{ work.name }}"/>
-</span>
+<div class="row">
+<div class="col w-100">
+<div class="badge badge-secondary m-1">
+<h1 class="main_header">
+Список виконаної роботи [{{work_type.name}}] 
+{% if sel_month %} {{sel_day|default:'за місяць: '}}{{sel_day|yesno:"/,"}} {% endif %}
+{{sel_month|default:'за рік: '}}{{sel_month|yesno:"/,"}}{{sel_year}} 
+<a href="/workshop/add/{{work_type.id}}" class="badge badge-success"><i class="material-icons">add_circle_outline</i></a>
+</h1>
+<span class="badge bg-info text-dark mb-1" id="work_join_button" onClick="if(confirm(join_atext())) join_worktype(this);">
+<h5 data-toggle="tooltip" data-html="true" data-placement="bottom" title="Перемістити всі виписині роботи з вибраної до поточної. Пізніше пусту роботу видалити.">Обєднати роботи в >>> {{work_type.id}}: {{work_type.name}}</h5>
+</span> 
+<input type="text"  id="s_id_work_type" class="form-control  {% if form.work_type.errors %}  is-invalid {% endif %}" placeholder="Пошук роботи" aria-label="Username" aria-describedby="basic-addon1" value="{{ work.name }}"/>
+</div>
+</div>
+</div>
 
 
+
+<div class="row ">
+<div class="col-auto w-100">
 <h2 class="ml-2 mt-2">
     За рік: 
     {% for i in years %}
@@ -160,9 +173,9 @@ function join_worktype(item){
     </thead>
 {% for type in workshop.object_list %}
 {% if type.pay %}	
-<tr>	
+<tr ws_id="{{ type.id }}" shop_id="{{ type.shop }}">	
 {% else %}
-<tr BGCOLOR="#F2AE6B">
+<tr BGCOLOR="#F2AE6B" ws_id="{{ type.id }}">
 {% endif %}
     <th scope="row">{{forloop.counter}}</th>
 	<td title="Створено користувачем {{type.user.username}}" data-toggle="tooltip" data-html="true" data-placement="right">       
@@ -186,8 +199,8 @@ function join_worktype(item){
 	{{type.time}}
 	</td>
     <td class="text-center" data-toggle="tooltip" data-html="true" data-placement="top" title="{{type.ticket}}">
-{# <a href=" {% url 'workticket_edit' type.ticket.id %} " ><<{{type.ticket.id}}>></a> #} 
-<a href='{% url "workticket_edit" type.ticket.id|add:"0" %}' >{{type.ticket.id}} >> </a>
+{# <a href=" {% url 'workticket_edit' type.ticket.id %} " ><<{{type.ticket.id}}>></a> #}
+<a href='{% url "workticket_edit" type.ticket.id|add:"0" %}' >{{type.ticket.id}} >> </a>  
     {{type.ticket.bicycle|default_if_none:"noBike"}} {{type.ticket.bike_part_type|default_if_none:""}}
     </td>
 	<td>       
@@ -230,6 +243,9 @@ function join_worktype(item){
 
 </table>
 </form>
+
+</div>
+</div>
 
 <div class="pagination">
   <ul>

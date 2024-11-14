@@ -65,15 +65,18 @@ $(document).ready(function() {
                 dataType: "json",
                 success: function( data ) {
                         	response( $.map( data, function( item ) {
+                        		console.log("ITEM - " + item)
                             return {
-                                label: item.pk + ": [" + item.model__name + "] "+ item.fields.name + " - " + item.fields.price + "грн",
-                                value: item.fields.name,
-                                idid: item.fields.sale,
-                                id_sale: item.fields.sale,                                
-                                id_price: item.fields.price,
-                                pk_id: item.pk,
-                                w_desc: item.fields.description,
-                                w_plus: item.fields.plus
+                                //label: item.id + ": [" + item.name + "] "+ item.name + " - " + item.price + "грн",
+                                label: item.id + ": " + item.name + " - " + item.price + "грн",
+                                value: item.name,
+                                //idid: item.sale,
+                                id_sale: item.sale,                                
+                                id_price: item.price,
+                                pk_id: item.id,
+                                w_desc: item.description,
+                                w_plus: item.plus,
+                                dep_work: item.dependence_work
     							}
                         	}));                                
                             }
@@ -97,7 +100,14 @@ $(document).ready(function() {
 	    	else{
 	    		$('#work_plus').html('Ціна');
 	    	}
-	    	
+	    	var d_work = ui.item.dep_work;
+	    	console.log("Dep Work = " + d_work);
+	    	console.log("Dep Work len = " + d_work.length);
+	    	for (let i=0; i < d_work.length; i++){ 
+//	    		console.log("Depence ["+i+"]= " + d_work[i]['id']);	
+	    		$("#works_cloud").append(addDepWork(d_work[i]['id'], d_work[i]['name'], d_work[i]['price']));
+	    	};
+//	    	$("#works_cloud").append(d_work);
 	    	
         },
         open: function() {
@@ -172,7 +182,8 @@ $(document).ready(function() {
 	$("#s_client").focus();
 
 
-	$('.check_works').click(function(){
+	$(document).on("click", ".check_works", function(event) {
+//	$('.check_works').click(function(){
 	    var res = '';
 	    $('input.check_works').each(function (){
 	    	if($(this).prop('checked')) {
@@ -214,8 +225,18 @@ function percentPrice(p){
 };
 
 
+function addDepWork (w_id, w_name, w_price){
+div_text = `<div class="btn-group-toggle" data-toggle="buttons" >
+           <label class="btn btn-info ">
+           <input type="checkbox" class="check_works" wid=` + w_id + `>`+ w_id +`:` + w_name + `<span class="badge badge-secondary ml-2">` + w_price + ` грн.</span>
+           </label>
+           </div>      `
+return div_text;
+};
 
 </script>
+
+
 
 <body>
 
@@ -286,12 +307,12 @@ function percentPrice(p){
   {# form.price|addcss:'is-invalid' #}
 {% if form.work_type.errors %}   {{ form.price|add_attr:"class:form-control is-invalid" }} {% else %} {{ form.price|add_attr:"class:form-control" }} {% endif %} 
   {# form.price #}
- <div class="invalid-feedback">
-	{{ form.price.errors }}
- </div>
   <div class="input-group-prepend"> 
   <span class="input-group-text font-weight-bold">Грн.</span>
   </div>
+ <div class="invalid-feedback">
+    {{ form.price.errors }}
+ </div>  
 {#  <textarea class="form-control" aria-label="With textarea" id="id_description"></textarea> #}
 </div>
 </tr>            
@@ -414,9 +435,9 @@ function percentPrice(p){
       <button type="button" class="btn btn-dark" onclick="percentPrice(1.5)" title="Тариф +50%">+50%</button>
     
 </div>
-<br>
+
+<button type="button" class="btn btn-secondary col-12 mb-10 mt-2">Дотичні роботи:</button>
 <div id="works_cloud" class="col-13 mb-1">
-	<button type="button" class="btn btn-secondary col-12 mb-10">Дотичні роботи:</button>
 	{% for wd in work.dependence_work.all %}
 {#      <a href="/workshop/add/{{wd.pk}}"><button type="button" class="btn btn-light" onclick="" title="Виписати роботу">{{wd}}</button></a> #}
 <div class="btn-group-toggle" data-toggle="buttons" >

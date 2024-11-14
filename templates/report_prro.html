@@ -64,7 +64,7 @@ function true_false(obj){
 {% else %}
 
 {% endif %}
-
+<div class='col ml-1'>
 <p>
 <b><span>Готівка в касі: </span></b> {{JsonBalance|div:100}} грн.
 {% if shop == 2 %}
@@ -92,6 +92,8 @@ function true_false(obj){
 <br>   
 {% endfor %}
 {% endif %}
+
+</div>
 
 <h3><span class="badge badge-light">Термінал: {{day_term_sum|div:100.0}} грн.</span></h3>
 

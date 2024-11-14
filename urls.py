@@ -458,6 +458,7 @@ urlpatterns = [
     url(r'^workshop/year/(?P<year>\d+)/view/$', catalog.workshop_list),
     url(r'^workshop/delete/(?P<id>\d+)/$', catalog.workshop_delete),    
     url(r'^workshop/delete/$', catalog.workshop_delete),
+    url(r'^workshop/set/$', catalog.workshop_set), # Ajax POST
     
     url(r'^report/worktype/(?P<id>\d+)/$', catalog.worktype_report, {'limit':"all"}, name='repot_by_work'),    
     url(r'^report/worktype/(?P<id>\d+)/year/(?P<year>\d+)/$', catalog.worktype_report, {'day':"all"}, name='repot_by_work_year'),

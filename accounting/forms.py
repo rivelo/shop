@@ -862,11 +862,7 @@ class WorkShopForm(forms.ModelForm):
                 self.fields['ticket'].queryset = WorkTicket.objects.filter(status = WorkStatus.objects.filter( name='Ремонтується' ))
     
     def clean_time(self):
-        #dh = self.cleaned_data['hour']
         dm = self.cleaned_data['time']
-        #if int(dm) > 60:
-        #    raise forms.ValidationError("Час в хвилинах більше 60 хвилин") 
-        #res = int(dm) - (60 * (int(dm) / 60))
         res = dm
         return res
 
@@ -892,6 +888,9 @@ class WorkShopForm(forms.ModelForm):
         mtime = cleaned_data.get("time")
         ticket = cleaned_data.get("ticket")
         client = cleaned_data.get("client")
+        price = cleaned_data.get("price")
+        w_type = cleaned_data.get("work_type")
+        description = cleaned_data.get("description")
         try:
             get_client = Client.objects.get(pk = client.pk)
         except:
@@ -904,31 +903,20 @@ class WorkShopForm(forms.ModelForm):
             pass
         try:
             dep_works = cleaned_data.get("depend_works")
-            print "DEP WORK - %s " % dep_works 
         except:
             pass
+        res_time = int(htime) * 60 + int(mtime)
+        cleaned_data['time'] = res_time
+        if (price > w_type.price):
+            if ((len(description) <= 5) or (res_time == 0)):
+                self.add_error('price', "Сума більша ніж у вибраної роботи [" + str(w_type.price) + " грн.]. Напишіть причину підвищення та скільки часу було затрачено.")
+                self.add_error('work_type', "Сума більша ніж у вибраної роботи [" + str(w_type.price) + " грн.]. Напишіть причину підвищення та скільки часу було затрачено.")                        
+        if price < w_type.price:
+            self.add_error('work_type', "Сума не може бути менша ніж у вибраної роботи [" + str(w_type.price) + " грн.]")
+            self.add_error('price', "Сума не може бути менша ніж у вибраної роботи [" + str(w_type.price) + " грн.]")            
             #self.add_error('client', "Клієнт підходить")
-#        print "\nChange field Time!!!" + str(self.has_changed())
-        res = int(htime) * 60 + int(mtime)
-#        self.time = 111
-        cleaned_data['time'] = res
-#        print "TIME min >>> %s " % res
         return cleaned_data 
- 
-#         try:
-#             data = self.cleaned_data['client']
-#             res = Client.objects.filter(pk = data)
-#         # no user with this username or email address
-#         except User.DoesNotExist:
-#             self.add_error['no_user'] = 'User does not exist'
-#             return False
-# 
-#         if cc_client == '':
-#             msg = "Must put 'help' in subject when cc'ing yourself."
-#             self.add_error('client', msg)
-#             self.add_error('work_type', msg)
-#             return False
-#===============================================================================
+
 
     def save(self, commit=True):
         self.time = self.cleaned_data['time']

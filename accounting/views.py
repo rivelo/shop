@@ -6454,6 +6454,37 @@ def workshop_delete(request, id=None):
     else:
         return HttpResponse("Роботу не можливо видалити, можливо це не ваша робота, або ви не залогувались на портал", status=401)
 
+@csrf_exempt
+def workshop_set(request):
+    wid = None
+    price = None
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('w_id') and POST.has_key('price'):
+                wid = POST.get( 'w_id' )
+                price = POST.get( 'price' )
+                print "Work ID = %s | Price = %s"  % (wid, price)
+    
+    obj = WorkShop.objects.get(id = wid)
+    if (auth_group(request.user, 'admin') == True) or ((request.user == obj.user) and (obj.pay == False)):
+#        del_logging(obj)
+        num = float(price) / obj.price 
+        obj.price = price
+#        if len(obj.description) > 0 : 
+        if obj.description :
+            obj.description = obj.description + "\nx" + str(num)
+        else:
+            obj.description = "x" + str(num)
+        obj.save()
+#        obj.delete()
+        #return HttpResponse("Ціну на роботу змінено", content_type="text/plain;charset=UTF-8;")
+        return HttpResponse(simplejson.dumps({'data': {'status': True, 'price': price}, 'obj': (obj.client.name, obj.price, obj.pay, obj.description)}), content_type="application/json")
+    else:
+        err_msg = "Роботу не можливо редагувати, можливо це не ваша робота, або ви не залогувались на портал"
+        return HttpResponse(simplejson.dumps({'data': {'status': False, 'price': price, 'msg': err_msg}, 'obj': (obj.client.name, obj.price, obj.pay, obj.description)}), content_type="application/json")
+        #return HttpResponse("Роботу не можливо редагувати, можливо це не ваша робота, або ви не залогувались на портал", status=401)
+
 
 # lookup workshop price
 def worktype_ajax(request):
@@ -6479,10 +6510,13 @@ def worktype_lookup(request):
             value = request.POST[u'query']
             if len(value) > 2:
                 results = WorkType.objects.filter(name__icontains = value, disable = False)
-                data = serializers.serialize("json", results, fields=('name', 'id', 'price', 'dependence_work', 'get_sale_price', 'sale', 'work_group', 'description', 'plus'))
+                #data = serializers.serialize("json", results, fields=('name', 'id', 'price', 'dependence_work', 'get_sale_price', 'sale', 'work_group', 'description', 'plus'))
+                data = [i.to_json() for i in results]
+                
             else:
                 data = []
-    return HttpResponse(data)    
+    return HttpResponse(json.dumps(data), content_type="application/json")        
+#    return HttpResponse(data, content_type="application/json")    
 
 
 def workshop_pricelist(request, pprint=False):
@@ -8228,15 +8262,19 @@ def user_invoice_report(request, month=None, year=None, day=None, user_id=None):
 def worktype_report(request, id, month=None, year=None, day=None,  limit=None):
     if auth_group(request.user, 'admin')==False:
         return HttpResponseRedirect('/')    
-
+    sel_day = None
+    sel_month = None
     work_type = WorkType.objects.get(id=id)
     if year == None:
         year = datetime.datetime.now().year
     if month <> None:
         list = WorkShop.objects.filter(date__year=year, date__month=month, work_type__id=id).order_by("-date", "-id")
+        sel_month = month
     if month == None:
-        month = datetime.datetime.now().month        
+        month = datetime.datetime.now().month
+        sel_month = month
     if day == 'all':
+        sel_month = None
         #day = datetime.datetime.now().day
         #list = WorkShop.objects.filter(date__year=year, date__month=month, date__day=day, work_type__id=id).order_by("-date", "-id")
         list = WorkShop.objects.filter(date__year=year, work_type__id=id).order_by("-date", "-id")
@@ -8268,7 +8306,7 @@ def worktype_report(request, id, month=None, year=None, day=None,  limit=None):
     user_id = request.user.id
     user = User.objects.get(id=user_id)
     
-    context = {'sel_user':user, 'sel_year':year, 'years': year_list, 'sel_month':month, 'month_list':month_list, 'sel_day':day, 'month_days':days, 'workshop': cinvoices, 'sumall':psum, 'countall':scount, 'work_type': work_type,  'weblink': 'report_worktype.html', 'view': True, 'next': current_url(request)}
+    context = {'sel_user':user, 'sel_year':year, 'years': year_list, 'sel_month':sel_month, 'month_list':month_list, 'sel_day':sel_day, 'month_days':days, 'workshop': cinvoices, 'sumall':psum, 'countall':scount, 'work_type': work_type,  'weblink': 'report_worktype.html', 'view': True, 'next': current_url(request)}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
     

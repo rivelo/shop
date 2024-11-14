@@ -1922,6 +1922,27 @@ class WorkType(models.Model):
     def sum_depend_work(self):
         r = WorkType.objects.filter(dependence_work = self).aggregate(depend_sum=Sum('price'))
         return r 
+
+    def d_json(self):
+        return {
+            'id': self.pk,
+            'name': self.name,
+            'price': self.price
+            }
+
+    def to_json(self):
+        return {
+            'id' : self.pk,
+            'name' : self.name,
+            'work_group': self.work_group.id,
+            'price': self.price,
+            'description': self.description,
+            'disable': self.disable,
+            'block': self.block,
+            'plus': self.plus,
+            'sale': self.sale,
+            'dependence_work': ( [j.d_json() for j in self.dependence_work.all()] ) 
+        }
     
     def __unicode__(self):
         #return u'Розділ %s. Робота: %s' % (self.work_group, self.name)
@@ -1995,6 +2016,7 @@ class WorkShop(models.Model):
     time = models.PositiveIntegerField(default = 0, verbose_name='Витрачено часу. (Хвилини)')
     ticket = models.ForeignKey(WorkTicket, blank = True, null = True, verbose_name = 'Заявка до якої відноситься робота')
     #bike = 
+    #x price
 
     def check_depence_category(self):
         if self.work_type.component_type.exists():

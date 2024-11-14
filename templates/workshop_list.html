@@ -43,6 +43,30 @@ function res() {
 	document.getElementById('workshop_pay').innerHTML = sum.toFixed(2)+" грн.";
 }
 
+function set_price(work_id, w_price, dom_obj, num) {
+$.ajax({
+    type: "POST",
+     url: "/workshop/set/",
+     data: {w_id:  work_id, price: w_price},
+     dataType: "json",
+    success:function(data){
+     if (data['data']['status'] == true){
+    	 console.log("Запит виконано успішно");
+    	 var res = data['data']['price']
+    	 dom_obj.parent('.mul_price').parent('td.work_price').children('div.d_price').html( res );
+    	 dom_obj.parent('.mul_price').parent('td.work_price').next().html( w_price + " * "+ num +" = " + res );
+     }
+     else {
+        alert("Помилка: " + data['data']['msg']);
+     }
+    },
+    error:function(msg){
+        alert("При відправці виникла помилка:\n " + msg.responseJSON['reason']);
+    }
+ });
+}; // end function
+
+
 $(document).ready(function() {
 
 	$('[data-toggle="tooltip"]').tooltip();
@@ -80,10 +104,30 @@ $(".w_del").click(function(){
 	});
  
     $("td.work_price").click( function() {
-    	console.log("Click work");
         $(this).children("div.mul_price").toggle();
     });
-	
+
+
+    $(".mul_x2").click(function () {
+//    	console.log("HTML  = " + $(this).parent('.mul_price').parent('td.work_price').children('div.d_price').html() );
+    	var price =  $(this).parent('.mul_price').parent('td.work_price').children('div.d_price').html();
+    	var res = price * 2
+//        console.log("X2 - click >>  " +  price)    	
+    	var wid = $(this).parent('.mul_price').parent('td.work_price').parent('tr.workshop_row').attr('wid');
+    	var num = 2
+    	set_price(wid , res, $(this), num);
+    })
+
+    $(".mul_x3").click(function () {
+        var price =  $(this).parent('.mul_price').parent('td.work_price').children('div.d_price').html();
+        var res = price * 3
+//        console.log("X3 - click >>  " +  price)     
+        var wid = $(this).parent('.mul_price').parent('td.work_price').parent('tr.workshop_row').attr('wid');
+        var num = 3
+        set_price(wid , res, $(this), num);
+    })
+    
+    
     $("div.mul_price").hide();
     
 }); // end Ready func
@@ -172,9 +216,9 @@ $(".w_del").click(function(){
  
 {% for type in workshop %}
 {% if type.pay %}	
-<tr id="row_{{type.id}}">	
+<tr id="row_{{type.id}}" wid="{{type.id}}" class="workshop_row">	
 {% else %}
-<tr BGCOLOR="#F2AE6B" id="row_{{type.id}}">
+<tr BGCOLOR="#F2AE6B" id="row_{{type.id}}" wid="{{type.id}}" class="workshop_row">
 {% endif %}
 	<td title="{{type.user.username}}" data-toggle="tooltip" data-html="true" data-placement="right">
 	{{forloop.counter}}
@@ -217,9 +261,9 @@ $(".w_del").click(function(){
 	</td>	
 	
 	<td align='center' class="work_price">       
-	{{type.price}}
+	<div class="d_price">{{type.price}}</div>
 	<div class="mul_price" >
-	<span class="badge badge-dark">x2</span> <span class="badge badge-dark ml-2">x3</span>
+	<span class="badge badge-dark mul_x2">x2</span> <span class="badge badge-dark ml-2 mul_x3">x3</span>
 	</div>
 	</td>
 	<td>       
