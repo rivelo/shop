@@ -4298,6 +4298,7 @@ def catalog_attr_lookup(request):
     data = None
     results = []
     model_results = None
+    attr_val_array = None
     msg = ''
     if request.is_ajax():
         if request.method == "POST":
@@ -4309,9 +4310,10 @@ def catalog_attr_lookup(request):
                     #model_results = None
                     if value == u'всі' or value == u'all':
                         model_results = CatalogAttribute.objects.filter(type__in = t_ids)
+                        attr_val_array = CatalogAttributeValue.objects.filter(attr_id__in = model_results).select_related('attr_id')
                     else:
                         model_results = CatalogAttribute.objects.filter(name__icontains=value, type__in = t_ids)
-                    attr_val_array = CatalogAttributeValue.objects.filter(Q(value__icontains = value) | Q(attr_id__name__icontains = value), attr_id__type__in = t_ids).select_related('attr_id')
+                        attr_val_array = CatalogAttributeValue.objects.filter(Q(value__icontains = value) | Q(attr_id__name__icontains = value), attr_id__type__in = t_ids).select_related('attr_id')
                     #attr_val_array = CatalogAttributeValue.objects.filter(attr_id__in = model_results).select_related('attr_id')
                     for i in attr_val_array:
                         results.append({'attr_id': i.attr_id.id, 'attr_name': i.attr_id.name, 'value': i.value, 'value_float': i.value_float, 'id': i.pk, 'description': i.description})
@@ -9395,7 +9397,6 @@ def inventory_edit(request, id):
         return render(request, 'index.html', context)
 
     a = InventoryList.objects.get(pk=id)
-  #  print "\nBox [%s]" % a
     if request.method == 'POST':
         form = InventoryListForm(request.POST, instance=a) 
         if form.is_valid():
@@ -9403,7 +9404,7 @@ def inventory_edit(request, id):
             return HttpResponseRedirect( reverse('inventory-list', ) )
     else:
         form = InventoryListForm(instance=a)
-    context = {"weblink": 'inventory.html', 'form': form, }
+    context = {"weblink": 'inventory.html', 'form': form, 'catalog': a.catalog}
     context.update(custom_proc(request))
     return render(request, "index.html", context)  
 
@@ -9704,7 +9705,7 @@ def inventory_get(request):
             POST = request.POST  
             if POST.has_key('catalog_id'):
                 cid = request.POST['catalog_id']
-                i_list = InventoryList.objects.filter(catalog = cid).values('id', 'count', 'description', 'user', 'user__username', 'date', 'check_all', 'real_count', 'catalog__name', 'catalog__ids', 'box_id__name', 'shop__name', 'edit_date')
+                i_list = InventoryList.objects.filter(catalog = cid).values('id', 'count', 'description', 'user', 'user__username', 'date', 'check_all', 'real_count', 'catalog__name', 'catalog__ids', 'box_id__pk', 'box_id__name', 'shop__name', 'edit_date')
                 json = list(i_list)
                 for x in json:
                     x['date_year'] = x['date'].strftime("%Y")  

@@ -7,10 +7,10 @@
 <link rel="stylesheet" type="text/css" href="/media/css/table.css">
  -->
  
- <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+ {# <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script> #}
  
-<script type="text/javascript" src="/media/js/jquery.qrcode.js"></script>
-<script type="text/javascript" src="/media/js/qrcode.js"></script>
+{#<script type="text/javascript" src="/media/js/jquery.qrcode.js"></script>#} 
+{#<script type="text/javascript" src="/media/js/qrcode.js"> </script> #}
 
 {# <script type="text/javascript" src="/media/jquery.qrcode-0.7.0.min.js"></script> #}
 
@@ -100,11 +100,12 @@ span a {
    
 .price_table {
 	/*table-layout: fixed;*/
-//	border: 1px solid red;
+/*	border: 1px solid red;*/
 	height: 32mm;
 	max-height: 35mm;
-	width: 110mm;
-	max-width: 110mm;
+	width: 105mm; 
+/*    width: auto;	*/
+	max-width: 105mm;
 	page-break-before: always; 
 }
 
@@ -119,7 +120,7 @@ span a {
   display: grid;
   grid-template-columns: 30% auto;
  /* background-color: #2196F3; */
-  padding: 5px;
+  padding: 0px;
 }
 .grid-item {
 /*  background-color: rgba(255, 255, 255, 0.8); */
@@ -130,16 +131,25 @@ span a {
 }
 
 #price {
-		font-size: medium;
+		font-size: x-large;
 		}     
 
 #price_value {
-		font-size: large;
+		font-size: x-large;
 		}     
 
 @media print{
 	@page {size: landscape}
 }
+     
+table.price_table {     
+    font-family: sans-serif;
+    }
+
+catalog_name {
+    margin-top: 0;
+}
+
      
 </style>
 
@@ -189,7 +199,7 @@ span a {
     <div class="grid-item col" id="manufacturer">{{type.manufacturer}}</div>
     <div class="grid-item col tlabel" id="country">Країна виробник</div>
     <div class="grid-item col" id="country_name">{{type.country}}</div>
-    <div class="grid-item col tlabel" id="price">	Ціна </div>
+    <div class="grid-item col tlabel" id="price">	Ціна</div>
     <div class="grid-item col" id="price_value"><b>	{{type.price}} грн. </b></div>
 </div>
 {#    <div class="grid-item col tlabel"> </b></div> #} 

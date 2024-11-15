@@ -20,7 +20,7 @@ function change_row1_table() {
 	
 function change_row3_table() {
 	$('.grid-container').css('grid-template-columns','33.0% 33.0% 33.0%');
-	$('div .item').css("margin-left", "5mm")
+	$('div .item').css("margin-left", "2mm")
 	
 	document.querySelectorAll('.item').forEach(function(element) {
 		  element.className = "itemthree";
@@ -32,21 +32,21 @@ function change_row3_table() {
 <style type="text/css">
 .grid-container {
   display: grid;
-  grid-template-columns: 100mm; /*33.3% 33.3% 33.3%; /* 70mm 70mm 70mm;*/
-  grid-template-rows: 40mm;
+  grid-template-columns: 108mm; /*33.3% 33.3% 33.3%; /* 70mm 70mm 70mm;*/
+  grid-template-rows: 39mm;
   
-  gap: 1px;
+//  gap: 1px;
 //  background-color: #2196F3;
-  padding: 5px;
+  padding: 1px;
 }
 
 .grid-container > div {
 //  background-color: rgba(255, 255, 255, 0.8);
-  text-align: left;
+/*  text-align: left; */
 //  padding: 5px 5px 5px 5px;
   font-size: 12px;
   border: 1px solid black;
-  height: 38mm;
+  height: 39mm;
 }
 
 /* .item11 {
@@ -66,13 +66,13 @@ div .item {
   display: grid;
   grid-template-columns: 30mm;
   grid-template-rows: 5mm;
-  gap: 1px;
+//  gap: 1px;
 //  background-color: #2196F3;
 //  padding: 2px;
 /*  height: 35px;*/
 //  width: 100%;
 	margin-left: 143px;
-	margin-top: 5px;
+	margin-top: 3px;
 
 }
 
@@ -80,12 +80,17 @@ div .item {
 //  background-color: rgba(255, 255, 255, 0.8);
   text-align: left;
   padding: 0px 0px;
-  font-size: 12px;
+  font-size: 13px;
 //  page-break-before: always;
 }
 
+div .item5 {
+/* font-size-adjust: inherit;*/
+ text-wrap: wrap;
+}
+
 div .item8 {
-  text-align: left;
+/*  text-align: left;*/
   grid-column-start: 1;
   grid-column-end: 3;
   font-size: 10px;
@@ -105,7 +110,7 @@ div .lable-value {
 
 div .price{
   text-align: left;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: bold;
 
 }

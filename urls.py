@@ -42,7 +42,7 @@ urlpatterns = [
     url(r'^manufacturer/add/$', catalog.manufacturer_add),
     url(r'^manufacturer/edit/(?P<id>\d+)/$', catalog.manufacturer_edit),    
     url(r'^manufacturer/delete/(?P<id>\d+)/$', catalog.manufacturer_delete),
-    url(r'^manufacturer/lookup/$', catalog.manufacturer_lookup), 
+    url(r'^manufacturer/lookup/$', catalog.manufacturer_lookup), # AJAX 
 
     # Country operation
     url(r'^country/add/$', catalog.country_add),

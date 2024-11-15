@@ -231,6 +231,10 @@ cursor: pointer;
     color: #2c6b1c;
 }
 
+#table_body  td {
+    text-align: center;
+}
+
 </style>
         
 
@@ -897,6 +901,7 @@ $("#dialog").dialog({
 $("#dialog_catalog_join").dialog({
 	autoOpen: false,
       resizable: false,
+      width: resize_dialog_width(1024),
       modal: true,
       open: function( event, ui ) {
 		$('#main_id').val("") //очищення поля
@@ -950,7 +955,7 @@ $("#dialog_change_type").dialog({
 	autoOpen: false,
       resizable: false,
       modal: true,
-      width: '80%',
+      width: resize_dialog_width(1024),
       open: function( event, ui ) {
 		$('#s_category').val(""); //очищення поля
 		$("#sel_c").empty();
@@ -1193,8 +1198,8 @@ $("#dialog_inventory").dialog({
 	autoOpen: false,
       resizable: false,
       modal: true,
-      width: 600,
-      maxWidth: 700,
+      width: resize_dialog_width(1024),
+//      maxWidth: 700,
 //      minWidth: 500,
       //position: "center",
       buttons: {
@@ -1351,10 +1356,11 @@ $("#dialog_youtube_add").dialog({
 $("#dialog_print").dialog({
 	autoOpen: false,
       resizable: true,
-      width: 750,
+      width: resize_dialog_width(1024),
+//      height: auto,
       modal: true,
       open: function( event, ui ) {
-		console.log("Table width = " +  $("#print_container").find("table").width() ); //очищення поля
+//		console.log("Table width = " +  $("#print_container").find("table").width() ); //очищення поля
 //		$("#dialog_print").dialog( "option", "width", $("#dialog_print").find("table").width() );
 	  },
       buttons: {
@@ -1640,7 +1646,9 @@ $(document).on("click", ".inv_td", function(event) {
     	$("#inv_spinner").val(1);
     	$("#inv_spinner").focus();
     	$("#inv_desc").val("");
-    	document.getElementById("chk_all").checked = false;
+    	{% if request.user|has_group:"admin" %}
+    	   document.getElementById("chk_all").checked = false;
+    	{% endif %}
     	$('#table_body').empty()
 //    	on_off_button(false);
 		$("#dialog_inventory").dialog("open");
@@ -1653,8 +1661,11 @@ $(document).on("click", ".inv_td", function(event) {
                 dataType: "json",
                 success:function(msg){
                 	$.each(msg,function(index,item){
-    					var fcol = ' data-toggle="tooltip" data-html="true" data-placement="left" title="' + item['user__username'] + '">' + item['date'];
+                		var inv_edit_lnk = '<a href="/inventory/'+ item['id'] +'/edit/" data-toggle="tooltip" data-html="true" data-placement="right" title="Редагувати""><i class="material-icons">edit</i> </a>'
+                		var fcol = ' data-toggle="tooltip" data-html="true" data-placement="left" title="' + item['user__username'] + '">' + item['date']  
     					var cdesc = item['description'];
+    					var box_name = item['box_id__name']
+    					var box_id = item['box_id__pk']
     					var tr_cls = "";
     					if (item['check_all']) {
     						var class_str = 'class="table-success"'
@@ -1678,11 +1689,20 @@ $(document).on("click", ".inv_td", function(event) {
             						status = "Частково"
             					}
     					
-    {% if request.user|has_group:"admin" %}						
-                	    $('#table_body').append(tr_cls+ '<td '+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td class="inv_set" style="cursor: pointer;">'+ status +'</td><td>'+item['real_count']+' шт.</td><td data-toggle="tooltip" data-html="true" data-placement="top" title="Видалити"><span class="inv_del" inv_id="'+item['id']+'" style="cursor: pointer;"><i class="material-icons">delete_outline</i></span></td>></tr>');
-    {% else %}                	    
-                	    $('#table_body').append(tr_cls+ '<td '+ fcol +'</td><td>'+ cdesc +'</td>' + count +'</td><td>'+ status +'</td><td>'+item['real_count']+' шт.</td></tr>');
-    {% endif %}
+    				    var box_or_desc = ""
+    				    var box_url = "<a href = '/storage/box/"+ box_id +"/list/'>" + box_name + "</a>"
+    				    if (cdesc) {
+    				    	box_or_desc = cdesc + " | " + box_url
+    				    } 
+    				    else {
+    				    	box_or_desc = box_url
+    				    }
+    		{% if request.user|has_group:"admin" %}
+   		            fcol = fcol + ' ' + inv_edit_lnk;
+               	    $('#table_body').append(tr_cls+ '<td '+ fcol +'</td><td>'+ box_or_desc +'</td>' + count +'</td><td class="inv_set" style="cursor: pointer;">'+ status +'</td><td>'+item['real_count']+' шт.</td><td data-toggle="tooltip" data-html="true" data-placement="top" title="Видалити"><span class="inv_del" inv_id="'+item['id']+'" style="cursor: pointer;"><i class="material-icons">delete_outline</i></span></td>></tr>');
+            {% else %}                	    
+               	    $('#table_body').append(tr_cls+ '<td '+ fcol +'</td><td>'+ box_or_desc +'</td>' + count +'</td><td>'+ status +'</td><td>'+item['real_count']+' шт.</td></tr>');
+            {% endif %}
                     });
                 	$( "#table_body").find( "tr:not([iyear*='{{cur_year}}'])" ).hide();			
                 },                
@@ -1953,10 +1973,13 @@ $("body").on('click', '#c_join', function() {
     var ids = []
     var index = []
 	table.rows({ selected: true }).eq( 0 ).each( function (idx) {
-		console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
+//		console.log("index = " + idx +" / " + $(table.row( idx ).node()).attr('id') );
+		console.log( "index = " + idx +" / " + $(table.row( idx ).node()).children('td.c_name').children('div.div_c_name').html() );
+		var tmp_name = $(table.row( idx ).node()).children('td.c_name').children('div.div_c_name').html()
+		console.dir($(table.row( idx ).node()));
 		ids.push( $(table.row( idx ).node()).attr('id') );
 		index.push( idx );
-		$("#jtext").append("<br>[<mark class='mark_id' indx='"+idx+"'>" + $(table.row( idx ).node()).attr('id') +"</mark>]"+ table.cell( idx,5 ).data());
+		$("#jtext").append("<br>"+table.cell( idx,5 ).data()+"[<mark class='mark_id' indx='"+idx+"'>" + $(table.row( idx ).node()).attr('id') +"</mark>] "+ tmp_name);
 	});
 	$("#jtext").attr({"ids": ids});
 	$("#jtext").attr({"index": index});
@@ -2335,7 +2358,7 @@ function show_year_sales(cell){
 	</div>
 	<input type="text" id="inputLink" value="" style="display:none" >
 
-<textarea id="copyTarget" class="w-100">
+<textarea id="copyTarget" class="w-100" rows="7">
 
 </textarea>
 	<span id="copyButton" class="input-group-addon btn" title="Click to copy">
@@ -2417,26 +2440,19 @@ function show_year_sales(cell){
 
 <!-- Dialog to view inventory -->
 	<div id="dialog_inventory" title="Inventory">
-{% comment %}
-	<label for="inv_spinner">Кількість:</label>
-  	<input id="inv_spinner" name="value" value="1">
-  	<label for="inv_chkbox">Загальна кількість?:</label>
-  	<input type="checkbox" name="chk_all" id="chk_all" value="" ids="" >
-  	<label>User: <b> {{user|upper}} </b></label>
-  	<br>
-  	<label for="photo_url">Опис:</label>
-	<input type="text" name="inv_description" id="inv_desc" value="" ids="" size="55">
-{% endcomment %}
+{% if request.user|has_group:"admin" %}	
+<div class="row " id="inventory_add_count">	
+   <div class="mb-3 w-100">
+    <div class="input-group ">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="validatedInputGroupPrepend">Кількість >></span>
+      </div>
+      <input type="text" class="form-control " aria-describedby="validatedInputGroupPrepend" id="inv_spinner1" name="value" value="1"> 
+{#      <input type="text" class="form-control" aria-label="Імя користувача"  id="inv_spinner" name="value" value="1"> #}
+    <label class="input-group-text" id="basic-addon1">User: <b> {{user|upper}} </b></label>
+    </div>
+  </div>
 
-<div class="input-group mb-3">
-  <div class="input-group-prepend">
-    <span class="input-group-text" id="basic-addon1">Кількість</span>
-  </div>
-  <input type="text" class="form-control" aria-label="Имя пользователя" aria-describedby="basic-addon1" id="inv_spinner" name="value" value="1">
-  <div class="input-group-prepend">
-    <span class="input-group-text" id="basic-addon1">User: <b> {{user|upper}} </b></span>
-  </div>
-</div>
 <div class="input-group mb-3">
   <div class="input-group-prepend">
     <div class="input-group-text">
@@ -2445,7 +2461,8 @@ function show_year_sales(cell){
   </div>
   <input type="text" class="form-control" aria-label="Text input with checkbox" placeholder="Опис" id="inv_desc" value="" ids="">
 </div>	
-	
+</div>
+{% endif %}	
   	<h3 class="w-100">Список перевірок: <span class="badge badge-ligth float-right" onclick="show_tr_year(this);" style="cursor: pointer;"> 
   	<i class="material-icons">view_list</i></span> 
   	</h3>
@@ -2468,7 +2485,10 @@ function show_year_sales(cell){
   </tbody>  	
   	</table>
 	</div>
-	</div>
+</div>
+	
+	
+	
 
     <table id="iTable" class="display compact" cellspacing="0" width="100%"> 
     {# <table id="iTable" class="display" cellspacing="0" width="100%" border="1"> #}

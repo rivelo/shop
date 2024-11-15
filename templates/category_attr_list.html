@@ -35,6 +35,18 @@
 	
 <script type="text/javascript">
 
+function alert_add_company(man_id, man_name){
+    var res = ""
+    var lnk = "/invoice/manufacture/"+ man_id +"/view/"; //  {# url 'invoice-manufacture-id-list' #}
+        res += '<div class="alert alert-secondary alert-dismissible fade show attr_selected" role="alert" m_id="'+ man_id +'">' +
+        '<a href="' + lnk + '"><strong>'+ man_name +'</strong></a> ' +
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' + 
+        '<span aria-hidden="true">&times;</span>' + 
+        '</button></div>'
+    return res;
+};
+
+
 function alert_add(attr_id, attr_name){
     var res = ""
         res += '<div class="alert alert-primary alert-dismissible fade show attr_selected" role="alert" a_id="'+ attr_id +'">' +
@@ -46,9 +58,37 @@ function alert_add(attr_id, attr_name){
 };
 
 
+function alert_add_type(cat_id, cat_name){
+    var res = ""
+    var lnk = "/invoice/category/"+ cat_id +"/view/";  
+            res += '<div class="alert alert-success alert-dismissible fade show attr_selected" role="alert" c_id="'+ cat_id +'">' +
+            '<a href="' + lnk + '"><strong>'+ cat_name +'</strong></a> ' +
+            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' + 
+            '<span aria-hidden="true">&times;</span>' + 
+            '</button></div>'
+        return res;	
+};
+
+
+function add_span_type() {
+	var span_str_attr = "";
+	var span_str_cat = "";
+	var span_str_man = "";
+    $("div.attr_selected[c_id]").each(function( index ) {
+        span_str_cat += '<span class="badge badge-success mr-1">' + $(this).text() + '</span>';
+    })
+    $("div.attr_selected[m_id]").each(function( index ) {
+        span_str_man += '<span class="badge badge-secondary mr-1">' + $(this).text() + '</span>';
+    })
+    $("div.attr_selected[a_id]").each(function( index ) {
+        span_str_attr += '<span class="badge badge-primary mr-1">' + $(this).text() + '</span>';
+    })
+    return {span_str_man, span_str_cat, span_str_attr};
+};
 
 $(document).ready(function() {
 	$("#main_link").hide();
+	$("#company_type_link").hide();
 	$("#s_category").val($('#id_client').val());
 	$("#s_attr_val").val($('#id_work_type').val());
 	
@@ -60,14 +100,9 @@ $(document).ready(function() {
                  data: { query: $("#s_attr_val").val(), type: $("#s_attr_val").attr('type_id') }, //$("#s_param").attr('type_id') },
                  dataType: "json",
                  success: function( data ) {
-//                     console.log("Data[attr_name] = " + data['attr_name']);
                      //var dp = JSON.parse(data['data'])
                      var dp = data['data']
-/*                     for (const j in data){
-                         console.log("HAsh = " + data[j]);
-                     }; */
                      response( $.map( dp, function( item ) {
-                            console.log("data map = " + item);                                               
                              return {
                                  label: item['attr_name'] + " >>> " + item.value + " / "+ item.value_float + " | " + item.description ,
 //                                 label: item['attr_name'] + " >>> " + item.id + ": " + item.value + " / "+ item.value_float + " | " + item.description ,
@@ -87,16 +122,18 @@ $(document).ready(function() {
             $('#s_attr_val').select();
             $("#main_link").show();
             var arr = [];
-            var st = '';
-            var span_list = ''; 
-            $("div.attr_selected").each(function( index ) {
+            var span_list = add_span_type(); 
+            $("div.attr_selected[a_id]").each(function( index ) {
                 arr.push($(this).attr("a_id"));
-                st += "+" + $(this).attr("a_id")
-                span_list += '<span class="badge badge-info mr-1">' + $(this).text() + '</span>';
+/*                if ($(this).attr("a_id")) {
+                    st += "+" + $(this).attr("a_id")
+                    span_list += '<span class="badge badge-info mr-1">' + $(this).text() + '</span>';
+                }; */
                 })
-                var cat_id = $('#s_attr_val').attr('type_id');
-                $("#main_link").html("<strong>Фільтр: </strong><a href='/invoice/category/"+ cat_id +"/attribute/values/"+ st +"/view/'><strong>ID = "+ st +"</strong></a> " + span_list);
-                
+            var st = "+" + arr.join("+");                
+            $('#s_attr_val').attr('attr_ids', arr);    
+            var cat_id = $('#s_attr_val').attr('type_id');
+                $("#main_link").html("<strong>Фільтр [Тип + Атрибути]: </strong><a href='/invoice/category/"+ cat_id +"/attribute/values/"+ st +"/view/'><strong>ID = "+ st +"</strong></a> " + span_list.span_str_cat + span_list.span_str_attr);
 	    	
         },
         open: function() {
@@ -109,6 +146,66 @@ $(document).ready(function() {
         }
     });
 
+
+    $( "#s_manufacture" ).autocomplete({
+        source: function( request, response ) {
+             $.ajax({
+                 type: "POST",
+                 url: "/manufacturer/lookup/",
+                 data: { query: $("#s_manufacture").val(), type: $("#s_manufacture").attr('type_id') }, //$("#s_param").attr('type_id') },
+                 dataType: "json",
+                 success: function( data ) {
+                     //var dp = JSON.parse(data['data'])
+                     var dp = data
+                     response( $.map( dp, function( item ) {
+                             return {
+                                 label: item.pk + ": " + (item.fields.name).toUpperCase() + " ("+ item.fields.www + " )",
+//                                 label: item['attr_name'] + " >>> " + item.id + ": " + item.value + " / "+ item.value_float + " | " + item.description ,
+                                 value: item.fields.name,
+                                 pk_id: item.pk                                
+                                 }
+                             }));                                
+                             }
+             })         
+        },
+        minLength: 2,
+        select: function( event, ui ) {
+            
+            var a_div = alert_add_company(ui.item.pk_id, ui.item.label)
+            $("#show_attr_url").append(a_div);
+            $('#s_attr_val').val("all");
+            $("#s_category").focus();
+            $('#s_category').select();
+            //$("#s_category").attr('cat_id', ui.item.pk_id);
+            $('#s_manufacture').attr('man_id', ui.item.pk_id)
+            var arr = [];
+            var man_id = ui.item.pk_id;
+            var span_l_man, span_l_cat, span_l_attr = ''; 
+/*            $("div.attr_selected").each(function( index ) {
+                arr.push($(this).attr("m_id"));
+//                st += "+" + $(this).attr("a_id")
+                span_list += '<span class="badge badge-secondary mr-1">' + $(this).text() + '</span>';
+                })*/
+                
+                let span_list = add_span_type();                
+                var cat_id = $('#s_category').attr('cat_id');
+                if (cat_id) {
+                	$("#company_type_link").show();
+                    $("#company_type_link").html("<strong>Фільтр [Виробник + Тип] : </strong><a href='/invoice/category/"+ cat_id +"/manufacture/"+ man_id +"/view/'><strong>ID = +"+ cat_id +" +"+ man_id +"</strong></a> " + span_list.span_str_man + span_list.span_str_cat);
+                };
+            
+        },
+        open: function() {
+            $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+        },
+        close: function() {
+            $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+            $('#s_attr_val').val("all");
+            $('#s_attr_val').select();
+        }
+    });
+    
+    
     $( "#s_category" ).autocomplete({
     	source: function( request, response ) {
         	$.ajax({
@@ -130,10 +227,29 @@ $(document).ready(function() {
         },
         minLength: 3,
         select: function( event, ui ) {
-	    	//$('#s_attr_val').val(ui.item.pk_id);
+            var cat_div = alert_add_type(ui.item.pk_id, ui.item.label);
+            $("#show_attr_url").append(cat_div);
+        	//$('#s_attr_val').val(ui.item.pk_id);
 	    	$('#s_attr_val').val("all");
 	    	$('#s_attr_val').select();
+	    	$('#s_category').attr('cat_id', ui.item.pk_id)
 	    	$("#s_attr_val").attr('type_id', ui.item.pk_id);
+            var arr = [];
+            var cat_id = ui.item.pk_id;
+            var span_list = add_span_type(); 
+            span_list = add_span_type();
+            var man_id = $('#s_manufacture').attr('man_id');
+            var attr_id = $('#s_attr_val').attr('attr_ids');
+            if (man_id) {
+                    $("#company_type_link").show();
+                    $("#company_type_link").html("<strong>Фільтр [Виробник + Тип] : </strong><a href='/invoice/category/"+ cat_id +"/manufacture/"+ man_id +"/view/'><strong>ID = "+ man_id + " +" +cat_id +"</strong></a> " + span_list.span_str_man + span_list.span_str_cat);
+                };
+            if (attr_id) {
+            	   $("#main_link").show();
+            	   $("#main_link").html("<strong>Фільтр: [Тип + Атрибути]: </strong><a href='/invoice/category/"+ cat_id +"/attribute/values/"+ attr_id +"/view/'><strong>ID = "+ attr_id +"</strong></a> " + span_list.span_str_cat + span_list.span_str_attr);
+                };
+                
+         	    	
         },
         open: function() {
         	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
@@ -156,7 +272,8 @@ $(document).ready(function() {
 	$("#s_category").val('{{client_name}}');
 	{% endif %}
 	
-	$("#s_category").focus();
+//	$("#s_category").focus();
+	$("#s_manufacture").focus();
 
 
 	
@@ -211,27 +328,62 @@ document.addEventListener('click', function (e) {
 }, false);*/
 
 $(document).on("close.bs.alert", ".alert", function(event) {
-//$(document).on("click", "button.close", function(event) {
-//$('.attr_selected').on('closed.bs.alert', function () {
-    //var del_id = $(this).parent('div.attr_selected').attr("a_id");
-    var arr = [];
-    var del_id = $(this).attr("a_id");
+//    var del_id = $(this).attr("a_id");
+//    var del_m_id = $(this).attr("m_id");
     var del_elem = $(this);
     del_elem.remove();
+    var arr = [];
+    var arr_m = [];
     var st = '';
+    var st_m = '';
+    var span_list_m = '';
     var span_list = '';
-//    console.log("DELETE = " + del_id);
     $("div.attr_selected").each(function( index ) {
         arr.push($(this).attr("a_id"));
+/*        arr_m.push($(this).attr("m_id"));
         st += "+" + $(this).attr("a_id")
+        st_m += "+" + $(this).attr("m_id")
         span_list += '<span class="badge badge-info mr-1">' + $(this).text() + '</span>';
-        })
-//    const num = del_id;
-//    const idx = arr.indexOf(num);
-//    arr.splice(idx, idx !== -1 ? 1 : 0);
-    var res_arr = "+" + arr.join("+");
+        span_list_m += '<span class="badge badge-secondary mr-1">' + $(this).text() + '</span>';
+        */
+      })
+/*    var res_arr_m = "+" + arr_m.join("+");
     var cat_id = $('#s_attr_val').attr('type_id');
-    $("#main_link").html("<strong>Фільтр: </strong><a href='/invoice/category/"+ cat_id +"attribute/values/"+ res_arr +"/view/'><strong>ID = "+ res_arr +"</strong></a> " + span_list);
+  */  
+    //var res_arr = "+" + arr.join("+");
+    var res_arr = "" + arr.join("+");
+    var span_list = add_span_type(); 
+    span_list = add_span_type();
+    var man_id = $('#s_manufacture').attr('man_id');
+    var cat_id = $('#s_category').attr('cat_id');
+    var attr_id = $('#s_attr_val').attr('attr_ids');
+    if (man_id && cat_id) {
+            $("#company_type_link").show();
+            $("#company_type_link").html("<strong>Фільтр [Виробник + Тип] : </strong><a href='/invoice/category/"+ cat_id +"/manufacture/"+ man_id +"/view/'><strong>ID = "+ man_id + " +" +cat_id +"</strong></a> " + span_list.span_str_man + span_list.span_str_cat);
+        };
+    if (attr_id) {
+           $("#main_link").show();
+           $("#main_link").html("<strong>Фільтр: [Тип + Атрибути]: </strong><a href='/invoice/category/"+ cat_id +"/attribute/values/"+ res_arr +"/view/'><strong>ID = "+ res_arr +"</strong></a> " + span_list.span_str_cat + span_list.span_str_attr);
+        };
+
+    if (span_list.span_str_man == '')  {
+//    	$('#s_manufacture').val('');
+    	$('#s_manufacture').select();
+    	$('#s_manufacture').focus();
+    	$("#company_type_link").hide();
+    }
+    if (span_list.span_str_cat == ''){
+        $('#s_category').select();//.val('');
+        $('#s_category').focus();
+        $("#company_type_link").hide();
+    } 
+/*        console.log("MAn = " + span_list.span_str_man);
+        console.log("CAT = " + span_list.span_str_cat);
+        console.log("ATTR = " + span_list.span_str_attr);
+  */      
+        
+//    $("#main_link").html("<strong>Фільтр [Тип + Атрибути]: </strong><a href='/invoice/category/"+ cat_id +"/attribute/values/"+ res_arr +"/view/'><strong>ID = "+ res_arr +"</strong></a> " + span_list);
+//    $("#company_type_link").html("<strong>Фільтр [Виробник + Тип] : </strong><a href='/invoice/category/"+ cat_id +"/manufacture/"+ st_m +"/view/'><strong>ID = "+ st_m +"</strong></a> " + span_list_m);
   })
 
 </script>
@@ -246,22 +398,29 @@ $(document).on("close.bs.alert", ".alert", function(event) {
 
 <div class="container mw-100">
 
-<div class="alert alert-warning alert-dismissible fade show" role="alert" id="main_link">
-  Фільтр:
-<!--   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-    <span aria-hidden="true">&times;</span>
-  </button>  --> 
+
+<div class="alert alert-success alert-dismissible fade show" role="alert" id="company_type_link">
+Фільтр [Виробник + Тип]:
 </div>
+
+<div class="alert alert-warning alert-dismissible fade show" role="alert" id="main_link">
+Фільтр [Тип + Атрибути]:
+</div>
+
 
 <div class="row justify-content-between">
     <div class="col-12 col-md-6">
 
 <div class="input-group mb-3">
-  <input type="text" id="s_category" class="form-control {% if form.client.errors %}  is-invalid {% endif %}" placeholder="Назва категорії товару" aria-label="Username" aria-describedby="basic-addon1">
+  <input type="text" id="s_manufacture" class="form-control" placeholder="Виберіть виробника товару" aria-label="ManufactureName">
 </div>
 
 <div class="input-group mb-3">
-  <input type="text"  id="s_attr_val" class="form-control {% if form.work_type.errors %}  is-invalid {% endif %}" placeholder="Пошук властивостей/атрибутів. [Всі] або [all] - виводить повний перелік належних атрибутів." aria-label="Username" aria-describedby="basic-addon1" value="{{ work.name }}"/>
+  <input type="text" id="s_category" class="form-control " placeholder="Назва категорії товару" aria-label="typeName" aria-describedby="basic-addon1">
+</div>
+
+<div class="input-group mb-3">
+  <input type="text"  id="s_attr_val" class="form-control {% if form.work_type.errors %}  is-invalid {% endif %}" placeholder="Пошук властивостей/атрибутів. [Всі] або [all] - виводить повний перелік належних атрибутів." value="{{ work.name }}"/>
 </div>
 
 <div id="show_attr_url" href="">
