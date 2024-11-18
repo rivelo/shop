@@ -29,6 +29,13 @@
 	border-color: #b0cb4d;
 }*/
  		
+ 		
+.drop_element_value{
+    color: #6A9B56;
+    cursor: pointer;
+}
+ 		
+ 		
 </style>		
 	
 {% load poll_extras %}
@@ -248,7 +255,11 @@ $(document).ready(function() {
             	   $("#main_link").show();
             	   $("#main_link").html("<strong>Фільтр: [Тип + Атрибути]: </strong><a href='/invoice/category/"+ cat_id +"/attribute/values/"+ attr_id +"/view/'><strong>ID = "+ attr_id +"</strong></a> " + span_list.span_str_cat + span_list.span_str_attr);
                 };
-                
+            $("div.attr_name").show();                
+            $("div.attr_name").hide();
+            var val_name = $(this).val();
+            console.log("Open = " + val_name);
+            $('div.attr_name:contains('+val_name+')').show();
          	    	
         },
         open: function() {
@@ -385,7 +396,14 @@ $(document).on("close.bs.alert", ".alert", function(event) {
 //    $("#main_link").html("<strong>Фільтр [Тип + Атрибути]: </strong><a href='/invoice/category/"+ cat_id +"/attribute/values/"+ res_arr +"/view/'><strong>ID = "+ res_arr +"</strong></a> " + span_list);
 //    $("#company_type_link").html("<strong>Фільтр [Виробник + Тип] : </strong><a href='/invoice/category/"+ cat_id +"/manufacture/"+ st_m +"/view/'><strong>ID = "+ st_m +"</strong></a> " + span_list_m);
   })
-
+  
+  
+function show_val_items(elem) {
+	var cat_id = elem//.parent('div.alert').attr('cat_id');
+	var bool = $("div.div_attr_val[cat_id='"+cat_id+"']").attr('hidden');
+	$("div.div_attr_val[cat_id='"+cat_id+"']").attr('hidden', !bool);
+}
+  
 </script>
 
 
@@ -436,12 +454,13 @@ $(document).on("close.bs.alert", ".alert", function(event) {
 {% if show_attr %}
 {% for item in attr_list %}
 
-<div class="alert alert-dark" role="alert">
-<a href="{% url 'invoice-attribute-id-list' item.id %}" >{{ item.name }}</a> - [{{item.type.all|join:", "}}] ({{item.description}}) - {{item.created_date}}
+<div class="alert alert-dark attr_name" role="alert">
+<a href="{% url 'invoice-attribute-id-list' item.id %}" >{{ item.name }}</a> - [{{item.type.all|join:"] ["}}] ({{item.description}}) - {{item.created_date}}
+<span class="drop_element_value"><i class="material-icons" style="font-size: 24px; " title="Показати значення атрибуту <<{{item.name}}>>:" data-toggle="tooltip" data-placement="top" onclick="show_val_items({{item.id}});">arrow_drop_down_circle</i></span>
 </div>
 
 {% for val in item.all_values %}
-<div class="alert alert-attr-value" role="alert">
+<div class="alert alert-attr-value div_attr_val" role="alert" cat_id="{{item.id}}" hidden>
 <div class="container mw-100">
   <div class="row row_attr_val" attr_val_id="{{val.id}}">
     <div class="col-11 attr_val_text">

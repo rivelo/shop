@@ -965,25 +965,31 @@ def bicycle_store_del(request, id):
     return HttpResponseRedirect('/bicycle-store/view/seller/')
 
 
-def bicycle_store_list(request, all=False):
+def bicycle_store_list(request, id=None, all=False, shop=None):
     list = None
+    shopId = None
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+    try:
+        shopId = Shop.objects.get(pk = id)
+    except:
+        shopId = shopN
     if all==True:
         list = Bicycle_Store.objects.all()
     else:
         list = Bicycle_Store.objects.filter(count=1) #.values('model__model', 'model__sale', 'model__year', 'model__brand__name', 'model__price', 'model__color', 'model__id', 'size__name', 'size__cm', 'size__inch', 'model__type__type', 'serial_number', 'size', 'price', 'currency', 'count', 'description', 'date', 'id')
-        
+    if shop == None:
+        id = shopN.pk
+    if id <> None:
+        list = list.filter(shop = shopId.pk)
     price_summ = 0
     bike_summ = 0
     price_profit_summ = 0
     for item in list:
         price_profit_summ = price_profit_summ + item.get_profit()[1] #item['price'] * item['count']
         price_summ = price_summ + item.get_uaprice() 
-#        bike_summ = bike_summ + item['count']
-#    price_summ = Exchange.objects.filter(currency__ids_char = 'EUR').aggregate(average_val = Avg('value'))['average_val']
-    #price_summ = price_summ['average_val']
     bike_sum = list.count()
-#    fsize = FrameSize.objects.all().values('name', 'id')
-    context = {'bicycles': list, 'weblink': 'bicycle_store_list.html', 'price_summ': price_summ, 'price_profit_summ':price_profit_summ, 'bike_summ': bike_summ}
+    print "SHOP bool - %s" % shop
+    context = {'bicycles': list, 'weblink': 'bicycle_store_list.html', 'price_summ': price_summ, 'price_profit_summ':price_profit_summ, 'bike_summ': bike_summ, 'shopName': shopId, 'shopAll': shop}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
@@ -1713,7 +1719,33 @@ def dictfetchall(cursor):
         dict(zip([col[0] for col in desc], row))
         for row in cursor.fetchall()
     ]
-    
+
+
+def bicycle_tradein_return(request, id):
+    if auth_group(request.user, 'admin') == False:
+        return HttpResponse('Дана дія доступна лише адміністратору', content_type="text/plain;charset=UTF-8;")
+    bs = None
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR']) 
+    dnow = datetime.datetime.now()
+    try: 
+        bs = Bicycle_Sale.objects.get(pk = id);
+        bikeinStore = bs.model
+        bikeinStore.realization = True 
+        bikeinStore.count = 1
+        bikeinStore.description = u"Trade in ("+ dnow.strftime("%d.%m.%Y") +u"). Last sale ("+ bs.date.strftime("%d/%m/%Y") +u") - " + str(bs.sum) + u" грн." 
+        bikeinStore.shop = shopN  
+#        bikeinStore.currency = Currency.objects.get(id=3)
+#        bikeinStore.price = 
+        bikeinStore.save() 
+    except:
+        return HttpResponse('Велосипеду не знайдено або вже виконані якісь інші дії з даним продажем', content_type="text/plain;charset=UTF-8;")
+    if re.search("\\n$", bs.description) == None:
+        bs.description = bs.description + "\n"
+    bs.description = bs.description + u"Trade in ("+ dnow.strftime("%d.%m.%Y") +u")" 
+    bs.sum = 0
+    bs.save()
+    return HttpResponseRedirect('')
+        
 
 def bicycle_sale_report(request):
     if auth_group(request.user, 'admin') == False:

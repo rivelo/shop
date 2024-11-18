@@ -118,7 +118,7 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 	</thead>
 	{% for type in bicycles %}
 	<tr>
-		<td title="{{type.user}}">{{forloop.counter}}</td>
+		<td title="{{type.user}}" data-toggle="tooltip" data-placement="top">{{forloop.counter}}</td>
 		<td title="Редагувати"><a href="{% url 'bicycle-sale-edit' type.id %}"><i class="material-icons">create</i></a></td>
 <!-- 		<td title="{{type.model.size}}"><a href="/bicycle/photo/{{type.model.model.id}}">{{type.model}}</a></td>
  -->
@@ -153,8 +153,9 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 {#		</td> #}
 		<td>{{type.description}}</td>
 		<td>{{type.shop}}</td>
-		<td><a href="/bicycle/sale/{{ type.id }}/check" title="Чек на велосипед"><i class="material-icons">receipt</i></a>
-		<a href="/bicycle/sale/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')" title="Видалити"><i class="material-icons">delete_forever</i></a></td>
+		<td><a href="/bicycle/sale/{{ type.id }}/check" title="Чек на велосипед" data-toggle="tooltip" data-placement="left"><i class="material-icons">receipt</i></a>
+		<a href="{% url 'tradein-return' type.id %}" onclick="return confirm('Виконати TradeIn?')" title="Trade in" data-toggle="tooltip" data-placement="left"><i class="material-icons">assignment_return</i></a>
+		<a href="/bicycle/sale/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')" title="Видалити" data-toggle="tooltip" data-placement="left"><i class="material-icons">delete_forever</i></a></td>
 	</tr>
 	{% endfor %}
 

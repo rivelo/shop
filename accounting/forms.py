@@ -1138,6 +1138,7 @@ class BoxNameEditForm(forms.ModelForm):
         name = cleaned_data.get("name")
         shop = cleaned_data.get("shop")
         user = cleaned_data.get("user")
+        id = self.instance.pk
         try:
             get_user = User.objects.get(pk = user.pk)
         except:
@@ -1150,7 +1151,7 @@ class BoxNameEditForm(forms.ModelForm):
             self.add_error('name', "В назві не вистачає частини розташування. Перевірте поле уважніше!")
         if name.find(' ') >= 0 :
             self.add_error('name', "В назві є пробіли. Виправіть поле!")
-        if BoxName.objects.filter(name = name).count() != 0:
+        if BoxName.objects.filter(name = name).exclude(pk = id).count() != 0:
             self.add_error('name', "Така назва місця вже існує!")
         sel_let = ''
         res = False
@@ -1162,7 +1163,6 @@ class BoxNameEditForm(forms.ModelForm):
             res = True
         if res == False:
             self.add_error('name', "Місце має не вірну назву або ви вибрали не правильний магазин!")
-
 #        cleaned_data['description'] = "write  test string"
         return cleaned_data 
         

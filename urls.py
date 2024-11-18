@@ -101,9 +101,11 @@ urlpatterns = [
     url(r'^bicycle-store/view/seller/year/(?P<year>\d+)/$', catalog.bicycle_store_list_by_seller),
     url(r'^bicycle-store/view/seller/bycompany/(?P<brand>\d+)/$', catalog.bicycle_store_list_by_seller, {'all': True}),        
     url(r'^bicycle-store/view/seller/bycompany/(?P<brand>\d+)/html/$', catalog.bicycle_store_list_by_seller, {'all': True, 'html': True}),
-    url(r'^bicycle-store/now/view/$', catalog.bicycle_store_list),
+#    url(r'^bicycle-store/now/view/$', catalog.bicycle_store_list),
     url(r'^bicycle-store/all/view/$', catalog.bicycle_store_list, {'all': True}),
+    url(r'^bicycle-store/shop/all/view/$', catalog.bicycle_store_list, {'shop': True}, name="bicycles-in-all-shops"),
     url(r'^bicycle-store/view/$', catalog.bicycle_store_list),
+    url(r'^bicycle-store/shop/(?P<id>\d+)/view/$', catalog.bicycle_store_list, {'shop': None, 'all': False}, name="bicycles-in-shop-by-id"),
     url(r'^bicycle-store/edit/(?P<id>\d+)/$', catalog.bicycle_store_edit),
     url(r'^bicycle-store/edit/$', catalog.bicycle_store_edit),
     url(r'^bicycle-store/delete/(?P<id>\d+)/$', catalog.bicycle_store_del),
@@ -136,6 +138,7 @@ urlpatterns = [
     url(r'^bicycle/sale/search/model/$', catalog.bicycle_sale_search_by_name),        
     url(r'^bicycle/sale/search/model/result/$', catalog.bsale_search_by_name_result),
     
+    url(r'^bicycle/(?P<id>\d+)/tradein/$', catalog.bicycle_tradein_return, name='tradein-return'),
     
     # bicycle order by client
     url(r'^bicycle/order/view/$', catalog.bicycle_order_list),
