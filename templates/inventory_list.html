@@ -219,7 +219,13 @@ $(document).on("click", ".inv_show", function(event) {
             success:function(msg){
             	$.each(msg,function(index,item){
 					var fcol = ' data-toggle="tooltip" data-html="true" data-placement="left" title="' + item['user__username'] + '">' + item['date'];
-					var cdesc = item['description'];
+					var cdesc
+					if (item['box_id__name']) {
+						cdesc = item['box_id__name']; //item['description'];
+					}
+					else {
+						cdesc = item['description'];
+					}
 					var tr_cls = 'class="table-success"';
 					if (item['check_all']) {
 						var class_str = 'class="table-success"'
@@ -265,7 +271,8 @@ $(document).on("click", ".inv_show", function(event) {
 
 <div class="ml-2 p-2 bd-highlight">
 
-<h1><span class="badge badge-success">Інвентеризація товару</span> 
+<h1><span class="badge badge-success">Інвентеризація товару</span>
+<span class="badge badge-success">{{sel_day}}.{{sel_month}}.{{sel_year}}</span> 
 {% if request.user|has_group:"admin" %}
 <a href="/inventory/list"><i class="material-icons">calendar_today</i></a>
 {% endif %} 
@@ -283,14 +290,14 @@ $(document).on("click", ".inv_show", function(event) {
 <h2>
 За місяць:
 {% for item in month_list %}
-	<a href="/inventory/year/{{cur_year}}/month/{{item.0}}/list" class="badge badge-warning">{{item.0}} <font size=2><span class="badge badge-light">{{item.1}}</span></font></a>
+	<a href="/inventory/year/{{sel_year}}/month/{{item.0}}/list" class="badge badge-warning">{{item.0}} <font size=2><span class="badge badge-light">{{item.1}}</span></font></a>
 {% endfor %}
 </h2>
 
 <h2>
 За день:
 {% for item in day_list %}
-	<a href="/inventory/year/{{cur_year}}/month/{{cur_month}}/day/{{item.0}}/list" class="badge badge-success">{{item.0}} <font size=2><span class="badge badge-light">{{item.1}}</span></font></a>
+	<a href="/inventory/year/{{sel_year}}/month/{{sel_month}}/day/{{item.0}}/list" class="badge badge-success">{{item.0}} <font size=2><span class="badge badge-light">{{item.1}}</span></font></a>
 {% endfor %}
 </h2>
 
@@ -382,11 +389,14 @@ $(document).on("click", ".inv_show", function(event) {
 		</td>
 		<td align="center">
 		<a href="/invoice/catalog/{{element.catalog.id}}/add/" title="Додати товар" data-toggle="tooltip" data-placement="left">{{ element.real_count }}</a>
+		<span class="badge badge-dark" title="Кількість порахованого товару за поточний {{sel_year}} рік" data-toggle="tooltip" data-placement="left">{{element.get_count_sum_by_cur_year.count_sum}}</span>
 		</td>
 		
-		<td class="text-center">{{ element.description }} <br>
+		<td class="text-center">
 		{% if element.box_id.id %}
-		<a href="{% url 'storage-box-itemlist' element.box_id.id %}" >{{element.box_id}}</a>
+		 <a href="{% url 'storage-box-itemlist' element.box_id.id %}" >{{element.box_id}}</a>
+		{% else %}
+		<p>{{ element.description }}</p>
 		{% endif %}
 		</td>
 		
@@ -400,17 +410,23 @@ $(document).on("click", ".inv_show", function(event) {
 		<span class="inv_set" inv_id="{{element.id}}" style="cursor: pointer;" >{{ element.check_all|yesno:"Повністю,Частково"}}</span>
 		</td>
 		<td align="center">
-		{% if element.count > element.real_count %}
+		{% if element.get_count_sum_by_cur_year.count_sum > element.real_count %}
 		<h5>
 		<a href="/invoice/catalog/{{element.catalog.id}}/add/" title="Додати товар" data-toggle="tooltip" data-placement="left">
-			<span class="badge badge-success">+{{element.count|sub:element.real_count}}</span>
+			<span class="badge badge-success">+{{element.count|sub:element.real_count}}</span> 
+            <span class="badge badge-success">+{{element.get_count_sum_by_cur_year.count_sum|sub:element.real_count}}</span>
+            <span class="badge badge-dark" title="Продано за рік" data-toggle="tooltip" data-placement="top">{{element.get_sale_count_by_cur_year.count_sum}}</span>
+            {% if element.get_sale_count_by_cur_year.count_sum %}
+            <span class="badge badge-danger">+{{element.get_count_sum_by_cur_year.count_sum|sub:element.get_sale_count_by_cur_year.count_sum|sub:element.real_count}}</span>
+            {% endif %}
 		</a>
 		</h5>
 		{% endif %}
-		{% if element.count < element.real_count %}
+		{% if element.get_count_sum_by_cur_year.count_sum < element.real_count %}
 		<h5>
 		<a href="/client/invoice/catalog/{{element.catalog.id}}/add/" title="Списати товар" data-toggle="tooltip" data-placement="left"> 
-			<span class="badge badge-warning">{{element.count|sub:element.real_count}}</span>
+			<span class="badge badge-warning">{{element.get_count_sum_by_cur_year.count_sum|sub:element.real_count}}</span>
+			<span class="badge badge-dark" title="Продано за рік" data-toggle="tooltip" data-placement="top">{{element.get_sale_count_by_cur_year.count_sum}}</span>
 		</a>
 		</h5>
 		{% endif %}
@@ -430,7 +446,7 @@ $(document).on("click", ".inv_show", function(event) {
 	{% endif %}
 	</tr>
 	{% endfor %}
-	<table>
+	</table>
 
 
 {% comment %}

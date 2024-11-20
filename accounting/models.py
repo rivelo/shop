@@ -1122,6 +1122,16 @@ class InventoryList(models.Model):
     def get_count_sum_by_year(self, year):
         sum = InventoryList.objects.filter(date__year = year).aggregate(count_sum = Sum('count'))
         return sum  
+
+    def get_count_sum_by_cur_year(self):
+        year = self.date.year
+        sum = InventoryList.objects.filter(catalog = self.catalog, date__year = year).aggregate(count_sum = Sum('count'))
+        return sum  
+
+    def get_sale_count_by_cur_year(self):
+        year = self.date.year
+        sum = ClientInvoice.objects.filter(catalog = self.catalog, date__year = year).aggregate(count_sum = Sum('count'))        
+        return sum
             
     def __unicode__(self):
         return "[%s] - %s (%s) ***%s***" % (self.date, self.count, self.description, self.user) 

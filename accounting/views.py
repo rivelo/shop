@@ -988,7 +988,6 @@ def bicycle_store_list(request, id=None, all=False, shop=None):
         price_profit_summ = price_profit_summ + item.get_profit()[1] #item['price'] * item['count']
         price_summ = price_summ + item.get_uaprice() 
     bike_sum = list.count()
-    print "SHOP bool - %s" % shop
     context = {'bicycles': list, 'weblink': 'bicycle_store_list.html', 'price_summ': price_summ, 'price_profit_summ':price_profit_summ, 'bike_summ': bike_summ, 'shopName': shopId, 'shopAll': shop}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
@@ -2573,7 +2572,7 @@ def invoicecomponent_add(request, mid=None, cid=None):
 
 
 
-def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None, attr_val_id=None, attr_val_ids=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None, all=False, mc_search=False, by_id=None):
+def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None, attr_val_id=None, attr_val_ids=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None, all=False, mc_search=False, by_id=None, url_name=None):
     #company_list = Manufacturer.objects.none()
     company_list = Manufacturer.objects.all().only('id', 'name')
     #type_list = Type.objects.none() 
@@ -2588,6 +2587,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
     head_text_array = []
     attr_ids_list = []
     list_res = None
+    attr_ids_str = ""
       
 # Search by Name field    
     if 'name' in request.GET and request.GET['name']:
@@ -2660,10 +2660,11 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
         f_str_ids = re.findall("[\+]\d+", attr_val_ids)
         for i in f_str_ids:
             attr_ids_list.append(i.split('+')[1])
-        cav = CatalogAttributeValue.objects.filter(id__in = attr_ids_list).values('value', 'value_float', 'attr_id__name')
+        cav = CatalogAttributeValue.objects.filter(id__in = attr_ids_list).values('value', 'value_float', 'attr_id__name', 'pk')
         for i in cav:
             tmp_text = i['attr_id__name'] + ' >>> ' + i['value']
-            head_text_array.append(tmp_text)
+            head_text_array.append({'id': i['pk'], 'txt': tmp_text})
+            attr_ids_str += "+" + str(i['pk'])
         for i in attr_ids_list:
             if all == True:        
                 list = list.filter(catalog__attributes__id = i)
@@ -2717,7 +2718,8 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
     years_range  = None
     sale_list = None
     if auth_group(request.user, 'admin')==True:
-        years_range = ClientInvoice.objects.filter(catalog__in=id_list).extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('yyear')
+        years_range = ClientInvoice.objects.filter(catalog__in=id_list).extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Sum('count')).order_by('yyear')
+        #years_range = ClientInvoice.objects.filter(catalog__in=id_list).extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Count('pk')).order_by('yyear')
     if sel_year > 0:
         sale_list = ClientInvoice.objects.filter(catalog__in=id_list, date__year = sel_year).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count')).order_by('catalog')
         #years_range = ClientInvoice.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id'))
@@ -2762,7 +2764,8 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
 #        if element['balance'] == 0:
 #            print "Element = " + str(element)
     cur_year = datetime.date.today().year        
-    vars = {'company_list': company_list, 'type_list': type_list, 'componentlist': list_res, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id':mid, 'category_id':cid, 'category_name':cat_name, 'years_range':years_range, 'cur_year': cur_year, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'qsearch_lookup' : mc_search, 'head_text': head_text, 'head_text_array': head_text_array}
+    #url_name = 'invoice-category-manufacture-by-year'
+    vars = {'year_url_name': url_name, 'company_list': company_list, 'type_list': type_list, 'componentlist': list_res, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id': mid, 'category_id': cid, 'category_name':cat_name, 'years_range':years_range, 'cur_year': cur_year, 'select_year': sel_year, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'qsearch_lookup' : mc_search, 'head_text': head_text, 'head_text_array': head_text_array, 'attr_ids_str': attr_ids_str}
     vars.update(custom_proc(request))
     return render(request, 'index.html', vars)
 
@@ -9442,30 +9445,33 @@ def inventory_edit(request, id):
 
 
 def inventory_list(request, shop_id=None, year=None, month=None, day=None):
-    pyear = year
+    s_year = year
+    s_month = month
+    s_day = day
     list = None
     day_list = None
     if (year == None):
-        year = datetime.datetime.now().year
+        s_year = datetime.datetime.now().year
     else:
-        year = year
-    list = InventoryList.objects.filter(date__year = year)
+        s_year = year
+    list = InventoryList.objects.filter(date__year = s_year)
     if (month != None):
         list = list.filter(date__month = month)
-        day_list = InventoryList.objects.filter(date__year = year, date__month = month).extra({'day':"Extract(day from date)"}).values_list('day').annotate(Count('id')).order_by('day')        
+        day_list = InventoryList.objects.filter(date__year = s_year, date__month = month).extra({'day':"Extract(day from date)"}).values_list('day').annotate(Count('id')).order_by('day')        
     if (day != None):
         list = list.filter(date__day = day)
-    if (pyear == None) and (month == None) and (day == None):
-        month = datetime.datetime.now().month
-        day = datetime.datetime.now().day
+    if (year == None) and (month == None) and (day == None):
+        s_month = datetime.datetime.now().month
+        s_day = datetime.datetime.now().day
+        day_list = InventoryList.objects.filter(date__year = s_year, date__month = s_month).extra({'day':"Extract(day from date)"}).values_list('day').annotate(Count('id')).order_by('day')
         if shop_id == None:
             shopId = Shop.objects.all()
         else:
             shopId = Shop.objects.filter(id = shop_id)
-        list = list.filter(date__month = month, date__day = day, shop__in = shopId)
+        list = list.filter(date__month = s_month, date__day = s_day, shop__in = shopId)
     year_list = InventoryList.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
-    month_list = InventoryList.objects.filter(date__year = year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')
-    context = {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month}
+    month_list = InventoryList.objects.filter(date__year = s_year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')
+    context = {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'sel_day': s_day, 'sel_month': s_month, 'sel_year': s_year}
     context.update(custom_proc(request))
     return render(request, "index.html", context)
 
