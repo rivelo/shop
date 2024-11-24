@@ -5957,7 +5957,7 @@ def worktype_depence_component_add(request):
     else:
         return HttpResponse('Error: Щось пішло не так під час запиту')     
     
-
+@csrf_exempt
 def worktype_depence_delete(request):
     d = {}
     if (auth_group(request.user, 'seller')==False) or (auth_group(request.user, 'admin')==False):
@@ -9449,7 +9449,9 @@ def inventory_list(request, shop_id=None, year=None, month=None, day=None):
     s_month = month
     s_day = day
     list = None
+    shopId = None
     day_list = None
+    shopList = Shop.objects.all()
     if (year == None):
         s_year = datetime.datetime.now().year
     else:
@@ -9464,14 +9466,16 @@ def inventory_list(request, shop_id=None, year=None, month=None, day=None):
         s_month = datetime.datetime.now().month
         s_day = datetime.datetime.now().day
         day_list = InventoryList.objects.filter(date__year = s_year, date__month = s_month).extra({'day':"Extract(day from date)"}).values_list('day').annotate(Count('id')).order_by('day')
-        if shop_id == None:
-            shopId = Shop.objects.all()
-        else:
-            shopId = Shop.objects.filter(id = shop_id)
-        list = list.filter(date__month = s_month, date__day = s_day, shop__in = shopId)
+        print "Shop LIST = %s " % shop_id
+    if shop_id == None:
+        shopId = shopList
+    else:
+        shopId = Shop.objects.filter(id = shop_id)
+    #list = list.filter(date__month = s_month, date__day = s_day, shop__in = shopId)
+    list = list.filter(shop__in = shopId)
     year_list = InventoryList.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
     month_list = InventoryList.objects.filter(date__year = s_year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')
-    context = {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'sel_day': s_day, 'sel_month': s_month, 'sel_year': s_year}
+    context = {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'sel_day': s_day, 'sel_month': s_month, 'sel_year': s_year, 'sel_shop': shop_id, 'shop_list': shopList}
     context.update(custom_proc(request))
     return render(request, "index.html", context)
 

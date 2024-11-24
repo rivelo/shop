@@ -669,7 +669,7 @@ urlpatterns = [
     url(r'^inventory/year/(?P<year>\d+)/month/(?P<month>\d+)/list/$', catalog.inventory_list),
     url(r'^inventory/shop/(?P<shop_id>\d+)/year/(?P<year>\d+)/month/(?P<month>\d+)/list/$', catalog.inventory_list),
     url(r'^inventory/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/list/$', catalog.inventory_list),
-    url(r'^inventory/shop/(?P<shop_id>\d+)/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/list/$', catalog.inventory_list),
+    url(r'^inventory/shop/(?P<shop_id>\d+)/year/(?P<year>\d+)/month/(?P<month>\d+)/day/(?P<day>\d+)/list/$', catalog.inventory_list, name='inventory-by-shop-year-month-day'),
     url(r'^inventory/add/$', catalog.inventory_add, name="inventory-add"),
     url(r'^inventory/get/$', catalog.inventory_get),
     url(r'^inventory/count/get/$', catalog.inventory_get_count),

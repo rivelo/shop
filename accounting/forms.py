@@ -910,8 +910,9 @@ class WorkShopForm(forms.ModelForm):
         if (price > w_type.price):
             if ((len(description) <= 5) or (res_time == 0)):
                 self.add_error('price', "Сума більша ніж у вибраної роботи [" + str(w_type.price) + " грн.]. Напишіть причину підвищення та скільки часу було затрачено.")
-                self.add_error('work_type', "Сума більша ніж у вибраної роботи [" + str(w_type.price) + " грн.]. Напишіть причину підвищення та скільки часу було затрачено.")                        
-        if price < w_type.price:
+                self.add_error('work_type', "Сума більша ніж у вибраної роботи [" + str(w_type.price) + " грн.]. Напишіть причину підвищення та скільки часу було затрачено.")
+        res_sum = w_type.price / 100 * (100-w_type.sale)                                        
+        if price < res_sum :
             self.add_error('work_type', "Сума не може бути менша ніж у вибраної роботи [" + str(w_type.price) + " грн.]")
             self.add_error('price', "Сума не може бути менша ніж у вибраної роботи [" + str(w_type.price) + " грн.]")            
             #self.add_error('client', "Клієнт підходить")

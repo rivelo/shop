@@ -1086,7 +1086,7 @@ class InventoryList(models.Model):
                 sbox = StorageBox.objects.filter(catalog = self.catalog, box_name = self.box_id)
                 if obj['count'] != self.count and sbox.count() > 0:
                     cc = int(self.count) - int(obj['count'])
-                    print "\nSBOX count diff - %s\n" % (cc)
+#                    print "\nSBOX count diff - %s\n" % (cc)
                     #iobj = StorageBox.objects.get(pk = sbox[0].pk)
                     iobj = sbox[0]
                     iobj.count = iobj.count + cc
@@ -1132,6 +1132,17 @@ class InventoryList(models.Model):
         year = self.date.year
         sum = ClientInvoice.objects.filter(catalog = self.catalog, date__year = year).aggregate(count_sum = Sum('count'))        
         return sum
+
+    def get_count_in_box(self):
+        b_id = self.box_id
+        sum = StorageBox.objects.filter(catalog = self.catalog, box_name = b_id).aggregate(count_sum = Sum('count'))
+        return sum
+
+    def get_count_in_all_boxes(self):
+        b_id = self.box_id
+        sum = StorageBox.objects.filter(catalog = self.catalog).aggregate(count_sum = Sum('count'))
+        return sum
+
             
     def __unicode__(self):
         return "[%s] - %s (%s) ***%s***" % (self.date, self.count, self.description, self.user) 
