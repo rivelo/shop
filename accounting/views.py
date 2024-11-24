@@ -9451,6 +9451,7 @@ def inventory_list(request, shop_id=None, year=None, month=None, day=None):
     list = None
     shopId = None
     day_list = None
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
     shopList = Shop.objects.all()
     if (year == None):
         s_year = datetime.datetime.now().year
@@ -9465,9 +9466,11 @@ def inventory_list(request, shop_id=None, year=None, month=None, day=None):
     if (year == None) and (month == None) and (day == None):
         s_month = datetime.datetime.now().month
         s_day = datetime.datetime.now().day
+        list = list.filter(date__month = s_month, date__day = s_day)
         day_list = InventoryList.objects.filter(date__year = s_year, date__month = s_month).extra({'day':"Extract(day from date)"}).values_list('day').annotate(Count('id')).order_by('day')
         print "Shop LIST = %s " % shop_id
     if shop_id == None:
+        shop_id = shopN
         shopId = shopList
     else:
         shopId = Shop.objects.filter(id = shop_id)
@@ -11051,17 +11054,17 @@ def post_casa_token(xLicenseKey=licenseKey(), pin_code=settings.PIN_CODE):
     data = {"pin_code": pin_code}
     url = "https://api.checkbox.ua/api/v1/cashier/signinPinCode"
 
-    r = requests.post(url, data=json.dumps(data), headers=headers)
+    try:
+        r = requests.post(url, data=json.dumps(data), headers=headers)
 #    print('Status: ' + str(r))
-    if r.status_code <> 200:
-#        print "Error: " + r.json()['message'].encode('utf-8') #('cp1251') 
-        return "Error: " + str(r)
+        if r.status_code <> 200:
+            return "Error: " + str(r)
+    except: 
+        return "Connection to server CHECKbox Error!"
 
     ttoken = r.json()['token_type']
     atoken = r.json()['access_token']
-
 #    print "\n'Authorization' : '" + ttoken.title()+ " " + atoken +"'"
-
     return ttoken + ' ' + atoken
 
 
