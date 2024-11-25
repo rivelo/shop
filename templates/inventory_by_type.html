@@ -1,0 +1,144 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<html lang="en">
+<head>
+    <title>Інвентеризація товару {{cattype}}</title>
+{#    <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
+    
+</head>
+
+<style>
+
+table tr td {
+    text-align: center;
+}
+
+table th  {
+    text-align: center;
+}
+
+table  td  a {
+/*    color: white !important; */
+    font-weight: bold;
+}
+
+</style>
+
+<script>
+
+function hide_true(){ 
+//    $("tr.item_true").hide();
+    $("tr.item_true").toggle();
+    var false_count = $("tr.item_false").length;
+    $("#count_false").html('' + false_count);
+}
+
+function show_true(){ 
+    $("tr.item_true").show();
+}
+
+
+
+function change_count(item){
+    var rcount, pk
+    pk = $(item).parents('tr').attr('cat_id');
+    rcount = $(item).html();
+    
+$.ajax({
+    type: "POST",
+        url: "{% url 'cat_set_attr' %}",
+        data: {id:  pk, count: rcount},
+        dataType : 'json',
+        success:function(json){
+            if (json['status'] == true) {
+//              console.log("Кількість змінено");
+                $(item).hide();
+            }
+            else {
+                console.log('JSON = ' + json['error'] + ' STATUS = ' + json['status'] );
+                alert("Помилка: " + json['msg']);
+            }
+        },
+        error:function(){
+            alert("При відправці виникли проблеми");
+        }
+});
+};
+
+</script>
+
+{% load poll_extras %}
+<body>
+    <h1>
+    Інвентеризація товару <span class="badge badge-success"> {{cattype}} </span>
+    <span class="badge badge-info" title="приховати/показати товари в яких зійшлись підрахунки" data-toggle="tooltip" data-placement="bottom" onclick="hide_true()">
+    Приховати/показати
+    <span class="badge badge-light" id="count_false" title="Кількість товарів у яких не зійшлись підрахунки" data-toggle="tooltip" data-placement="bottom" ></span>
+    </span>
+    </h1>
+
+    <table class="table table-hover table-sm" class="ml-1 mb-2">
+    <thead>
+    <tr>
+    	<th scope="col">#</th>
+    	<th scope="col">Код</th>
+    	<th scope="col">Назва</th>
+    	<th scope="col" title="Залишок товару в базі" data-toggle="tooltip" data-placement="bottom">Кількість</th>
+    	<th scope="col" >Ціна грн</th>
+    	<th scope="col">Кількість в ящиках</th>
+    	<th scope="col">Користувач</th>
+    	<th scope="col">Користувач</th>
+    </tr>
+    </thead>
+    {% for item in catalog_list %}
+    {% if item.count != item.get_storage_box_sum_by_count.sum_count %}
+    <tr class="item_false" cat_id="{{item.pk}}">
+    {% else %}
+    <tr class="item_true" cat_id="{{item.pk}}">
+    {% endif %}
+		<td>
+		{{ forloop.counter }}
+		</td>
+        <td>
+            {{ item.ids|default:"" }} / {{ item.dealer_code|default:"" }}  
+        </td>
+        <td>
+        <a href="{% url 'inventory-by-catalog-id' item.pk %}">
+            {{ item.name }}
+        </a>
+        </td>
+        <td>
+        {{ item.count }}
+        {% if item.count != item.get_realshop_count %}
+        <span class="badge badge-warning" onclick="change_count(this)"> {{item.get_realshop_count}} </span>
+        {% endif %}
+        </td>
+        <td>
+        {% if item.price == item.get_saleprice %}
+        {{ item.price }}
+        {% else %}
+        {{ item.price }}
+        <span class="badge badge-success" title="Акційна ціна" data-toggle="tooltip" data-placement="bottom">{{item.get_saleprice}}</span>
+        {% endif %}
+        </td>
+        <td>{{ item.get_storage_box_sum_by_count.sum_count }}
+        {% if item.count > item.get_storage_box_sum_by_count.sum_count %}
+        <span class="badge badge-danger" title="Недостача" data-toggle="tooltip" data-placement="bottom">
+        {{ item.get_storage_box_sum_by_count.sum_count|sub:item.count }}
+        </span>
+        {% elif item.count < item.get_storage_box_sum_by_count.sum_count %}        
+        <span class="badge badge-success" title="Знайдено більше" data-toggle="tooltip" data-placement="bottom">
+        {{ item.get_storage_box_sum_by_count.sum_count|sub:item.count }}
+        </span>
+        {% endif %}
+        </td>
+        <td>{{ item.created_user }}</td>
+        <td>{{ item.user_update }}</td>
+        
+    </tr>
+    {% endfor %}
+    <table>
+
+
+</body>
+</html>

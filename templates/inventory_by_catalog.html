@@ -1,0 +1,105 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<html lang="en">
+<head>
+    <title>Інвентеризація товару {{catalog}}</title>
+{#    <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
+    
+</head>
+
+<style>
+
+table  td  a {
+    color: white !important;
+    font-weight: bold;
+}
+
+</style>
+{% load poll_extras %}
+<body>
+    <h1>Інвентеризація товару {{catalog}}</h1>
+
+    <table class="table table-hover" class="ml-1 mb-2">
+    <thead>
+    <tr>
+    	<th scope="col">#</th>
+    	<th scope="col">Назва</th>
+    	<th scope="col">Кількість</th>
+    	<th scope="col">Кількість в базі</th>
+    	<th scope="col">Дата</th>
+    	<th scope="col">Користувач</th>
+    </tr>
+    </thead>
+    {% for item in inv_list %}
+    <tr>
+		<td>
+		{{ forloop.counter }}
+		</td>
+        <td>
+            {{ item.box_id }}
+        </td>
+        <td>
+{{ item.count }}
+        </td>
+        <td>
+        {{ item.real_count }}
+        </td>
+        <td>{{ item.date }}</td>
+        <td>{{ item.user }}</td>
+        
+    </tr>
+    {% endfor %}
+    <table>
+
+
+<h2><span class="badge badge-dark">Кількість товару у ящику:</span></h2>
+<table class="table table-sm table-dark table-hover">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Місце</th>
+      <th scope="col">кількість</th>
+      <th scope="col">реальна кількість</th>
+      <th scope="col">Остання кількість</th>
+      <th scope="col">Дата створення</th>
+      <th scope="col">Дата оновлення</th>
+      <th scope="col">Користувач</th>
+    </tr>
+  </thead>
+  <tbody>
+{% for box in boxes %}
+    <tr>
+      <th scope="row">{{forloop.counter}}</th>
+      <td>
+      <a href="/storage/box/{{box.box_name.pk}}/list/" title="Перейти до ящика: {{box.box_name}} " data-toggle="tooltip" data-html="true" data-placement="bottom">
+      {{box.box_name}}
+      </a>
+      </td>
+      <td>{{box.count}} </td>
+      <td>{{box.count_real}}</td>
+      <td>{{box.count_last}}</td>
+      <td>{{box.date_create}}</td>
+      <td>{{box.date_update}}</td>
+      <td>{{box.user}}</td>
+    </tr>
+    <tr>
+{% endfor %}
+  </tbody>
+</table>
+
+<h1>Кількість в базі:
+<span class="badge badge-secondary">{{catalog.get_realshop_count}}</span>
+Кількість в ящиках:
+<span class="badge badge-secondary">{{inv_list.first.get_count_in_all_boxes.count_sum}}</span>
+{% if inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count < 0 %}
+<span class="badge badge-danger">Різниця:</span>
+<span class="badge badge-danger">{{inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count|floatformat:"0"}}</span>
+{% elif inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count > 0 %}
+<span class="badge badge-warning">Різниця:</span>
+<span class="badge badge-warning">{{inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count|floatformat:"0"}}</span>
+{% endif %}
+
+</h1>
+
+</body>
+</html>

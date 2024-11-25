@@ -33,7 +33,13 @@ def div(value, arg):
 
 @register.filter
 def sub(value, arg):
-    return float(value) - float(arg)
+    res = 0
+    try:
+        res = value - arg
+    except:
+        pass
+    return res 
+
 
 @register.filter
 def sub_int(value, arg):

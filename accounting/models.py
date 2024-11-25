@@ -722,6 +722,10 @@ class Catalog(models.Model):
         list = StorageBox.objects.filter(catalog = self)
         return list
 
+    def get_storage_box_sum_by_count(self):
+        list = StorageBox.objects.filter(catalog = self).aggregate(sum_count = Sum('count'))
+        return list
+
     def get_storage_box_list_to_html(self):
         list = StorageBox.objects.filter(catalog = self).values_list('box_name__name', 'count', 'count_real')
         res_list = []
@@ -1111,7 +1115,6 @@ class InventoryList(models.Model):
             iobj.save()
         super(InventoryList, self).delete(**kwargs)
 
-
     def get_last_year_check(self):
         nday = 360
         cur_date = datetime.datetime.now()
@@ -1139,8 +1142,14 @@ class InventoryList(models.Model):
         return sum
 
     def get_count_in_all_boxes(self):
-        b_id = self.box_id
-        sum = StorageBox.objects.filter(catalog = self.catalog).aggregate(count_sum = Sum('count'))
+        sum = StorageBox.objects.filter(catalog = self.catalog)
+        #print ""
+        sum = sum.aggregate(count_sum = Sum('count'))
+        return sum
+
+    def get_all_boxes(self):
+        sum = StorageBox.objects.filter(catalog = self.catalog)
+#        sum = sum.aggregate(count_sum = Sum('count'))
         return sum
 
             

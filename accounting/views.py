@@ -9483,6 +9483,33 @@ def inventory_list(request, shop_id=None, year=None, month=None, day=None):
     return render(request, "index.html", context)
 
 
+def inventory_by_catalog_id(request, cat_id):
+    c_id = None
+    try:
+        c_id = Catalog.objects.get(pk = cat_id)
+    except:
+        res_str = "Такого товару не знайдено"
+        context = {'weblink': 'error_message.html', 'mtext': res_str}
+        context.update(custom_proc(request))         
+        return render(request, 'index.html', context)        
+    
+    inv_list = InventoryList.objects.filter(catalog = c_id).order_by('-date')
+    boxes = inv_list[0].get_all_boxes()
+    
+    context = {"weblink": 'inventory_by_catalog.html', "catalog": c_id, "inv_list": inv_list, 'boxes': boxes}
+    context.update(custom_proc(request))    
+    return render(request, 'index.html', context)
+
+
+def inventory_catalog_type(request, type_id):
+    type_obj = Type.objects.get(pk = type_id)
+    cat_list = Catalog.objects.filter(type = type_obj, count__gt = 0)    
+    context = {"weblink": 'inventory_by_type.html', "catalog_list": cat_list, 'cattype': type_obj} #, "inv_list": inv_list, 'boxes': boxes}
+    context.update(custom_proc(request))    
+    return render(request, 'index.html', context)
+    
+
+
 def inventory_mistake(request, year=None, month=None, day=None):
     #im = InventoryList.objects.filter(check_all = True).annotate(dcount=Max('date')).order_by('date')
     year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
@@ -11050,18 +11077,14 @@ def post_casa_token(xLicenseKey=licenseKey(), pin_code=settings.PIN_CODE):
         'Accept': 'text/plain', 
         'X-License-Key': xLicenseKey #'test338c45d499f5fea8e7d02280'
         }
-    
     data = {"pin_code": pin_code}
     url = "https://api.checkbox.ua/api/v1/cashier/signinPinCode"
-
     try:
         r = requests.post(url, data=json.dumps(data), headers=headers)
-#    print('Status: ' + str(r))
         if r.status_code <> 200:
             return "Error: " + str(r)
     except: 
         return "Connection to server CHECKbox Error!"
-
     ttoken = r.json()['token_type']
     atoken = r.json()['access_token']
 #    print "\n'Authorization' : '" + ttoken.title()+ " " + atoken +"'"
