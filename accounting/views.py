@@ -9646,14 +9646,14 @@ def inventory_by_catalog_id(request, cat_id):
     c_id = None
     try:
         c_id = Catalog.objects.get(pk = cat_id)
+        inv_list = InventoryList.objects.filter(catalog = c_id).order_by('-date')
+        boxes = inv_list[0].get_all_boxes()
     except:
-        res_str = "Такого товару не знайдено"
+        res_str = u"Обліку для товару %s: %s не знайдено" % (cat_id, c_id)
         context = {'weblink': 'error_message.html', 'mtext': res_str}
         context.update(custom_proc(request))         
         return render(request, 'index.html', context)        
     
-    inv_list = InventoryList.objects.filter(catalog = c_id).order_by('-date')
-    boxes = inv_list[0].get_all_boxes()
     
     context = {"weblink": 'inventory_by_catalog.html', "catalog": c_id, "inv_list": inv_list, 'boxes': boxes}
     context.update(custom_proc(request))    

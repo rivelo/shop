@@ -2303,7 +2303,7 @@ function show_year_sales(cell){
 {#     <span id="span_show_select" class="badge badge-secondary" title="Показати/приховати рядок вибору по категорії/виробнику" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">unfold_more</i></span> #}
      <span class="badge badge-secondary">Список наявного товару</span> 
      {% if company_name %}<a class="badge badge-info" id="c_c" href="{% url 'invoice-manufacture-id-list' company_id %}">{{company_name|capfirst}} </a> {% endif %} 
-     {% if category_name %} <a class="badge badge-info" id="c_c" href="{% url 'category-id-list' category_id %}" >{{category_name|capfirst}}</a> {% endif %}   
+     {% if category_id %} <a class="badge badge-info" id="c_c" href="{% url 'invoice-category-id-list' category_id %}" >{{category_name|capfirst}}</a> {% endif %}   
      {% if select_year %} <span class="badge badge-success" id="c_c">{{select_year}}</span> {% endif %}
      <span class="badge badge-info">{{head_text}}</span>
      {% for item in head_text_array %}
@@ -2354,10 +2354,10 @@ function show_year_sales(cell){
      {% endfor %}
 {#     коли не має товарів то стається помилка #}
 {% if category_id %}
-    <a href="{% url 'invoice-category-last-sale-by-month' componentlist.0.catalog__type__id '0' %}" class="badge badge-light year_sales">Продажі за місяць</a>  
+    <a href="{% url 'invoice-category-last-sale-by-month' category_id '0' %}" class="badge badge-light year_sales">Продажі за місяць</a>  
 {% endif %}
 {% if company_id %}     
-    <a href="{% url 'invoice-manufacturer-last-sale-by-month' componentlist.0.manufacturer__id '0' %}" class="badge badge-light year_sales">Продажі за місяць</a> 
+    <a href="{% url 'invoice-manufacturer-last-sale-by-month' company_id '0' %}" class="badge badge-light year_sales">Продажі за місяць</a> 
 {% endif %}     
 {% endif %} 
 
