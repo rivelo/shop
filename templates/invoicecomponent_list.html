@@ -2352,8 +2352,13 @@ function show_year_sales(cell){
           <span class="badge badge-light">{{yy.1|floatformat:"0"}}</span>
      </a>
      {% endfor %}
-    <a href="{% url 'invoice-category-last-sale-by-month' componentlist.0.catalog__type__id 0 %}" class="badge badge-light year_sales">Продажі за місяць</a>     
-    <a href="{% url 'invoice-manufacturer-last-sale-by-month' componentlist.0.manufacturer__id 0 %}" class="badge badge-light year_sales">Продажі за місяць</a>     
+{#     коли не має товарів то стається помилка #}
+{% if category_id %}
+    <a href="{% url 'invoice-category-last-sale-by-month' componentlist.0.catalog__type__id '0' %}" class="badge badge-light year_sales">Продажі за місяць</a>  
+{% endif %}
+{% if company_id %}     
+    <a href="{% url 'invoice-manufacturer-last-sale-by-month' componentlist.0.manufacturer__id '0' %}" class="badge badge-light year_sales">Продажі за місяць</a> 
+{% endif %}     
 {% endif %} 
 
 
