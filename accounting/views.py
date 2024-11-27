@@ -2592,10 +2592,7 @@ def invoicecomponent_add(request, mid=None, cid=None):
             cat = Catalog.objects.get(id = cid)
             cat.count = cat.count + count
             cat.save()
-            #return HttpResponseRedirect('/invoice/list/10/view/')
-            #list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__sale').order_by('-id')[:10]
-            #return render_to_response('index.html', {'componentlist': list, 'addurl': "/invoice/manufacture/"+str(mid)+"/add", 'weblink': 'invoicecomponent_list.html'})
-            return HttpResponseRedirect('/invoice/list/10/view/')
+            return HttpResponseRedirect(reverse('serch-invoicecomponennts-by-id', args=[cat.pk]))
     else:
         form = InvoiceComponentListForm(instance = a, test1=mid, catalog_id=cid)
 #    return render_to_response('index.html', {'form': form, 'weblink': 'invoicecomponent.html', 'price_ua': price, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
@@ -2841,7 +2838,8 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
         except:
             list_res = InvoiceComponentList.objects.none()
     else:
-        list_res = list.values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__dealer_code', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').order_by("catalog__type")
+        list_res = list_res.annotate(sum_catalog=Sum('count')).order_by("catalog__type")
+#        list_res = list.values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__dealer_code', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').order_by("catalog")
 #        list_res = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__dealer_code', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').annotate(sum_catalog=Sum('count')).order_by("catalog__type")        
 #        list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__id').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
         list_res = list_res[:limit]
@@ -3030,7 +3028,8 @@ def invoicecomponent_del(request, id):
     cat = Catalog.objects.get(id = obj.catalog.id)
     cat.count = cat.count - obj.count
     cat.save()
-    return HttpResponseRedirect('/invoice/list/10/view/')
+    #return HttpResponseRedirect('/invoice/list/10/view/')
+    return HttpResponseRedirect(reverse('serch-invoicecomponennts-by-id', args=[cat.pk]))
 
 @csrf_exempt
 def invoicecomponent_edit(request, id):
@@ -3052,7 +3051,8 @@ def invoicecomponent_edit(request, id):
             cat = Catalog.objects.get(id = cid)
             cat.count = cat.count + count - old_count
             cat.save()
-            return HttpResponseRedirect('/invoice/list/10/view/')
+            #return HttpResponseRedirect('/invoice/list/10/view/')
+            return HttpResponseRedirect(reverse('serch-invoicecomponennts-by-id', args=[cat.pk]))
     else:
         form = InvoiceComponentListForm(instance=a, catalog_id=cid)
         #form = InvoiceComponentListForm(instance=a)
@@ -3339,7 +3339,7 @@ def category_manufacture_lookup(request):
                             d_res = {}
                             d_res["id"] = mod.id
                             d_res["name"] = "%s - %s" % (mod.name, mod.name_ukr)
-                            d_res["url"] = reverse('category-id-list', args=[mod.pk])
+                            d_res["url"] = reverse('invoice-category-id-list', args=[mod.pk])
                             d_res["url_inv"] = reverse('inventory-by-type', args=[mod.pk])
                             res.append(d_res)
                             

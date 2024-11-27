@@ -27,7 +27,7 @@
  
 {% for cat in cat_list %}
  
- <a href="{% url 'category-id-list' cat.id %}" title="{{cat.name_ukr}}  <br/> {{cat.name}}" data-toggle="tooltip" data-placement="top" data-html="true">
+ <a href="{% url 'invoice-category-id-list' cat.id %}" title="{{cat.name_ukr}}  <br/> {{cat.name}}" data-toggle="tooltip" data-placement="top" data-html="true">
  <img class="icon" src="{{cat.get_icon_name}}">
  </a>
  

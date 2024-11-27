@@ -74,9 +74,7 @@ $(document).ready(function() {
 	      minLength: 2,
 	      select: function( event, ui ) {
 	      	var sel = ui.item.pk_id;
-//	      	alert("Select - " + ui.item.value + " | id = " + sel);
-//	      	var name_url = "{% url 'invoice-category-id-list' 01199110 %}".replace('01199110', sel);
-	      	window.location.href = ui.item.url_s; // name_url; //"{% url 'invoice-category-id-list' 156 %}";
+	      	window.location.href = ui.item.url_s; 
 	      },
 	      open: function() {
 	    	$("#portal_menu").css("z-index", -1);

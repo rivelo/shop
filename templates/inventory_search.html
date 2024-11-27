@@ -42,7 +42,7 @@ $( "#search_field" ).autocomplete({
     select: function( event, ui ) {
         var sel = ui.item.pk_id;
         console.log("window URL = " + ui.item.url_s);
-        window.location.href = ui.item.url_s; // name_url; //"{% url 'category-id-list' 156 %}";
+        window.location.href = ui.item.url_s; 
     },
     open: function() {
       $("#portal_menu").css("z-index", -1);
