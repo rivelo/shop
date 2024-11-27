@@ -1058,6 +1058,10 @@ class BoxName(models.Model):
         ns = self.name
         b_num = int(ns.split('.')[3].split('b')[1])
         return b_num
+
+    def get_count_sum(self):
+        res_sum = StorageBox.objects.filter(box_name = self).count()
+        return res_sum 
     
     def __unicode__(self):
         return u'%s (%s) - [%s]' % (self.name, self.description, self.shop)

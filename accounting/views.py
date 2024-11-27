@@ -76,7 +76,40 @@ def custom_proc(request):
         'local_server': settings.LOCAL_TEST_SERVER,
     }
 
+# CHANGE MONTH in datetime
+def add_months(date, months):
+    new_date = None
+    month = date.month + months - 1
+    year = date.year + (month / 12)
+    month = (month % 12) + 1
+    day = date.day
+    day = 1
+    while (day > 0):
+        try:
+            new_date = date.replace(year=year, month=month, day=day)
+            break
+        except:
+            day = day - 1    
+    return new_date
 
+
+def sub_months(date, months):
+    new_date = None
+    month = (date.month - months) - 1
+    #month = (date.month - months + 12) - 1
+    year = date.year - abs(month / 12 )#/ date.month)
+    #year = date.year - (date.month + months) / 12
+    month = (month % 12) + 1
+    day = date.day
+    day = 1
+    while (day > 0):
+        try:
+            new_date = date.replace(year=year, month=month, day=day)
+            break
+        except:
+            day = day - 1    
+    return new_date
+# end - CHANGE MONTH in datetime
 
 @csrf_exempt
 def login(request):
@@ -2571,6 +2604,109 @@ def invoicecomponent_add(request, mid=None, cid=None):
     return render(request, 'index.html', context)
 
 
+def invoicecomponent_sales_list(request, mid=None, cid=None, month=None, all=None):
+    company_name = '' 
+    type_name = ''
+    list = None # QuerySet
+    id_list = []
+    zsum = 0
+    zcount = 0
+    head_text = u'Повністю продані товари за останні %s місяців' % month
+    head_text_array = []
+    attr_ids_list = []
+    list_res = None
+    attr_ids_str = ""
+#    all = False
+    new_list = []
+    years_range  = None
+    sale_list = None
+    curdate = datetime.datetime.now()
+    sel_year = 0#= curdate.year
+    url_name = None
+
+    test_m = int(month)
+#    add_m = add_months(curdate, test_m)
+#    print "ADD month date = %s " % add_m
+    sub_m = sub_months(curdate, test_m)
+    print "SUB month date = %s " % sub_m
+
+    if month:
+        #dd = datetime.datetime(2024, 11, 1)
+        sale_list = ClientInvoice.objects.filter(date__gte = sub_m)
+        #sale_list = ClientInvoice.objects.filter(date__gte = dd)
+    else:
+        sale_list = ClientInvoice.objects.filter(date__month = curdate.month)
+    list = InvoiceComponentList.objects.filter(catalog__clientinvoice__in = sale_list)
+    if mid:
+        if all == True:
+            list = list.filter(catalog__manufacturer__id = mid)
+        else:
+            list = list.filter(catalog__manufacturer__id = mid).exclude(catalog__count__gt = 0)            
+        company_name = Manufacturer.objects.get(id = mid)
+        url_name = 'invoice-manufacture-by-year-all'
+    if cid:
+        if all == True:        
+            list = list.filter(catalog__type__id = cid)
+            head_text = u'Продані товари за останні %s місяців' % month
+        else:
+            head_text = u'Повністю продані товари за останні %s місяців' % month
+            list = list.filter(catalog__type__id = cid).exclude(catalog__count__gt = 0)
+            sale_list = sale_list.filter(catalog__type__id = cid)
+        type_name = Type.objects.get(id=cid)
+        url_name = 'invoice-category-by-year-all'
+    
+#    list_res_val = list.values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')
+    list_res = list.values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').annotate(sum_catalog=Sum('count')).order_by('catalog')
+#    print "RES list wOut annotate - %s " % list_res_val.count() 
+#    list_res = list_res_val.annotate(sum_catalog=Sum('count'))
+
+    for item in list_res:
+        id_list.append(item['catalog'])
+    
+    if auth_group(request.user, 'admin')==True:
+        years_range = ClientInvoice.objects.filter(catalog__in=id_list).extra({'yyear':"Extract(year from date)"}).values_list('yyear').annotate(pk_count = Sum('count')).order_by('yyear')
+
+    sale_list = sale_list.filter(catalog__in=id_list).values('catalog', 'catalog__price').annotate(sum_catalog=Sum('count')).order_by('catalog')        
+    cat_list = Catalog.objects.filter(pk__in=id_list).values('type__name_ukr', 'description', 'locality', 'id', 'manufacturer__id', 'manufacturer__name', 'photo_url', 'youtube_url', 'last_update', 'user_update__username')
+
+    for element in list_res:
+        element['balance']=element['sum_catalog']
+        element['c_sale']=0
+        for sale in sale_list:
+            if element['catalog']==sale['catalog']:
+                element['c_sale']=sale['sum_catalog']
+                element['balance']=element['sum_catalog'] - element['c_sale']
+        for cat in cat_list:
+            if element['catalog']==cat['id']:
+                element['manufacturer__id']=cat['manufacturer__id']
+                element['manufacturer__name']=cat['manufacturer__name']
+                element['locality']=cat['locality']
+                element['type__name_ukr']=cat['type__name_ukr']
+                element['description']=cat['description']
+                element['photo_url']=cat['photo_url']
+                element['youtube_url']=cat['youtube_url']
+                element['last_update']=cat['last_update']
+                element['user_update']=cat['user_update__username']
+        
+        if element['balance']!=0:
+#            new_list.append(element)
+            zsum = zsum + (element['balance'] * element['catalog__price'])
+            zcount = zcount + element['balance']
+            cat_obj = Catalog.objects.get(pk = element['catalog'])
+            element['new_arrival'] = cat_obj.new_arrival()
+            element['get_realshop_count'] = cat_obj.get_realshop_count()
+            element['balance'] = cat_obj.get_realshop_count()
+            element['get_discount'] = cat_obj.get_discount()
+            element['invoice_price'] = cat_obj.invoice_price()
+            element['box_name'] = cat_obj.get_storage_box_list_to_html()
+#    print "RES list in return - %s " % list_res.count()
+    cur_year = datetime.date.today().year
+    #'qsearch_lookup' : mc_search,        
+    vars = {'year_url_name': url_name, 'componentlist': list_res, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id': mid, 'category_id': cid, 'category_name':type_name, 'years_range':years_range, 'cur_year': cur_year, 'select_year': sel_year, 'weblink': 'invoicecomponent_list.html', 'head_text': head_text, 'head_text_array': head_text_array, 'attr_ids_str': attr_ids_str}
+    vars.update(custom_proc(request))
+    return render(request, 'index.html', vars)
+
+
 
 def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None, attr_val_id=None, attr_val_ids=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None, all=False, mc_search=False, by_id=None, url_name=None):
     #company_list = Manufacturer.objects.none()
@@ -2705,7 +2841,7 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
         except:
             list_res = InvoiceComponentList.objects.none()
     else:
-        list_res = list.values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__dealer_code', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
+        list_res = list.values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__dealer_code', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').order_by("catalog__type")
 #        list_res = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__dealer_code', 'catalog__sale', 'catalog__count', 'catalog__type__id', 'catalog__description').annotate(sum_catalog=Sum('count')).order_by("catalog__type")        
 #        list = InvoiceComponentList.objects.all().values('catalog', 'catalog__name', 'catalog__ids', 'catalog__price', 'catalog__sale', 'catalog__count', 'catalog__type__id').annotate(sum_catalog=Sum('count')).order_by("catalog__type")
         list_res = list_res[:limit]
@@ -3204,6 +3340,7 @@ def category_manufacture_lookup(request):
                             d_res["id"] = mod.id
                             d_res["name"] = "%s - %s" % (mod.name, mod.name_ukr)
                             d_res["url"] = reverse('category-id-list', args=[mod.pk])
+                            d_res["url_inv"] = reverse('inventory-by-type', args=[mod.pk])
                             res.append(d_res)
                             
                     model_results_manuf = Manufacturer.objects.filter(Q(name__icontains = value)).order_by('name')
@@ -3216,6 +3353,7 @@ def category_manufacture_lookup(request):
                             d_res["id"] = mod.id
                             d_res["name"] = ">> %s <<" % (mod.name.upper())
                             d_res["url"] = reverse('invoice-manufacture-id-list', args=[mod.pk])
+                            d_res["url_inv"] = reverse('inventory-by-manufacturer', args=[mod.pk])
                             res.append(d_res)
                     #res = [data1, data2]
                     data = simplejson.dumps(res)
@@ -9253,6 +9391,26 @@ def bicycle_price_set(request):
                 c = Bicycle.objects.filter(id = id).values_list('sale', flat=True)
                 return HttpResponse(c)
 
+@csrf_exempt
+def boxname_search(request):
+    if not request.user.is_authenticated():
+        context = {'weblink': 'error_message.html', 'mtext': 'Авторизуйтесь щоб виконати дану функцію', }
+        context.update(custom_proc(request))
+        return render(request, 'index.html', context)
+    ret_res = None
+    POST = request.POST
+    if request.method == 'POST':
+        if POST.has_key('locality'):
+            search = request.POST.get('locality')
+            boxes = BoxName.objects.filter(Q(name__icontains = search) | Q(description__icontains = search))
+            #ret_res = storage_boxes_list(request, boxname = search)
+            ret_res = storage_boxes_list(request, boxes = boxes)
+    #context = {"weblink": 'storage_box.html', }
+#    context = {'weblink': 'error_message.html', 'mtext': 'Функція працює', }    
+#    context.update(custom_proc(request))
+#    return render(request, "index.html", context)
+    return ret_res
+
 
 # -------- old function ----------
 def storage_box_list_old(request, boxname=None, pprint=False):
@@ -9365,7 +9523,7 @@ def storage_box_edit(request, id):
 
 
 
-def storage_boxes_list(request, id=None, boxname=None):
+def storage_boxes_list(request, id=None, boxname=None, boxes=None):
     shopList = Shop.objects.filter(show = True)
     boxlist = None
     shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
@@ -9375,8 +9533,10 @@ def storage_boxes_list(request, id=None, boxname=None):
         shopN = Shop.objects.get(pk = id)
     if boxname:
         boxlist = BoxName.objects.filter(name__icontains = boxname)
-    if not boxname and not id:
+    if not boxname and not id and not boxes:
         boxlist = BoxName.objects.filter(shop = shopN)
+    if boxes:
+        boxlist = boxes
         #boxlist = BoxName.objects.all()
     bname_list  = []
     try:
@@ -9388,7 +9548,6 @@ def storage_boxes_list(request, id=None, boxname=None):
                 tmp = btmp
     except:
         pass
-    
     context = {"weblink": 'storage_boxes_list.html', "boxes": boxlist, 'shop_list': shopList, 's_shop_id': shopN, "bname_list": bname_list}
     context.update(custom_proc(request))
     return render(request, "index.html", context)  
@@ -9509,6 +9668,14 @@ def inventory_catalog_type(request, type_id):
     return render(request, 'index.html', context)
     
 
+def inventory_catalog_manufacturer(request, m_id):
+    m_obj = Manufacturer.objects.get(pk = m_id)
+    cat_list = Catalog.objects.filter(manufacturer = m_obj, count__gt = 0)    
+    context = {"weblink": 'inventory_by_type.html', "catalog_list": cat_list, 'manufacturer': m_obj} 
+    context.update(custom_proc(request))    
+    return render(request, 'index.html', context)
+
+
 
 def inventory_mistake(request, year=None, month=None, day=None):
     #im = InventoryList.objects.filter(check_all = True).annotate(dcount=Max('date')).order_by('date')
@@ -9539,16 +9706,14 @@ def inventory_autocheck(request, year=None, month=None, day=None, update=False):
     list = im.values('id', 'catalog__name', 'catalog__ids', 'catalog__id', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'edit_date')
     return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
 
-#
+
 def inventory_mistake_not_all(request, year=None, month=None, day=None):
     year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-    exc_list =  InventoryList.objects.filter( Q(date__gt = year_ago), (Q(real_count = F('count')) & Q(check_all = True)) )
-#    im = InventoryList.objects.filter(Q(date__gt = year_ago), ( (Q(real_count__gt = F('count')) & Q(check_all = False)) | (Q(real_count__lt = F('count')) & Q(check_all = False)) )).annotate(mdate=Max('date', distinct=True)).order_by('-check_all', 'catalog__manufacturer', 'catalog__id').values('id', 'catalog__name', 'catalog__ids', 'catalog__manufacturer__name', 'count', 'date', 'description', 'user__username', 'real_count', 'check_all', 'mdate', 'edit_date', 'catalog__id')    
-    im = InventoryList.objects.filter(Q(date__gt = year_ago), ( (Q(real_count__gt = F('count')) & Q(check_all = False)) | (Q(real_count__lt = F('count')) & Q(check_all = False)) )).order_by('-check_all', 'catalog__manufacturer', 'catalog__id')    
-    list = im.exclude(catalog__id__in=[term.catalog.id for term in exc_list])
-    #list = im 
-    #list = InventoryList.objects.filter(check_all = True, real_count__lt = F('count'))
-#    return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
+    exc_list =  InventoryList.objects.filter( Q(date__gt = year_ago) ) #, (Q(real_count = F('count')) & Q(check_all = True)) )
+    #im = InventoryList.objects.filter(Q(date__gt = year_ago), ( (Q(real_count__gt = F('count')) & Q(check_all = False)) | (Q(real_count__lt = F('count')) & Q(check_all = False)) )).order_by('-check_all', 'catalog__manufacturer', 'catalog__id')
+    im = InventoryList.objects.filter(Q(date__gt = year_ago) & Q(real_count__lt = F('count')))        
+    #list = im.exclude(catalog__id__in=[term.catalog.id for term in exc_list])
+    list = im
     paginator = Paginator(list, 50)
     page = request.GET.get('page')
     if page == None:
@@ -9565,8 +9730,15 @@ def inventory_mistake_not_all(request, year=None, month=None, day=None):
     day_list = []
     year_list = InventoryList.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
     month_list = InventoryList.objects.filter(date__year = year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')
-    return render_to_response("index.html", {"weblink": 'inventory_list.html', "return_list": inv_list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, "index.html", {"weblink": 'inventory_list.html', "return_list": inv_list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month})
 
+
+def inventory_search(request):
+    res_str = "some Error"
+    #context = {'weblink': 'error_message.html', 'mtext': res_str}
+    context = {'weblink': 'inventory_search.html', 'mtext': res_str}
+    context.update(custom_proc(request))         
+    return render(request, 'index.html', context)        
 
 
 def inventory_fix_catalog(request, cat_id=None, inv_id=None, update=False):

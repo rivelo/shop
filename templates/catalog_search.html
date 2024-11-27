@@ -16,13 +16,20 @@ function myFocus(id){
 </script>
 
 <body onload="document.getElementById('search_field').focus()">
-
-  <h1>Пошук товару</h1>
-  <form action="/catalog/search/result" method="GET">
-    <label>Введіть назву коробки: </label>
+<div class="row">
+<div class="col">
+  <h1><span class="badge badge-secondary">Пошук місця:</span></h1>
+</div>
+</div>
+<div class="row">
+<div class="col">
+{#  <form action="/catalog/search/result" method="GET"> #}
+   <form action="{% url 'boxname-search' %}" method="POST">
+    <label>Введіть назву або опис місця: </label>
     <input type="text" name="locality" id="search_field">
     <input type="submit" value="Пошук">
   </form>
-
+</div>  
+</div>
 </body>
 

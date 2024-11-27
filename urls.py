@@ -197,8 +197,11 @@ urlpatterns = [
     #Invoice
     url(r'^invoice/add/$', catalog.invoicecomponent_add),
     url(r'^invoice/catalog/(?P<cid>\d+)/add/$', catalog.invoicecomponent_add),
+   
     url(r'^invoice/manufacture/(?P<mid>\d+)/add/$', catalog.invoicecomponent_add),
     url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-category-manufacture-by-year-all'}),
+    url(r'^invoice/manufacture/(?P<mid>\d+)/lastsale/month/(?P<month>\d+)/$', catalog.invoicecomponent_sales_list, name="invoice-manufacturer-last-sale-by-month"),    
+    url(r'^invoice/manufacture/(?P<mid>\d+)/lastsale/month/(?P<month>\d+)/all/$', catalog.invoicecomponent_sales_list, {'all': True}, name="invoice-manufacturer-last-sale-by-month-all"),
     url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-category-manufacture-by-year-all'}),
     url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-manufacture-category-attr-val-ids-by-year-all'}, name='invoice-category-manufacture-attr-val-ids'),
     url(r'^invoice/manufacture/(?P<mid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-manufacture-attr-val-ids-by-year-all'}, name='invoice-manufacture-attr-val-ids'),    
@@ -234,7 +237,9 @@ urlpatterns = [
     url(r'^invoice/attribute/(?P<attr_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-id-list"),
     url(r'^invoice/year/(?P<sel_year>\d+)/attribute/val/(?P<attr_val_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-val-id-list"),
     url(r'^invoice/year/(?P<sel_year>\d+)/attribute/(?P<attr_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-id-list"),
-    
+
+    url(r'^invoice/category/(?P<cid>\d+)/lastsale/month/(?P<month>\d+)/$', catalog.invoicecomponent_sales_list, name="invoice-category-last-sale-by-month"),    
+    url(r'^invoice/category/(?P<cid>\d+)/lastsale/month/(?P<month>\d+)/all/$', catalog.invoicecomponent_sales_list, {'all': True}, name="invoice-category-last-sale-by-month-all"),
     url(r'^invoice/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-category-by-year-all'}, name="category-id-list"),
     url(r'^invoice/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': "category-id-list-all"}, name="category-id-list-all"),
     url(r'^invoice/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-category-manufacture-by-year-all'}, name='invoice-category-manufacture-now'),
@@ -621,6 +626,8 @@ urlpatterns = [
     url(r'^exchange/view/$', catalog.exchange_list),
     url(r'^exchange/edit/(?P<id>\d+)/$', catalog.exchange_edit),
     url(r'^exchange/delete/(?P<id>\d+)/$', catalog.exchange_del),    
+
+    url(r'^boxname/search/', catalog.boxname_search, name='boxname-search'),
     
     url(r'^storage/box/add/$', catalog.storage_box_add, name='storage-box-add'), #new function
     url(r'^storage/box/(?P<id>\d+)/edit/$', catalog.storage_box_edit, name='storage-box-edit'), #new function
@@ -662,7 +669,8 @@ urlpatterns = [
     url(r'^inventory/fix/cat/(?P<cat_id>\d+)/list/$', catalog.inventory_fix_catalog, name="fix_inventory"),
     url(r'^inventory/autofix/$', catalog.inventory_fix_catalog1),
     url(r'^inventory/type/(?P<type_id>\d+)/autofix/$', catalog.inventory_fix_catalog1),
-    url(r'^inventory/type/(?P<type_id>\d+)/view/$', catalog.inventory_catalog_type),
+    url(r'^inventory/type/(?P<type_id>\d+)/view/$', catalog.inventory_catalog_type, name="inventory-by-type"),
+    url(r'^inventory/manufacturer/(?P<m_id>\d+)/view/$', catalog.inventory_catalog_manufacturer, name="inventory-by-manufacturer"),
 #    url(r'^inventory/fix/cat/(?P<cat_id>\d+)/inv/(?P<inv_id>\d+)/list/$', catalog.inventory_fix_catalog', name="fix_inventory"),
     url(r'^inventory/autocheck/$', catalog.inventory_autocheck, {'update': True}),
     url(r'^inventory/year/(?P<year>\d+)/list/$', catalog.inventory_list),
@@ -679,6 +687,7 @@ urlpatterns = [
     url(r'^inventory/set/$', catalog.inventory_set),
 #    url(r'^inventory/delete/(?P<id>\d+)/$', catalog.inventory_delete'),
     url(r'^inventory/delete/$', catalog.inventory_delete),
+    url(r'^inventory/search/$', catalog.inventory_search, name="inventory-search-by-catalog-or-type"),
     url(r'^catalog/join/$', catalog.catalog_join),
     url(r'^catalog/join/(?P<id1>\d+)/(?P<id2>\d+)/$', catalog.catalog_join),
     

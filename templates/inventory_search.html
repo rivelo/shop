@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Інвентеризація товару по катогоріям або виробнику</title>
+
+<script type="text/javascript">
+//myFocus("search_field");
+
+function myFocus(id){
+ try{
+    document.getElementById(id).focus();
+ } catch(e) {
+    // обработчик ошибки, можно оставить пустым
+    // alert(e);
+ }
+}
+
+
+$(document).ready(function() {
+
+$( "#search_field" ).autocomplete({
+    source: function( request, response ) {
+      $.ajax({
+        type: "POST",
+        url: "{% url 'cat-man-lookup' %}",
+        dataType: "json",
+        data: {
+          query: $("#search_field").val(),
+        },
+        success: function( data ) {
+          response( $.map( data, function( item ) {
+              return {
+                  label: item.name,
+                  value: item.name,
+                  url_s: item.url_inv,
+                  pk_id: item.id                       
+                }
+          }));
+        } // end success function
+      }); // end ajax function
+    },
+    minLength: 2,
+    select: function( event, ui ) {
+        var sel = ui.item.pk_id;
+        console.log("window URL = " + ui.item.url_s);
+        window.location.href = ui.item.url_s; // name_url; //"{% url 'category-id-list' 156 %}";
+    },
+    open: function() {
+      $("#portal_menu").css("z-index", -1);
+      $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+    },
+    close: function() {
+      $("#portal_menu").css("z-index", 1020);
+      $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+    }
+  });
+
+}); //end Ready
+
+</script>
+
+
+
+<body onload="document.getElementById('search_field').focus()">
+<div class="row">
+<div class="col">
+  <h1><span class="badge badge-secondary">Пошук інвентеризації по виробнику або типу:</span></h1>
+</div>
+</div>
+<div class="row">
+<div class="col m-1">
+   <form action="{% url 'inventory-search-by-catalog-or-type' %}" method="POST">
+    <label>Введіть назву компанії або категорію товарів: </label>
+    
+<div class="input-group has-validation ">
+  <div class="input-group-prepend">
+    <span class="input-group-text">>>></span>
+  </div>
+{#  <input type="text" class="form-control" name="search" id="search_field" required> #}
+  <input type="text" class="form-control" placeholder="Пошук категорії чи виробника товару" name="man_type_name" id="search_field" style="position: relative; ">  
+  <input type="submit" value="Пошук">
+  
+  <div class="invalid-feedback">
+    Please choose a username.
+  </div>
+</div>
+    
+    
+  </form>
+</div>  
+</div>
+</body>
+

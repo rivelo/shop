@@ -50,6 +50,11 @@
 	background-color: #feff81;
 }
 
+
+a.link-dark {
+    color: white !important;
+}
+
 .photoModalbutton{
 	cursor: pointer;
 }
@@ -1690,7 +1695,7 @@ $(document).on("click", ".inv_td", function(event) {
             					}
     					
     				    var box_or_desc = ""
-    				    var box_url = "<a href = '/storage/box/"+ box_id +"/list/'>" + box_name + "</a>"
+    				    var box_url = "<a href = '/storage/box/"+ box_id +"/list/' title='Перейти до ящика: "+ box_name +"' data-toggle='tooltip' data-html='true' data-placement='bottom'>" + box_name + "</a>"
     				    if (cdesc) {
     				    	box_or_desc = cdesc + " | " + box_url
     				    } 
@@ -2271,7 +2276,7 @@ function show_year_sales(cell){
 </div>
 <!-- Modal PHOTO end -->
 
-
+{% comment %}
 <div class="row ml-50" id="q_search">
 <div class="col-2 ml-50" style="width:300px; float:left;"> 
 <select id="m_combobox">
@@ -2291,11 +2296,11 @@ function show_year_sales(cell){
 </select>
 </div>
 </div>
-
+{% endcomment %}
 
 <div style="clear:left;">
      <h1>
-     <span id="span_show_select" class="badge badge-secondary" title="Показати/приховати рядок вибору по категорії/виробнику" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">unfold_more</i></span>
+{#     <span id="span_show_select" class="badge badge-secondary" title="Показати/приховати рядок вибору по категорії/виробнику" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">unfold_more</i></span> #}
      <span class="badge badge-secondary">Список наявного товару</span> 
      {% if company_name %}<a class="badge badge-info" id="c_c" href="{% url 'invoice-manufacture-id-list' company_id %}">{{company_name|capfirst}} </a> {% endif %} 
      {% if category_name %} <a class="badge badge-info" id="c_c" href="{% url 'category-id-list' category_id %}" >{{category_name|capfirst}}</a> {% endif %}   
@@ -2343,10 +2348,12 @@ function show_year_sales(cell){
      {% if company_id and category_id and select_year != 0 and head_text_array.0 %}
         <a href="{% url year_url_name yy.0 componentlist.0.manufacturer__id componentlist.0.catalog__type__id attr_ids_str %}" class="badge badge-info year_sales">{{yy.0}} 
      {% endif %}
-              
+             
           <span class="badge badge-light">{{yy.1|floatformat:"0"}}</span>
      </a>
      {% endfor %}
+    <a href="{% url 'invoice-category-last-sale-by-month' componentlist.0.catalog__type__id 0 %}" class="badge badge-light year_sales">Продажі за місяць</a>     
+    <a href="{% url 'invoice-manufacturer-last-sale-by-month' componentlist.0.manufacturer__id 0 %}" class="badge badge-light year_sales">Продажі за місяць</a>     
 {% endif %} 
 
 
@@ -2661,7 +2668,7 @@ local_offer
 	{{ type.balance|floatformat }}	
 {% endif %}		
 	</a>
-	{% if request.user|has_group:"admin" %}
+	{% if request.user|has_group:"admin" and type.balance != type.get_realshop_count %}
 	<span class="badge badge-light" title="реальна кількість" data-toggle="tooltip" data-placement="bottom">{{ type.get_realshop_count }}</span>
 	{% endif %}
 {% endifequal %}
@@ -2740,6 +2747,11 @@ local_offer
 	</td>
 	<td class="inv_td" align="center" cap="[{{type.catalog__ids}}] - ({{type.catalog__manufacturer__name}}) {{type.catalog__name}}">
  	<img  class="inventory" id="link_{{type.catalog}}" url="" ids={{type.catalog}} src="/media/images/Inspection.png" width="50" height="50">
+ 	<span class="badge badge-pill badge-dark inv-details">
+ 	<a href="{% url 'inventory-by-catalog-id' type.catalog %}" class="link-dark">
+ 	Детально
+ 	</a>
+ 	</span>
 	</td>
 </tr>
 {% endfor %}

@@ -2,7 +2,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <html lang="en">
 <head>
-    <title>Інвентеризація товару {{cattype}}</title>
+    <title>Інвентеризація товару <{{cattype}}{{manufacturer}}></title>
 {#    <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
     
 </head>
@@ -70,7 +70,7 @@ $.ajax({
 {% load poll_extras %}
 <body>
     <h1>
-    Інвентеризація товару <span class="badge badge-success"> {{cattype}} </span>
+    Інвентеризація товару <span class="badge badge-success"> {{cattype}} {{manufacturer}}</span>
     <span class="badge badge-info" title="приховати/показати товари в яких зійшлись підрахунки" data-toggle="tooltip" data-placement="bottom" onclick="hide_true()">
     Приховати/показати
     <span class="badge badge-light" id="count_false" title="Кількість товарів у яких не зійшлись підрахунки" data-toggle="tooltip" data-placement="bottom" ></span>
@@ -91,19 +91,25 @@ $.ajax({
     </tr>
     </thead>
     {% for item in catalog_list %}
+    <tr 
     {% if item.count != item.get_storage_box_sum_by_count.sum_count %}
-    <tr class="item_false" cat_id="{{item.pk}}">
+    class="item_false" 
     {% else %}
-    <tr class="item_true" cat_id="{{item.pk}}">
+    class="item_true" 
     {% endif %}
+    
+    cat_id="{{item.pk}}">
+    
 		<td>
 		{{ forloop.counter }}
 		</td>
         <td>
-            {{ item.ids|default:"" }} / {{ item.dealer_code|default:"" }}  
+        <a href="{% url 'serch-invoicecomponennts-by-id' item.pk %}" title="Перейти до товару" data-toggle="tooltip" data-placement="bottom">
+            {{ item.ids|default:"" }} / {{ item.dealer_code|default:"" }}
+        </a>  
         </td>
         <td>
-        <a href="{% url 'inventory-by-catalog-id' item.pk %}">
+        <a href="{% url 'inventory-by-catalog-id' item.pk %}" title="Детально" data-toggle="tooltip" data-placement="bottom">
             {{ item.name }}
         </a>
         </td>

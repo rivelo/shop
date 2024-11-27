@@ -108,6 +108,7 @@ $(".ren_boxname").click(function() {
 
 <div class="d-flex bd-highlight ">
   <div class="p-1 bd-highlight"> {{ box }} 
+  <span class="badge badge-dark" title="Кількість позицій у коробці"  data-toggle="tooltip" data-placement="right">{{box.get_count_sum}}</span>
 {#  	<a href="{% url 'storage-box-itemlist' box.id %}" class="badge badge-light ml-3" title="Переглянути вміст ящика"  data-toggle="tooltip" data-placement="right"><i class="material-icons" style="font-size: 24px" >	inventory_2	</i></a> #}  
   </div>
   

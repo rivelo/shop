@@ -9,12 +9,41 @@
 
 <style>
 
-table  td  a {
+table.table-dark td  a {
     color: white !important;
     font-weight: bold;
 }
 
+table a.dark_link {
+    color: gray !important;
+}
+
 </style>
+
+
+<script>
+
+$(document).on("click", ".inv_del", function(event) {
+	var tmp = $(this).parents("tr").children('td.inv_name').html();
+	 if (confirm("Ви дійсно бажаєте видалити запис?" + tmp)) {
+	    var tr_del = $(this).parents("tr");
+	        $.ajax({
+	                type: "POST",
+	                url: "/inventory/delete/",
+	                data: {id:  $(this).attr("inv_id") },
+	                dataType: "text",
+	                success:function(data){
+	                    tr_del.remove();
+	                },
+	                error:function(data){
+	                    alert("Виникли проблеми з сервером" + data);
+	                }
+	            }); 
+	 }
+	 });
+
+</script>
+
 {% load poll_extras %}
 <body>
     <h1>Інвентеризація товару {{catalog}}</h1>
@@ -28,15 +57,20 @@ table  td  a {
     	<th scope="col">Кількість в базі</th>
     	<th scope="col">Дата</th>
     	<th scope="col">Користувач</th>
+    	<th scope="col">Дія</th>
     </tr>
     </thead>
     {% for item in inv_list %}
-    <tr>
+    <tr
+    {% if item.check_all %}
+    class="table-warning"
+    {% endif %}
+    >
 		<td>
 		{{ forloop.counter }}
 		</td>
-        <td>
-            {{ item.box_id }}
+        <td class="inv_name">
+            {{item.pk}} - {{ item.box_id }}
         </td>
         <td>
 {{ item.count }}
@@ -46,6 +80,10 @@ table  td  a {
         </td>
         <td>{{ item.date }}</td>
         <td>{{ item.user }}</td>
+        <td><a class="dark_link" href="{% url 'inventory-edit' item.pk %}" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="left">
+        <i class="material-icons">edit</i></a>
+        <span class="inv_del" inv_id="{{item.pk}}" style="cursor: pointer;"><i class="material-icons" title="Видалити" data-toggle="tooltip" data-html="true" data-placement="left">delete_outline</i></span>
+        </td>
         
     </tr>
     {% endfor %}
@@ -64,6 +102,8 @@ table  td  a {
       <th scope="col">Дата створення</th>
       <th scope="col">Дата оновлення</th>
       <th scope="col">Користувач</th>
+      <th scope="col">Користувач (оновив)</th>
+      <th scope="col">History</th>
     </tr>
   </thead>
   <tbody>
@@ -81,6 +121,8 @@ table  td  a {
       <td>{{box.date_create}}</td>
       <td>{{box.date_update}}</td>
       <td>{{box.user}}</td>
+      <td>{{box.user_update}}</td>
+      <td>{{box.history}}</td>
     </tr>
     <tr>
 {% endfor %}
