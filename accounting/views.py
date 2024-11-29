@@ -9459,30 +9459,36 @@ def storagebox_edit(request, id=None):
     if sb_id:
         try:
             obj = StorageBox.objects.get(id=sb_id)
-            dnow = datetime.datetime.now()
-            diff_count = int(obj.count) - int(sb_count)
-            diff_real = int(obj.count_real) - int(sb_real_count)
-            diff_last = int(obj.count_last) - int(sb_last_count)
-            hist_str = "[ %s ] COUNT changed: %s -> %s; Real COUNT: %s -> %s; Last COUNT: %s -> %s; DIFF: (%s; %s; %s) by user [%s]" % (str(dnow) , str(obj.count), str(sb_count), str(obj.count_real), str(sb_real_count), str(obj.count_last), str(sb_last_count), str(diff_count), str(diff_real), str(diff_last), str(request.user))  
-            obj.count = sb_count
-            obj.count_real = sb_real_count
-            obj.count_last = sb_last_count
-            obj.description = sb_description
-            obj.history += hist_str.decode('utf-8') + "\n" #+ inv_str.decode('utf-8')         
-            obj.save()
-            status = "Виконано"
-            if diff_count != 0:
-                response_data['count'] = obj.count
-            elif diff_real != 0:
-                response_data['real_count'] = obj.count_real
-            elif diff_last != 0:
-                response_data['last_count'] = obj.count_last
-            response_data['description'] = hist_str
-            response_data['status'] = status
-            return JsonResponse(response_data)
         except:
             response_data['description'] = "Сталась помилка. Такого запису не існує або щось пішло не так."
             return JsonResponse(response_data)
+
+        dnow = datetime.datetime.now()
+        diff_count = int(obj.count) - int(sb_count)
+        diff_real = int(obj.count_real) - int(sb_real_count)
+        diff_last = int(obj.count_last) - int(sb_last_count)
+        hist_str = "[ %s ] COUNT changed: %s -> %s; Real COUNT: %s -> %s; Last COUNT: %s -> %s; DIFF: (%s; %s; %s) by user [%s]" % (str(dnow) , str(obj.count), str(sb_count), str(obj.count_real), str(sb_real_count), str(obj.count_last), str(sb_last_count), str(diff_count), str(diff_real), str(diff_last), str(request.user))  
+        obj.count = sb_count
+        obj.count_real = sb_real_count
+        obj.count_last = sb_last_count
+        obj.description = sb_description
+        obj.date_update = dnow
+        obj.user_update = request.user
+        if obj.history:
+            obj.history += hist_str.decode('utf-8') + "\n" #+ inv_str.decode('utf-8')
+        else: 
+            obj.history = hist_str.decode('utf-8') + "\n" #+ inv_str.decode('utf-8')
+        obj.save()
+        status = "Виконано"
+        if diff_count != 0:
+            response_data['count'] = obj.count
+        elif diff_real != 0:
+            response_data['real_count'] = obj.count_real
+        elif diff_last != 0:
+            response_data['last_count'] = obj.count_last
+        response_data['description'] = hist_str
+        response_data['status'] = status
+        return JsonResponse(response_data)
 
     return HttpResponse("Запит оброблено без результату", content_type="text/plain;charset=UTF-8;")
 
