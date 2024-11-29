@@ -3028,7 +3028,6 @@ def invoicecomponent_del(request, id):
     cat = Catalog.objects.get(id = obj.catalog.id)
     cat.count = cat.count - obj.count
     cat.save()
-    #return HttpResponseRedirect('/invoice/list/10/view/')
     return HttpResponseRedirect(reverse('serch-invoicecomponennts-by-id', args=[cat.pk]))
 
 @csrf_exempt
@@ -6695,7 +6694,7 @@ def worktype_lookup(request):
 
 
 def workshop_pricelist(request, pprint=False):
-    list = WorkType.objects.all().values('name', 'price', 'id', 'description', 'work_group', 'work_group__name', 'plus').order_by('work_group__tabindex')
+    list = WorkType.objects.all().values('name', 'price', 'sale', 'id', 'description', 'work_group', 'work_group__name', 'plus').order_by('work_group__tabindex')
     if pprint:
         context = {'work_list': list, 'pprint': True} 
         context.update(custom_proc(request))
@@ -9429,6 +9428,66 @@ def storage_box_list_old(request, boxname=None, pprint=False):
 
 
 @csrf_exempt
+def storagebox_edit(request, id=None):
+    sb_description = None
+    sb_last_count =None
+    sb_real_count = None
+    sb_last_count = None
+    sb_count = None
+    response_data = {}
+    status = "Помилка"
+
+    if not auth_group(request.user, 'admin'):
+        response_data['description'] = "Авторизуйтесь щоб виконати дану функцію. Для виконання вам потрібна роль Адміністратора"
+        return JsonResponse(response_data)
+        
+    
+    if request.is_ajax():
+        if request.method == 'POST':  
+            POST = request.POST  
+            if POST.has_key('sbox_id'):
+                sb_id = request.POST.get( 'sbox_id' )
+            if POST.has_key('count'):
+                sb_count = request.POST.get( 'count' )
+            if POST.has_key('real_count'):
+                sb_real_count = request.POST.get( 'real_count' )
+            if POST.has_key('last_count'):
+                sb_last_count = request.POST.get( 'last_count' )
+            if POST.has_key('description'):
+                sb_description = request.POST.get( 'description' )
+                
+    if sb_id:
+        try:
+            obj = StorageBox.objects.get(id=sb_id)
+            dnow = datetime.datetime.now()
+            diff_count = int(obj.count) - int(sb_count)
+            diff_real = int(obj.count_real) - int(sb_real_count)
+            diff_last = int(obj.count_last) - int(sb_last_count)
+            hist_str = "[ %s ] COUNT changed: %s -> %s; Real COUNT: %s -> %s; Last COUNT: %s -> %s; DIFF: (%s; %s; %s) by user [%s]" % (str(dnow) , str(obj.count), str(sb_count), str(obj.count_real), str(sb_real_count), str(obj.count_last), str(sb_last_count), str(diff_count), str(diff_real), str(diff_last), str(request.user))  
+            obj.count = sb_count
+            obj.count_real = sb_real_count
+            obj.count_last = sb_last_count
+            obj.description = sb_description
+            obj.history += hist_str.decode('utf-8') + "\n" #+ inv_str.decode('utf-8')         
+            obj.save()
+            status = "Виконано"
+            if diff_count != 0:
+                response_data['count'] = obj.count
+            elif diff_real != 0:
+                response_data['real_count'] = obj.count_real
+            elif diff_last != 0:
+                response_data['last_count'] = obj.count_last
+            response_data['description'] = hist_str
+            response_data['status'] = status
+            return JsonResponse(response_data)
+        except:
+            response_data['description'] = "Сталась помилка. Такого запису не існує або щось пішло не так."
+            return JsonResponse(response_data)
+
+    return HttpResponse("Запит оброблено без результату", content_type="text/plain;charset=UTF-8;")
+
+
+@csrf_exempt
 def storage_box_delete(request, id=None):
     if request.is_ajax():
         if request.method == 'POST':  
@@ -9500,15 +9559,14 @@ def storage_box_add(request):
     context.update(custom_proc(request))
     return render(request, "index.html", context)  
 
+
 @csrf_exempt
 def storage_box_edit(request, id):
     if not request.user.is_authenticated():
         context = {'weblink': 'error_message.html', 'mtext': 'Авторизуйтесь щоб виконати дану функцію', }
         context.update(custom_proc(request))
         return render(request, 'index.html', context)
-
     a = BoxName.objects.get(pk=id)
-  #  print "\nBox [%s]" % a
     if request.method == 'POST':
 #        form = BicycleStorage_Form(request.POST, request.FILES, instance=a)
         form = BoxNameEditForm(request.POST, instance=a) #, request = request)
@@ -9520,7 +9578,6 @@ def storage_box_edit(request, id):
     context = {"weblink": 'storage_box_add.html', 'form': form, 'box_id': id}
     context.update(custom_proc(request))
     return render(request, "index.html", context)  
-
 
 
 def storage_boxes_list(request, id=None, boxname=None, boxes=None):
@@ -11172,7 +11229,7 @@ def discount_list(request, year = None):
     context.update(custom_proc(request)) 
     return render(request, 'index.html', context)
 
-
+@csrf_exempt
 def discount_delete(request):
     d = {}
     if (auth_group(request.user, 'seller')==False) or (auth_group(request.user, 'admin')==False):

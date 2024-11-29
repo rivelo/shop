@@ -46,6 +46,12 @@ def sub_int(value, arg):
     return int(value) - int(arg)
 
 
+@register.filter
+def sale_by_percent(value, arg):
+    res = (value / 100) * (100 - arg)    
+    return res
+
+
 ALLOWABLE_VALUES = ("LOGO_TOP", "CLIENT_UNKNOWN", "CLIENT_SALE_1", "CLIENT_SALE_3", "CLIENT_SALE_5", "CLIENT_SALE_7", "CLIENT_SALE_10")
 # settings value
 @register.simple_tag

@@ -630,6 +630,7 @@ urlpatterns = [
     url(r'^boxname/search/', catalog.boxname_search, name='boxname-search'),
     
     url(r'^storage/box/add/$', catalog.storage_box_add, name='storage-box-add'), #new function
+    url(r'^storagebox/edit/$', catalog.storagebox_edit, name='storagebox-edit'), #new AJAX function    
     url(r'^storage/box/(?P<id>\d+)/edit/$', catalog.storage_box_edit, name='storage-box-edit'), #new function
     url(r'^storage/boxes/$', catalog.storage_boxes_list, name='storage-boxes-list'), #new function
     url(r'^storage/shop/(?P<id>\d+)/boxes/$', catalog.storage_boxes_list, name='storage-boxes-list-by-shop'), #new function

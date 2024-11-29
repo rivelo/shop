@@ -40,9 +40,132 @@ $(document).on("click", ".inv_del", function(event) {
 	                }
 	            }); 
 	 }
-	 });
+});
 
+$(document).on("click", ".sbox_edit", function(event) {
+    var sboxName = $(this).parents("td").parents("tr").children('td.sbox_name').html();
+    var sboxCount = $(this).parents("td").parents("tr").children('td.box_count').html();
+    var sboxRealCount = $(this).parents("td").parents("tr").children('td.box_rcount').html();
+    var sboxLastCount = $(this).parents("td").parents("tr").children('td.box_lcount').html();
+    var sb_id = $(this).parents("td").parents("tr").attr("id_sbox");
+    
+    $("#sBoxModalLabel").html("Змінити кількість товару у ящику: " + sboxName);
+    $('#real_box_count').val(sboxRealCount);        
+    $('#last_count').val(sboxLastCount);
+//    $('#sbox_count').val(sboxCount);
+    $('#box_count').val(Number(sboxCount));
+    $('#sbox_id').val(sb_id);    
+});
+
+
+$(document).ready(function() {
+
+//$(document).on('submit', '#post-form',function(e){
+$(document).on('click', '#sub_but', function(e){
+    $.ajax({
+        type:'POST',
+        url:'{% url "storagebox-edit" %}',
+        data:{
+            sbox_id: $('#sbox_id').val(),
+            count:$('#box_count').val(),
+            real_count:$('#real_box_count').val(),
+            last_count: $('#last_count').val(),
+            description:$('#description').val(),
+            action: 'post'
+        },
+        success:function(json){
+            
+            $(".modal-footer").prepend('<div class="col-md-12" id="show_status">'+
+                '<div class="row no-gutters border rounded">' +
+                    '<div class="col p-4 d-flex flex-column position-static">' +
+                        '<h3 class="mb-0">' + json.status + '</h3>' +
+                        '<p class="mb-auto">' + json.description + '</p>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' 
+            )
+    var sboxCount = json.count
+    if (sboxCount) {
+        $("tr[id_sbox='"+ $('#sbox_id').val() +"']").children('td.box_count').html(sboxCount);
+        $("tr[id_sbox='"+ $('#sbox_id').val() +"']").children('td.box_count').addClass('bg-info')
+    }
+    var sboxRealCount = json.real_count
+    if (sboxRealCount) { 
+        $("tr[id_sbox='"+ $('#sbox_id').val() +"']").children('td.box_rcount').html(sboxRealCount);
+        $("tr[id_sbox='"+ $('#sbox_id').val() +"']").children('td.box_rcount').addClass('bg-info');
+    }
+    var sboxLastCount = json.last_count
+    if (sboxLastCount) { 
+        $("tr[id_sbox='"+ $('#sbox_id').val() +"']").children('td.box_lcount').html(sboxLastCount);
+        $("tr[id_sbox='"+ $('#sbox_id').val() +"']").children('td.box_lcount').addClass('bg-info');
+    }
+            
+            document.getElementById("post-form").reset();
+        },
+        error : function(xhr,errmsg,err) {
+        console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+    }
+    });
+});
+
+
+$('#sBoxModal').on('hidden.bs.modal', function (event) {
+  // do something...
+  console.log("HIDe modal");
+  $("#show_status").remove()
+})
+
+$('#sBoxModal').on('show.bs.modal', function (event) {
+  console.log("Show modal");
+  
+})
+
+}); // end Ready
 </script>
+
+{#aria-hidden="true"#}
+<div class="modal fade" id="sBoxModal" tabindex="-1" aria-labelledby="exampleModalLabel" >
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sBoxModalLabel">Змінити кількість товару у ящику</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span >&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form method="POST" id="post-form">
+           <div class="form-group">
+            <label for="box_count" class="col-form-label">Кількість в ящику:</label>
+          <input type="number" id="box_count" name="count" min="0" max="1000" step="1" value="0" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="real_box_count" class="col-form-label">Кількість у базі:</label>
+          <input type="number" id="real_box_count" name="real_count" min="0" max="1000" step="1" value="0" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="last_count" class="col-form-label">Кількість при останніх змінах:</label>
+            <input type="number" class="form-control" id="last_count" name="last_count" value="0">
+          </div>
+          <div class="form-group">
+            <label for="description" class="col-form-label">Примітки:</label>
+            <textarea class="form-control" id="description" name="description"></textarea>
+          </div>
+          <div class="form-group">
+          <label for="bdaymonth" class="col-form-label">Month:</label>
+          <input type="month" id="bdaymonth" name="bdaymonth" class="form-control">
+          </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Відхилити</button>
+        <button  class="btn btn-primary " type="button" id="sub_but">Змінити</button>
+      </div>
+      <input type="hidden" id="sbox_id" class="form-control">
+      </form>
+    </div>
+  </div>
+</div>
+
 
 {% load poll_extras %}
 <body>
@@ -102,27 +225,42 @@ $(document).on("click", ".inv_del", function(event) {
       <th scope="col">Дата створення</th>
       <th scope="col">Дата оновлення</th>
       <th scope="col">Користувач</th>
-      <th scope="col">Користувач (оновив)</th>
+      <th scope="col">User (update)</th>
+{% if request.user|has_group:"admin" %}
+      <th scope="col" class="b_edit">Edit</th>
+{% endif %}
       <th scope="col">History</th>
     </tr>
   </thead>
   <tbody>
 {% for box in boxes %}
-    <tr>
+    <tr id_sbox="{{box.pk}}">
       <th scope="row">{{forloop.counter}}</th>
-      <td>
+      <td class="sbox_name">
       <a href="/storage/box/{{box.box_name.pk}}/list/" title="Перейти до ящика: {{box.box_name}} " data-toggle="tooltip" data-html="true" data-placement="bottom">
       {{box.box_name}}
       </a>
       </td>
-      <td>{{box.count}} </td>
-      <td>{{box.count_real}}</td>
-      <td>{{box.count_last}}</td>
+      <td class="box_count">{{box.count}}</td>
+      <td class="box_rcount">{{box.count_real}}</td>
+      <td class="box_lcount">{{box.count_last}}</td>
       <td>{{box.date_create}}</td>
       <td>{{box.date_update}}</td>
       <td>{{box.user}}</td>
       <td>{{box.user_update}}</td>
-      <td>{{box.history}}</td>
+{% if request.user|has_group:"admin" %}
+      <td class="b_edit">
+       <button type="button" class="btn btn-primary sbox_edit" data-toggle="modal" data-target="#sBoxModal">Edit</button>
+      </td>
+{% endif %}      
+      <td>
+        {% if box.description %}
+        <div class="alert alert-primary" role="alert">
+        {{box.description}}
+        </div>      
+        {% endif %}
+       {{box.history|linebreaks}}
+      </td>
     </tr>
     <tr>
 {% endfor %}
