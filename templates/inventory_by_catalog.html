@@ -169,7 +169,11 @@ $('#sBoxModal').on('show.bs.modal', function (event) {
 
 {% load poll_extras %}
 <body>
-    <h1>Інвентеризація товару {{catalog}}</h1>
+    <h1>Інвентеризація товару:
+    <a href="{% url 'serch-invoicecomponennts-by-id' catalog.pk %}" title="Перейти до товару" data-toggle="tooltip" data-placement="bottom">
+    {{catalog}}
+    </a>
+    </h1>
 
     <table class="table table-hover" class="ml-1 mb-2">
     <thead>
@@ -273,10 +277,14 @@ $('#sBoxModal').on('show.bs.modal', function (event) {
 <span class="badge badge-secondary">{{inv_list.first.get_count_in_all_boxes.count_sum}}</span>
 {% if inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count < 0 %}
 <span class="badge badge-danger">Різниця:</span>
+<a href="/client/invoice/catalog/{{catalog.pk}}/add/" title="Списати товар" data-toggle="tooltip" data-placement="bottom"> 
 <span class="badge badge-danger">{{inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count|floatformat:"0"}}</span>
+</a>
 {% elif inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count > 0 %}
 <span class="badge badge-warning">Різниця:</span>
+<a href="/invoice/catalog/{{catalog.id}}/add/" title="Додати товар" data-toggle="tooltip" data-placement="bottom">
 <span class="badge badge-warning">{{inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count|floatformat:"0"}}</span>
+</a>
 {% endif %}
 
 </h1>
