@@ -1,43 +1,168 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
 <title>Додати товар до накладної</title>
 
 
 <style type="text/css">
-  div.box {//border-radius: 5px;
-  		   background-color: #bfbfbf;
-  		   font-size:200%;
-  		   margin: 80px 0px 0px;
-  }  		
+
+.no-gutters {
+  margin-right: 0;
+  margin-left: 0;
+
+  > .col,
+  > [class*="col-"] {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}  
+
+
+#myform {
+    width: 100%;
+}
+  
 </style>
 
-{% comment %}
-<br>
-{% for company in company_list %}
-<a href="/invoice/manufacture/{{company.id}}/add/">{{company.name}}</a>
-{% endfor %}
-<br>
-{% endcomment %}
 
-<h1>Додати товар до накладної</h1>
-<div style="float: left;">      
-    <form action="." method="POST">
-    	<p><input type="submit" value="Save"></p>
-        <table>
-            {{ form.as_ul }}
-        </table>
-        <p><input type="submit" value="Save"></p>
-    </form>
+    <script>
+        $(document).ready(function() {
+            var options = [];
+
+            // Gather options from the select tag
+            $('#id_invoice option').each(function() {
+                options.push({label: $(this).html(), value: $(this).val()});
+            });
+
+            // Implement autocomplete
+            $('#autocomplete-input').autocomplete({
+                source: options,
+                minLength: 1,
+                select: function(event, ui) {
+                    // Set the selected value back to the select (if needed)
+                    $('#id_invoice').val(ui.item.value);
+                    $("#autocomplete-input").val(ui.item.label);
+                    return false; // Prevent the default behaviour of autocomplete
+                }                
+            });
+
+            // Optional: Set the selected value back to the select on input change
+/*            $('#autocomplete-input').on('autocompleteselect', function(event, ui) {
+                // $('#id_invoice').val(ui.item.value + " - " + ui.item.label);
+                $('#id_invoice').val(ui.item.value);
+            });
+*/
+
+    $('#id_invoice').hide();
+    $('#autocomplete-input').focus();
+    
+    $("#sel_cat_name").html($("#id_catalog :selected").text());
+    
+    if ($('#id_invoice').val()) {
+        $("#autocomplete-input").val($('#id_invoice :selected').text());
+    };
+    
+        });
+    </script>
+
+
+{% load poll_extras %}
+
+<div class="container ml-0 mr-0 w-100" id="myform">
+
+<div class="row w-100 ml-0">
+<h1>
+<span class="badge badge-secondary">Додати товар до накладної:</span>
+<span class="badge badge-success" id="sel_cat_name">{{ form.catalog.value }}</span>    
+</h1>
 </div>
 
-<div class="box" style="float: left;">
-<p style="font-style: normal;">Ціна товару:</p>
-    {{price_ua}} грн.
-</div>    
+     
+    <form action="." method="POST">
+
+{% for field in form %}
+ {% if field.errors %}
+ <div class="alert alert-danger" role="alert">   
+        {{ field.label_tag }}
+        {{ field.label }}
+        {{ field.errors }}
+</div>
+{% endif %}    
+{% endfor %}
+
+{% comment %}
+{% if form.shop.errors %}
+<div class="alert alert-danger" role="alert">
+{{ form.shop.errors }}
+</div>
+{% endif %}
+{% endcomment %}
+
+  <div class="form-row mb-3 ">
+    <div class="col-12 col-lg-6 ">
+      <label for="validationDefault01">Накладна</label>
+      {{form.invoice|add_attr:"class:form-control"}}
+    <input type="text" id="autocomplete-input" class="autocomplete-input w-100 mb-2 form-control" placeholder="Start typing invoice name or ids ">
+    </div>
+    <div class="col-12 col-lg-6 ">
+      <label for="validationDefault02">Товар</label>
+      {{form.catalog|add_attr:"class:form-control"}}
+    </div>
+  </div>
+  
+  <div class="form-row mb-3">
+    <div class="col-md-4 ">
+      <label for="validationDefault03">Кількість</label>
+      {{form.count|add_attr:"class:form-control"}}
+    </div>
+    <div class="col-md-4 ">
+      <label for="validationDefault04">Ціна</label>
+      {{form.price|add_attr:"class:form-control"}}
+    </div>
+    <div class="col-md-4 ">
+      <label for="validationDefault05">Валюта</label>
+      {{form.currency|add_attr:"class:form-control"}}
+    </div>
+  </div>
+
+
+<div class="form-row alert alert-info mb-3" role="alert">
+Рекомендована ціна:    {{price_ua}} грн.
+</div>
+
+  <div class="form-row">
+    <div class="col-md-3 ">
+      <label for="validationDefault03">Реальна кількість</label>
+      {{form.rcount|add_attr:"class:form-control"}}
+    </div>
+    <div class="col-md-3 ">
+      <label for="validationDefault03">Дата</label>
+      {{form.date|add_attr:"class:form-control"}}
+    </div>
+    <div class="col-md-3 ">
+      <label for="validationDefault03">User</label>
+      {{form.user|add_attr:"class:form-control"}}
+    </div>    
+    <div class="col-md-3 ">
+      <label for="validationDefault04">Магазин</label>
+      {{form.shop|add_attr:"class:form-control"}}
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="col">
+      <label for="validationDefault03">Примітки</label>
+      {{form.description|add_attr:"class:form-control"}}
+    </div>
+  </div>
+    
+        <button class="btn btn-primary w-100 mt-2" type="submit">Submit form</button>
+    </form>
+
+
+</div>
 
     
-<div style="clear: left">
-</div>    
  
 
 

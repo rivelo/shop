@@ -477,6 +477,28 @@ class InvoiceComponentListForm(forms.ModelForm):
         if catalog_id<>None:
             self.fields['catalog'].queryset = Catalog.objects.filter(id = catalog_id)             
 
+    def clean_shop(self):
+        data = self.cleaned_data['shop']
+#        try:
+#            st = data.name
+#        except:
+#            raise forms.ValidationError("Магазин не вибраний!")
+        return data
+
+    def clean_currency(self):
+        currency = self.cleaned_data['currency']
+        invoice = self.cleaned_data['invoice']
+        invoice_id = invoice.currency.pk
+        if currency.pk != invoice_id:
+            equal_cur = currency.name + " != " + invoice.currency.name            
+            raise forms.ValidationError(u"Валюта вибрана не така як у накладної!\n" + equal_cur)
+#        try:
+#            invoice_id = DealerInvoice.objects.get(pk = invoice.currency.pk)
+#        except:
+#            raise forms.ValidationError("not found Invoice. Валюта вибрана не така як у накладної!")
+        return currency
+
+
     class Meta:
         model = InvoiceComponentList
         fields = '__all__'
@@ -907,17 +929,23 @@ class WorkShopForm(forms.ModelForm):
             pass
         res_time = int(htime) * 60 + int(mtime)
         cleaned_data['time'] = res_time
-        if (price > w_type.price):
-            if ((len(description) <= 5) or (res_time == 0)):
-                self.add_error('price', "Сума більша ніж у вибраної роботи [" + str(w_type.price) + " грн.]. Напишіть причину підвищення та скільки часу було затрачено.")
-                self.add_error('work_type', "Сума більша ніж у вибраної роботи [" + str(w_type.price) + " грн.]. Напишіть причину підвищення та скільки часу було затрачено.")
         res_sum = w_type.price / 100 * (100-w_type.sale)
-        if (price < res_sum):
+        base = 5
+        round_sum = int(base * round(float(res_sum)/base))
+        #if (price > w_type.price):       
+        if int(price) > int(round_sum):
+            if ((len(description) <= 5) or (res_time == 0)):
+                print "SALE metod = %s " % w_type.get_sale_price()
+                sale_price = w_type.get_sale_price()
+                self.add_error('price', "Сума більша ніж у вибраної роботи [" + str(w_type.price) + " грн.]. Напишіть причину підвищення та скільки часу було затрачено.")
+                self.add_error('work_type', "Сума більша ніж у вибраної роботи [" + str(sale_price) + " грн.]. Напишіть причину підвищення та скільки часу було затрачено.")
+#        print "TYPE res sum = %s | %s < %s | IF = %s " % (type(res_sum), price, res_sum, (round(price, 2) < round(res_sum, 2)))
+        if int(price) < int(round_sum):
 #            print "TYPE res = %s | %s" % (type(res_sum), res_sum)
 #            print "TYPE price = %s | %s" % (type(price), price)
             self.add_error('work_type', "Сума не може бути менша ніж у вибраної роботи [" + str(w_type.price) + " грн.]")
             self.add_error('price', "Сума не може бути менша ніж у вибраної роботи [" + str(res_sum) +" грн.]")            
-            #self.add_error('price', "Сума не може бути менша ніж у вибраної роботи [" + str(price) + " / RES price = " + str(res_sum) +" грн.]")            
+#            self.add_error('price', "Сума не може бути менша ніж у вибраної роботи [" + str(price) + " / RES price = " + str(res_sum) +" грн.]")            
             #self.add_error('client', "Клієнт підходить")
         return cleaned_data 
 
@@ -931,6 +959,7 @@ class WorkShopForm(forms.ModelForm):
         ticket = self.cleaned_data['ticket'] 
         user = self.cleaned_data['user']
         shop = self.cleaned_data['shop']
+#        price = self.cleaned_data["price"]
         description = self.cleaned_data['description']
         get_client = Client.objects.get(pk = cl.pk)
         #get_ticket = WorkTicket.objects.get(pk = ticket.pk)

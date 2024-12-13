@@ -316,7 +316,7 @@ class Currency(models.Model):
         return u"%s" % (self.ids_char)
     
     def __unicode__(self):
-        return "%s (%s)" % (self.name, self.ids_char)
+        return u"%s (%s)" % (self.name, self.ids_char)
 
     class Meta:
         ordering = ["ids"]    
