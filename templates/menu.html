@@ -261,8 +261,9 @@ $(document).ready(function() {
 {% if request.user|has_group:"admin" %}       		
        		<a class="dropdown-item" href="/inventory/mistake/list/">Знайдено більше</a>
 {% endif %}       		
-       		<a class="dropdown-item" href="/inventory/mistake/not/all/list/">Не закриті</a>
-       		<a class="dropdown-item" href="/inventory/fix/list/">Помилки закритих товарів</a>
+       		<a class="dropdown-item" href="/inventory/mistake/not/all/list/">Помилки</a>
+       		<a class="dropdown-item" href="/inventory/mistake/not/found/list/">Не знайдені</a>
+{#       		<a class="dropdown-item" href="/inventory/fix/list/">Помилки закритих товарів</a> #}
 {% if request.user|has_group:"admin" %}
        		<a class="dropdown-item" href="/inventory/autocheck/list/">Автовідмітка</a>
 {% endif %}

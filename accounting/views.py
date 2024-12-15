@@ -9725,7 +9725,17 @@ def inventory_by_catalog_id(request, cat_id):
 
 def inventory_catalog_type(request, type_id):
     type_obj = Type.objects.get(pk = type_id)
-    cat_list = Catalog.objects.filter(type = type_obj, count__gt = 0)    
+#    cat_list = Catalog.objects.filter(type = type_obj, count__gt = 0)
+    all_cat = Catalog.objects.filter(type = type_obj) #, count__lte = 0)
+    cat_ids = []
+    for i in all_cat:
+        box_sum_count = i.get_storage_box_sum_by_count()['sum_count']
+        if (box_sum_count > 0) :
+            cat_ids.append(i.pk)
+        if ((box_sum_count == 0) or (not box_sum_count)) and (i.count > 0) :
+            cat_ids.append(i.pk)
+    cat_list = Catalog.objects.filter(pk__in = cat_ids).order_by("manufacturer")
+           
     context = {"weblink": 'inventory_by_type.html', "catalog_list": cat_list, 'cattype': type_obj} #, "inv_list": inv_list, 'boxes': boxes}
     context.update(custom_proc(request))    
     return render(request, 'index.html', context)
@@ -9733,7 +9743,17 @@ def inventory_catalog_type(request, type_id):
 
 def inventory_catalog_manufacturer(request, m_id):
     m_obj = Manufacturer.objects.get(pk = m_id)
-    cat_list = Catalog.objects.filter(manufacturer = m_obj, count__gt = 0)    
+    all_cat = Catalog.objects.filter(manufacturer = m_obj) #, count__lte = 0)
+    cat_ids = []
+    for i in all_cat:
+        box_sum_count = i.get_storage_box_sum_by_count()['sum_count']
+        if (box_sum_count > 0) :
+            cat_ids.append(i.pk)
+        if ((box_sum_count == 0) or (not box_sum_count)) and (i.count > 0) :
+            cat_ids.append(i.pk)
+    cat_list = Catalog.objects.filter(pk__in = cat_ids).order_by("type")
+    
+#    cat_list = Catalog.objects.filter(manufacturer = m_obj, count__gt = 0)    
     context = {"weblink": 'inventory_by_type.html', "catalog_list": cat_list, 'manufacturer': m_obj} 
     context.update(custom_proc(request))    
     return render(request, 'index.html', context)
@@ -9754,9 +9774,10 @@ def inventory_mistake(request, year=None, month=None, day=None):
     #return render_to_response("index.html", {"weblink": 'inventory_mistake_list.html', "return_list": list}, context_instance=RequestContext(request, processors=[custom_proc]))
     year = datetime.date.today().year
     day_list = []
+    title = "Помилки у підрахунках"
     year_list = InventoryList.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
     month_list = InventoryList.objects.filter(date__year = year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')
-    context = {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month}
+    context = {"weblink": 'inventory_list.html', "return_list": list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month, 'title_text': title}
     context.update(custom_proc(request))
     return render(request, "index.html", context)
 
@@ -9771,13 +9792,27 @@ def inventory_autocheck(request, year=None, month=None, day=None, update=False):
 
 
 def inventory_mistake_not_all(request, year=None, month=None, day=None):
+    all_cat = Catalog.objects.filter(count__gt = 0)
+    cat_ids = []
+    for i in all_cat:
+        box_sum_count = i.get_storage_box_sum_by_count()['sum_count']
+        if (box_sum_count == 0) or (not box_sum_count) :
+            cat_ids.append(i.pk)
+            
+    im = InventoryList.objects.filter(catalog__in = cat_ids)    
+    
     year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
     exc_list =  InventoryList.objects.filter( Q(date__gt = year_ago) ) #, (Q(real_count = F('count')) & Q(check_all = True)) )
     #im = InventoryList.objects.filter(Q(date__gt = year_ago), ( (Q(real_count__gt = F('count')) & Q(check_all = False)) | (Q(real_count__lt = F('count')) & Q(check_all = False)) )).order_by('-check_all', 'catalog__manufacturer', 'catalog__id')
-    im = InventoryList.objects.filter(Q(date__gt = year_ago) & Q(real_count__lt = F('count')))        
+#    im = InventoryList.objects.filter(Q(date__gt = year_ago) & Q(real_count__lt = F('count')))        
     #list = im.exclude(catalog__id__in=[term.catalog.id for term in exc_list])
+   
     list = im
-    paginator = Paginator(list, 50)
+    cat_count = all_cat.count()
+    #list_count = im.count
+    list_count = len(cat_ids)
+    title = "Помилки у підрахунках (товари в яких не має місця)"
+    paginator = Paginator(list, 100)
     page = request.GET.get('page')
     if page == None:
         page = 1
@@ -9793,7 +9828,44 @@ def inventory_mistake_not_all(request, year=None, month=None, day=None):
     day_list = []
     year_list = InventoryList.objects.filter().extra({'year':"Extract(year from date)"}).values_list('year').annotate(Count('id')).order_by('year')
     month_list = InventoryList.objects.filter(date__year = year).extra({'month':"Extract(month from date)"}).values_list('month').annotate(Count('id')).order_by('month')
-    return render(request, "index.html", {"weblink": 'inventory_list.html', "return_list": inv_list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month})
+    context = {"weblink": 'inventory_list.html', "return_list": inv_list, "year_list": year_list, 'month_list': month_list, 'day_list': day_list, 'cur_year': year, 'cur_month': month, 'title_text': title, 'list_count': list_count, 'cat_count': cat_count}
+    context.update(custom_proc(request))
+    return render(request, "index.html", context)
+
+
+def inventory_mistake_not_found(request, year=None, month=None, day=None):
+    all_cat = Catalog.objects.filter(count__gt = 0)
+    cat_ids = []
+    for i in all_cat:
+        box_sum_count = i.get_storage_box_sum_by_count()['sum_count']
+        if (box_sum_count == 0) or (not box_sum_count) :
+#            print "BOX count = %s" % box_sum_count
+            cat_ids.append(i.pk)
+
+    cat_list = Catalog.objects.filter(pk__in = cat_ids).order_by('manufacturer')#[:100]
+
+
+    paginator = Paginator(cat_list, 50)
+    page = request.GET.get('page')
+    if page == None:
+        page = 1
+    try:
+        cat_list = paginator.page(page)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page.
+        cat_list = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range (e.g. 9999), deliver last page of results.
+        cat_list = paginator.page(paginator.num_pages)
+
+
+
+    cat_count = all_cat.count()
+    list_count = len(cat_ids)
+    title = "Товари у яких не має місця"
+    context = {"weblink": 'inventory_mistake_list.html', "cat_list": cat_list, 'title_text': title, 'list_count': list_count, 'cat_count': cat_count}
+    context.update(custom_proc(request))
+    return render(request, "index.html", context)
 
 
 def inventory_search(request):

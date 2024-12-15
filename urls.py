@@ -665,6 +665,7 @@ urlpatterns = [
     url(r'^inventory/shop/(?P<shop_id>\d+)/list/$', catalog.inventory_list, name='inventory-list'),
     url(r'^inventory/mistake/list/$', catalog.inventory_mistake),
     url(r'^inventory/mistake/not/all/list/$', catalog.inventory_mistake_not_all),
+    url(r'^inventory/mistake/not/found/list/$', catalog.inventory_mistake_not_found),
     url(r'^inventory/autocheck/list/$', catalog.inventory_autocheck),
     url(r'^inventory/fix/list/$', catalog.inventory_fix),
     url(r'^inventory/fix/cat/(?P<cat_id>\d+)/list/$', catalog.inventory_fix_catalog, name="fix_inventory"),

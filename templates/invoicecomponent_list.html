@@ -2354,12 +2354,13 @@ function show_year_sales(cell){
      {% endfor %}
 {#     коли не має товарів то стається помилка #}
 {% if category_id %}
-    <a href="{% url 'invoice-category-last-sale-by-month' category_id '0' %}" class="badge badge-light year_sales">Продажі за місяць</a>  
+    <a href="{% url 'invoice-category-last-sale-by-month' category_id '0' %}" class="badge badge-light year_sales">Продажі за місяць</a>
 {% endif %}
 {% if company_id %}     
     <a href="{% url 'invoice-manufacturer-last-sale-by-month' company_id '0' %}" class="badge badge-light year_sales">Продажі за місяць</a> 
 {% endif %}     
 {% endif %} 
+
 
 
    
@@ -2371,6 +2372,13 @@ function show_year_sales(cell){
      {% endif %}
 {% endif %}
 
+{% if category_id %}
+    <a href="{% url 'invoice-category-id-list-all' category_id %}" class="badge badge-success" title="Показати всі товари в категорії" data-toggle="tooltip" data-placement="bottom">...</a>
+{% endif %}
+{% if company_id %}     
+    <a href="{% url 'manufacture_id_list_all' company_id %}" class="badge badge-success" title="Показати всі товари в категорії" data-toggle="tooltip" data-placement="bottom">...</a> 
+{% endif %}
+
      <span id="b_buy"><img src="/media/images/Ecommerce Buy.ico" width="32" height="32" title="Додати до кошика вибрані позиції" data-toggle="tooltip" data-placement="bottom"> </span>
      
      <span class="badge badge-danger">{{category_name.get_discount.0}}</span>
@@ -2378,6 +2386,7 @@ function show_year_sales(cell){
 {#     <span class="badge badge-warning">{{cat_discount.0}}</span> #}
      </h1>
 </div>
+
 
 <!-- Dialog print PHPbb -->
 	<div id="dialog_print" title="Текст для повідомлень">

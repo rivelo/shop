@@ -271,7 +271,16 @@ $(document).on("click", ".inv_show", function(event) {
 
 <div class="ml-2 p-2 bd-highlight">
 
-<h1><span class="badge badge-success">Інвентеризація товару</span>
+<h1>
+<span class="badge badge-success">
+Інвентеризація товару
+</span>
+{% if title_text %}
+<span class="badge badge-danger">
+{{title_text}}
+</span>
+{% endif %}
+</span>
 <span class="badge badge-success">{{sel_day}}.{{sel_month}}.{{sel_year}}</span> 
 {% if request.user|has_group:"admin" %}
 <a href="/inventory/list"><i class="material-icons">calendar_today</i></a>
@@ -392,7 +401,7 @@ $(document).on("click", ".inv_show", function(event) {
 		<td class="cat_name">
 		<a href="/invoice/search/result/?name=&id={{element.catalog.ids}}" title="Перейти до товару" data-toggle="tooltip" data-placement="left" data-html="true"><span><i class="material-icons">forward</i></span></a>
 		{{ element.catalog }}
-		<a href = "{% url 'fix_inventory' element.catalog.id %}" class="badge badge-pill badge-danger"> Inventory </a>
+{#		<a href = "{% url 'fix_inventory' element.catalog.id %}" class="badge badge-pill badge-danger"> Inventory </a> #}
 		<a href = "{% url 'inventory-by-catalog-id' element.catalog.id %}" class="badge badge-pill badge-dark"> Детально </a>
 		<a href = "{% url 'catalog_edit' element.catalog.id %}" class="badge badge-light" title="Редагувати товар" data-toggle="tooltip" data-placement="bottom" data-html="true"><i class="material-icons">edit</i></a>
 		</td>
@@ -462,6 +471,10 @@ $(document).on("click", ".inv_show", function(event) {
 	{% endfor %}
 	</table>
 
+<span class="badge badge-info">Загальна кількість:
+<span class="badge badge-light">{{list_count}}</span>
+з {{cat_count}}
+</span>  
 
 {% comment %}
 <div class="row">

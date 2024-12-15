@@ -9,6 +9,9 @@
 {% load poll_extras %}
 {% load template_math %}    
 
+<div class="row">
+<div class="col">
+
 {% if dinvoice.origin_id %}
     <h1>
     <span class="badge badge-success">Список наявного товару по накладній: </span> <span class="badge badge-info">{{dinvoice.origin_id}} ({{dinvoice.company}})</span>
@@ -16,12 +19,24 @@
      {% if status_delivery %} badge-success {% else %} badge-warning {% endif %}">Status - {{status_delivery}}</span></a>
     </h1>
 {% else %}
-	<h1>Надходження товару: <br> [{{list.0.catalog.ids}} / {{list.0.catalog.dealer_code}}] {{list.0.catalog.name}} </h1>
+	<h1>
+	<span class="badge badge-secondary">
+	Надходження товару: 
+	</span>
+	</h1>
+<h2>
+    <a href="{% url 'serch-invoicecomponennts-by-id' list.0.catalog.pk %}" title="Перейти до товару" data-toggle="tooltip" data-placement="bottom">
+	<span class="badge badge-success">
+	[{{list.0.catalog.ids}} / {{list.0.catalog.dealer_code}}] {{list.0.catalog.name}}
+	</span>
+	</a>
+</h2> 
 {% endif %}
-
+</div>
+</div>
 
     
-{% if perms.accounting.add_preorder %}  
+{% if perms.accounting.add_preorder %}  {# Таблиця для користувачів з правами add_preorder #}
 
     <table id="iTable" class = "table table-bordered table-hover table-condensed">
     <thead class="thead-dark">
@@ -56,22 +71,28 @@
 	{{forloop.counter}}
 	</td>
 	<td>       
-    <a href="/invoice/edit/{{type.id}}">{{type.id}}</a>
+    {{type.id}}
 	</td>
  	<td>
+<a href="{% url 'invoice-view' type.invoice.pk %}">
+    <span title="Переглянути вміст накладної" data-toggle="tooltip" data-placement="bottom" data-html="true"><i class="material-icons">forward</i></span>
+</a>    
 {% if request.user|has_group:"admin" %} 	
-	<a href="{% url 'dealer_invoice_edit' type.invoice.id %}" > {{type.invoice.origin_id}} - {{type.invoice.company.name}} - {{type.invoice.manager.name}} [{{type.invoice.price}} {{type.invoice.currency.ids_char}}] </a>
+	<a href="{% url 'dealer_invoice_edit' type.invoice.pk %}" > 
+	{{type.invoice.origin_id}} - {{type.invoice.company.name}} - {{type.invoice.manager.name}} [{{type.invoice.price}} {{type.invoice.currency.ids_char}}]
+ 	</a>
 {% else %}
 	{{type.invoice.origin_id}} - {{type.invoice.company.name}} - {{type.invoice.manager.name}} [{{type.invoice.price}} {{type.invoice.currency.ids_char}}]
 {% endif %}	        
 	</td>	
 	<td>
-	[{{type.catalog.get_code|join:"; "}}] {{type.catalog.manufacturer}} - {{type.catalog.name}} 
-{#	 [ {{type.catalog.ids}} {% if type.catalog.dealer_code %} / {{type.catalog.dealer_code}} {% endif %}] {{type.catalog.manufacturer}} - {{type.catalog.name}} #}
-
+    <a href = "{% url 'catalog_edit' type.catalog.id %}" class="badge badge-light" title="Редагувати товар" data-toggle="tooltip" data-placement="bottom" data-html="true"><i class="material-icons">edit</i></a>
+	[{{type.catalog.get_code|join:"; "}}] {{type.catalog.manufacturer}} - {{type.catalog.name}}
 	</td>
 	<td align="center">       
-	<a href="/client/invoice/catalog/{{type.catalog.id}}/add">{{type.count}} </a>
+	<a href="/client/invoice/catalog/{{type.catalog.id}}/add" title="Продати товар" data-toggle="tooltip" data-placement="bottom">
+	{{type.count}} 
+	</a>
 	</td>
 	<td align="center" title="{{type.user.username}} - {{type.shop}}"><abbr title="{{type.user.username}} - {{type.shop}}"> {{type.rcount}}  </abbr></td>
 	<td>       
@@ -84,7 +105,7 @@
 	{{type.catalog.price|mul:type.count}}
 	</td>
 {% if request.user|has_group:"admin" %}
-	<td align="center">       
+	<td align="center" >       
 	{{type.price}} ({{type.currency.ids_char}}) [{{type.get_uaprice}}]
 	<br>{{type.ci_sum}}
 	</td>
@@ -97,7 +118,12 @@
 	</td>
 	<td>
 {% if request.user|has_group:"admin" %}
-    <a href="/invoice/delete/{{type.id}}" onclick="return confirm('Видалити запис? \n {{type.catalog}}');"><i class="material-icons">delete_outline</i></a>
+    <a class="dark_link" href="{% url 'dealer_invoice_edit' type.invoice.id %}" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="left">
+        <i class="material-icons">edit</i>
+    </a>
+    <a href="/invoice/delete/{{type.id}}" onclick="return confirm('Видалити запис? \n {{type.catalog}}');" title="Видалити" data-toggle="tooltip" data-html="true" data-placement="left">
+    <i class="material-icons">delete_outline</i>
+    </a>
 {% endif %}
     </td>
 </tr>
@@ -122,7 +148,7 @@
 </tbody>    
     </table>
 
-{% else %}
+{% else %} {# Таблиця для звичайних користувачів #}
 
     <table class = "table table-bordered table-hover table-condensed">
     <thead class="thead-dark">

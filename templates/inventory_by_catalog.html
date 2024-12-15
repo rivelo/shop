@@ -207,8 +207,10 @@ $('#sBoxModal').on('show.bs.modal', function (event) {
         </td>
         <td>{{ item.date }}</td>
         <td>{{ item.user }}</td>
-        <td><a class="dark_link" href="{% url 'inventory-edit' item.pk %}" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="left">
-        <i class="material-icons">edit</i></a>
+        <td>
+        <a class="dark_link" href="{% url 'inventory-edit' item.pk %}" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="left">
+        <i class="material-icons">edit</i>
+        </a>
         <span class="inv_del" inv_id="{{item.pk}}" style="cursor: pointer;"><i class="material-icons" title="Видалити" data-toggle="tooltip" data-html="true" data-placement="left">delete_outline</i></span>
         </td>
         
