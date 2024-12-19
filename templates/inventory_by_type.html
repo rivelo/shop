@@ -53,6 +53,8 @@ $.ajax({
             if (json['status'] == true) {
 //              console.log("Кількість змінено");
                 $(item).hide();
+                var td_html = $(item).parents('td');
+                td_html.html($(item).html());
             }
             else {
                 console.log('JSON = ' + json['error'] + ' STATUS = ' + json['status'] );
@@ -70,7 +72,13 @@ $.ajax({
 {% load poll_extras %}
 <body>
     <h1>
-    Інвентеризація товару <span class="badge badge-success"> {{cattype}} {{manufacturer}}</span>
+    Інвентеризація товару
+    {% if cattype %}
+    <a href="{% url 'invoice-category-id-list' cattype.id %}" title="Показати товари в категорії <<{{cattype}}>>" data-toggle="tooltip" data-placement="bottom">    
+    {% elif manufacturer %}
+    <a href="{% url 'invoice-manufacture-id-list' manufacturer.id %}" title="Показати товари виробника <<{{manufacturer}}>>" data-toggle="tooltip" data-placement="bottom">
+    {% endif %}
+    <span class="badge badge-success"> {{cattype}} {{manufacturer}}</span></a>
     <span class="badge badge-info" title="приховати/показати товари в яких зійшлись підрахунки" data-toggle="tooltip" data-placement="bottom" onclick="hide_true()">
     Приховати/показати
     <span class="badge badge-light" id="count_false" title="Кількість товарів у яких не зійшлись підрахунки" data-toggle="tooltip" data-placement="bottom" ></span>

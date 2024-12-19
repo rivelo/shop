@@ -890,6 +890,14 @@ class Catalog(models.Model):
             hh = { 'attr_name': a_name, 'value': a_val, 'id': i.id}
             res.append(hh)
         return (res)
+
+    def get_ClientInvoice_list(self):
+        list = ClientInvoice.objects.filter(catalog = self).order_by('-date')
+        return list
+
+    def get_InvoiceComponent_list(self):
+        list = InvoiceComponentList.objects.filter(catalog = self).order_by('-date')
+        return list
     
     def __unicode__(self):
         return u"[%s] %s - %s" % (self.ids, self.manufacturer, self.name)

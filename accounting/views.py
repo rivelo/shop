@@ -9844,7 +9844,6 @@ def inventory_mistake_not_found(request, year=None, month=None, day=None):
 
     cat_list = Catalog.objects.filter(pk__in = cat_ids).order_by('manufacturer')#[:100]
 
-
     paginator = Paginator(cat_list, 50)
     page = request.GET.get('page')
     if page == None:

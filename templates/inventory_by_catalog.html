@@ -169,12 +169,61 @@ $('#sBoxModal').on('show.bs.modal', function (event) {
 
 {% load poll_extras %}
 <body>
+<div class="container-fluid ">
+<div class="row justify-content-around">
+<div class="col">
     <h1>Інвентеризація товару:
     <a href="{% url 'serch-invoicecomponennts-by-id' catalog.pk %}" title="Перейти до товару" data-toggle="tooltip" data-placement="bottom">
     {{catalog}}
     </a>
     </h1>
 
+{% for attr in catalog.get_attribute_values %}
+<span class="badge badge-info mr-2">
+{{attr.attr_name}}: {{attr.value}}
+</span>
+{% endfor %}
+</div>
+</div>
+
+<p>
+  <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseWidthExample" aria-expanded="false" aria-controls="collapseWidthExample">
+    Показати продажі та надходження
+  </button>
+</p>
+
+  <div class="row justify-content-around collapse width" id="collapseWidthExample">
+    <div class="col-md-6 ml-auto">
+<h3>
+<span class="badge badge-dark">Продажі:</span>
+</h3>
+{% for ci in catalog.get_ClientInvoice_list %}
+<h5>
+<span class="badge badge-dark mr-2">
+[{{ci.date|date:"d/m/Y"}}] {{ci.client}} - {{ci.count}} шт. <span class="badge badge-light">{{ci.get_ci_sbox|join:"<br>"}}</span>
+</span>
+</h5>
+{% endfor %}
+    </div>
+
+    <div class="col-md-6 ml-auto p-2">
+<h3>
+<span class="badge badge-success">Надходження:</span>
+</h3>      
+{% for icl in catalog.get_InvoiceComponent_list %}
+<h5>
+<span class="badge badge-success mr-2">
+[{{icl.date|date:"d/m/Y"}}] {{icl.invoice.company}} / # {{icl.invoice.origin_id}} - {{icl.count}} шт. <<{{icl.shop}}>> User: {{icl.user}}
+</span>
+</h5>
+{% endfor %}
+    </div>
+  </div>
+  
+
+
+<div class="row mt-2">
+<div class="col">
     <table class="table table-hover" class="ml-1 mb-2">
     <thead>
     <tr>
@@ -273,6 +322,9 @@ $('#sBoxModal').on('show.bs.modal', function (event) {
   </tbody>
 </table>
 
+</div>
+</div>
+
 <h1>Кількість в базі:
 <span class="badge badge-secondary">{{catalog.get_realshop_count}}</span>
 Кількість в ящиках:
@@ -290,6 +342,9 @@ $('#sBoxModal').on('show.bs.modal', function (event) {
 {% endif %}
 
 </h1>
+
+
+</div>
 
 </body>
 </html>
