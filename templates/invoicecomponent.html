@@ -127,7 +127,7 @@
 
 
 <div class="form-row alert alert-info mb-3" role="alert">
-Рекомендована ціна:    {{price_ua}} грн.
+<h5>Рекомендована ціна:    {{price_ua}} грн.</h5>
 </div>
 
   <div class="form-row">
@@ -155,6 +155,8 @@
       {{form.description|add_attr:"class:form-control"}}
     </div>
   </div>
+
+{#form.invoice|add_attr:"class:form-control"#}
     
         <button class="btn btn-primary w-100 mt-2" type="submit">Submit form</button>
     </form>

@@ -197,8 +197,9 @@ urlpatterns = [
     #Invoice
     url(r'^invoice/add/$', catalog.invoicecomponent_add),
     url(r'^invoice/catalog/(?P<cid>\d+)/add/$', catalog.invoicecomponent_add),
-   
     url(r'^invoice/manufacture/(?P<mid>\d+)/add/$', catalog.invoicecomponent_add),
+    url(r'^invoice/component/(?P<id>\d+)/edit/$', catalog.invoicecomponent_add, name='invoice-component-edit-by-id'),
+    
     url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-category-manufacture-by-year-all'}),
     url(r'^invoice/manufacture/(?P<mid>\d+)/lastsale/month/(?P<month>\d+)/$', catalog.invoicecomponent_sales_list, name="invoice-manufacturer-last-sale-by-month"),    
     url(r'^invoice/manufacture/(?P<mid>\d+)/lastsale/month/(?P<month>\d+)/all/$', catalog.invoicecomponent_sales_list, {'all': True}, name="invoice-manufacturer-last-sale-by-month-all"),

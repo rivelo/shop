@@ -469,13 +469,16 @@ class InvoiceComponentListForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         #self.default_username = default_username
-        test1 = kwargs.pop('test1', None)
+        manufacturer_id = kwargs.pop('test1', None)
         catalog_id = kwargs.pop('catalog_id', None)
+        ci_id = kwargs.pop('ci_id', None)
         super(InvoiceComponentListForm, self).__init__(*args, **kwargs)
-        if test1<>None:
+        if manufacturer_id <> None:
             self.fields['catalog'].queryset = Catalog.objects.filter(manufacturer = test1) 
-        if catalog_id<>None:
-            self.fields['catalog'].queryset = Catalog.objects.filter(id = catalog_id)             
+        if catalog_id <> None:
+            self.fields['catalog'].queryset = Catalog.objects.filter(id = catalog_id)        
+        if ci_id <> None:
+            self.fields['invoice'].queryset = DealerInvoice.objects.filter(pk = ci_id) 
 
     def clean_shop(self):
         data = self.cleaned_data['shop']

@@ -2568,9 +2568,10 @@ def invoice_miss_stuff(request):
 
 #-------------- InvoiceComponentList -----------------------
 @csrf_exempt
-def invoicecomponent_add(request, mid=None, cid=None):
+def invoicecomponent_add(request, mid=None, cid=None, id=None):
 #    company_list = Manufacturer.objects.all()
     price = 0
+    ci_id = None
     if cid<>None:
         #a = InvoiceComponentList(date=datetime.date.today(), price=0, count=1, currency=Currency.objects.get(id=2), invoice=DealerInvoice.objects.get(id=187), catalog=Catalog.objects.get(id=cid))
         c = Catalog.objects.get(id=cid)        
@@ -2578,8 +2579,13 @@ def invoicecomponent_add(request, mid=None, cid=None):
         price = c.price
     else:    
         a = InvoiceComponentList(date=datetime.date.today(), price=0, count=1, currency=Currency.objects.get(id=2), invoice=DealerInvoice.objects.get(id=187))
+    if id <> None:
+        a = InvoiceComponentList.objects.get(pk = id)          
+        cid = a.catalog.pk              
+        ci_id = a.invoice.pk
     if request.method == 'POST':
-        form = InvoiceComponentListForm(request.POST, instance = a, test1=mid, catalog_id=cid)
+        #form = InvoiceComponentListForm(request.POST, instance = a, test1=mid, catalog_id=cid)
+        form = InvoiceComponentListForm(request.POST, instance = a, catalog_id=cid, ci_id = ci_id)
         if form.is_valid():
             invoice = form.cleaned_data['invoice']
             date = form.cleaned_data['date']
@@ -2588,13 +2594,16 @@ def invoicecomponent_add(request, mid=None, cid=None):
             price = form.cleaned_data['price']
             currency = form.cleaned_data['currency']
             description = form.cleaned_data['description']
-            InvoiceComponentList(date=date, invoice=invoice, catalog=catalog, price=price, currency=currency, count=count, description=description).save()
+            form.save()
+            #InvoiceComponentList(date=date, invoice=invoice, catalog=catalog, price=price, currency=currency, count=count, description=description).save()
+            
             cat = Catalog.objects.get(id = cid)
             cat.count = cat.count + count
             cat.save()
             return HttpResponseRedirect(reverse('serch-invoicecomponennts-by-id', args=[cat.pk]))
     else:
-        form = InvoiceComponentListForm(instance = a, test1=mid, catalog_id=cid)
+        form = InvoiceComponentListForm(instance = a, catalog_id=cid, ci_id = ci_id)
+        #form = InvoiceComponentListForm(instance = a, test1=mid, catalog_id=cid)
 #    return render_to_response('index.html', {'form': form, 'weblink': 'invoicecomponent.html', 'price_ua': price, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
     context = {'form': form, 'weblink': 'invoicecomponent.html', 'price_ua': price}
     context.update(custom_proc(request))

@@ -118,7 +118,7 @@
 	</td>
 	<td>
 {% if request.user|has_group:"admin" %}
-    <a class="dark_link" href="{% url 'dealer_invoice_edit' type.invoice.id %}" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="left">
+    <a class="dark_link" href="{% url 'invoice-component-edit-by-id' type.id %}" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="left">
         <i class="material-icons">edit</i>
     </a>
     <a href="/invoice/delete/{{type.id}}" onclick="return confirm('Видалити запис? \n {{type.catalog}}');" title="Видалити" data-toggle="tooltip" data-html="true" data-placement="left">
