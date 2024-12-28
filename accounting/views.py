@@ -9321,6 +9321,7 @@ def photo_list(request, show=2, page=1, limit=50, cat_id=None):
     return render(request, 'index.html', context)
 
 
+@csrf_exempt
 def photo_url_delete(request, id=None):
     if auth_group(request.user, 'seller')==False:
         return HttpResponseRedirect('/catalog/photo/list/')

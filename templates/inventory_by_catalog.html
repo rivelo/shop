@@ -178,6 +178,25 @@ $('#sBoxModal').on('show.bs.modal', function (event) {
     </a>
     </h1>
 
+<hr>
+<h1>Кількість в базі:
+<span class="badge badge-secondary">{{catalog.get_realshop_count}}</span>
+Кількість в ящиках:
+<span class="badge badge-secondary">{{inv_list.first.get_count_in_all_boxes.count_sum}}</span>
+{% if inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count < 0 %}
+<span class="badge badge-danger">Різниця:</span>
+<a href="/client/invoice/catalog/{{catalog.pk}}/add/" title="Списати товар" data-toggle="tooltip" data-placement="bottom"> 
+<span class="badge badge-danger">{{inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count|floatformat:"0"}}</span>
+</a>
+{% elif inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count > 0 %}
+<span class="badge badge-warning">Різниця:</span>
+<a href="/invoice/catalog/{{catalog.id}}/add/" title="Додати товар" data-toggle="tooltip" data-placement="bottom">
+<span class="badge badge-warning">{{inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count|floatformat:"0"}}</span>
+</a>
+{% endif %}
+</h1>
+<hr>
+
 {% for attr in catalog.get_attribute_values %}
 <span class="badge badge-info mr-2">
 {{attr.attr_name}}: {{attr.value}}
@@ -200,7 +219,9 @@ $('#sBoxModal').on('show.bs.modal', function (event) {
 {% for ci in catalog.get_ClientInvoice_list %}
 <h5>
 <span class="badge badge-dark mr-2">
-[{{ci.date|date:"d/m/Y"}}] {{ci.client}} - {{ci.count}} шт. <span class="badge badge-light">{{ci.get_ci_sbox|join:"<br>"}}</span>
+[{{ci.date|date:"d/m/Y"}}] {{ci.client}} - {{ci.count}} шт. <span class="badge badge-light">{{ci.get_ci_sbox|join:"<br>"}}
+({{ci.shop}})
+</span>
 </span>
 </h5>
 {% endfor %}
@@ -325,23 +346,6 @@ $('#sBoxModal').on('show.bs.modal', function (event) {
 </div>
 </div>
 
-<h1>Кількість в базі:
-<span class="badge badge-secondary">{{catalog.get_realshop_count}}</span>
-Кількість в ящиках:
-<span class="badge badge-secondary">{{inv_list.first.get_count_in_all_boxes.count_sum}}</span>
-{% if inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count < 0 %}
-<span class="badge badge-danger">Різниця:</span>
-<a href="/client/invoice/catalog/{{catalog.pk}}/add/" title="Списати товар" data-toggle="tooltip" data-placement="bottom"> 
-<span class="badge badge-danger">{{inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count|floatformat:"0"}}</span>
-</a>
-{% elif inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count > 0 %}
-<span class="badge badge-warning">Різниця:</span>
-<a href="/invoice/catalog/{{catalog.id}}/add/" title="Додати товар" data-toggle="tooltip" data-placement="bottom">
-<span class="badge badge-warning">{{inv_list.first.get_count_in_all_boxes.count_sum|sub:catalog.get_realshop_count|floatformat:"0"}}</span>
-</a>
-{% endif %}
-
-</h1>
 
 
 </div>
