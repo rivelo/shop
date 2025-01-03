@@ -202,6 +202,10 @@ class Type(models.Model):
             return dateDiscount
         else:
            return 0
+
+    def get_properties(self):
+        c_attr = CatalogAttribute.objects.filter(type = self.pk)
+        return c_attr
     
     def __unicode__(self):
         return u'%s / %s' % (self.name, self.name_ukr)

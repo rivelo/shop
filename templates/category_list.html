@@ -13,7 +13,7 @@
 }
 
 .div1 {
-    float:right;
+//    float:right;
 }
 </style>
 
@@ -27,6 +27,7 @@
 <thead class="table-success">
     <tr class="text-center">
     	<th>#</th>
+    	<th>Icon</th>
     	<th>Назва типу</th>
     	<th>Опис</th>
     	<th>Назва, українською</th>
@@ -45,15 +46,30 @@
 	{% endif %}
 	{#type.id#}
 	</td>
-	<td>       
-<div class="div1">
-	<a href="/catalog/type/{{type.id}}/view/">{{type.name}}</a>
-</div>
+<td>
 <div class="div2">
 	<img src="/media/upload/icons/{{type.name|slugify}}-gr.png" class="rounded" width="64px" alt="{{type.name|slugify}}">
 	<img src="/media/upload/icons/{{type.name|slugify}}-bl.png" class="rounded" width="64px" alt="{{type.name|slugify}}" >
 {#	<img src="/media/upload/icons/{{type.name|slugify}}-128.png" width="64px" class="rounded" alt="Wheel"> #}
 {#	<img src="/media/upload/icons/{{type.name|slugify}}-select-128.png" width="64px" class="rounded" alt="Wheel"> #}
+</div>
+</td>
+	<td>       
+<div class="div1">
+	<a href="/catalog/type/{{type.id}}/view/">{{type.name}}</a>
+	<hr>
+	{% for prop in type.get_properties %}
+	   <span class="badge badge-primary">
+	   {{prop.name}}
+	   <hr>
+	       {% for prop_val in prop.all_values %}
+	       <span class="badge badge-secondary">
+	           {{prop_val.value}}
+	       </span>    
+	           <hr>
+	       {% endfor %}
+	   </span>
+	{% endfor %}
 </div>
 	</td>
 	<td>       
