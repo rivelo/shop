@@ -229,8 +229,9 @@ urlpatterns = [
     url(r'^invoice/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-values-ids-list"),
     url(r'^invoice/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True}, name="invoice-attribute-values-ids-list"),
     
-    url(r'^invoice/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-value-id"),
-    url(r'^invoice/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-value-id-all"),
+    url(r'^invoice/category/(?P<cid>\d+)/attribute/value/(?P<attr_val_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-value-id"),
+    url(r'^invoice/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-values-id"),
+    url(r'^invoice/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-values-id-all"),
 
     url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-values-ids-by-year-all"),
     url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-values-ids-by-year"),

@@ -222,6 +222,7 @@ $('#sBoxModal').on('show.bs.modal', function (event) {
 [{{ci.date|date:"d/m/Y"}}] {{ci.client}} - {{ci.count}} шт. <span class="badge badge-light">{{ci.get_ci_sbox|join:"<br>"}}
 ({{ci.shop}})
 </span>
+<span class="badge badge-info">{{ci.user}}</span>
 </span>
 </h5>
 {% endfor %}
@@ -241,6 +242,59 @@ $('#sBoxModal').on('show.bs.modal', function (event) {
     </div>
   </div>
   
+<h2><span class="badge badge-dark">Кількість товару у ящику:</span></h2>
+<table class="table table-sm table-dark table-hover">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Місце</th>
+      <th scope="col">кількість</th>
+      <th scope="col">реальна кількість</th>
+      <th scope="col">Остання кількість</th>
+      <th scope="col">Дата створення</th>
+      <th scope="col">Дата оновлення</th>
+      <th scope="col">Користувач</th>
+      <th scope="col">User (update)</th>
+{% if request.user|has_group:"admin" %}
+      <th scope="col" class="b_edit">Edit</th>
+{% endif %}
+      <th scope="col">History</th>
+    </tr>
+  </thead>
+  <tbody>
+{% for box in boxes %}
+    <tr id_sbox="{{box.pk}}">
+      <th scope="row">{{forloop.counter}}</th>
+      <td class="sbox_name">
+      <a href="/storage/box/{{box.box_name.pk}}/list/" title="Перейти до ящика: {{box.box_name}} " data-toggle="tooltip" data-html="true" data-placement="bottom">
+      {{box.box_name}}
+      </a>
+      </td>
+      <td class="box_count">{{box.count}}</td>
+      <td class="box_rcount">{{box.count_real}}</td>
+      <td class="box_lcount">{{box.count_last}}</td>
+      <td>{{box.date_create|date:"d/m/Y H:m:s"}}</td>
+      <td>{{box.date_update|date:"d/m/Y H:m:s"}}</td>
+      <td>{{box.user}}</td>
+      <td>{{box.user_update}}</td>
+{% if request.user|has_group:"admin" %}
+      <td class="b_edit">
+       <button type="button" class="btn btn-primary sbox_edit" data-toggle="modal" data-target="#sBoxModal">Edit</button>
+      </td>
+{% endif %}      
+      <td>
+        {% if box.description %}
+        <div class="alert alert-primary" role="alert">
+        {{box.description}}
+        </div>      
+        {% endif %}
+       {{box.history|linebreaks}}
+      </td>
+    </tr>
+    <tr>
+{% endfor %}
+  </tbody>
+</table>
 
 
 <div class="row mt-2">
@@ -275,7 +329,7 @@ $('#sBoxModal').on('show.bs.modal', function (event) {
         <td>
         {{ item.real_count }}
         </td>
-        <td>{{ item.date }}</td>
+        <td>{{ item.date|date:"d/m/Y H:m:s" }}</td>
         <td>{{ item.user }}</td>
         <td>
         <a class="dark_link" href="{% url 'inventory-edit' item.pk %}" title="Редагувати" data-toggle="tooltip" data-html="true" data-placement="left">
@@ -289,59 +343,6 @@ $('#sBoxModal').on('show.bs.modal', function (event) {
     <table>
 
 
-<h2><span class="badge badge-dark">Кількість товару у ящику:</span></h2>
-<table class="table table-sm table-dark table-hover">
-  <thead>
-    <tr>
-      <th scope="col">#</th>
-      <th scope="col">Місце</th>
-      <th scope="col">кількість</th>
-      <th scope="col">реальна кількість</th>
-      <th scope="col">Остання кількість</th>
-      <th scope="col">Дата створення</th>
-      <th scope="col">Дата оновлення</th>
-      <th scope="col">Користувач</th>
-      <th scope="col">User (update)</th>
-{% if request.user|has_group:"admin" %}
-      <th scope="col" class="b_edit">Edit</th>
-{% endif %}
-      <th scope="col">History</th>
-    </tr>
-  </thead>
-  <tbody>
-{% for box in boxes %}
-    <tr id_sbox="{{box.pk}}">
-      <th scope="row">{{forloop.counter}}</th>
-      <td class="sbox_name">
-      <a href="/storage/box/{{box.box_name.pk}}/list/" title="Перейти до ящика: {{box.box_name}} " data-toggle="tooltip" data-html="true" data-placement="bottom">
-      {{box.box_name}}
-      </a>
-      </td>
-      <td class="box_count">{{box.count}}</td>
-      <td class="box_rcount">{{box.count_real}}</td>
-      <td class="box_lcount">{{box.count_last}}</td>
-      <td>{{box.date_create}}</td>
-      <td>{{box.date_update}}</td>
-      <td>{{box.user}}</td>
-      <td>{{box.user_update}}</td>
-{% if request.user|has_group:"admin" %}
-      <td class="b_edit">
-       <button type="button" class="btn btn-primary sbox_edit" data-toggle="modal" data-target="#sBoxModal">Edit</button>
-      </td>
-{% endif %}      
-      <td>
-        {% if box.description %}
-        <div class="alert alert-primary" role="alert">
-        {{box.description}}
-        </div>      
-        {% endif %}
-       {{box.history|linebreaks}}
-      </td>
-    </tr>
-    <tr>
-{% endfor %}
-  </tbody>
-</table>
 
 </div>
 </div>

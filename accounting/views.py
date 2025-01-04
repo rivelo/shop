@@ -2790,8 +2790,12 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
 #            list = InvoiceComponentList.objects.filter(catalog__type__id=cid).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update').exclude(catalog__count = 0)            
         cat_name = type_list.get(id=cid)
     if attr_val_id:
-        cav = CatalogAttributeValue.objects.filter(id = attr_val_id).values('value', 'value_float', 'attr_id__name')
+        cav = CatalogAttributeValue.objects.filter(id = attr_val_id).values('value', 'value_float', 'attr_id__name', 'pk')
         head_text = cav.first()['attr_id__name'] + ' >>> ' + cav.first()['value']
+        for i in cav:
+            tmp_text = i['attr_id__name'] + ' >>> ' + i['value']
+            head_text_array.append({'id': i['pk'], 'txt': tmp_text})
+            attr_ids_str += "+" + str(i['pk'])        
         if all == True:        
             list = list.filter(catalog__attributes__id=attr_val_id)
 #            list = InvoiceComponentList.objects.filter(catalog__attributes__id=attr_val_id).values('catalog', 'catalog__name', 'catalog__ids', 'catalog__dealer_code', 'catalog__manufacturer__name', 'catalog__price', 'catalog__last_price', 'catalog__sale', 'catalog__count', 'catalog__type__name', 'catalog__type__id', 'catalog__user_update__username', 'catalog__last_update')            
@@ -10051,7 +10055,7 @@ def inventory_add(request):
                     b = BoxName.objects.get(id = box_id)
                     shop = get_shop_from_ip(request.META['REMOTE_ADDR'])
  #                   print "\n BOX = %s; catalog = %s\n" % (b.id, c.id)
-                    inv = InventoryList(catalog = c, count = count, box_id = b, date = datetime.datetime.now(), user = user, description=desc, edit_date = dnow, check_all = status, real_count=c.get_realshop_count(), shop=shop)
+                    inv = InventoryList(catalog = c, count = count, box_id = b, date = datetime.datetime.now(), user = user, description=desc, edit_date = dnow, check_all = status, real_count=c.get_realshop_count(), shop=shop)                    
                     inv.save()
                     inv_str = "[%s] Inventory id = %s; count = %s in %s" % (dnow, inv.id, inv.count, inv.real_count) 
                     if not StorageBox.objects.filter(catalog = c, box_name = b):
@@ -10062,10 +10066,10 @@ def inventory_add(request):
                         sb_list = StorageBox.objects.filter(catalog = c, box_name = b)
                         sb = StorageBox.objects.get(pk = sb_list[0].id)
   #                      print "\nSTORAGE box catalog = " + str(sb[0])
-                        count_last = sb.count
+                        sb.count_last = sb.count
                         sb.count = sb.count + int(count)
                         sb.count_real = c.get_realshop_count()
-                        sb.date_create = dnow # date create 
+#                        sb.date_create = dnow # date create 
                         sb.date_update = dnow
                         if sb.shop != shop:
                             hist_str = hist_str + "["+ str(dnow) + "] Shop changed - " + str(sb.shop) + " -> " + str(shop) + " by user [" + str(user) + "]"  

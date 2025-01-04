@@ -2305,7 +2305,9 @@ function show_year_sales(cell){
      {% if company_name %}<a class="badge badge-info" id="c_c" href="{% url 'invoice-manufacture-id-list' company_id %}">{{company_name|capfirst}} </a> {% endif %} 
      {% if category_id %} <a class="badge badge-info" id="c_c" href="{% url 'invoice-category-id-list' category_id %}" >{{category_name|capfirst}}</a> {% endif %}   
      {% if select_year %} <span class="badge badge-success" id="c_c">{{select_year}}</span> {% endif %}
+     {% if not head_text_array.0 %}
      <span class="badge badge-info">{{head_text}}</span>
+     {% endif %}
      {% for item in head_text_array %}
         <a class="badge badge-info" href="{% url 'invoice-attribute-val-id-list' item.id %}">{{item.txt}}</a>
      {% endfor %}
@@ -2326,6 +2328,8 @@ function show_year_sales(cell){
      {% if company_id and category_id and select_year == 0 and not head_text_array.0 %}
         <a href="{% url year_url_name yy.0 componentlist.0.catalog__type__id componentlist.0.manufacturer__id %}" class="badge badge-info year_sales">{{yy.0}} 
      {% endif %}
+{% comment %}     
+ {% endcomment %}
      {% if not company_id and category_id and not head_text_array.0 %}
         <a href="{% url year_url_name yy.0 componentlist.0.catalog__type__id %}" class="badge badge-info year_sales">{{yy.0}} 
      {% endif %}
@@ -2352,6 +2356,7 @@ function show_year_sales(cell){
           <span class="badge badge-light">{{yy.1|floatformat:"0"}}</span>
      </a>
      {% endfor %}
+      
 {#     коли не має товарів то стається помилка #}
 {% if category_id %}
     <a href="{% url 'invoice-category-last-sale-by-month' category_id '0' %}" class="badge badge-light year_sales">Продажі за місяць</a>

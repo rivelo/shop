@@ -56,16 +56,19 @@
 </td>
 	<td>       
 <div class="div1">
-	<a href="/catalog/type/{{type.id}}/view/">{{type.name}}</a>
+	<a href="{% url 'invoice-category-id-list' type.id %}">{{type.name}}</a>
 	<hr>
 	{% for prop in type.get_properties %}
 	   <span class="badge badge-primary">
 	   {{prop.name}}
 	   <hr>
 	       {% for prop_val in prop.all_values %}
+{# <a href="/invoice/category/{{type.id}}/attribute/values/+{{prop_val.pk}}/view/"> #}
+<a href=" {% url 'invoice-cat-attribute-value-id' cid=type.id attr_val_id=prop_val.pk %} " >
 	       <span class="badge badge-secondary">
 	           {{prop_val.value}}
-	       </span>    
+	       </span>
+</a>
 	           <hr>
 	       {% endfor %}
 	   </span>
