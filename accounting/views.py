@@ -11651,7 +11651,13 @@ def casa_rro_xreport(request, token=post_casa_token()):
     
     res_start_dt = ''
     error_msg = ''
-    casa_status = "<br><<< Result >>> <br>" + str(resp.reason) + "<br><<< Result >>><br>" + str(resp.text) #None # responce for other request
+    try:
+        casa_status = "<br><<< Result >>> <br>" + str(resp.reason) + "<br><<< Result >>><br>" + str(resp.text) #None # responce for other request
+    except:
+        decoded_value = resp.reason.encode('ascii').decode('utf-8')
+        decoded_text = str(resp)
+        casa_status = "ASCII Error - " + decoded_value + "\n" + " Response - " +  decoded_text
+        
     cashless_sell_sum = float(res_list[3]) * 100 # копійки
     jbalance = float(res_list[1]) * 100 # копійки
     
