@@ -915,7 +915,8 @@ def bicycle_store_add(request, id=None):
             realization = form.cleaned_data['realization']
             count = form.cleaned_data['count']
             date = form.cleaned_data['date']
-            Bicycle_Store(model = model, serial_number=serial_number, size = size, price = price, currency = currency, description=description, realization=realization, count=count, date=date).save()
+            shop = form.cleaned_data['shop']
+            Bicycle_Store(model = model, serial_number=serial_number, size = size, price = price, currency = currency, description=description, realization=realization, count=count, date=date, shop=shop).save()
             return HttpResponseRedirect('/bicycle-store/view/')
     else:
         if bike != None:
@@ -940,6 +941,7 @@ def bicycle_store_edit(request, id=None):
                 p = request.POST.get('serial')
                 obj = Bicycle_Store.objects.get(pk = id)
                 obj.serial_number = p
+                obj.shop = get_shop_from_ip(request.META['REMOTE_ADDR'])
                 obj.save() 
                 c = Bicycle_Store.objects.filter(pk = id).values_list('serial_number', flat=True)
                 #c = "ajax work"
@@ -2111,7 +2113,7 @@ def dealer_add(request):
     else:
         form = DealerForm(instance = a)
     #return render_to_response('dealer.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'dealer.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'form': form, 'weblink': 'dealer.html'})
 
 @csrf_exempt
 def dealer_edit(request, id):
@@ -2158,7 +2160,7 @@ def dealer_manager_add(request):
     else:
         form = DealerManagerForm(instance = a)
     #return render_to_response('dealer-manager.html', {'form': form})
-    return render_to_response('index.html', {'form': form, 'weblink': 'dealer-manager.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'form': form, 'weblink': 'dealer-manager.html'})
 
 
 def dealer_manager_edit(request, id):
@@ -2183,7 +2185,7 @@ def dealer_manager_del(request, id):
 def dealer_manager_list(request):
     list = DealerManager.objects.all().order_by('company')
     #return render_to_response('dealer-manager_list.html', {'dealer_managers': list.values_list()})
-    return render_to_response('index.html', {'dealer_managers': list, 'weblink': 'dealer-manager_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'dealer_managers': list, 'weblink': 'dealer-manager_list.html'})
 
 
 def dealer_payment_add(request):
@@ -2251,7 +2253,7 @@ def dealer_payment_del(request, id):
  
 def dealer_payment_list(request):
     list = DealerPayment.objects.all()
-    return render_to_response('index.html', {'dealer_payment': list, 'weblink': 'dealer_payment_list.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'dealer_payment': list, 'weblink': 'dealer_payment_list.html'})
 
 @csrf_exempt
 def dealer_invoice_add(request):
@@ -7601,7 +7603,7 @@ def preorder_list(request):
         return HttpResponseRedirect('/')
     list = PreOrder.objects.all()
     #return render_to_response('dealer_list.html', {'dealers': list.values_list()})
-    return render_to_response('index.html', {'preorder1': list, 'weblink': 'preorder_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'preorder1': list, 'weblink': 'preorder_list.html', 'next': current_url(request)})
 
 
 def preorder_delete(request, id):
