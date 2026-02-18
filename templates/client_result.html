@@ -97,6 +97,31 @@ td.mark_false {
 	font-weight: bold;
 }
     
+
+.toast {
+  visibility: hidden; /* Приховано за замовчуванням */
+  min-width: 250px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 8px;
+  padding: 16px;
+  position: fixed; /* Фіксуємо відносно вікна браузера */
+  z-index: 1000;
+  left: 50%;
+  bottom: 30px; /* Відстань від низу при показі */
+  transform: translateX(-50%); /* Центрування */
+  opacity: 0;
+  transition: opacity 0.3s, bottom 0.3s; /* Плавна анімація */
+}
+
+/* Клас, який активує показ */
+.toast.show {
+  visibility: visible;
+  opacity: 1;
+  bottom: 50px; /* "Випливає" трохи вище */
+}
+
 </style>
 
 
@@ -117,18 +142,188 @@ $(document).ready(function() {
 	
 	$(".profit").hide();
 
+// ------ Change workstatus by Ajax 
+
+    let $currentTarget; // Змінна для збереження елемента, який редагуємо
+    // const statusModal = new bootstrap.Modal('#statusModal');
+	$('#statusModal').modal({
+  		backdrop: 'static',
+  		keyboard: false,
+  		show: false
+	});
+
+    // Відкриття модалки при кліку на статус
+    $('.edit_workstatus').on('click', function() {
+        $currentTarget = $(this);
+//        statusModal.show();
+		$('#statusModal').modal('show');
+//		$currentTarget.css('background-color', 'green');
+
+    });
+
+$('#statusModal').on('show.bs.modal', function () {
+    if ($currentTarget) {
+        $currentTarget.css('background-color', '#dee2e6'); // Highlight color (e.g., Yellow #ffeb3b)
+    }
+});
+
+$('#statusModal').on('hidden.bs.modal', function () {
+    if ($currentTarget) {
+        $currentTarget.css('background-color', ''); // Revert to original (empty string)
+        $currentTarget = null; // Clear the reference
+    }
+});
+
+    // Обробка вибору статусу в модалці
+    $('.status-option').on('click', function() {
+        const newStatus = $(this).data('status');
+        const id_w = $currentTarget.attr('id_workticket');
+
+        // Відправка даних на сервер
+        $.ajax({
+            url: '/workticket/edit/',
+            method: 'POST',
+            data: { id_w: id_w, value: newStatus },
+            success: function(response) {
+                // Оновлюємо текст в таблиці
+                //$currentTarget.text(newStatus);
+				$currentTarget.text(response);
+
+                // Оновлюємо візуальний стиль (ваша логіка з switch)
+                updateRowStyle($currentTarget, newStatus);
+                
+                // Закриваємо модалку
+                //statusModal.hide();
+				$('#statusModal').modal('hide');
+            },
+            error: function() {
+                alert('Помилка при збереженні статусу');
+            }
+        });
+    });
+
+    function updateRowStyle(element, value) {
+        const row = element.closest("tr");
+        const img = $('#img_repair');
+		console.log("element = " + element);
+		element.innerHTML="SELECT";
+
+        switch(value) {
+            case 1:
+                row.css('background-color', '#CCFF99'); // Використовуйте .css замість .attr('BGCOLOR')
+                img.css("opacity", 1);
+                break;
+            case 2:
+                row.css('background-color', '#FFFF99');
+                break;
+            case 3:
+                row.css('background-color', '#FFFFFF');
+                img.css("opacity", 0.2);
+                break;
+            case 4:
+                img.css("opacity", 0.2);
+                break;
+            default:
+                row.css('background-color', '#FFFFFF');
+        }
+    }
+
+// --------------------- end of change work Status 
+
+// ------ Change work PHONE by Ajax 
+
+    let $currentTargetPhone; // Змінна для збереження елемента, який редагуємо
+    // const statusModal = new bootstrap.Modal('#statusModal');
+	$('#statusModalPhone').modal({
+  		backdrop: 'static',
+  		keyboard: false,
+  		show: false
+	});
+
+    // Відкриття модалки при кліку на статус
+    $('.phone').on('click', function() {
+        $currentTargetPhone = $(this);
+		$('#statusModalPhone').modal('show');
+
+    });
+
+$('#statusModalPhone').on('show.bs.modal', function () {
+    if ($currentTargetPhone) {
+        $currentTargetPhone.css('background-color', '#dee2e6'); // Highlight color (e.g., Yellow #ffeb3b)
+    }
+});
+
+$('#statusModalPhone').on('hidden.bs.modal', function () {
+    if ($currentTargetPhone) {
+        $currentTargetPhone.css('background-color', ''); // Revert to original (empty string)
+        $currentTargetPhone = null; // Clear the reference
+    }
+});
+
+    // Обробка вибору статусу в модалці
+    $('.status-option-phone').on('click', function() {
+        const newStatus = $(this).data('status');
+        const id_w = $currentTargetPhone.attr('id_workticket');
+
+        // Відправка даних на сервер
+        $.ajax({
+            url: '/workticket/edit/',
+            method: 'POST',
+            data: { id_wp: id_w, value: newStatus },
+            success: function(response) {
+                // Оновлюємо текст в таблиці
+				$currentTargetPhone.text(response);
+
+                // Оновлюємо візуальний стиль (ваша логіка з switch)
+                updateRowStyle($currentTargetPhone, newStatus);
+                
+                // Закриваємо модалку
+				$('#statusModalPhone').modal('hide');
+            },
+            error: function() {
+                alert('Помилка при збереженні статусу');
+            }
+        });
+    });
+
+    function updateRowStyle(element, value) {
+        const row = element.closest("td");
+        const img = $('#img_repair');
+
+        switch(value) {
+            case 1:
+                row.css('background-color', '#CCFF99'); // Використовуйте .css замість .attr('BGCOLOR')
+                img.css("opacity", 1);
+                break;
+            case 2:
+                row.css('background-color', '#db130c');
+                break;
+            default:
+                row.css('background-color', '#FFFFFF');
+        }
+    }
+
+// --------------------- end of change work Status 
+// --------------------- Workshop ticket modal form -------------------
   	$( "#img_repair" ).click(function() {
   		{% if client_name.check_workticket %}
   			$("#WorkShopModal").modal('show');
   		{% else %}
   			window.location.href = "{% url 'workticket-add-by-client' client_name.id %}";
   		{% endif %}
+		$("#workticket_body").append($("#t_workticket"));
 	});
-	
+
+	$('#WorkShopModal').on('hidden.bs.modal', function () {
+    	console.log('Modal is now completely hidden.');
+		$("#tabs-3").append($("#t_workticket"));
+    // Put your TD color reset code here!
+	});
+// -------- Client Bike ----------  	
   	$( "#img_bike" ).click(function() {
   		$( "#dialog" ).dialog();
 	});
-	
+// -------- Message client --------	
 	$( "#img_msg" ).click(function() {
   		$( "#dialog_msg" ).dialog({
   		resizable: false,
@@ -178,9 +373,9 @@ $(document).ready(function() {
 	//$('#img_repair').css("opacity", 1);
 
 {% if request.user|has_group:"admin" %}
-$("#show_profit").click(function(){
-	$(".profit").toggle();
-});
+	$("#show_profit").click(function(){
+		$(".profit").toggle();
+	});
 {% endif %}
 	
 
@@ -414,9 +609,9 @@ $(function() {
 	});
 
 
-$("#ticket_tab").on("click", function() {
-	$("#tabs-3").append($("#t_workticket"));
-});
+	$("#ticket_tab").on("click", function() {
+		$("#tabs-3").append($("#t_workticket"));
+	});
 
 $('.bike_serv').editable('/bicycle/sale/service/', {
      data   : " {'1':'Пройдено','0':'Не пройдено'}",
@@ -626,10 +821,10 @@ $( "#dialog_return" ).dialog({
     }
 });
 
-$('.edit_workstatus').editable('/workticket/edit/', { 
+$('.edit_workstatus1').editable('/workticket/edit/', { 
      loadurl : '/workstatus/view/',
      type   : 'select',
-     submit : 'OK',
+ //    submit : 'OK',
      event: 'click', //'dblclick',
      submitdata : function() {
       	 	return {id_w : $(this).attr('id_workticket')};
@@ -657,7 +852,7 @@ $('.edit_workstatus').editable('/workticket/edit/', {
  });
 
 
-$('.phone').editable('/workticket/edit/', { 
+$('.phone1').editable('/workticket/edit/', { 
     loadurl : '/phonestatus/view/',
     type   : 'select',
     submit : 'OK',
@@ -690,6 +885,47 @@ $('.phone').editable('/workticket/edit/', {
 }); 
 
 
+// ---------------- SELECT All checkboxes on WORK
+const mainCb = document.getElementById('select-all-work');
+const items = document.querySelectorAll('.item-work');
+
+  // Логіка "Виділити все"
+  mainCb.addEventListener('change', () => {
+    items.forEach(cb => cb.checked = mainCb.checked);
+  });
+
+  // Знімати галочку з головного, якщо хоч один підлеглий вимкнений
+  items.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const allChecked = Array.from(items).every(i => i.checked);
+      mainCb.checked = allChecked;
+      
+      // Стан "невизначеності", якщо вибрана лише частина (опціонально)
+      const someChecked = Array.from(items).some(i => i.checked);
+      mainCb.indeterminate = someChecked && !allChecked;
+    });
+  });
+
+const ItemCatalog = document.getElementById('select-all-items');
+const items_cat = document.querySelectorAll('.chk_inv');
+
+  // Логіка "Виділити все"
+  ItemCatalog.addEventListener('change', () => {
+    items_cat.forEach(cb => cb.checked = ItemCatalog.checked);
+  });
+
+  // Знімати галочку з головного, якщо хоч один підлеглий вимкнений
+  items_cat.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const allChecked = Array.from(items_cat).every(i => i.checked);
+      ItemCatalog.checked = allChecked;
+      // Стан "невизначеності", якщо вибрана лише частина (опціонально)
+      const someChecked = Array.from(items_cat).some(i => i.checked);
+      ItemCatalog.indeterminate = someChecked && !allChecked;
+    });
+  });
+ 
+
 
 }); // Ready end
 
@@ -700,6 +936,31 @@ function show_ret(ciid, item) {
 	$("#dialog_return").dialog("open");
 	$("#ui-id-7").html("Повернення: <br>" + $(item).parents('tr').find('td.cat_name > div > div.p-2').html().substr(0, 35)); 
 }
+
+
+async function copyElementText(element_id) {
+//  const text = document.getElementById(element_id).textContent;
+  const text = document.getElementById(element_id).getAttribute('client_name');
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast();
+  } catch (err) {
+    console.error('Помилка:', err);
+  }
+}
+
+function showToast() {
+  const toast = document.getElementById("toast");
+  // Додаємо клас для показу
+  toast.classList.add("show");
+  // Через 3 секунди прибираємо повідомлення
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3000);
+}
+
+
+  
 
 </script>
 
@@ -753,48 +1014,24 @@ function show_ret(ciid, item) {
 
 <!-- WORKSHOP LIST -->
 
-<div class="modal fade" id="WorkShopModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+<!-- <div class="modal fade" id="WorkShopModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true"> -->
+<div class="modal fade" id="WorkShopModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" >
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">Заявки на ремонт</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+          <span>&times;</span>
+<!--		  <span aria-hidden="true">&times;</span> -->
         </button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" id="workticket_body">
 
 <table id="t_workticket" class = "table table-bordered table-hover table-condensed iTable" width="100%">
 
 {% for ticket in workshopTicket  %}
 {% if ticket.status__name == 'Прийнято' %}
   <tr bgcolor="#CCFF99" > 
-
-{% comment %}
-  <script>
-  $( "#img_repair" ).unbind(); 
-  $( "#img_repair" ).click(function() {
-  $("#dialog_r").append($("#t_workticket"));
-  $( "#dialog_r" ).dialog({
-      buttons: {
-        "Створити": function() {
-        	$( this ).dialog( "close" );
-        	window.location.href = "/workticket/add/client/"+ {{client_name.id}} +"/";	
-        },
-        "Відмінити": function() {
-        	$( this ).dialog( "close" );	
-        },
-        
-        }
-  });
-  });
-
-//  $('#img_repair').show();
-  $('#img_repair').css("opacity", 1);
-
-  </script>
-{% endcomment %}
-  
 {% else %}
   <tr bgcolor="#FFFFFF">
 {% endif %}  
@@ -811,16 +1048,16 @@ function show_ret(ciid, item) {
    {{ticket.description}}. 
   <a style="text-align: right;" href="{% url 'workticket_edit' ticket.id %}" title="Редагувати заявку"  data-toggle="tooltip" data-placement="right"><i class="material-icons">edit</i></a>
   </td>
-  	<td class="edit_workstatus" id_workticket={{ticket.id}}>
+<td class="edit_workstatus" id_workticket={{ticket.id}}>
   		{{ticket.status__name}}
-	</td>
-	<td class="phone" id_workticket="{{ticket.id}}">       
+</td>
+<td class="phone" id_workticket="{{ticket.id}}">       
 		{{ticket.phone_status__name}}
 	</td>
 	{% if ticket.phone_user.username %}
-		<td title={{ticket.phone_user__username}} align="center">
+		<td title={{ticket.phone_user__username}} align="center" data-toggle="tooltip" data-placement="bottom">
 	{% else %}
-		<td align="center" title="{{ticket.phone_user__username}}">
+		<td align="center" title="Повідомлено користувачем - {{ticket.phone_user__username}}" data-toggle="tooltip" data-placement="bottom">
 	{% endif %}       
 		{{ticket.phone_date|date:'d-m-Y H:i'}} 
 		</td>
@@ -862,9 +1099,11 @@ function show_ret(ciid, item) {
     <span class="badge badge-secondary" >Виписка по клієнту:</span>
 {#    <span  data-html="true" title="<font size='1'>Телефон: </font> <font size='4'>{{client_name.phone|phone2Str}}</font> <br> <font size='2'> E-mail: {{client_name.email}}</font>" data-toggle="tooltip" data-placement="bottom"> #}
 <span  data-html="true" title="<p style='font-size: 30px;'>Телефон:</p><h4><b>{{client_name.phone|phone2Str}}</b></h4> E-mail: {{client_name.email}}" data-toggle="tooltip" data-placement="bottom">
-    <a id="client_fio" href=/client/edit/{{client_name.id}}> {{client_name.name}} ({{client_name.forumname}}) </a>
+    <a id="client_fio" href=/client/edit/{{client_name.id}} client_name="{{client_name.name}}"> {{client_name.name}} ({{client_name.forumname}}) </a>
     </span>
+	<i class="material-icons md-48 align-middle" title="копіювати" data-toggle="tooltip" data-placement="bottom" onclick="copyElementText('client_fio')">content_copy</i>
     </h1>
+	
 </div>
 
 <!-- button toolbar -->
@@ -933,9 +1172,16 @@ function show_ret(ciid, item) {
 
 <div class="row">
 <div class="col">
-	 <h1 style="color:red;" > 
-	 <span class="badge badge-danger">Cума:  {{clients|floatformat:2}} грн.</span>
-	 </h1>	
+<h1> 
+{% if clients < 0 %}
+	 <span class="badge badge-danger">
+{% elif clients > 0.1 %}
+	 <span class="badge badge-success">
+{% else %}
+	 <span class="badge badge-light">
+{% endif %}
+Cума:  {{clients|floatformat:2}} грн.</span>
+</h1>
 </div>	
 </div>
 
@@ -1071,9 +1317,14 @@ function show_ret(ciid, item) {
 	<th>Прайс</th>
 	<th id="show_profit">Сума</th>
 	<th class="profit">Profit</th>
-	<th>Оплата</th>
+	<th class="text-center">Оплата
+	</th>
 	<th>Валюта</th>
-	<th>Оплата</th>
+	<th class="text-center">
+		<label style="display: block; font-weight: normal; margin-top: 5px;"> 
+			<input type="checkbox" id="select-all-items" title="Виділити всі товари"> 
+		</label>
+	</th>
 	</tr>
 	
 	{% for inv in invoice %}
@@ -1188,8 +1439,13 @@ function show_ret(ciid, item) {
 	<th>Дата</th>
 	<th>Робота</th>
 	<th>Прайс</th>
-	<th>Опис</th>
-	<th>Оплата</th>
+	<th class="text-center">Опис</th>
+	<th class="text-center">
+		Оплата
+		<label style="display: block; font-weight: normal; margin-top: 5px;"> 
+			<input type="checkbox" id="select-all-work" title="Виділити всі роботи"> 
+		</label>
+	</th>
 	</tr>
 	
 	{% for inv in workshop %}
@@ -1208,7 +1464,7 @@ function show_ret(ciid, item) {
 	{{inv.description}}
 	</td>	
 	<td align="center">
-	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{inv.price}}" onclick="resWorkshop()" name="checkbox_{{ inv.id }}"/>
+	<input type="checkbox" class="item-work" id="model_workshop{{forloop.counter}}" value="{{inv.price}}" onclick="resWorkshop()" name="checkbox_{{ inv.id }}"/>
 	</td>	
 {% else %}
 	<td BGCOLOR="#FF6600">
@@ -1218,7 +1474,7 @@ function show_ret(ciid, item) {
 	{{inv.description}}
 	</td>	
 	<td align="center">
-	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{inv.price}}" onclick="resWorkshop()" checked name="checkbox_{{ inv.id }}"/>
+	<input type="checkbox" class="item-work" id="model_workshop{{forloop.counter}}" value="{{inv.price}}" onclick="resWorkshop()" checked name="checkbox_{{ inv.id }}"/>
 	</td>
 	<script>
 	 $("#img_attention").show(); 
@@ -1229,13 +1485,22 @@ function show_ret(ciid, item) {
 	
 	<tr>
 	<th></th>
-	<th>Загальна сума</th>
+	<th class="text-right">Загальна сума:</th>
 	<th>{{client_workshop_sum}} грн.</th>
-	<th BGCOLOR="#D5FFB4">
+	<th BGCOLOR="#D5FFB4" class="text-center">
+	<div class="d-flex flex-column align-items-center">
 	<p><input type="submit" value="Оплата" name="pay" onClick="return confirm('Провести операцію?')"></p>
 	<input type="submit" value="E-mail" name="send_check">	
+	</div>
 	</th>
-	<th><p>До оплати:</p><p id="workshop_pay" BGCOLOR="#D5FFB4">0<p></th>
+	
+	<th class="text-center">
+    <div class="d-flex flex-column align-items-center">
+        <p class="m-0">До оплати:</p>
+        <p id="workshop_pay" class="m-0" style="background-color: #D5FFB4; width: fit-content; padding: 2px 10px;">0</p>
+    </div>
+	</th>
+
 	</tr>
 	</table>
 	
@@ -1271,9 +1536,74 @@ function show_ret(ciid, item) {
  
  
  </div>
+
+ <div id="toast" class="toast">Текст скопійовано!</div>
+
  
  </body>
 
+ <div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Оберіть статус</h5>
+       <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button> 
+      </div>
+      <div class="modal-body p-0">
+        <div class="list-group list-group-flush">
+		    <!-- Кожен пункт тепер має кольоровий індикатор -->
+          <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-option" data-status="1">
+            Прийнято
+            <span class="badge rounded-pill" style="background-color: #CCFF99; border: 1px solid #99cc66; width: 15px; height: 15px;">&nbsp;</span>
+          </button>
+          
+          <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-option" data-status="2">
+            Ремонтується
+            <span class="badge rounded-pill" style="background-color: #FFFF99; border: 1px solid #cccc66; width: 15px; height: 15px;">&nbsp;</span>
+          </button>
+          
+          <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-option" data-status="3">
+            Виконано
+            <span class="badge rounded-pill" style="background-color: #FFFFFF; border: 1px solid #ccc; width: 15px; height: 15px;">&nbsp;</span>
+          </button>
+          
+          <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-option" data-status="4">
+            Виконано невидано
+            <span class="badge rounded-pill" style="background-color: #e9ecef; border: 1px solid #ccc; width: 15px; height: 15px;">&nbsp;</span>
+          </button>
+		  <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-option" data-status="5">
+            Віддано без ремонта
+            <span class="badge rounded-pill" style="background-color: #e4110a; border: 1px solid #ccc; width: 15px; height: 15px;">&nbsp;</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
+<div class="modal fade" id="statusModalPhone" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Оберіть статус</h5>
+       <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button> 
+      </div>
+      <div class="modal-body p-0">
+        <div class="list-group list-group-flush">
+		    <!-- Кожен пункт тепер має кольоровий індикатор -->
+          <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-option-phone" data-status="1">
+            Повідомлено
+            <span class="badge rounded-pill" style="background-color: #CCFF99; border: 1px solid #99cc66; width: 15px; height: 15px;">&nbsp;</span>
+          </button>
+          
+          <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-option-phone" data-status="2">
+            Не дотелефонувались
+            <span class="badge rounded-pill" style="background-color: #be1f1f; border: 1px solid #a33014; width: 15px; height: 15px;">&nbsp;</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 
