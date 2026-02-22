@@ -75,6 +75,45 @@ td.mark_false {
     
 <script language="JavaScript">
 
+function generateCredCell(credit_date, credit_datetime, credit_user, credit_description, credit_id, credit_cash_type_name, credit_price, credit_cash_type_id) {
+let html_tr = `
+<tr class="tr_cred" style="line-height: 1;">
+    <td class="text-center p-1" style="vertical-align: middle;" 
+        title="${credit_datetime} - [${credit_user}]" data-toggle="tooltip" data-placement="right">
+		${credit_date}
+    </td>
+
+    <td class="p-1" style="vertical-align: middle;">
+        <div class="d-flex align-items-center">
+            <div class="px-2">${credit_description}</div>
+{% if perms.accounting.delete_clientcredits %}			
+            <div class="ml-auto d-flex">
+                <a href="/clientcredits/edit/${credit_id}" class="edit_row_user text-success mx-3" data-toggle="tooltip" data-placement="right" title="Редагувати">
+                    <i class="material-icons" style="font-size: 28px;">edit</i>
+                </a>
+                <a href="/clientcredits/delete/${credit_id}" onclick="return confirm('Видалити запис?')" class="delete_row_user text-danger mx-1" data-toggle="tooltip" data-placement="right" title="Видалити">
+                    <i class="material-icons" style="font-size: 28px;">delete</i>
+                </a>
+            </div>
+{% endif %}
+        </div>
+    </td>
+	
+    <td style="vertical-align: middle;" data-toggle="tooltip" data-placement="right"
+		tcash_id="${credit_cash_type_id}" id_cred=${credit_id} value="${credit_price}" title="${credit_cash_type_name}" 
+		class="cred_price text-center p-1  
+{% if credit.cash_type.name == "Помилкова"  %}
+	 price_error
+{% endif %}
+	">       
+		${credit_price}
+    </td>
+	</tr>
+`;
+
+	return html_tr;
+};	
+
 function generateDebtCell(debt_date, debt_datetime, debt_user, debt_description, debt_id, debt_cash, debt_price) {
 let html_tr = `	
 <tr class="tr_debt" style="line-height: 1;">
@@ -449,13 +488,18 @@ $(function() {
 //                		var price = '<td class="cred_price" tcash_id="'+item.fields.cash_type+'" id_cred="' + item.pk + '" value="'+ item.fields.price+'"><abbr title="' + item.fields.cash_type.name + '">' + item.fields.price + '</abbr>';
 //                	    $('.in_cred').after('<tr class="tr_cred"><td>'+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</tr>');
 //						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
+
+						{% comment %} 
 						var fcol = 'title="' + item['user__username'] + '"' + ' data-toggle="tooltip" data-placement="right">' + item['date'];
 						var ed = '<a href="/clientcredits/edit/'+item['id']+'"><i class="material-icons" >edit</i></a>';
 						var cdesc = item['description'] + ed + " <a href='/clientcredits/delete/" + item['id'] + "'" + "onclick='return confirm(&#039Видалити борг?&#039)'><i class='material-icons'>delete</i></a>";
-//						var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'"><abbr title="' + item['cash_type__name'] + '">' + item['price'] + '</abbr>';
 						var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'" title="' + item['cash_type__name'] + '"' + 'data-toggle="tooltip" data-placement="right">' + item['price'];
-                	    $('.in_cred').after('<tr class="tr_cred"><td '+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
-                    });
+                	    $('.in_cred').after('<tr class="tr_cred"><td '+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>'); 
+						{% endcomment %}
+//						console.log("DATE = " + item['date']);
+						gen_html = generateCredCell(item['date'], item['credit_datetime'], item['user__username'], item['description'] , item['id'], item['cash_type__name'], item['price'], item['cash_type'])
+						$('.in_cred').after(gen_html);
+					});
                 $('[data-toggle="tooltip"]').tooltip();	
 				$( "#dialog_ajax_load" ).dialog("close");
 				reload_price();
@@ -489,7 +533,7 @@ $(function() {
 						//var cdesc = item['description'] + ed + " <a href='/clientdebts/delete/" + item['id'] + "'" + "onclick='return confirm(&#039Видалити борг?&#039)'><i class='material-icons'>delete</i></a>";
 						//var price = '<td>' + item['price'];
                 	    //$('.in_debt').after('<tr class="tr_debt"><td '+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
-                	    
+//                	    console.log("DATE = " + item['date']);
 						var gen_html = generateDebtCell(item['date'], item['date'], item['user__username'], item['description'], item['id'], item['price'], item['price']);
 						$('.in_debt').after(gen_html);
                     });
@@ -520,6 +564,7 @@ $(function() {
                 	$("#1month_cred").attr("cred_day", prev_day);
                 	//$("#balance .tr_cred").empty(); 
                 	$.each(msg,function(index,item){
+{% comment %} 
 						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
 						//var fcol = 'title="' + item['user__username'] + '" data-toggle="tooltip" data-placement="right">' + item['date'];
 						var ed = '<a href="/clientcredits/edit/'+item['id']+'"><i class="material-icons" >edit</i></a>';
@@ -528,6 +573,10 @@ $(function() {
 						var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'" title="' + item['cash_type__name'] + '"' + 'data-toggle="tooltip" data-placement="right">' + item['price'];
 						//var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'" data-toggle="tooltip" data-placement="left" data-original-title="' + item['cash_type__name'] + '">' + item['price'] ;
                 	    $('.in_cred').after('<tr class="tr_cred"><td>'+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
+ {% endcomment %}
+						gen_html = generateCredCell(item['date'], item['credit_datetime'], item['user__username'], item['description'] , item['id'], item['cash_type__name'], item['price'], item['cash_type'])
+						$('.in_cred').after(gen_html);
+
                     });
                     reload_price();
 					$('[data-toggle="tooltip"]').tooltip();
@@ -1233,32 +1282,28 @@ Cума:  {{clients|floatformat:2}} грн.</span>
 {% for credit in credit_list %}
 
 <tr class="tr_cred" style="line-height: 1;">
-    <!-- Перша колонка: текст по центру, мінімальний padding -->
     <td class="text-center p-1" style="vertical-align: middle;" 
         title="{{credit.date|time:"H:i"}} - [{{credit.user.username}}]" data-toggle="tooltip" data-placement="right">
         {{credit.date|date}}
     </td>
 
-    <!-- Друга колонка: компактний Flexbox -->
     <td class="p-1" style="vertical-align: middle;">
         <div class="d-flex align-items-center">
             <div class="px-2">{{credit.description}}</div>
 {% if perms.accounting.delete_clientcredits %}			
             <div class="ml-auto d-flex">
-                <a href="/clientcredits/edit/91380" class="edit_row_user text-success mx-3" data-toggle="tooltip" data-placement="right" title="Редагувати">
+                <a href="/clientcredits/edit/{{credit.id}}" class="edit_row_user text-success mx-3" data-toggle="tooltip" data-placement="right" title="Редагувати">
                     <i class="material-icons" style="font-size: 28px;">edit</i>
                 </a>
-                <a href="/clientcredits/delete/91380" onclick="return confirm('Видалити запис?')" class="delete_row_user text-danger mx-1" data-toggle="tooltip" data-placement="right" title="Видалити">
+                <a href="/clientcredits/delete/{{credit.id}}" onclick="return confirm('Видалити запис?')" class="delete_row_user text-danger mx-1" data-toggle="tooltip" data-placement="right" title="Видалити">
                     <i class="material-icons" style="font-size: 28px;">delete</i>
                 </a>
             </div>
 {% endif %}
         </div>
     </td>
-    
 	
-    <td  tcash_id="15" id_cred="91380" value="10.0" 
-        style="vertical-align: middle;" data-toggle="tooltip" data-placement="right"
+    <td  style="vertical-align: middle;" data-toggle="tooltip" data-placement="right"
 		tcash_id="{{credit.cash_type.id}}" id_cred={{credit.id}} value="{{credit.price}}" title="{{credit.cash_type.name}}" 
 		class="cred_price text-center p-1  
 {% if credit.cash_type.name == "Помилкова"  %}
@@ -1267,8 +1312,9 @@ Cума:  {{clients|floatformat:2}} грн.</span>
 	">       
 		{{credit.price}}
     </td>
+	</tr>
 {% endfor %}
-</tr>
+{% comment %} </tr> {% endcomment %}
 
 {% comment %} 
 	{% for credit in credit_list %}
@@ -1320,15 +1366,13 @@ Cума:  {{clients|floatformat:2}} грн.</span>
                 </a>
 
                 {% if user.is_authenticated %}
-                    <a id="all_debt" href="javascript:" class="badge badge-info py-2 px-3 mr-3" style="font-size: 1rem;">Показати всю історію боргів old</a>  
-
+                    <a id="all_debt" href="javascript:" class="badge badge-info py-2 px-3 mr-3" style="font-size: 1rem;">Показати всю історію боргів</a>  
                     <a id="1month_debt" class="badge badge-pill badge-dark text-white py-2 px-3" href="javascript:" 
                        debt_day=60 
                        data-toggle="tooltip" data-placement="right" title="Показати борги за минулі 30 днів"
                        style="font-size: 1rem;">
                        + 30 днів
                     </a>
-
                 {% endif %}
             </div>
 
