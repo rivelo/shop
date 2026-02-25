@@ -8909,7 +8909,7 @@ def client_card_sendemail(request, id):
 
 
 @csrf_exempt
-def client_history_cred(request):
+def client_history_cred_old(request):
     if request.is_ajax():
         if request.method == 'POST':  
             if auth_group(request.user, 'seller')==False:
@@ -8959,7 +8959,7 @@ def client_history_cred(request):
 
 
 @csrf_exempt
-def client_history_debt(request):
+def client_history_cred(request):
     data_c = None
     if request.is_ajax():
         if request.method == 'POST':  
@@ -8970,6 +8970,40 @@ def client_history_debt(request):
             if POST.has_key('client_id') and POST.has_key('cred_day'):
                 cid = request.POST['client_id']
                 cday = request.POST['cred_day']
+                n_day = int(cday) - 30;
+                p_cred_month = ClientCredits.objects.filter(client = cid, date__gt=now-datetime.timedelta(days=int(cday)), date__lt=now-datetime.timedelta(days=n_day)).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')
+                # p_debt_month = ClientCredits.objects.filter(client = cid, date__gt=now-datetime.timedelta(days=int(cday)), date__lt=now-datetime.timedelta(days=n_day)).values('id', 'price', 'description', 'user', 'user__username', 'date')
+                json = list(p_cred_month)
+                for x in json:  
+                    x['date'] = x['date'].strftime("%d/%m/%Y")
+
+                return HttpResponse(simplejson.dumps(json), content_type='application/json')
+                
+            if 'clientId' in request.POST and request.POST['clientId']:
+                clientId = request.POST['clientId']
+                #p_cred_month = ClientCredits.objects.filter(client = clientId).values('id', 'price', 'description', 'user', 'user__username', 'date')
+                p_cred_month = ClientCredits.objects.filter(client = clientId).values('id', 'price', 'description', 'user', 'user__username', 'date', 'cash_type', 'cash_type__name', 'cash_type__id')                        
+                #p_cred_month = ClientCredits.objects.filter(client = cid, date__month = cmonth, date__year = cyear).values('id', 'price', 'description', 'user', 'user__username', 'date')
+                json = list(p_cred_month)
+                for x in json:  
+                    x['date'] = x['date'].strftime("%d/%m/%Y")
+
+                return HttpResponse(simplejson.dumps(json), content_type='application/json')
+    return HttpResponse(data_c, content_type='application/json')    
+
+
+@csrf_exempt
+def client_history_debt(request):
+    data_c = None
+    if request.is_ajax():
+        if request.method == 'POST':  
+            if auth_group(request.user, 'seller')==False:
+                return HttpResponse('Error: У вас не має прав для перегляду')
+            now = datetime.datetime.now()
+            POST = request.POST  
+            if POST.has_key('client_id') and POST.has_key('debt_day'):
+                cid = request.POST['client_id']
+                cday = request.POST['debt_day']
                 n_day = int(cday) - 30;
                 p_debt_month = ClientDebts.objects.filter(client = cid, date__gt=now-datetime.timedelta(days=int(cday)), date__lt=now-datetime.timedelta(days=n_day)).values('id', 'price', 'description', 'user', 'user__username', 'date')
                 json = list(p_debt_month)
@@ -12034,7 +12068,13 @@ def casa_getstatus(request, id):
     resp_close = requests.post(url = URL, data = PARAMS)
 #    response.write("<br><<< Result >>> <br>" +str(resp.reason) + "<br><<< Result >>><br>" +  str(resp.text))
 #    return response
-    msg_text = msg_text + "<br>" + "<br><<< Result >>> <br>" + str(resp.reason) + "<br><<< Result >>><br>" + str(resp.text)
+    try:
+        msg_text = msg_text + "<br>" + "<br><<< Result >>> <br>" + str(resp.reason) + "<br><<< Result >>><br>" + str(resp.text)
+    except:
+        decoded_value = resp.reason.encode('ascii').decode('utf-8')
+        decoded_text = str(resp)
+        casa_status = "ASCII Error - " + decoded_value + "\n" + " Response - " +  decoded_text
+        msg_text = msg_text + "<br>" + "<br><<< Result >>> <br>" + str(decoded_value) + "<br><<< Result >>><br>" + str(decoded_text)
     context = {'weblink': 'info_message.html', 'mtext': msg_text,}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)        
@@ -12096,7 +12136,16 @@ def casa_z_report(request, id):
 
     PARAMS['cmd'] = 'close_port;'
     resp_close = requests.post(url = URL, data = PARAMS)
-    response.write("<br><<< Result >>> <br>" +str(resp.reason) + "<br><<< Result >>><br>" +  str(resp.text))
+
+    try:
+        casa_status = "<br><<< Result >>> <br>" + str(resp.reason) + "<br><<< Result >>><br>" + str(resp.text) #None # responce for other request
+    except:
+        decoded_value = resp.reason.encode('ascii').decode('utf-8')
+        decoded_text = str(resp)
+        casa_status = "ASCII Error - " + decoded_value + "\n" + " Response - " +  decoded_text
+ 
+#    response.write("<br><<< Result >>> <br>" +str(resp.reason) + "<br><<< Result >>><br>" +  str(resp.text))
+
     return response
 
 

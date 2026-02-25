@@ -14,66 +14,9 @@
 
 <style type="text/css">
 
-{% comment %}
-
-table#balance a{
-	color: black;
+.clienticons{
+	cursor: pointer;
 }
-
-.tooltip-inner {
-  background-color: #73AD21 !important;
-  color: #color ;
-/*  font-size: 20px; */
-  width: 500px;
-  
-}
-
-.price_error {
-	border: 5px solid red !important;
-}
-
-.bs-tooltip-top .arrow::before, .bs-tooltip-auto[x-placement^="top"] .arrow::before {
-  border-top-color: #73AD21 !important;
-}
-
-.bs-tooltip-right .arrow::before, .bs-tooltip-auto[x-placement^="right"] .arrow::before {
-  border-right-color: #73AD21 !important;
-}
-
-
-.bs-tooltip-bottom .arrow::before, .bs-tooltip-auto[x-placement^="bottom"] .arrow::before {
-  border-bottom-color: #73AD21 !important;
-}
-
-
-.bs-tooltip-left .arrow::before, .bs-tooltip-auto[x-placement^="left"] .arrow::before {
-  border-left-color: #73AD21 !important;
-}
- 
-.tooltip.warning .tooltip-inner          { background-color:    #ec971f; }
-.tooltip.warning.top > .tooltip-arrow    { border-top-color:    #ec971f; }
-.tooltip.warning.right > .tooltip-arrow  { border-right-color:  #ec971f; }
-.tooltip.warning.bottom > .tooltip-arrow { border-bottom-color: #ec971f; }
-.tooltip.warning.left > .tooltip-arrow   { border-left-color:   #ec971f; } 
-
-
-a.edit_row_user > i {
-	color: green;
-}
-
-a.delete_row_user > i{
-	color: green;
-}
-
-a.edit_row_user :HOVER {
-	color: red;
-}
-
-a.delete_row_user :HOVER{
-	color: red;
-}
-
-{% endcomment %}
 
 #tabs .ui-tabs-active {
     background: #5ba63c;
@@ -97,12 +40,115 @@ td.mark_false {
 	font-weight: bold;
 }
     
+
+.toast {
+  visibility: hidden; /* Приховано за замовчуванням */
+  min-width: 250px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 8px;
+  padding: 16px;
+  position: fixed; /* Фіксуємо відносно вікна браузера */
+  z-index: 1000;
+  left: 50%;
+  bottom: 30px; /* Відстань від низу при показі */
+  transform: translateX(-50%); /* Центрування */
+  opacity: 0;
+  transition: opacity 0.3s, bottom 0.3s; /* Плавна анімація */
+}
+
+/* Клас, який активує показ */
+.toast.show {
+  visibility: visible;
+  opacity: 1;
+  bottom: 50px; /* "Випливає" трохи вище */
+}
+
+.price_error {
+	background-color: #da8d8d;
+}
 </style>
 
 
 
     
 <script language="JavaScript">
+
+function generateCredCell(credit_date, credit_datetime, credit_user, credit_description, credit_id, credit_cash_type_name, credit_price, credit_cash_type_id) {
+let html_tr = `
+<tr class="tr_cred" style="line-height: 1;">
+    <td class="text-center p-1" style="vertical-align: middle;" 
+        title="${credit_datetime} - [${credit_user}]" data-toggle="tooltip" data-placement="right">
+		${credit_date}
+    </td>
+
+    <td class="p-1" style="vertical-align: middle;">
+        <div class="d-flex align-items-center">
+            <div class="px-2">${credit_description}</div>
+{% if perms.accounting.delete_clientcredits %}			
+            <div class="ml-auto d-flex">
+                <a href="/clientcredits/edit/${credit_id}" class="edit_row_user text-success mx-3" data-toggle="tooltip" data-placement="right" title="Редагувати">
+                    <i class="material-icons" style="font-size: 28px;">edit</i>
+                </a>
+                <a href="/clientcredits/delete/${credit_id}" onclick="return confirm('Видалити запис?')" class="delete_row_user text-danger mx-1" data-toggle="tooltip" data-placement="right" title="Видалити">
+                    <i class="material-icons" style="font-size: 28px;">delete</i>
+                </a>
+            </div>
+{% endif %}
+        </div>
+    </td>
+	
+    <td style="vertical-align: middle;" data-toggle="tooltip" data-placement="right"
+		tcash_id="${credit_cash_type_id}" id_cred=${credit_id} value="${credit_price}" title="${credit_cash_type_name}" 
+		class="cred_price text-center p-1  
+{% if credit.cash_type.name == "Помилкова"  %}
+	 price_error
+{% endif %}
+	">       
+		${credit_price}
+    </td>
+	</tr>
+`;
+
+	return html_tr;
+};	
+
+function generateDebtCell(debt_date, debt_datetime, debt_user, debt_description, debt_id, debt_cash, debt_price) {
+let html_tr = `	
+<tr class="tr_debt" style="line-height: 1;">
+	<td class="text-center p-1" style="vertical-align: middle;"
+	title='${debt_datetime} - [${debt_user}]'  data-toggle="tooltip" data-placement="right">
+	${debt_date}
+	</td>
+
+	<td class="p-1" style="vertical-align: middle;">
+	<div class="d-flex align-items-center">
+  <div class="p-2">${debt_description}</div>
+  <div class="ml-auto d-flex">
+	{% if perms.accounting.delete_preorder %}
+	<div class="ml-auto d-flex">
+    <a href="/clientdebts/edit/${debt_id}" class="edit_row_user text-success mx-3" data-toggle="tooltip" data-placement="right" title="Редагувати">
+		<i class="material-icons" style="font-size: 28px;">edit</i>
+	</a>	
+    <a href="/clientdebts/delete/${debt_id}" onclick="return confirm('Видалити запис?')" 
+	class="delete_row_user text-danger mx-1" data-toggle="tooltip" data-placement="right" title="Видалити">
+		<i class="material-icons" style="font-size: 28px;">delete</i>
+	</a>
+	</div>
+	{% endif %}
+  </div>
+	</div>
+	
+	<!-- Price TD -->
+	</td>
+	<td class="text-center p-1" title="${debt_cash}" data-toggle="tooltip" data-placement="right" >
+	${debt_price}
+	</td>
+	</tr>
+`;
+return html_tr
+};
 
 $(document).ready(function() {
 
@@ -117,18 +163,188 @@ $(document).ready(function() {
 	
 	$(".profit").hide();
 
+// ------ Change workstatus by Ajax 
+
+    let $currentTarget; // Змінна для збереження елемента, який редагуємо
+    // const statusModal = new bootstrap.Modal('#statusModal');
+	$('#statusModal').modal({
+  		backdrop: 'static',
+  		keyboard: false,
+  		show: false
+	});
+
+    // Відкриття модалки при кліку на статус
+    $('.edit_workstatus').on('click', function() {
+        $currentTarget = $(this);
+//        statusModal.show();
+		$('#statusModal').modal('show');
+//		$currentTarget.css('background-color', 'green');
+
+    });
+
+$('#statusModal').on('show.bs.modal', function () {
+    if ($currentTarget) {
+        $currentTarget.css('background-color', '#dee2e6'); // Highlight color (e.g., Yellow #ffeb3b)
+    }
+});
+
+$('#statusModal').on('hidden.bs.modal', function () {
+    if ($currentTarget) {
+        $currentTarget.css('background-color', ''); // Revert to original (empty string)
+        $currentTarget = null; // Clear the reference
+    }
+});
+
+    // Обробка вибору статусу в модалці
+    $('.status-option').on('click', function() {
+        const newStatus = $(this).data('status');
+        const id_w = $currentTarget.attr('id_workticket');
+
+        // Відправка даних на сервер
+        $.ajax({
+            url: '/workticket/edit/',
+            method: 'POST',
+            data: { id_w: id_w, value: newStatus },
+            success: function(response) {
+                // Оновлюємо текст в таблиці
+                //$currentTarget.text(newStatus);
+				$currentTarget.text(response);
+
+                // Оновлюємо візуальний стиль (ваша логіка з switch)
+                updateRowStyle($currentTarget, newStatus);
+                
+                // Закриваємо модалку
+                //statusModal.hide();
+				$('#statusModal').modal('hide');
+            },
+            error: function() {
+                alert('Помилка при збереженні статусу');
+            }
+        });
+    });
+
+    function updateRowStyle(element, value) {
+        const row = element.closest("tr");
+        const img = $('#img_repair');
+		console.log("element = " + element);
+		element.innerHTML="SELECT";
+
+        switch(value) {
+            case 1:
+                row.css('background-color', '#CCFF99'); // Використовуйте .css замість .attr('BGCOLOR')
+                img.css("opacity", 1);
+                break;
+            case 2:
+                row.css('background-color', '#FFFF99');
+                break;
+            case 3:
+                row.css('background-color', '#FFFFFF');
+                img.css("opacity", 0.2);
+                break;
+            case 4:
+                img.css("opacity", 0.2);
+                break;
+            default:
+                row.css('background-color', '#FFFFFF');
+        }
+    }
+
+// --------------------- end of change work Status 
+
+// ------ Change work PHONE by Ajax 
+
+    let $currentTargetPhone; // Змінна для збереження елемента, який редагуємо
+    // const statusModal = new bootstrap.Modal('#statusModal');
+	$('#statusModalPhone').modal({
+  		backdrop: 'static',
+  		keyboard: false,
+  		show: false
+	});
+
+    // Відкриття модалки при кліку на статус
+    $('.phone').on('click', function() {
+        $currentTargetPhone = $(this);
+		$('#statusModalPhone').modal('show');
+
+    });
+
+$('#statusModalPhone').on('show.bs.modal', function () {
+    if ($currentTargetPhone) {
+        $currentTargetPhone.css('background-color', '#dee2e6'); // Highlight color (e.g., Yellow #ffeb3b)
+    }
+});
+
+$('#statusModalPhone').on('hidden.bs.modal', function () {
+    if ($currentTargetPhone) {
+        $currentTargetPhone.css('background-color', ''); // Revert to original (empty string)
+        $currentTargetPhone = null; // Clear the reference
+    }
+});
+
+    // Обробка вибору статусу в модалці
+    $('.status-option-phone').on('click', function() {
+        const newStatus = $(this).data('status');
+        const id_w = $currentTargetPhone.attr('id_workticket');
+
+        // Відправка даних на сервер
+        $.ajax({
+            url: '/workticket/edit/',
+            method: 'POST',
+            data: { id_wp: id_w, value: newStatus },
+            success: function(response) {
+                // Оновлюємо текст в таблиці
+				$currentTargetPhone.text(response);
+
+                // Оновлюємо візуальний стиль (ваша логіка з switch)
+                updateRowStyle($currentTargetPhone, newStatus);
+                
+                // Закриваємо модалку
+				$('#statusModalPhone').modal('hide');
+            },
+            error: function() {
+                alert('Помилка при збереженні статусу');
+            }
+        });
+    });
+
+    function updateRowStyle(element, value) {
+        const row = element.closest("td");
+        const img = $('#img_repair');
+
+        switch(value) {
+            case 1:
+                row.css('background-color', '#CCFF99'); // Використовуйте .css замість .attr('BGCOLOR')
+                img.css("opacity", 1);
+                break;
+            case 2:
+                row.css('background-color', '#db130c');
+                break;
+            default:
+                row.css('background-color', '#FFFFFF');
+        }
+    }
+
+// --------------------- end of change work Status 
+// --------------------- Workshop ticket modal form -------------------
   	$( "#img_repair" ).click(function() {
   		{% if client_name.check_workticket %}
   			$("#WorkShopModal").modal('show');
   		{% else %}
   			window.location.href = "{% url 'workticket-add-by-client' client_name.id %}";
   		{% endif %}
+		$("#workticket_body").append($("#t_workticket"));
 	});
-	
+
+	$('#WorkShopModal').on('hidden.bs.modal', function () {
+    	console.log('Modal is now completely hidden.');
+		$("#tabs-3").append($("#t_workticket"));
+    // Put your TD color reset code here!
+	});
+// -------- Client Bike ----------  	
   	$( "#img_bike" ).click(function() {
   		$( "#dialog" ).dialog();
 	});
-	
+// -------- Message client --------	
 	$( "#img_msg" ).click(function() {
   		$( "#dialog_msg" ).dialog({
   		resizable: false,
@@ -178,9 +394,9 @@ $(document).ready(function() {
 	//$('#img_repair').css("opacity", 1);
 
 {% if request.user|has_group:"admin" %}
-$("#show_profit").click(function(){
-	$(".profit").toggle();
-});
+	$("#show_profit").click(function(){
+		$(".profit").toggle();
+	});
 {% endif %}
 	
 
@@ -219,29 +435,25 @@ function res() {
 var sum=0;
 	$('.chk_inv').each(function() {
 	if(this.checked){
-//		console.log("THIS = "+ this.value);
 		sum = sum + parseFloat(this.value);
 		}
 	});
 document.getElementById('for_pay').innerHTML = sum + " грн.";
 document.getElementById('debet').innerHTML = ( parseFloat(document.getElementById('for_pay').innerHTML) + parseFloat(document.getElementById('workshop_pay').innerHTML) ).toFixed(2);
-//document.getElementById('row_count').innerHTML = "Row = " + document.getElementById("product").rows.length;
 }
     
 
 function resWorkshop()
 {
 var p=0;
-var All=document.forms['formWorkshopSum'];
-for(var i = 0; i < All.elements.length; ++i) {
-	if(All.elements[i].checked){
-	p+=parseFloat(All.elements[i].value);
+$('.item-work').each(function() {
+	if (this.checked){
+		p+=parseFloat(this.value);
 	}
+});
 	document.getElementById('workshop_pay').innerHTML = p.toFixed(2)+" грн.";
 	document.getElementById('debet').innerHTML = ( parseFloat(document.getElementById('for_pay').innerHTML) + parseFloat(document.getElementById('workshop_pay').innerHTML) ).toFixed(2);
 }
-}
-
 
 
 
@@ -276,13 +488,18 @@ $(function() {
 //                		var price = '<td class="cred_price" tcash_id="'+item.fields.cash_type+'" id_cred="' + item.pk + '" value="'+ item.fields.price+'"><abbr title="' + item.fields.cash_type.name + '">' + item.fields.price + '</abbr>';
 //                	    $('.in_cred').after('<tr class="tr_cred"><td>'+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</tr>');
 //						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
+
+						{% comment %} 
 						var fcol = 'title="' + item['user__username'] + '"' + ' data-toggle="tooltip" data-placement="right">' + item['date'];
 						var ed = '<a href="/clientcredits/edit/'+item['id']+'"><i class="material-icons" >edit</i></a>';
 						var cdesc = item['description'] + ed + " <a href='/clientcredits/delete/" + item['id'] + "'" + "onclick='return confirm(&#039Видалити борг?&#039)'><i class='material-icons'>delete</i></a>";
-//						var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'"><abbr title="' + item['cash_type__name'] + '">' + item['price'] + '</abbr>';
 						var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'" title="' + item['cash_type__name'] + '"' + 'data-toggle="tooltip" data-placement="right">' + item['price'];
-                	    $('.in_cred').after('<tr class="tr_cred"><td '+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
-                    });
+                	    $('.in_cred').after('<tr class="tr_cred"><td '+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>'); 
+						{% endcomment %}
+//						console.log("DATE = " + item['date']);
+						gen_html = generateCredCell(item['date'], item['credit_datetime'], item['user__username'], item['description'] , item['id'], item['cash_type__name'], item['price'], item['cash_type'])
+						$('.in_cred').after(gen_html);
+					});
                 $('[data-toggle="tooltip"]').tooltip();	
 				$( "#dialog_ajax_load" ).dialog("close");
 				reload_price();
@@ -310,12 +527,15 @@ $(function() {
 //                		var fcol = '<abbr title="' + item.fields.date.split(" ")[1] + ' - [user]">' + tdate + '</abbr>';
 //                		var cdesc = item.fields.description + " <a href='/clientdebts/delete/" + item.pk + "'>delete</a>";
 //                	    $('.in_debt').after('<tr class="tr_debt"><td>'+ fcol +'</td><td>'+ cdesc +'</td><td>' + item.fields.price+'</td></tr>');
-						var fcol = 'title="' + item['user__username'] + '" data-toggle="tooltip" data-placement="right">' + item['date'];
-						var ed = '<a href="/clientdebts/edit/'+item['id']+'"><i class="material-icons" >edit</i></a>';
-						var cdesc = item['description'] + ed + " <a href='/clientdebts/delete/" + item['id'] + "'" + "onclick='return confirm(&#039Видалити борг?&#039)'><i class='material-icons'>delete</i></a>";
-						var price = '<td>' + item['price'];
-                	    $('.in_debt').after('<tr class="tr_debt"><td '+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
-                	    
+						
+						//var fcol = 'title="' + item['user__username'] + '" data-toggle="tooltip" data-placement="right">' + item['date'];
+						//var ed = '<a href="/clientdebts/edit/'+item['id']+'"><i class="material-icons" >edit</i></a>';
+						//var cdesc = item['description'] + ed + " <a href='/clientdebts/delete/" + item['id'] + "'" + "onclick='return confirm(&#039Видалити борг?&#039)'><i class='material-icons'>delete</i></a>";
+						//var price = '<td>' + item['price'];
+                	    //$('.in_debt').after('<tr class="tr_debt"><td '+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
+//                	    console.log("DATE = " + item['date']);
+						var gen_html = generateDebtCell(item['date'], item['date'], item['user__username'], item['description'], item['id'], item['price'], item['price']);
+						$('.in_debt').after(gen_html);
                     });
                 $('[data-toggle="tooltip"]').tooltip();                	
 				$( "#dialog_ajax_load" ).dialog("close");                    
@@ -333,7 +553,7 @@ $(function() {
                 type: "POST",
                 url: "/client_history/cred/",
 //                data: { client_id: Id, cred_month: $(this).attr("cred_month"), cred_year: $(this).attr("cred_year"), cred_day: $(this).attr("cred_day")},
-                data: { clientId: Id, cred_month: $(this).attr("cred_month"), cred_year: $(this).attr("cred_year"), cred_day: $(this).attr("cred_day")},
+                data: { client_id: Id, cred_day: $(this).attr("cred_day"), cred_month: $(this).attr("cred_month")},
                 dataType: "json",
                 success:function(msg){
                 	if ($("#1month_cred").attr("cred_day") == 0) {
@@ -344,13 +564,22 @@ $(function() {
                 	$("#1month_cred").attr("cred_day", prev_day);
                 	//$("#balance .tr_cred").empty(); 
                 	$.each(msg,function(index,item){
+{% comment %} 
 						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
-						var ed = '<a href="/clientcredits/edit/'+item['id']+'">edit</a>';
-						var cdesc = item['description'] + ed + " <a href='/clientcredits/delete/" + item['id'] + "'>delete</a>";
-						var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'"><abbr title="' + item['cash_type__name'] + '">' + item['price'] + '</abbr>';
+						//var fcol = 'title="' + item['user__username'] + '" data-toggle="tooltip" data-placement="right">' + item['date'];
+						var ed = '<a href="/clientcredits/edit/'+item['id']+'"><i class="material-icons" >edit</i></a>';
+						var cdesc = item['description'] + ed + " <a href='/clientcredits/delete/" + item['id'] + "'><i class='material-icons' >delete</i></a>";
+						//var cash_type = 
+						var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'" title="' + item['cash_type__name'] + '"' + 'data-toggle="tooltip" data-placement="right">' + item['price'];
+						//var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'" data-toggle="tooltip" data-placement="left" data-original-title="' + item['cash_type__name'] + '">' + item['price'] ;
                 	    $('.in_cred').after('<tr class="tr_cred"><td>'+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>');
+ {% endcomment %}
+						gen_html = generateCredCell(item['date'], item['credit_datetime'], item['user__username'], item['description'] , item['id'], item['cash_type__name'], item['price'], item['cash_type'])
+						$('.in_cred').after(gen_html);
+
                     });
                     reload_price();
+					$('[data-toggle="tooltip"]').tooltip();
                 },
                 error:function(){
                     alert("При отправке возникли проблемы");
@@ -364,7 +593,7 @@ $(function() {
             $.ajax({
                 type: "POST",
                 url: "/client_history/debt/",
-                data: { client_id: Id, cred_day: $(this).attr("debt_day")},
+                data: { client_id: Id, debt_day: $(this).attr("debt_day")},
                 dataType: "json",
                 success:function(msg){
                 	if ($("#1month_debt").attr("debt_day") == 0) {
@@ -374,12 +603,19 @@ $(function() {
                 	$("#1month_debt").html("+ " + (prev_day-30) + " днів");
                 	$("#1month_debt").attr("debt_day", prev_day);
                 	//$("#balance .tr_debt").empty(); 
-                	$.each(msg,function(index,item){
+                	{% comment %} 
+					$.each(msg,function(index,item){
 						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
 						var ed = '<a href="/clientdebts/edit/'+item['id']+'">edit</a>';
 						var cdesc = item['description'] + ed + " <a href='/clientdebts/delete/" + item['id'] + "'>delete</a>";
                 	    $('.in_debt').after('<tr class="tr_debt"><td>'+ fcol +'</td><td>'+ cdesc +'</td><td>' + item['price']+'</td></tr>');
+                    }); 
+					{% endcomment %}
+					$.each(msg,function(index,item){
+						var gen_html = generateDebtCell(item['date'], item['date'], item['user__username'], item['description'], item['id'], item['price'], item['price']);
+						$('.in_debt').after(gen_html);
                     });
+					
                 },
                 error:function(){
                     alert("При отправке возникли проблемы");
@@ -414,9 +650,9 @@ $(function() {
 	});
 
 
-$("#ticket_tab").on("click", function() {
-	$("#tabs-3").append($("#t_workticket"));
-});
+	$("#ticket_tab").on("click", function() {
+		$("#tabs-3").append($("#t_workticket"));
+	});
 
 $('.bike_serv').editable('/bicycle/sale/service/', {
      data   : " {'1':'Пройдено','0':'Не пройдено'}",
@@ -473,7 +709,7 @@ $(this).editable('/clientcredits/set/', {
          $(this).html(str);
          sel = obj[0]["cash_type__id"];
      },     
-     tooltip   : 'Натисніть для редагування...',
+     //tooltip   : 'Натисніть для редагування...',
      submit : 'OK'
 });
 });
@@ -626,69 +862,52 @@ $( "#dialog_return" ).dialog({
     }
 });
 
-$('.edit_workstatus').editable('/workticket/edit/', { 
-     loadurl : '/workstatus/view/',
-     type   : 'select',
-     submit : 'OK',
-     event: 'click', //'dblclick',
-     submitdata : function() {
-      	 	return {id_w : $(this).attr('id_workticket')};
-     },
-     callback : function(value, settings) {
-       switch(value) {
-		case 'Прийнято':
-         $(this).closest("tr").attr('BGCOLOR', '#CCFF99');
-         $('#img_repair').css("opacity", 1);
-         break;
-		case 'Ремонтується':
-         $(this).closest("tr").attr('BGCOLOR', '#FFFF99');
-		 break;
-		case 'Виконано':
-		 $(this).closest("tr").attr('BGCOLOR', '#FFFFFF');
-         $('#img_repair').css("opacity", 0.2);
-		 break;
-		case 'Виконано невидано':
-         $('#img_repair').css("opacity", 0.2);
-		 break;
-		default :
-         $(this).closest("tr").attr('BGCOLOR', '#FFFFFF');
-       }
-     }
- });
 
 
-$('.phone').editable('/workticket/edit/', { 
-    loadurl : '/phonestatus/view/',
-    type   : 'select',
-    submit : 'OK',
-    event: 'click',
-    submitdata : function() {
-     	 	return {id_wp : $(this).attr('id_workticket')};
-    },
-    callback : function(value, settings) {
+// ---------------- SELECT All checkboxes on WORK
+const mainCb = document.getElementById('select-all-work');
+const items = document.querySelectorAll('.item-work');
 
-    	switch(value) {
-		case 'Повідомлено':
-        $(this).closest("td").attr('class', 'mark_true');
-        break;
-		case 'Не дотелефонувались':
-        $(this).closest("td").attr('class', 'mark_false');
-		 break;
-    	} 
-{% comment %}		 
-		case 'Виконано':
-        $(this).closest("tr").attr('class', 'w_done_done');
-		 break;
-		case 'Виконано невидано':
-        $(this).closest("tr").attr('class', 'w_done');
-		 break;
-		default :
-        $(this).closest("tr").attr('class', 'w_true');
-      }
-{% endcomment %}    	
-    }
-}); 
+  // Логіка "Виділити все"
+  mainCb.addEventListener('change', () => {
+    items.forEach(cb => cb.checked = mainCb.checked);
+	console.log("select all");
+	resWorkshop();
+  });
 
+  // Знімати галочку з головного, якщо хоч один підлеглий вимкнений
+  items.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const allChecked = Array.from(items).every(i => i.checked);
+      mainCb.checked = allChecked;
+      
+      // Стан "невизначеності", якщо вибрана лише частина (опціонально)
+      const someChecked = Array.from(items).some(i => i.checked);
+      mainCb.indeterminate = someChecked && !allChecked;
+	  
+    });
+  });
+
+const ItemCatalog = document.getElementById('select-all-items');
+const items_cat = document.querySelectorAll('.chk_inv');
+
+  // Логіка "Виділити все"
+  ItemCatalog.addEventListener('change', () => {
+    items_cat.forEach(cb => cb.checked = ItemCatalog.checked);
+	res();
+  });
+
+  // Знімати галочку з головного, якщо хоч один підлеглий вимкнений
+  items_cat.forEach(cb => {
+    cb.addEventListener('change', () => {
+      const allChecked = Array.from(items_cat).every(i => i.checked);
+      ItemCatalog.checked = allChecked;
+      // Стан "невизначеності", якщо вибрана лише частина (опціонально)
+      const someChecked = Array.from(items_cat).some(i => i.checked);
+      ItemCatalog.indeterminate = someChecked && !allChecked;
+    });
+  });
+ 
 
 
 }); // Ready end
@@ -700,6 +919,66 @@ function show_ret(ciid, item) {
 	$("#dialog_return").dialog("open");
 	$("#ui-id-7").html("Повернення: <br>" + $(item).parents('tr').find('td.cat_name > div > div.p-2').html().substr(0, 35)); 
 }
+
+function unsecuredCopyToClipboard(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    document.execCommand('copy');
+  } catch (err) {
+    console.error('Unable to copy to clipboard', err);
+  }
+  document.body.removeChild(textArea);
+}
+
+async function copyElementText(element_id) {
+//  const text = document.getElementById(element_id).textContent;
+  const text = document.getElementById(element_id).getAttribute('client_name');
+ /* try {
+    await navigator.clipboard.writeText(text);
+    showToast();
+  } catch (err) {
+    console.error('Помилка:', err);
+  }*/
+if (window.isSecureContext && navigator.clipboard) {
+	await navigator.clipboard.writeText(text);
+	showToast(text);
+  } else {
+    unsecuredCopyToClipboard(text);
+	showToast(text);
+  }
+}
+
+async function copyElementIds(element_id) {
+	const targetSpan = element_id.nextElementSibling;
+ //   const text = targetSpan.innerText;
+	const text = targetSpan.getAttribute('ids_str');
+//  const text = document.getElementById(element_id).textContent;
+ // const text = document.getElementById(element_id).getAttribute('client_name');
+if (window.isSecureContext && navigator.clipboard) {
+	await navigator.clipboard.writeText(text);
+	showToast(text);
+  } else {
+    unsecuredCopyToClipboard(text);
+	showToast(text);
+  }
+}
+
+function showToast(text) {
+  const toast = document.getElementById("toast");
+  toast.innerHTML = "Текст скопійовано! <br>" + text
+  // Додаємо клас для показу
+  toast.classList.add("show");
+  // Через 3 секунди прибираємо повідомлення
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3000);
+}
+
+  
 
 </script>
 
@@ -746,55 +1025,30 @@ function show_ret(ciid, item) {
 <img style="display: none;" id="img_repair" src="http://thumb10.shutterstock.com/thumb_small/295516/103760093/stock-photo-bicycle-repair-sign-on-a-white-background-part-of-a-series-103760093.jpg" height="64px" >
 -->
 
-
 {% endif %}
 
 
 
 <!-- WORKSHOP LIST -->
 
-<div class="modal fade" id="WorkShopModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+<!-- <div class="modal fade" id="WorkShopModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true"> -->
+<div class="modal fade" id="WorkShopModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" >
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLongTitle">Заявки на ремонт</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
+          <span>&times;</span>
+<!--		  <span aria-hidden="true">&times;</span> -->
         </button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" id="workticket_body">
 
 <table id="t_workticket" class = "table table-bordered table-hover table-condensed iTable" width="100%">
 
 {% for ticket in workshopTicket  %}
 {% if ticket.status__name == 'Прийнято' %}
   <tr bgcolor="#CCFF99" > 
-
-{% comment %}
-  <script>
-  $( "#img_repair" ).unbind(); 
-  $( "#img_repair" ).click(function() {
-  $("#dialog_r").append($("#t_workticket"));
-  $( "#dialog_r" ).dialog({
-      buttons: {
-        "Створити": function() {
-        	$( this ).dialog( "close" );
-        	window.location.href = "/workticket/add/client/"+ {{client_name.id}} +"/";	
-        },
-        "Відмінити": function() {
-        	$( this ).dialog( "close" );	
-        },
-        
-        }
-  });
-  });
-
-//  $('#img_repair').show();
-  $('#img_repair').css("opacity", 1);
-
-  </script>
-{% endcomment %}
-  
 {% else %}
   <tr bgcolor="#FFFFFF">
 {% endif %}  
@@ -811,16 +1065,16 @@ function show_ret(ciid, item) {
    {{ticket.description}}. 
   <a style="text-align: right;" href="{% url 'workticket_edit' ticket.id %}" title="Редагувати заявку"  data-toggle="tooltip" data-placement="right"><i class="material-icons">edit</i></a>
   </td>
-  	<td class="edit_workstatus" id_workticket={{ticket.id}}>
+<td class="edit_workstatus" id_workticket={{ticket.id}}>
   		{{ticket.status__name}}
-	</td>
-	<td class="phone" id_workticket="{{ticket.id}}">       
+</td>
+<td class="phone" id_workticket="{{ticket.id}}">       
 		{{ticket.phone_status__name}}
 	</td>
 	{% if ticket.phone_user.username %}
-		<td title={{ticket.phone_user__username}} align="center">
+		<td title={{ticket.phone_user__username}} align="center" data-toggle="tooltip" data-placement="bottom">
 	{% else %}
-		<td align="center" title="{{ticket.phone_user__username}}">
+		<td align="center" title="Повідомлено користувачем - {{ticket.phone_user__username}}" data-toggle="tooltip" data-placement="bottom">
 	{% endif %}       
 		{{ticket.phone_date|date:'d-m-Y H:i'}} 
 		</td>
@@ -862,9 +1116,11 @@ function show_ret(ciid, item) {
     <span class="badge badge-secondary" >Виписка по клієнту:</span>
 {#    <span  data-html="true" title="<font size='1'>Телефон: </font> <font size='4'>{{client_name.phone|phone2Str}}</font> <br> <font size='2'> E-mail: {{client_name.email}}</font>" data-toggle="tooltip" data-placement="bottom"> #}
 <span  data-html="true" title="<p style='font-size: 30px;'>Телефон:</p><h4><b>{{client_name.phone|phone2Str}}</b></h4> E-mail: {{client_name.email}}" data-toggle="tooltip" data-placement="bottom">
-    <a id="client_fio" href=/client/edit/{{client_name.id}}> {{client_name.name}} ({{client_name.forumname}}) </a>
+    <a id="client_fio" href=/client/edit/{{client_name.id}} client_name="{{client_name.name}}"> {{client_name.name}} ({{client_name.forumname}}) </a>
     </span>
+	<i class="material-icons md-48 align-middle clienticons" title="копіювати" data-toggle="tooltip" data-placement="bottom" onclick="copyElementText('client_fio')">content_copy</i>
     </h1>
+	
 </div>
 
 <!-- button toolbar -->
@@ -910,15 +1166,6 @@ function show_ret(ciid, item) {
 
 	<img style="display: None;" id="img_attention" src="/media/images/system-attention-icon.png" height="50px" title="Непроведені операції/роботи"> {# data-toggle="tooltip" data-placement="bottom"> #}
 
-{% comment %}	
-{% if status_order %}
-<img style="display: True;" id="img_order" src="/media/images/components_order.png" height="50px" title="Замовлення компонентів">
-{% else %}
-<img style="display: None;" id="img_order" src="/media/images/components_order.png" height="50px" title="Замовлення компонентів">
-{% endif %}
-{% endcomment %}
-
-
 {% if status_msg %}
 <img style="display: True; opacity: 1" id="img_msg" src="/media/images/Message-ico.png" height="56px" title="Нові повідомлення" data-toggle="tooltip" data-placement="bottom">
 {% else %}
@@ -933,9 +1180,16 @@ function show_ret(ciid, item) {
 
 <div class="row">
 <div class="col">
-	 <h1 style="color:red;" > 
-	 <span class="badge badge-danger">Cума:  {{clients|floatformat:2}} грн.</span>
-	 </h1>	
+<h1> 
+{% if clients < 0 %}
+	 <span class="badge badge-danger">
+{% elif clients > 0.1 %}
+	 <span class="badge badge-success">
+{% else %}
+	 <span class="badge badge-light">
+{% endif %}
+Cума:  {{clients|floatformat:2}} грн.</span>
+</h1>
 </div>	
 </div>
 
@@ -946,12 +1200,63 @@ function show_ret(ciid, item) {
 <table id="balance" class="table table-bordered table-sm">
 <thead class="thead-dark">
 	<tr>
-	<th>Дата</th>
-	<th>Опис</th>
-	<th>Сума (грн)</th>
+	<th style="vertical-align: middle; color: white; font-weight: bold;" class="text-center p-1">Дата</th>
+	<th style="vertical-align: middle; color: white; font-weight: bold;" class="text-left p-1">Опис</th>
+	<th style="vertical-align: middle; color: white; font-weight: bold;" class="text-center p-1">Сума (грн)</th>
 	</tr>
 </thead>
 <tbody>	
+{% comment %} Client Payment {% endcomment %}
+<tr BGCOLOR="#29AE48" class="in_cred">
+    <td style="vertical-align: middle; color: white; font-weight: bold;" class="text-center p-1">
+        Оплати
+    </td>
+    <td style="vertical-align: middle; padding: 10px;">
+        <div class="d-flex align-items-center w-100">
+            <div class="d-flex align-items-center flex-wrap">
+                
+                <a href="/clientcredits/add/{{client_name.id}}" 
+                   class="badge badge-secondary py-2 px-3 mr-3" 
+                   style="font-size: 1rem; display: flex; align-items: center;">
+                    Створити нову проплату 
+                    <span class="badge badge-light ml-2 p-1">
+                        <i class="material-icons" style="font-size: 18px; vertical-align: middle;">add</i>
+                    </span>
+                </a>
+
+                {% if user.is_authenticated %}
+                    <a id="all_cred" href="javascript:" class="badge badge-info py-2 px-3 mr-3" style="font-size: 1rem;">
+                        Показати всі проплати
+                    </a>
+                    
+                    <a id="1month_cred" class="badge badge-pill badge-dark text-white py-2 px-3" href="javascript:" 
+                       cred_month="12" cred_year="2014" cred_day="60" 
+                       data-toggle="tooltip" data-placement="right" title="Показати оплати за минулі 30 днів"
+                       style="font-size: 1rem;">
+                       + 30 днів
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Велика іконка видалення ПРАВОРУЧ -->
+            {% if perms.accounting.delete_clientcredits %}
+            <div class="ml-auto">
+                <a href="/clientcredits/{{client_name.id}}/delete/all" 
+                   onclick="return confirm('Видалити ВСІ проплати?')" 
+                   class="text-white p-2" 
+                   title="Видалити всі проплати" 
+                   data-toggle="tooltip" 
+                   data-placement="left">
+                    <i class="material-icons" style="font-size: 24px; vertical-align: middle; cursor: pointer;">delete_forever</i>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </td>
+	<td></td>
+</tr>
+
+{% comment %} 
 	<tr BGCOLOR="#29AE48"  class="in_cred">
 	<td>
 	Оплати
@@ -970,7 +1275,48 @@ function show_ret(ciid, item) {
 	</td>
 	<td>
 	</td>
+	</tr> {% endcomment %}
+
+
+<!-- Рядок з оплатами -->	
+{% for credit in credit_list %}
+
+<tr class="tr_cred" style="line-height: 1;">
+    <td class="text-center p-1" style="vertical-align: middle;" 
+        title="{{credit.date|time:"H:i"}} - [{{credit.user.username}}]" data-toggle="tooltip" data-placement="right">
+        {{credit.date|date}}
+    </td>
+
+    <td class="p-1" style="vertical-align: middle;">
+        <div class="d-flex align-items-center">
+            <div class="px-2">{{credit.description}}</div>
+{% if perms.accounting.delete_clientcredits %}			
+            <div class="ml-auto d-flex">
+                <a href="/clientcredits/edit/{{credit.id}}" class="edit_row_user text-success mx-3" data-toggle="tooltip" data-placement="right" title="Редагувати">
+                    <i class="material-icons" style="font-size: 28px;">edit</i>
+                </a>
+                <a href="/clientcredits/delete/{{credit.id}}" onclick="return confirm('Видалити запис?')" class="delete_row_user text-danger mx-1" data-toggle="tooltip" data-placement="right" title="Видалити">
+                    <i class="material-icons" style="font-size: 28px;">delete</i>
+                </a>
+            </div>
+{% endif %}
+        </div>
+    </td>
+	
+    <td  style="vertical-align: middle;" data-toggle="tooltip" data-placement="right"
+		tcash_id="{{credit.cash_type.id}}" id_cred={{credit.id}} value="{{credit.price}}" title="{{credit.cash_type.name}}" 
+		class="cred_price text-center p-1  
+{% if credit.cash_type.name == "Помилкова"  %}
+	 price_error
+{% endif %}
+	">       
+		{{credit.price}}
+    </td>
 	</tr>
+{% endfor %}
+{% comment %} </tr> {% endcomment %}
+
+{% comment %} 
 	{% for credit in credit_list %}
 	<tr class="tr_cred">
 	<td title='{{credit.date|time:"H:i"}} - [{{credit.user.username}}]'  data-toggle="tooltip" data-placement="right">
@@ -998,8 +1344,59 @@ function show_ret(ciid, item) {
 	{{credit.price}}
 	</td>
 	{% endfor %}
-	</tr>
+	</tr> 
+{% endcomment %}
 
+	{% comment %} Client Payment {% endcomment %}
+<tr BGCOLOR="#F11111" class="in_debt">
+    <td style="vertical-align: middle; color: white; font-weight: bold;" class="text-center p-1">
+        Борги
+    </td>
+    <td style="vertical-align: middle; padding: 10px;">
+        <div class="d-flex align-items-center w-100">
+            <div class="d-flex align-items-center flex-wrap">
+                <a href=/clientdebts/add/{{client_name.id}} 
+                <a href="/clientcredits/add/{{client_name.id}}" 
+                   class="badge badge-secondary py-2 px-3 mr-3" 
+                   style="font-size: 1rem; display: flex; align-items: center;">
+                    Додати борг
+                    <span class="badge badge-light ml-2 p-1">
+                        <i class="material-icons" style="font-size: 18px; vertical-align: middle;">add</i>
+                    </span>
+                </a>
+
+                {% if user.is_authenticated %}
+                    <a id="all_debt" href="javascript:" class="badge badge-info py-2 px-3 mr-3" style="font-size: 1rem;">Показати всю історію боргів</a>  
+                    <a id="1month_debt" class="badge badge-pill badge-dark text-white py-2 px-3" href="javascript:" 
+                       debt_day=60 
+                       data-toggle="tooltip" data-placement="right" title="Показати борги за минулі 30 днів"
+                       style="font-size: 1rem;">
+                       + 30 днів
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Велика іконка видалення ПРАВОРУЧ -->
+            {% if perms.accounting.delete_clientcredits %}
+            <div class="ml-auto">
+                <a href="/clientdebts/{{client_name.id}}/delete/all" 
+                   onclick="return confirm('Видалити ВСІ борги?')" 
+                   class="text-white p-2" 
+                   title="Видалити всі борги" 
+                   data-toggle="tooltip" 
+                   data-placement="left">
+				   
+                    <i class="material-icons" style="font-size: 24px; vertical-align: middle; cursor: pointer;">delete_forever</i>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </td>
+	<td  title="Сума непроведенних товарів/послуг"  data-toggle="tooltip" data-placement="right" align="center" >
+	<h3><span id="debet" class="badge badge-light"> </span></h3>
+	</td>
+</tr>
+{% comment %} Old TR header
 	<tr BGCOLOR="#F11111" class="in_debt">
 	<td>
 	Борги
@@ -1019,28 +1416,40 @@ function show_ret(ciid, item) {
 	<td  title="Сума непроведенних товарів/послуг"  data-toggle="tooltip" data-placement="right" align="center" >
 	<h3><span id="debet" class="badge badge-light"> </span></h3>
 	</td>
-	</tr>
+	</tr>  {% endcomment %}
+
 
 	{% for debt in debt_list %}
-	<tr class="tr_debt">
-	<td title='{{debt.date|time:"H:i"}} - [{{debt.user.username}}]'  data-toggle="tooltip" data-placement="right">
+	<tr class="tr_debt" style="line-height: 1;">
+	<td class="text-center p-1" style="vertical-align: middle;"
+	title='{{debt.date|time:"H:i"}} - [{{debt.user.username}}]'  data-toggle="tooltip" data-placement="right">
 	{{debt.date|date}}
 	</td>
-	<td>
-	<div class="d-flex">
+
+	<td class="p-1" style="vertical-align: middle;">
+	<div class="d-flex align-items-center">
   <div class="p-2">{{debt.description}}</div>
-  <div class="ml-auto p-2">
+  <div class="ml-auto d-flex">
 	{% if perms.accounting.delete_preorder %}
-    <a href="/clientdebts/edit/{{ debt.id }}" class="edit_row_user"><i class="material-icons" >edit</i></a>	
-    <a href="/clientdebts/delete/{{ debt.id }}" onclick="return confirm('Видалити запис?')" class="delete_row_user"><i class="material-icons">delete</i></a>
+	<div class="ml-auto d-flex">
+    <a href="/clientdebts/edit/{{ debt.id }}" class="edit_row_user text-success mx-3" data-toggle="tooltip" data-placement="right" title="Редагувати">
+		<i class="material-icons" style="font-size: 28px;">edit</i>
+	</a>	
+    <a href="/clientdebts/delete/{{ debt.id }}" onclick="return confirm('Видалити запис?')" 
+	class="delete_row_user text-danger mx-1" data-toggle="tooltip" data-placement="right" title="Видалити">
+		<i class="material-icons" style="font-size: 28px;">delete</i>
+	</a>
+	</div>
 	{% endif %}
   </div>
 	</div>
 	
+	<!-- Price TD -->
 	</td>
-	<td class="text-right" title="{{debt.cash|yesno:"Каса,Віртуальні"}}" data-toggle="tooltip" data-placement="right" >
+	<td class="text-center p-1" title="{{debt.cash|yesno:"Каса,Віртуальні"}}" data-toggle="tooltip" data-placement="right" >
 	{{debt.price}}
 	</td>
+	</tr>
 	{% endfor %}
 	</tr>
 </tbody>	
@@ -1048,7 +1457,7 @@ function show_ret(ciid, item) {
 </div>
 </div>
 
-
+<!--Client TAB to Items / workshop / ... -->
 
 <div id="tabs">
   <ul>
@@ -1071,28 +1480,42 @@ function show_ret(ciid, item) {
 	<th>Прайс</th>
 	<th id="show_profit">Сума</th>
 	<th class="profit">Profit</th>
-	<th>Оплата</th>
+	<th class="text-center">Оплата
+	</th>
 	<th>Валюта</th>
-	<th>Оплата</th>
+	<th class="text-center">
+		<label style="display: block; font-weight: normal; margin-top: 5px;"> 
+			<input type="checkbox" id="select-all-items" title="Виділити всі товари"> 
+		</label>
+	</th>
 	</tr>
 	
 	{% for inv in invoice %}
 	<tr class="tr_inv" ci_id="{{inv.id}}" count="{{inv.count}}" cat_id={{inv.catalog.pk}} cat_name="{{inv.catalog}}">
-	<td title="{{inv.user}} - {{inv.date|time:"H:i"}}" data-toggle="tooltip" data-placement="top">
+	<td title="{{inv.user}} - {{inv.date|time:"H:i"}}" data-toggle="tooltip" data-placement="top" >
 	<a href="{% url 'client-invoice-day' inv.date.year inv.date.month inv.date.day%}" >{{inv.date}}</a>
 	</td>
-	<td class="cat_name">
-	<div class="d-flex">
-	<div class="p-2">	{{inv.catalog}}</div>
-  	<div class="ml-auto p-2">
-
+	
+	<td class="cat_name p-0" style="vertical-align: middle;">
+	<div class="d-flex align-items-center">
+			
+	<div class="p-1 d-flex align-items-center">
+		{% comment %} <i class="material-icons md-48 align-middle" title="копіювати" data-toggle="tooltip" data-placement="bottom" onclick="copyElementText('item_ids')">content_copy</i>		 {% endcomment %}
+			<i class="material-icons align-middle mr-1 text-success mx-1" 
+               style="font-size: 18px; cursor: pointer;" 
+               title="копіювати" data-toggle="tooltip" data-placement="bottom" 
+               onclick="copyElementIds(this)">content_copy</i>  		
+		<span class="item_ids" style="line-height: 1;" ids_str="{{inv.catalog.ids}}">{{inv.catalog}}</span>
+	</div>
+ 
+	<div class="ml-auto p-1 d-flex align-items-center">
 	{% if inv.pay != inv.sum %}
-	<a href="{% url 'client-invoice-edit' inv.pk %}" title="Редагувати" data-toggle="tooltip" data-placement="right"><i class="material-icons" >edit</i></a>
+	<a href="{% url 'client-invoice-edit' inv.pk %}" title="Редагувати" data-toggle="tooltip" data-placement="right"><i class="material-icons text-success mx-1" >edit</i></a>
 	{% endif %}
 
 	{% if request.user|has_group:"admin" %}
 	{% if inv.pay != inv.sum %}
-	<a href="{% url 'client-invoice-delete' inv.pk %}" onclick="return confirm('Видалити товар {{inv.catalog}}?')" title="Видалити" data-toggle="tooltip" data-placement="right"><i class="material-icons" >delete</i></a>
+	<a href="{% url 'client-invoice-delete' inv.pk %}" class="text-danger mx-1" onclick="return confirm('Видалити товар {{inv.catalog}}?')" title="Видалити" data-toggle="tooltip" data-placement="right"><i class="material-icons" >delete</i></a>
 	{% endif %}
 	{% endif %}
 	
@@ -1105,6 +1528,7 @@ function show_ret(ciid, item) {
 	</div>
 	</div>	
 	</td>
+
 	<td>
 	{{inv.count}}
 	</td>
@@ -1188,8 +1612,13 @@ function show_ret(ciid, item) {
 	<th>Дата</th>
 	<th>Робота</th>
 	<th>Прайс</th>
-	<th>Опис</th>
-	<th>Оплата</th>
+	<th class="text-center">Опис</th>
+	<th class="text-center">
+		Оплата
+		<label style="display: block; font-weight: normal; margin-top: 5px;"> 
+			<input type="checkbox" id="select-all-work" title="Виділити всі роботи"> 
+		</label>
+	</th>
 	</tr>
 	
 	{% for inv in workshop %}
@@ -1208,7 +1637,7 @@ function show_ret(ciid, item) {
 	{{inv.description}}
 	</td>	
 	<td align="center">
-	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{inv.price}}" onclick="resWorkshop()" name="checkbox_{{ inv.id }}"/>
+	<input type="checkbox" class="item-work" id="model_workshop{{forloop.counter}}" value="{{inv.price}}" onclick="resWorkshop()" name="checkbox_{{ inv.id }}"/>
 	</td>	
 {% else %}
 	<td BGCOLOR="#FF6600">
@@ -1218,7 +1647,7 @@ function show_ret(ciid, item) {
 	{{inv.description}}
 	</td>	
 	<td align="center">
-	<input type="checkbox" id="model_workshop{{forloop.counter}}" value="{{inv.price}}" onclick="resWorkshop()" checked name="checkbox_{{ inv.id }}"/>
+	<input type="checkbox" class="item-work" id="model_workshop{{forloop.counter}}" value="{{inv.price}}" onclick="resWorkshop()" checked name="checkbox_{{ inv.id }}"/>
 	</td>
 	<script>
 	 $("#img_attention").show(); 
@@ -1229,13 +1658,22 @@ function show_ret(ciid, item) {
 	
 	<tr>
 	<th></th>
-	<th>Загальна сума</th>
+	<th class="text-right">Загальна сума:</th>
 	<th>{{client_workshop_sum}} грн.</th>
-	<th BGCOLOR="#D5FFB4">
+	<th BGCOLOR="#D5FFB4" class="text-center">
+	<div class="d-flex flex-column align-items-center">
 	<p><input type="submit" value="Оплата" name="pay" onClick="return confirm('Провести операцію?')"></p>
 	<input type="submit" value="E-mail" name="send_check">	
+	</div>
 	</th>
-	<th><p>До оплати:</p><p id="workshop_pay" BGCOLOR="#D5FFB4">0<p></th>
+	
+	<th class="text-center">
+    <div class="d-flex flex-column align-items-center">
+        <p class="m-0">До оплати:</p>
+        <p id="workshop_pay" class="m-0" style="background-color: #D5FFB4; width: fit-content; padding: 2px 10px;">0</p>
+    </div>
+	</th>
+
 	</tr>
 	</table>
 	
@@ -1271,9 +1709,74 @@ function show_ret(ciid, item) {
  
  
  </div>
+
+ <div id="toast" class="toast">Текст скопійовано!</div>
+
  
  </body>
 
+ <div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Оберіть статус</h5>
+       <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button> 
+      </div>
+      <div class="modal-body p-0">
+        <div class="list-group list-group-flush">
+		    <!-- Кожен пункт тепер має кольоровий індикатор -->
+          <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-option" data-status="1">
+            Прийнято
+            <span class="badge rounded-pill" style="background-color: #CCFF99; border: 1px solid #99cc66; width: 15px; height: 15px;">&nbsp;</span>
+          </button>
+          
+          <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-option" data-status="2">
+            Ремонтується
+            <span class="badge rounded-pill" style="background-color: #FFFF99; border: 1px solid #cccc66; width: 15px; height: 15px;">&nbsp;</span>
+          </button>
+          
+          <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-option" data-status="3">
+            Виконано
+            <span class="badge rounded-pill" style="background-color: #FFFFFF; border: 1px solid #ccc; width: 15px; height: 15px;">&nbsp;</span>
+          </button>
+          
+          <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-option" data-status="4">
+            Виконано невидано
+            <span class="badge rounded-pill" style="background-color: #e9ecef; border: 1px solid #ccc; width: 15px; height: 15px;">&nbsp;</span>
+          </button>
+		  <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-option" data-status="5">
+            Віддано без ремонта
+            <span class="badge rounded-pill" style="background-color: #e4110a; border: 1px solid #ccc; width: 15px; height: 15px;">&nbsp;</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
+<div class="modal fade" id="statusModalPhone" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Оберіть статус</h5>
+       <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button> 
+      </div>
+      <div class="modal-body p-0">
+        <div class="list-group list-group-flush">
+		    <!-- Кожен пункт тепер має кольоровий індикатор -->
+          <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-option-phone" data-status="1">
+            Повідомлено
+            <span class="badge rounded-pill" style="background-color: #CCFF99; border: 1px solid #99cc66; width: 15px; height: 15px;">&nbsp;</span>
+          </button>
+          
+          <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center status-option-phone" data-status="2">
+            Не дотелефонувались
+            <span class="badge rounded-pill" style="background-color: #be1f1f; border: 1px solid #a33014; width: 15px; height: 15px;">&nbsp;</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 
