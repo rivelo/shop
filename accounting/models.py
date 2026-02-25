@@ -548,6 +548,21 @@ class CatalogAttributeValue(models.Model):
         ordering = ["attr_id", "value", "value_float"]    
 
 
+class CatalogQuerySet(models.QuerySet):
+    def id_search(self, id_param):
+        if id_param == 0 or id_param == '':
+            return self.none()
+        print "ID read = [%s]" % id_param
+        cp1251_bytes = id_param
+        unicode_string = cp1251_bytes.decode('cp1251')
+        #return self.filter(ids=id_param)
+        unicode_string = 'MD-M300'
+        cobj = self.filter(ids = unicode_string)
+        return cobj
+    
+    def dcode_search(self, dcode_param):
+        return self.filter(dealer_code=dcode_param)
+
 # Main table 
 class Catalog(models.Model):
     ids = models.CharField("code", unique=True, max_length=50)
@@ -596,6 +611,7 @@ class Catalog(models.Model):
     rating = models.FloatField(blank=True, null=True)   
     #одиниці виміру
     #коефіцієнт для системи Сі
+    objects = CatalogQuerySet.as_manager()
 
     def get_discount(self):
         curdate = datetime.date.today()

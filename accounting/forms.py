@@ -6,6 +6,9 @@ from models import DealerManager, DealerPayment, DealerInvoice, Dealer, Bank, Sh
 from models import ClientInvoiceStorageBox, StorageBox
 from models import Client, ClientDebts, CostType, Costs, ClientCredits, WorkGroup, WorkType, WorkShop, WorkTicket, WorkStatus, Rent, ClientInvoice, CashType, Exchange, Type, ClientMessage, WorkDay, PhoneStatus
 from models import Shop, BoxName
+import csv, codecs, io
+from django.core.exceptions import ValidationError
+
 
 from django.contrib.auth.models import User
 import datetime
@@ -417,24 +420,36 @@ class ImportDealerInvoiceForm(forms.Form):
 
 
 
-
 class ImportPriceForm(forms.Form):
     csv_file = forms.FileField(allow_empty_file=False)
-    change_ids = forms.BooleanField(label='Замінити артикул на новий', required=False)
+    name = forms.BooleanField(label='Оновити назву товару', required=False)
     recomended = forms.BooleanField(label='Ціна товару', required=False)
+    change_ids = forms.BooleanField(label='Замінити артикул на новий', required=False)
     description = forms.BooleanField(label='Опис', required=False)
     photo = forms.BooleanField(label='Фото', required=False)
-    name = forms.BooleanField(label='Оновити назву товару', required=False)
     currency = forms.BooleanField(label='Курс валюти', required=False)
+    currency_index = forms.FloatField(min_value=0, initial = 0, label = 'Курс валюти відносно гривні')
     check_catalog_id = forms.BooleanField(label='Перевірка наявності товару по артикулу/штрихкоду', required=False)
-    col_count = forms.IntegerField(min_value=3, initial = 3, label = 'Кількість стовбців у файлі')
+    col_count = forms.IntegerField(min_value=3, initial = 8, label = 'Кількість стовбців у файлі')
 
     def clean_csv_file(self):
-        csvdata = self.cleaned_data['csv_file']
-        print '\nCSV = ' + str(csvdata) + "\n" 
-        if not (csvdata):
+        file = self.cleaned_data.get('csv_file')
+        if file.content_type != 'text/csv':
+            raise forms.ValidationError("Це не CSV файл.")
+        # 1. Перевірка розширення файлу
+        if not file.name.endswith('.csv'):
+            raise forms.ValidationError("Файл має бути у форматі .csv")
+        # csvdata = self.cleaned_data['csv_file']
+        if not (file):
             raise forms.ValidationError("Виберіть CSV файл для імпорту!")
-        return csvdata
+
+        try:
+            dialect = csv.Sniffer().sniff(codecs.EncodedFile(file, "utf-8").read(1024))
+        except:
+            dialect = csv.Sniffer().sniff(codecs.EncodedFile(file, "cp1251").read(1024))
+            return (file, u'cp1251')
+        return (file, u'utf-8')
+        # return csvdata
 
     def clean_change_ids(self):
         data = self.cleaned_data['change_ids']
@@ -451,9 +466,12 @@ class ImportPriceForm(forms.Form):
 
     def clean(self):
         cleaned_data = super(ImportPriceForm, self).clean()
-        csvdata = cleaned_data.get("csv_file")
-        if (csvdata == None):
-            raise forms.ValidationError("Виберіть файл для імпорту!")
+        #csvdata = cleaned_data.get("csv_file")
+#        csvfile = cleaned_data.get("csv_file")
+        #csvfile = request.FILES['csv_file']
+
+        # if (csvfile == None):
+        #     raise forms.ValidationError("Виберіть файл для імпорту!")
         return cleaned_data 
 
 

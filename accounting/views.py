@@ -7253,91 +7253,195 @@ def shop_price_print_delete(request, id=None, user_id = None):
 
 def price_import_form(request):
     form = ImportPriceForm()
-    return render_to_response('index.html', {'form': form, 'weblink': 'import_price.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
+    return render(request, 'index.html', {'form': form, 'weblink': 'import_price.html', 'next': current_url(request)})
 
 
+def cat_save_field_name_price(catitem, codepage, catname, price):
+    item = catitem #.first()
+    if item:
+        if price > 0:
+            item.price = price
+        if catname == None:
+            pass
+        else:
+            item.name = catname.decode(codepage) #.decode('cp1251') #'Found item'
+ #               item.save(update_fields=['name'])
+        item.save(update_fields=['name', 'price'])
+
+    return None
+
+
+@csrf_exempt
 def price_import(request):
     pricereader = None
     ids_list = []
-    now = datetime.datetime.now()
+    ignore_list = []
+    csvfile = None
+    # now = datetime.datetime.now()
     rec_price = False
-#    if 'name' in request.GET and request.GET['name']:
-#        name = request.GET['name']
-    if request.POST and request.FILES:
-#    if request.FILES:
-        csvfile = request.FILES['csv_file']
-        dialect = csv.Sniffer().sniff(codecs.EncodedFile(csvfile, "utf-8").read(1024))
-        csvfile.open()
-        pricereader = csv.reader(codecs.EncodedFile(csvfile, "utf-8"), delimiter=';', dialect=dialect)
-        rec_price = request.POST.get('recomended')
-#===============================================================================
-#    name = 'import'
-#    path = settings.MEDIA_ROOT + 'csv/' + name + '.csv'
-#    csvfile = open(path, 'rb')
-#    pricereader = csv.reader(csvfile, delimiter=';', quotechar='|')
-#===============================================================================
-    w_file = open(settings.MEDIA_ROOT + 'csv/miss.csv', 'wb')
-    spamwriter = csv.writer(w_file, delimiter=';', quotechar='|') #, quoting=csv.QUOTE_MINIMAL)
+    # if request.POST and request.FILES:
+    #     csvfile = request.FILES['csv_file']
+    #     try:
+    #         dialect = csv.Sniffer().sniff(codecs.EncodedFile(csvfile, "utf-8").read(1024))
+    #         csvfile.open()
+    #         pricereader = csv.reader(codecs.EncodedFile(csvfile, "utf-8"), delimiter=';', dialect=dialect)            
+    #     except:
+    #         dialect = csv.Sniffer().sniff(codecs.EncodedFile(csvfile, "cp1251").read(1024))
+    #         csvfile.open()
+    #         pricereader = csv.reader(codecs.EncodedFile(csvfile, "cp1251"), delimiter=';', dialect=dialect)
+        
+    if request.method == 'POST':
+        form = ImportPriceForm(request.POST, request.FILES)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            csvfile = form.cleaned_data['csv_file']
+            rrp = form.cleaned_data['recomended']
+            print "RRP = %s | Codec = %s" % (rrp, csvfile[1])
+            #csvfile.open()
+            pricereader = csv.reader(csvfile[0], delimiter=';')
+        else:
+            return render(request, 'index.html', {'form': form, 'weblink': 'import_price.html'})
+
+    w_file = open(settings.MEDIA_ROOT + 'csv/miss_price_import.csv', 'wb')
+    filewriter_miss = csv.writer(w_file, delimiter=';', quotechar='|') #, quoting=csv.QUOTE_MINIMAL)
+    w_file_ignore = open(settings.MEDIA_ROOT + 'csv/ignore_price_import.csv', 'wb')
+    filewriter_ignore = csv.writer(w_file, delimiter=';', quotechar='|') #, quoting=csv.QUOTE_MINIMAL)
+
+    i=1
     for row in pricereader:
         id = None
         code = None
+        upc = None
+        ean = None
+        barcode = None 
         cat = None
-        #print row[0] + " - " + row[2]
-        id = row[0]
+        dcode_cat = None
+        marct_cat = None
+        if len(row) <= 9 :
+            ignore_list.append(row)
+            continue
+        id = row[0] 
         code = row[1]
-                
-        try:
-            price = row[3]    
+        d_code = row[2]
+        upc = row[3]
+        ean = row[4]
+        barcode = row[5]
+        catname = row[6] #.decode(csvfile[1])
+        price = float(row[7])
+        currency = int(row[8])
 
-            if (code <> '0') and (id <> '0'):
-#                print('CODE = ' + code + ' - ID ='+id)
-                cat = Catalog.objects.filter(Q(ids = id) | Q(dealer_code = id) | Q(ids = code) | Q(dealer_code = code)).first()
-                print ('ID + CODE = '+cat.ids)
-                
+        try:
+            cat = Catalog.objects.filter( ids=id )
+            # cat = Catalog.objects.filter( count__gt = 0,   ids=id )
+#            cat = Catalog.objects.filter( Q(ids=id) | Q(dealer_code=id) | Q(manufacture_article=id) )
+            s_count = cat.count()
+            if (s_count == 1):
+                ids_list.append(cat.first().pk)
+                if currency == 0 or currency == 3:
+                    if rrp: 
+                        price = 0
+                    if name:
+                        cname = None
+                    cat_save_field_name_price(cat.first(), csvfile[1], cname, price)
+                    # item = cat.first()
+                    # if item:
+                    #     if price > 0:
+                    #         if rrp:
+                    #             item.price = price
+                    #             item.save(update_fields=['price'])
+                    #         if name:
+                    #             item.name = catname.decode(csvfile[1]) #.decode('cp1251') #'Found item'
+                    #             item.save(update_fields=['name'])
+
+            if s_count == 0:
+                # cat = Catalog.objects.filter( dealer_code=id )
+                cat = Catalog.objects.filter( Q(dealer_code=id) | Q(manufacture_article=id) )                
+                if cat.first() != None:
+                    ids_list.append(cat.first().pk)
+                    if currency == 0 or currency == 3:
+                        item = cat.first()
+                        if item:
+                            if price > 0:
+                                if rrp:
+                                    item.price = price
+                                    item.save(update_fields=['price'])
+                                if name:
+                                    item.name = catname.decode(csvfile[1]) #.decode('cp1251') #'Found item'
+                                    item.save(update_fields=['name'])
+#                                    item.save(update_fields=['name', 'price'])
+                else:
+                    # print "ManufActure dont found"
+                    filewriter_miss.writerow([row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]])
+                    # cat = Catalog.objects.filter( manufacture_article=id )
+                    # ids_list.append(cat.first().pk)
+
+            # if s_count == 0:
+            #     #dcode_cat = Catalog.objects.filter( Q(dealer_code=id) )
+            #     cat = Catalog.objects.filter( count__gt = 0, dealer_code=id )
+            #     if cat.count() != 0:
+            #         print "CAT dcoce = %s. Count = %s" % (cat.first().ids, cat.count())
+            #     if cat.count == 0:
+            #         #marct_cat = Catalog.objects.filter( Q(manufacture_article=id) )
+            #         cat = Catalog.objects.filter( count__gt = 0, manufacture_article=id )
+            #         if cat.count() != 0:
+            #             print "CAT man_code = %s. Count = %s" % (cat.first().ids, cat.count())
+
+            #     filewriter_miss.writerow([row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]])
+
+            # r_count = cat.count()
+            # print "Count [%s] = %s (%s)" % (i, r_count, id)
+            # i=i+1
+
+            # for item in cat:
+            #     ids_list.append(item.pk)
+            #     print "CAT [%s] = %s | Count = %s" % (item.ids, item.name, r_count)
+            #     if r_count > 1:
+            #         ignore_list.append(item.pk)
+            #         filewriter_ignore.writerow([row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]])
+                    
+
+#            price = row[6]    
+#              if (code <> '0') and (id <> '0'):
+#                 cat = Catalog.objects.filter(Q(ids = id) | Q(dealer_code = id) | Q(ids = code) | Q(dealer_code = code)).first()
             
-            if (id <> '0'):
-                try:
-                    cat = Catalog.objects.get(Q(ids = id) | Q(dealer_code = id))
-                    ids_list.append(cat.ids)
-                except:
-                    print ('ID = '+cat.ids)
-                #    cat = Catalog.objects.get(dealer_code = id)
-                #print('Catalog =  [' +id+ ']['+code+']# '+cat.ids+'|'+price)
-                # заміна старого коду на новий
-                #cat.dealer_code = id
-                #cat.ids = code
-                #cat.save()
+#             if (id <> '0'):
+#                 try:
+#                     cat = Catalog.objects.get(Q(ids = id) | Q(dealer_code = id))
+#                     ids_list.append(cat.ids)
+#                 except:
+#                     print ('ID = '+cat.ids)
                 
-            if (code <> '0'):
-                print(' CODE  ['+code+']# '+row[3]+'')
-                try:
-                    cat = Catalog.objects.get(Q(ids = code) | Q(dealer_code = code))
-                    ids_list.append(cat.ids)
-                except:
-                    #cat = Catalog.objects.get(ids = code)
-                    print('CODE = ' + cat.ids)
-#            if code != u'0':
-                #cat.dealer_code = code
-            if (price <> '0') and (rec_price == 'on'): 
-                #print('Catalog =  [' +id+ ']['+code+']# '+cat.ids+'|'+price)
-                cat.last_price = cat.price
-                cat.price = row[3]
-            #cat.dealer_code = row[1]
-                cat.currency = Currency.objects.get(id = row[4])
-                cat.last_update = datetime.datetime.now()
-            #cat.user_update = request.user
-                cat.user_update = User.objects.get(username='import')
- #           cat.description = row[5]
-                cat.save()
-            
+#             if (code <> '0'):
+#                 print(' CODE  ['+code+']# '+row[3]+'')
+#                 try:
+#                     cat = Catalog.objects.get(Q(ids = code) | Q(dealer_code = code))
+#                     ids_list.append(cat.ids)
+#                 except:
+#                     #cat = Catalog.objects.get(ids = code)
+#                     print('CODE = ' + cat.ids)
+# #            if code != u'0':
+#                 #cat.dealer_code = code
+#             if (price <> '0') and (rec_price == 'on'): 
+#                 #print('Catalog =  [' +id+ ']['+code+']# '+cat.ids+'|'+price)
+#                 cat.last_price = cat.price
+#                 cat.price = row[3]
+#                 cat.currency = Currency.objects.get(id = row[4])
+#                 cat.last_update = datetime.datetime.now()
+#                 cat.user_update = User.objects.get(username='import')
+#                 cat.save()
+
             #spamwriter.writerow([row[0], row[1], row[2], row[3], row[4]],)
-        except: # Catalog.DoesNotExist:
-                      
-            spamwriter.writerow([row[0], row[1], row[2], row[3], row[4]])
+        except Exception as e: # Catalog.DoesNotExist:
+            print "Error =  {%s}" % e
+            print "CAT [%s] not Found" % (id)
+            #print "Тип помилки: %s" % type(e).__name__
+            
+#            filewriter_ignore.writerow([row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]])
         #return HttpResponse("Виконано", content_type="text/plain;charset=UTF-8;")
-    list = Catalog.objects.select_related('manufacturer', 'type', 'currency', 'country').filter(Q(ids__in = ids_list))
-    return render_to_response('index.html', {'catalog': list, 'post':rec_price,  'weblink': 'catalog_list.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
-    
+#    list = Catalog.objects.select_related('manufacturer', 'type', 'currency', 'country').filter(Q(ids__in = ids_list))
+    list = Catalog.objects.select_related('manufacturer', 'type', 'currency', 'country').filter(Q(pk__in = ids_list))
+    return render(request, 'index.html', {'catalog': list, 'post':rec_price,  'weblink': 'catalog_list.html', 'next': current_url(request)})
+ 
 
 #--------------------- MY Costs -------------------------
 def costtype_add(request):
