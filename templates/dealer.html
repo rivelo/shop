@@ -1,4 +1,94 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Додати дилера</title>
+</head>
+<body class="bg-light">
+
+<div class="container-fluid py-4">
+    <!-- justify-content-center (на мобільних по центру) 
+         justify-content-lg-start (на великих екранах зліва) -->
+    <div class="row justify-content-center justify-content-lg-start">
+        
+        <!-- col-lg-8 (займає 8 колонок зліва на десктопі)
+             col-md-10 (займає 10 колонок на планшеті)
+             col-12 (на весь екран на мобільному) -->
+        <div class="col-12 col-md-10 col-lg-8 ml-lg-4"> 
+            
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Редагування профілю дилера</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Поля форми -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="font-weight-bold">{{ form.name.label }}</label>
+                                    {{ form.name }}
+                                </div>
+                                <div class="form-group">
+                                    <label class="font-weight-bold">Розташування</label>
+                                    <div class="form-row">
+                                        <div class="col">{{ form.country }}</div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="font-weight-bold">{{ form.city.label }}</label>
+                                    {{ form.city }}
+                                </div>
+                                <div class="form-group">
+                                    <label class="font-weight-bold">{{ form.street.label }}</label>
+                                    {{ form.street }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="font-weight-bold">{{ form.brand_list.label }}</label>
+                                    {{ form.brand_list }}
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-8">
+                                        <label class="font-weight-bold">{{ form.director.label }}</label>
+                                        {{ form.director }}
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="font-weight-bold">{{ form.color.label }}</label>
+                                        {{ form.color }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-3">
+                            <label class="font-weight-bold">{{ form.description.label }}</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top">
+                            <button type="submit" class="btn btn-primary px-5">Зберегти</button>
+                            <a href="." class="btn btn-link text-muted">Скасувати</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+
+</body>
+</html>
+
+{% comment %} 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Створити нового постачальника (Дилера)</title>
 
 <link rel="stylesheet" type="text/css" href="/media/table.css"> 	
 
@@ -11,10 +101,8 @@
         </table>
         <p><input type="submit" value="Save"></p>
     </form>
+
+    
     <br><br>
-<a href="/dealer/view/">Список компаній, дилерів</a>
-<br>    
-<a href="/">HOME</a>
 
-
-
+<a href="/dealer/view/">Список компаній, дилерів</a> {% endcomment %}

@@ -347,17 +347,70 @@ class BicycleStorage_Form(forms.ModelForm):
     
     
 # --------- Dealers ------------
+# class DealerForm(forms.ModelForm):
+#     name = forms.CharField(max_length=255)
+#     country = forms.ModelChoiceField(queryset = Country.objects.all())
+#     city = forms.CharField()
+#     street = forms.CharField(required=False)
+#     www = forms.URLField(required=False)
+#     description = forms.CharField(label='Description of type', widget=forms.Textarea())
+#     director = forms.CharField()
+#     class Meta:
+#         model = Dealer
+#         fields = '__all__'
+
 class DealerForm(forms.ModelForm):
-    name = forms.CharField(max_length=255)
-    country = forms.ModelChoiceField(queryset = Country.objects.all())
-    city = forms.CharField()
-    street = forms.CharField()
-    www = forms.URLField()
-    description = forms.CharField(label='Description of type', widget=forms.Textarea())
-    director = forms.CharField()
     class Meta:
         model = Dealer
-        fields = '__all__'
+        fields = [
+            'name', 'country', 'city', 'street', 
+            'brand_list', 'www', 'description', 
+            'director', 'color'
+        ]
+        # Масове додавання класів Bootstrap до віджетів
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Назва компанії'}),
+            'country': forms.Select(attrs={'class': 'form-control'}),
+            'city': forms.TextInput(attrs={'class': 'form-control'}),
+            'street': forms.TextInput(attrs={'class': 'form-control'}),
+            'brand_list': forms.SelectMultiple(attrs={
+                'class': 'form-control', 
+                'style': 'height: 150px;'  # Додаємо висоту для зручного вибору
+            }),
+            'www': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://...'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'director': forms.TextInput(attrs={'class': 'form-control'}),
+            'color': forms.TextInput(attrs={'class': 'form-control', 'type': 'color'}), # HTML5 color picker
+        }
+        labels = {
+            'name': 'Назва дилера',
+            'brand_list': 'Бренди (Manufacturer)',
+            'www': 'Веб-сайт',
+            'description': 'Опис дилера',
+            'director': 'Директор/власник',
+            'street': 'Вулиця',
+            'city': 'Місто'
+        }
+
+# class DealerForm(forms.ModelForm):
+#     # Додаємо класи через віджети для Bootstrap 4
+#     name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+#     country = forms.ModelChoiceField(
+#         queryset=Country.objects.all(),
+#         widget=forms.Select(attrs={'class': 'form-control'})
+#     )
+#     city = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+#     street = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
+#     www = forms.URLField(required=False, widget=forms.URLInput(attrs={'class': 'form-control'}))
+#     description = forms.CharField(
+#         label='Description of type', 
+#         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3})
+#     )
+#     director = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+
+#     class Meta:
+#         model = Dealer
+#         fields = '__all__'
 
 
 class DealerManagerForm(forms.ModelForm):

@@ -1,77 +1,156 @@
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<link rel="stylesheet" type="text/css" href="/media/table.css">
-
-<style>
-
-table a{
-	color: #438056; 
-}
-
-.badge-success {
-	background-color: #56a06d;
-}
-
-
-a.badge-success:hover {
-	position: relative;
-	background-color: red;
-}
-
-
-</style>
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <title>Список постачальників/дилерів</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel="stylesheet" type="text/css" href="/media/table.css">
+</head>
 
 <body>
 
-    <h1><span class="badge badge-dark">Компанії дистрибютори/партнери</span> <a class="badge badge-success" href="/dealer/add/"><i class="material-icons">add_circle_outline</i></a></h1>
+<div class="container-fluid">
+    <div class="table-container">
+        <div class="row align-items-center mb-2">
 
-    <table class="table table-bordered table-hover">
-    <thead>
-    <tr>
-    	<th>ID</th>
-    	<th>Назва компанії</th>
-    	<th>Країна</th>
-    	<th>Місто</th>
-    	<th>Вулиця</th>
-    	<th>www</th>
-    	<th>Директор</th>    
-    	<th>Опис</th>	    	
-    	<th>Дія</th>
-    </tr>    
-    </thead>
-<tbody >    
-{% for type in dealers %}
-<tr style="background-color: {{type.color}};" {% if type.color %} class="text-white" {% endif %}> 
-	<td>       
-    {{forloop.counter}}
-	</td>
-	<td>       
-	<a href="/dealer/edit/{{ type.id }}">{{type.name}}</a>
-	</td>
-	<td>       
-	{{type.country}}
-	</td>
-	<td>       
-	{{type.city}}
-	</td>
-	<td>       
-	{{type.street}}
-	</td>
- 	<td>
-	{{type.www}}
-	</td>
- 	<td>
-	{{type.director}}
-	</td>
- 	<td>
-	{{type.description}}
-	</td>
-	<td>
-    <a href="/dealer/delete/{{ type.id }}" onclick="return confirm('Видалити запис?');"><i class="material-icons">delete_outline</i></a>
-    </td>
-</tr>
-{% endfor %}        
-</tbody>    
-    
-    <table>
+            <div class="col-md-12">
+			<h1 class="mb-0 text-primary font-weight-bold"><span class="badge badge-dark">Компанії дистрибютори/партнери</span> <a class="badge badge-success" href="/dealer/add/"><i class="material-icons">add_circle_outline</i></a></h1>
+            </div>
+        </div>
+
+        <!-- Пошук -->
+        <div class="form-group mb-4">
+            <input type="text" id="searchInput" class="form-control form-control-lg" 
+                   onkeyup="filterTable()" placeholder="Швидкий пошук за назвою, містом або описом... (Esc або Ctrl + Q для очищення)" autofocus>
+        </div>
+
+        <!-- Таблиця -->
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered" id="dealerTable">
+                <thead class="thead-dark">
+                    <tr>
+                        <th onclick="sortTable(0)">Назва</th>
+                        <th onclick="sortTable(1)">Країна</th>
+                        <th onclick="sortTable(2)">Місто</th>
+                        <!-- Приховуємо на малих екранах (d-none), показуємо тільки на великих (d-xl-table-cell) -->
+                        <th class="d-none d-lg-table-cell" onclick="sortTable(3)">Вулиця</th>
+                        <th class="d-none d-xl-table-cell">Бренди</th>
+                        <th class="d-none d-md-table-cell" onclick="sortTable(5)">Сайт</th>
+                        <th class="d-none d-xl-table-cell">Опис</th>
+                        <th class="d-none d-lg-table-cell" onclick="sortTable(7)">Директор</th>
+                        <th onclick="sortTable(8)">Колір</th>
+						<th>Дія</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dealer in dealers %}
+                    <tr>
+                        <td contenteditable="true" class="font-weight-bold">{{ dealer.name }}</td>
+                        <td>{{ dealer.country.name }}</td>
+                        <td contenteditable="true">{{ dealer.city }}</td>
+                        <td contenteditable="true" class="d-none d-lg-table-cell">{{ dealer.street|default:"-" }}</td>
+                        <td class="d-none d-xl-table-cell">
+                            {% for brand in dealer.brand_list.all %}
+                                <span class="badge badge-info">{{ brand.name }}</span>
+                            {% endfor %}
+                        </td>
+                        <td contenteditable="true" class="d-none d-md-table-cell">
+                            <a href="{{ dealer.www }}" target="_blank">{{ dealer.www|truncatechars:20 }}</a>
+                        </td>
+                        <td contenteditable="true" class="d-none d-xl-table-cell text-muted">
+                            <small>{{ dealer.description|truncatechars:50 }}</small>
+                        </td>
+                        <td contenteditable="true" class="d-none d-lg-table-cell">{{ dealer.director|default:"-" }}</td>
+                        <td style="background-color: {{dealer.color}};" {% if dealer.color %} class="text-white" {% endif %}>
+                            <span class="color-badge" style="background-color: {{ dealer.color|default:'#ccc' }}"></span>
+                            <small>{{ dealer.color }}</small>
+                        </td>
+						{% comment %} <td>
+							<a href="/dealer/edit/{{ dealer.id }}" title="Редагувати [{{dealer.name}}]"><i class="material-icons">edit</i></a>
+    						<a href="/dealer/delete/{{ dealer.id }}" onclick="return confirm('Видалити запис?');"><i class="material-icons">delete_outline</i></a>
+ 					   </td> {% endcomment %}
+					   <td class="d-flex justify-content-between align-items-center">
+    <!-- Іконка редагування (буде зліва) -->
+    <a href="/dealer/edit/{{ dealer.id }}" 
+       class="text-primary" 
+       title="Редагувати [{{ dealer.name }}]">
+        <i class="material-icons">edit</i>
+    </a>
+
+    <!-- Іконка видалення (буде справа) -->
+    <a href="/dealer/delete/{{ dealer.id }}" 
+       class="text-danger" 
+	   title="Видалити [{{ dealer.name }}]"
+       onclick="return confirm('Видалити запис?');">
+        <i class="material-icons">delete_outline</i>
+    </a>
+</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+    // Пошук
+    function filterTable() {
+        const input = document.getElementById("searchInput");
+		if (event && event.key === "Escape") {
+        	input.value = ""; // Очищуємо поле
+    	}
+        const filter = input.value.toLowerCase();
+        const rows = document.querySelectorAll("#dealerTable tbody tr");
+
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? "" : "none";
+        });
+    }
+
+	// Гарантований фокус після завантаження сторінки
+	window.addEventListener('DOMContentLoaded', (event) => {
+    	const searchInput = document.getElementById("searchInput");
+    	searchInput.focus();
+		// Додатковий слухач для Esc, якщо фокус на всьому документі
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey && e.key === "q") && document.activeElement !== searchInput) {
+			e.preventDefault(); 
+            searchInput.value = "";
+			// Додатковий ефект: візуально підсвічуємо поле на мить
+        	searchInput.style.boxShadow = "0 0 10px #28a745";
+        	setTimeout(() => searchInput.style.boxShadow = "", 300);
+            filterTable();
+            searchInput.focus();
+        }
+    });
+	});
+
+    // Сортування
+    let sortAsc = true;
+    function sortTable(n) {
+        const table = document.getElementById("dealerTable");
+        const rows = Array.from(table.tBodies[0].rows);
+        
+        const sortedRows = rows.sort((a, b) => {
+            const valA = a.cells[n].innerText.toLowerCase();
+            const valB = b.cells[n].innerText.toLowerCase();
+            return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        });
+
+        table.tBodies[0].append(...sortedRows);
+        sortAsc = !sortAsc;
+    }
+
+    // Експорт
+    function exportToExcel() {
+        const table = document.getElementById("dealerTable");
+        const wb = XLSX.utils.table_to_book(table, { sheet: "Dealers" });
+        XLSX.writeFile(wb, "Dealers_Full_Export.xlsx");
+    }
+</script>
+
+
       
 </body>

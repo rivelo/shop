@@ -2096,6 +2096,7 @@ def bicycle_storage_delete(request, id):
 
 
 # --------------------Dealer company ------------------------
+@csrf_exempt
 def dealer_add(request):
     a = Dealer()
     if request.method == 'POST':
@@ -2108,11 +2109,11 @@ def dealer_add(request):
             www = form.cleaned_data['www']
             description = form.cleaned_data['description']
             director = form.cleaned_data['director']
-            Dealer(name=name, country=country, city=city, street=street, www=www, description=description, director=director).save()
+            color = form.cleaned_data['color']
+            Dealer(name=name, country=country, city=city, street=street, www=www, description=description, director=director, color=color).save()
             return HttpResponseRedirect('/dealer/view/')
     else:
         form = DealerForm(instance = a)
-    #return render_to_response('dealer.html', {'form': form})
     return render(request, 'index.html', {'form': form, 'weblink': 'dealer.html'})
 
 @csrf_exempt
@@ -3713,10 +3714,10 @@ def manufacturer_lookup(request):
 
     return HttpResponse(data)    
 
-
+@csrf_exempt
 def catalog_import_form(request):
     if auth_group(request.user, 'seller')==False:
-        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))    
+        return render(request, 'index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'})
     photo = False
     rec_price = False
     description = False
@@ -3742,7 +3743,7 @@ def catalog_import_form(request):
             if check_catalog_id == True:
                 print "Check ID is True!!!"
         else:
-            return render_to_response('index.html', {'form': form, 'weblink': 'catalog_import.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))            
+            return render(request, 'index.html', {'form': form, 'weblink': 'catalog_import.html', 'next': current_url(request)})
 
         csvfile = request.FILES['csv_file']
         dialect = csv.Sniffer().sniff(codecs.EncodedFile(csvfile, "utf-8").read(1024))
@@ -3819,11 +3820,11 @@ def catalog_import_form(request):
                 print "\n EXCEPT \n"
                 add_list.append({'id': id, 'code': code, 'photo': row[6], 'name': row[2], 'desc': row[5], 'price': row[3]});
                 log_writer.writerow(row)
-        return render_to_response('index.html', {'update_list': update_list, 'add_list': add_list, 'ids_list': ids_list, 'weblink': 'catalog_import_list.html', 'error_list': error_list, 'created_cat_list': created_cat_list,  'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+        return render(request, 'index.html', {'update_list': update_list, 'add_list': add_list, 'ids_list': ids_list, 'weblink': 'catalog_import_list.html', 'error_list': error_list, 'created_cat_list': created_cat_list,  'next': current_url(request)})
         
     else:
         form = ImportPriceForm()
-        return render_to_response('index.html', {'form': form, 'title': 'New Fuction', 'weblink': 'catalog_import.html', 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))    
+        return render(request, 'index.html', {'form': form, 'title': 'New Fuction', 'weblink': 'catalog_import.html', 'next': current_url(request)})
 #===============================================================================
 #             if photo:
 #                 try:
