@@ -297,9 +297,9 @@ class BicycleOrderForm(forms.ModelForm):
 
 
 class StorageType_Form(forms.ModelForm):
-    type = forms.CharField(widget=forms.TextInput(attrs={'size': 150, }), max_length=255, label = 'Назва')
-    price = forms.FloatField(initial = 0, label = 'Ціна')
-    description = forms.CharField(label='Опис', widget=forms.Textarea(), required=False)
+    type = forms.CharField(widget=forms.TextInput(attrs={'size': 150, 'class': 'form-control'}), max_length=255, label = 'Назва')
+    price = forms.FloatField(widget=forms.TextInput(attrs={ 'class': 'form-control'}), initial = 0, label = 'Ціна')
+    description = forms.CharField(label='Опис', widget=forms.Textarea(attrs={'class': 'form-control'}), required=False)
     
     class Meta:
         model = Storage_Type
@@ -413,17 +413,29 @@ class DealerForm(forms.ModelForm):
 #         fields = '__all__'
 
 
+# class DealerManagerForm(forms.ModelForm):
+#     name = forms.CharField(max_length=255)
+#     email = forms.EmailField()
+#     phone = forms.CharField()
+#     description = forms.CharField(label='Description', widget=forms.Textarea())
+#     company = forms.ModelChoiceField(queryset = Dealer.objects.all())
+#     #company = SelectFromModel(objects=Dealer.objects.all())
+#     class Meta:
+#         model = DealerManager
+#         fields = '__all__'
+
+
 class DealerManagerForm(forms.ModelForm):
-    name = forms.CharField(max_length=255)
-    email = forms.EmailField()
-    phone = forms.CharField()
-    description = forms.CharField(label='Description', widget=forms.Textarea())
-    company = forms.ModelChoiceField(queryset = Dealer.objects.all())
-    #company = SelectFromModel(objects=Dealer.objects.all())
     class Meta:
         model = DealerManager
-        fields = '__all__'
-    
+        fields = ['name', 'email', 'phone', 'company', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ПІБ менеджера'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'example@mail.com'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+380...'}),
+            'company': forms.Select(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
 
 class DealerPaymentForm(forms.ModelForm):
     dealer_invoice = forms.ModelChoiceField(queryset = DealerInvoice.objects.filter(payment=False))

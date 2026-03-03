@@ -1,282 +1,217 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Замовлення товару</title>
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Замовлення товару</title>
 
-{% load poll_extras %}	
+    {% load poll_extras %}
 
-<style>
-    .ui-combobox {
-        position: relative;
-        display: inline-block;
-    }
-    .ui-combobox-toggle {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        margin-left: -1px;
-        padding: 0;
-        /* adjust styles for IE 6/7 */
-        *height: 1.7em;
-        *top: 0.1em;
-    }
-    .ui-combobox-input {
-        margin: 0;
-        padding: 0.3em;
-    }
-  .ui-autocomplete-loading {
-    background: white url('/media/images/ui-anim_basic_16x16.gif') right center no-repeat;
-  }
-  city { width: 90em; }
-</style>
-	
-<script type="text/javascript">
-$(document).ready(function() {
-
-    $('#id_count').bind('change', function(){
-    	$('#id_sum').val($('#id_price').val() * $('#id_count').val());
-    	$('#result').html("Сума " + $('#id_sum').val() + " грн.")		
-	});
-
-    $('#id_price').bind('change', function(){
-    	$('#id_sum').val($('#id_price').val() * $('#id_count').val());
-    	$('#result').html("Сума " + $('#id_sum').val() + " грн.")		
-	});
-
-   
-$( "#s_client" ).autocomplete({
-            source: function( request, response ) {
-                $.ajax({
-                type: "GET",
-                url: "/client/lookup",
-				data: { query: $("#s_client").val() },
-                dataType: "json",
-                success: function( data ) {
-                        	response( $.map( data, function( item ) {
-                            return {
-                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
-                                value: item.fields.name,
-                                idid: item.fields.sale,
-                                pk_id: item.pk                                
-    							}
-                        	}));                                
-                            }
-                    })
-            },
-            minLength: 3,
-            select: function( event, ui ) {
-            	$('#id_client').val(ui.item.pk_id);
-            	$('#id_description').focus();
-            	
-            },
-            open: function() {
-                $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
-            },
-            close: function() {
-                $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
-            }
-        });
-
-
-$( "#catalog" ).autocomplete({
-            source: function( request, response ) {
-                $.ajax({
-                type: "GET",
-                url: "/catalog/lookup",
-//                data: { query: "r55c2" },
-				data: { query: $("#catalog").val() },
-                dataType: "json",
-                success: function( data ) {
-//                			alert("Все отлично ушло на сервер - " + data[0].fields.name);
-                        	response( $.map( data, function( item ) {
-                            return {
-                                label: item.pk + ": [" + item.fields.ids + "] "+ item.fields.name,
-                                value: item.fields.name,
-                                idid: item.fields.price,
-                                pk_id: item.pk                                
-    							}
-                        	}));                                
-                            }
-                    })
-            },
-            minLength: 3,
-            select: function( event, ui ) {
-            	$('#id_price').val(ui.item.idid);
-            	$('#id_sum').val($('#id_price').val() * $('#id_count').val());
-            	$('#val_id_catalog').val(ui.item.pk_id);
-            	$('#id_post_id').val(ui.item.pk_id);
-            	$('#id_catalog').val(ui.item.label);
-            	$('#result').html("Сума " + $('#id_sum').val() + " грн.")
-            	            
-            },
-            open: function() {
-                $( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
-            },
-            close: function() {
-                $( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
-            }
-        });
-
-$("#id_description").attr("rows", 3);
-
-});    
-    </script>
-
-
-<body  onload="document.getElementById('catalog').focus()">
-<div class="d-flex flex-row bd-highlight mb-3">
-<div class="row w-100">
-<div class="col-lg-9 col-xs-12 col-sm-12 ml-2">
-
-
-<h1><span class="badge badge-secondary">
-Замовлення товару
-</span>
-</h1>
-
-
-<div class="ui-widget" style="margin-top: 2em; font-family: Arial;">    
-
-<form action="" method="POST">
-   
-  <div class="form-row">
-    <div class="col-md-9 col-12 mb-2">
-      <label for="catalog">Товар з каталогу</label>
-      {{form.post_id|add_attr:"class:form-control"}}
-      <input type="text" class="form-control" id="catalog" > {# value="" required>#} 
-      <div class="valid-feedback">
-        Looks good!
-      </div>
-    </div>
-  </div>
-  <div class="form-row">
-      <div class="col-md-9 col-12 mb-2">
-      <label for="s_client">Клієнт</label>
-	{{form.client|add_attr:"class:form-control"}}      
-      <input type="text" class="form-control " id="s_client" > {# class = "is-valid" #}
-      <div class="valid-feedback">
-        Looks good!
-      </div>
-    </div>
-  </div>
-  
-  <div class="form-row">
-    <div class="col-md-9 col-12 mb-3">
-      <label for="validationServer03">Примітки</label>
-      {{form.description|add_attr:"class:form-control"}}
-{#      <textarea class="form-control is-invalid" id="validationServer03" aria-describedby="validationServer03Feedback" required></textarea> #}
-      <div id="validationServer03Feedback" class="invalid-feedback">
-        Please provide a valid city.
-      </div>
-    </div>
-   </div>
-   <div class="form-row">
-    <div class="col-md-2 col-12 mb-3">
-      <label for="validationServer04">Кількість</label>
-{{form.count|add_attr:"class:form-control"}}
-      <div id="validationServer04Feedback" class="invalid-feedback">
-        Please select a valid state.
-      </div>
-    </div>
-    <div class="col-md-4 col-12 mb-3">
-      <label for="validationServer05">Ціна</label>
-    <div class="input-group is-valid"> {# is-invalid #}
-		{{form.price|add_attr:"class:form-control"}}
-      <div class="input-group-append">
-              {{form.currency|add_attr:"class:form-control"}}
-{#        <span class="input-group-text" id="validatedInputGroupPrepend">        </span> #}
-      </div>
-    </div>
-    <div class="invalid-feedback">
-      Example invalid input group feedback
-    </div>
-    
-    </div>
-    
-    <div class="col-md-3 col-12 mb-3">
-      <label for="validationServer05">Сума</label>
-		{{form.sum|add_attr:"class:form-control"}}
-      <div id="validationServer05Feedback" class="invalid-feedback">
-        Please provide a valid zip.
-      </div>
-    </div>
-  </div>
-  
-   <div class="form-row">
-    <div class="col-md-3 col-12 mb-3">
-      <label for="validationServer04">Передоплата</label>
-{{form.pay|add_attr:"class:form-control"}}
-      <div id="validationServer04Feedback" class="invalid-feedback">
-        Please select a valid state.
-      </div>
-    </div>
-    <div class="col-md-3 col-12 mb-3">
-      <label for="validationServer05">Тип оплати</label>
-		{{form.cash_type|add_attr:"class:form-control"}}      
-{#      <input type="text" class="form-control is-invalid" id="validationServer05" aria-describedby="validationServer05Feedback" required> #}
-      <div id="validationServer05Feedback" class="invalid-feedback">
-        Please provide a valid zip.
-      </div>
-    </div>
-    <div class="col-md-3 col-12 mb-3">
-      <label for="validationServer05">Дата</label>
-      {{form.date|add_attr:"class:form-control"}}
-      <div id="validationServer05Feedback" class="invalid-feedback">
-        Please provide a valid zip.
-      </div>
-    </div>
-  </div>
-{% if request.user|has_group:"admin" %}  
-  <div class="form-group">
-    <div class="form-check">
-{#      <input class="form-check-input is-valid" type="checkbox" value="" id="invalidCheck3" aria-describedby="invalidCheck3Feedback" required> #}
-      	{{form.status|add_attr:"class:form-check-input"}}
-      <label class="form-check-label" for="invalidCheck3">
-        Статус виконання замовлення
-      </label>
-      <div  id="invalidCheck3Feedback" class="invalid-feedback">
-        You must agree before submitting.
-      </div>
-    </div>
-  </div>
-{% endif %}  
-  <button class="btn btn-primary w-100" type="submit">Створити замовлення</button>   
-   
-   
-{% comment %}   
-   
-<table>
-<tr> 
-<th><label>Перелік товарів</label></th>
-<td>
-	<input id="catalog"   style = "width: 550px;" />
-</td>    
-</tr>
-<tr> 
-<th><label>Клієнт</label></th>
-<td>
-	<input id="s_client" style="width: 550px;" />
-</td>    
-</tr>
-           {{ form.as_table }}
-</table>
+    <style>
+        body { background-color: #f4f7f9; min-height: 100vh; }
         
-    <p><input type="submit" class="w-100" value="Save" title="Зберегти замовлення"></p>
-    <input type="hidden" id="val_id_catalog" >
+        /* Контейнер форми */
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+            width: 100%;
+        }
 
-    <h3 id="result" style="color:red; background-color:#CCCCCC"}>Сума грн.</h3>
+        /* Вирівнювання: зліва на десктопах, центр на мобільних */
+        @media (min-width: 992px) {
+            .form-wrapper { padding-left: 2rem; }
+            .form-card { max-width: 100%; } /* На всю ширину колонки */
+        }
 
-{% endcomment %}
+        /* Стилізація Autocomplete */
+        .ui-autocomplete {
+            z-index: 1050;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-height: 300px;
+            overflow-y: auto;
+        }
 
+        label { font-weight: 600; color: #495057; margin-bottom: 0.5rem; }
+        .form-control:focus { border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.15); }
+        
+        .badge-title { font-size: 1.5rem; padding: 10px 20px; border-radius: 10px; }
+    </style>
+</head>
 
-</form>
+<body onload="document.getElementById('catalog').focus()">
 
+<div class="container-fluid py-4">
+    <!-- justify-content-lg-start притискає форму вліво на великих екранах -->
+    <div class="row justify-content-center justify-content-lg-start form-wrapper">
+        
+        <!-- col-lg-10 дозволяє формі займати майже весь екран на десктопі -->
+        <div class="col-12 col-md-11 col-lg-10">
+            
+            <div class="form-card">
+                <h1 class="mb-4">
+                    <span class="badge badge-secondary badge-title shadow-sm">Замовлення товару</span>
+                </h1>
+
+                <form action="" method="POST" id="orderForm">
+                    {% csrf_token %}
+
+                    <!-- Секція Каталог та Клієнт -->
+                    <div class="form-row">
+                        <div class="col-lg-6 col-12 mb-3">
+                            <label for="catalog">Товар з каталогу</label>
+                            {{form.post_id|add_attr:"class:d-none"}} <!-- Прихований ID -->
+                            <input type="text" class="form-control form-control-lg shadow-sm" id="catalog" autocomplete="off">
+                        </div>
+                        <div class="col-lg-6 col-12 mb-3">
+                            <label for="s_client">Клієнт</label>
+                            {{form.client|add_attr:"class:d-none"}} <!-- Прихований ID -->
+                            <input type="text" class="form-control form-control-lg shadow-sm" id="s_client" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <!-- Примітки -->
+                    <div class="form-row">
+                        <div class="col-12 mb-3">
+                            <label>Примітки</label>
+                            {{form.description|add_attr:"class:form-control shadow-sm"}}
+                        </div>
+                    </div>
+
+<!-- Секція: Кількість, Ціна, Сума (Адаптивна) -->
+<div class="form-row border-top pt-3">
+    <!-- col-12 змушує поле займати весь рядок на мобільних -->
+    <!-- col-lg-2 повертає його в загальний ряд на великих екранах -->
+    <div class="col-12 col-lg-2 mb-3">
+        <label class="font-weight-bold">Кількість</label>
+        {{form.count|add_attr:"class:form-control form-control-lg text-center"}}
+    </div>
+
+    <div class="col-12 col-lg-5 mb-3">
+        <label class="font-weight-bold">Ціна</label>
+        <div class="input-group">
+            {{form.price|add_attr:"class:form-control form-control-lg"}}
+            <div class="input-group-append">
+                <!-- Валюта притиснута до ціни -->
+                {{form.currency|add_attr:"class:form-control form-control-lg bg-light"}}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-5 mb-3">
+        <label class="font-weight-bold">Сума замовлення</label>
+        {{form.sum|add_attr:"class:form-control form-control-lg border-primary text-primary font-weight-bold"}}
+        <div id="result" class="badge badge-primary mt-2 p-2 d-block d-lg-inline-block">
+            Очікується розрахунок...
+        </div>
+    </div>
 </div>
+
+<!-- Секція: Оплата та Дата -->
+<div class="form-row border-top pt-3">
+    <div class="col-12 col-lg-4 mb-3">
+        <label>Передоплата</label>
+        {{form.pay|add_attr:"class:form-control"}}
+    </div>
+    <div class="col-12 col-lg-4 mb-3">
+        <label>Тип оплати</label>
+        {{form.cash_type|add_attr:"class:form-control"}}
+    </div>
+    <div class="col-12 col-lg-4 mb-3">
+        <label>Дата</label>
+        {{form.date|add_attr:"class:form-control"}}
+    </div>
 </div>
+
+                    <!-- Адмін-блок -->
+                    {% if request.user|has_group:"admin" %}
+                    <div class="alert alert-warning mt-3 py-2">
+                        <div class="custom-control custom-checkbox">
+                            {{form.status|add_attr:"class:custom-control-input, id:statusCheck"}}
+                            <label class="custom-control-label" for="statusCheck">Статус замовлення (Адмін)</label>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Кнопки -->
+                    <div class="mt-4 pt-3 border-top d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 shadow">Зберегти замовлення</button>
+                        <a href="/client/order/view/" class="btn btn-outline-secondary btn-lg">До списку</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
-    
+
+<!-- JavaScript -->
+<script src="https://code.jquery.com"></script>
+<script src="https://code.jquery.com"></script>
+
+<script>
+$(document).ready(function() {
+    // Автоматичний розрахунок суми
+    function calculateSum() {
+        let price = parseFloat($('#id_price').val()) || 0;
+        let count = parseFloat($('#id_count').val()) || 0;
+        let total = price * count;
+        $('#id_sum').val(total.toFixed(2));
+        $('#result').html("Разом: <strong>" + total.toFixed(2) + "</strong> грн.");
+    }
+
+    $('#id_count, #id_price').on('input change', calculateSum);
+
+    // Автокомпліт Клієнтів
+    $("#s_client").autocomplete({
+        source: function(request, response) {
+            $.getJSON("/client/lookup", { query: request.term }, function(data) {
+                response($.map(data, function(item) {
+                    return {
+                        label: item.pk + ": [" + item.fields.forumname + "] " + item.fields.name,
+                        value: item.fields.name,
+                        pk_id: item.pk
+                    };
+                }));
+            });
+        },
+        minLength: 3,
+        select: function(event, ui) {
+            $('#id_client').val(ui.item.pk_id);
+            $('#id_description').focus();
+        }
+    });
+
+    // Автокомпліт Каталогу
+    $("#catalog").autocomplete({
+        source: function(request, response) {
+            $.getJSON("/catalog/lookup", { query: request.term }, function(data) {
+                response($.map(data, function(item) {
+                    return {
+                        label: item.pk + ": [" + item.fields.ids + "] " + item.fields.name,
+                        value: item.fields.name,
+                        price: item.fields.price,
+                        pk_id: item.pk
+                    };
+                }));
+            });
+        },
+        minLength: 3,
+        select: function(event, ui) {
+            $('#id_price').val(ui.item.price);
+            $('#id_post_id').val(ui.item.pk_id);
+            calculateSum();
+        }
+    });
+
+    // Косметичне налаштування рядків textarea
+    $("#id_description").attr("rows", 3);
+});
+</script>
+
 </body>
-    
-
+</html>
 
 
 

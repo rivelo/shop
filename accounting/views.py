@@ -1971,15 +1971,21 @@ def bicycle_storage_type_add(request):
         form = StorageType_Form()        
 
     #return render_to_response('bicycle.html', {'form': form})
-    return render(request, 'index.html', {'form': form, 'weblink': 'bicycle_storage.html', 'text': 'Вид зберігання'})
+    return render(request, 'index.html', {'form': form, 'weblink': 'bicycle_storage_type.html', 'text': 'Вид зберігання'})
 
 
 def bicycle_storage_type_list(request):
     #list = Bicycle_Order.objects.all().order_by("-date")
-    list = Storage_Type.objects.all().order_by("id")
+    list = Storage_Type.objects.all().order_by("-id")
     context = {'list': list, 'weblink': 'storage_type_list.html', }
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
+
+
+def bicycle_storage_type_delete(request, id):
+    obj = Storage_Type.objects.get(id=id)
+    obj.delete()
+    return HttpResponseRedirect(reverse('bicycle_storage_type_list')) 
 
 
 from django.contrib import messages
@@ -2076,7 +2082,7 @@ def bicycle_storage_edit(request, id):
             return HttpResponseRedirect('/bicycle/storage/view/')
     else:
         form = BicycleStorage_Form(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'bicycle_storage.html' , 'text': 'Додати велосипед на зберігання'}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'form': form, 'weblink': 'bicycle_storage.html' , 'text': 'Додати велосипед на зберігання'})
 
 
 def bicycle_storage_list(request):
@@ -2146,25 +2152,34 @@ def dealer_list(request):
     return render(request, 'index.html', context)
 
 
-def dealer_manager_add(request):
-    a = DealerManager()
+def dealer_manager_add(request, id=None):
+#    a = DealerManager()
+    dealers = None
+    if id:
+        a = DealerManager.objects.get(pk=id)
+    else: 
+        a = DealerManager()
     if request.method == 'POST':
         form = DealerManagerForm(request.POST, instance = a)
         if form.is_valid():
-            name = form.cleaned_data['name']
-            email = form.cleaned_data['email']
-            phone = form.cleaned_data['phone']
-            company = form.cleaned_data['company']
-            description = form.cleaned_data['description']
-            DealerManager(name=name, email=email, phone=phone, company=company, description=description).save()
+            # name = form.cleaned_data['name']
+            # email = form.cleaned_data['email']
+            # phone = form.cleaned_data['phone']
+            # company = form.cleaned_data['company']
+            # description = form.cleaned_data['description']
+            form.save()
+            dealers = Dealer.objects.all()
+            #DealerManager(name=name, email=email, phone=phone, company=company, description=description).save()
             return HttpResponseRedirect('/dealer-manager/view/')
     else:
         form = DealerManagerForm(instance = a)
+        dealers = Dealer.objects.all()
     #return render_to_response('dealer-manager.html', {'form': form})
-    return render(request, 'index.html', {'form': form, 'weblink': 'dealer-manager.html'})
+    return render(request, 'index.html', {'form': form, 'weblink': 'dealer-manager.html', 'dealers': dealers })
 
 
 def dealer_manager_edit(request, id):
+    dealers = None
     a = DealerManager.objects.get(pk=id)
     if request.method == 'POST':
         form = DealerManagerForm(request.POST, instance=a)
@@ -2173,7 +2188,8 @@ def dealer_manager_edit(request, id):
             return HttpResponseRedirect('/dealer-manager/view/')
     else:
         form = DealerManagerForm(instance=a)
-    return render_to_response('index.html', {'form': form, 'weblink': 'dealer-manager.html'}, context_instance=RequestContext(request, processors=[custom_proc]))
+        dealers = Dealer.objects.all()
+    return render(request, 'index.html', {'form': form, 'weblink': 'dealer-manager.html', 'dealers': dealers })
 
  
 def dealer_manager_del(request, id):
@@ -2184,7 +2200,8 @@ def dealer_manager_del(request, id):
  
  
 def dealer_manager_list(request):
-    list = DealerManager.objects.all().order_by('company')
+    # list = DealerManager.objects.all().order_by('company')
+    list = DealerManager.objects.select_related('company').all()
     #return render_to_response('dealer-manager_list.html', {'dealer_managers': list.values_list()})
     return render(request, 'index.html', {'dealer_managers': list, 'weblink': 'dealer-manager_list.html'})
 

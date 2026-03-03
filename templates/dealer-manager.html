@@ -1,3 +1,282 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Редагування менеджера</title>
+
+ 
+    <style>
+        body { background-color: #f8f9fa; }
+        
+        /* Контейнер форми за вашим стилем */
+        .card { border-radius: 8px; border: none; }
+        .card-header { font-size: 1.1rem; letter-spacing: 0.5px; }
+        
+       /* Стилізація випадаючого списку Autocomplete */
+        .ui-autocomplete {
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1050; /* Щоб було поверх інших елементів */
+            border-radius: 4px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Підсвітка помилок */
+        .is-invalid { border-color: #dc3545 !important; }
+        .invalid-feedback { display: block; font-weight: bold; color: #dc3545; }
+
+        /* Адаптивне позиціювання (ліворуч на ПК, центр на мобільних) */
+        @media (min-width: 992px) {
+            .form-col { padding-left: 3rem; }
+        }
+
+.autocomplete-wrapper {
+    position: relative;
+    display: block;
+}
+
+.autocomplete-caret {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d;
+    font-size: 0.8rem;
+    pointer-events: none; /* Клік проходить крізь стрілку на інпут */
+    transition: transform 0.2s ease;
+}
+
+/* Ефект повороту стрілки, коли поле у фокусі */
+#company_search:focus + .autocomplete-caret {
+    transform: translateY(-50%) rotate(180deg);
+    color: #007bff;
+}
+
+/* Стиль випадаючого списку (обов'язково) */
+.ui-autocomplete {
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 2000 !important;
+}
+
+        
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center justify-content-lg-start">
+        
+        <div class="col-12 col-md-10 col-lg-7 form-col"> 
+            
+            <div class="card shadow-sm">
+                <!-- Темна шапка -->
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Редагування профілю менеджера</h5>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form method="post" novalidate id="managerForm">
+                        {% csrf_token %}
+
+                        <!-- 1. ПОЛЕ: ПІБ (Ім'я) -->
+                        <div class="form-group mb-4">
+                            <label class="font-weight-bold {% if form.name.errors %}text-danger{% endif %}">
+                                {{ form.name.label }}
+                            </label>
+                            {{ form.name }}
+                            {% for error in form.name.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+{% comment %} 
+                        <!-- 2. ПОЛЕ: Компанія з Autocomplete -->
+                        <div class="form-group mb-4 position-relative">
+                            <label class="font-weight-bold {% if form.company.errors %}text-danger{% endif %}">
+                                Компанія (Дилер)
+                            </label>
+                            
+                            <!-- Видиме поле для пошуку -->
+                            <input type="text" id="company_search" 
+                                   class="form-control {% if form.company.errors %}is-invalid{% endif %}" 
+                                   placeholder="Почніть вводити назву компанії..." 
+                                   value="{{ form.instance.company.name|default:'' }}" 
+                                   autocomplete="off">
+                            
+                            <!-- Приховане поле для Django (ID компанії) -->
+                            <input type="hidden" name="company" id="id_company_hidden" 
+                                   value="{{ form.instance.company.id|default:'' }}">
+
+                            {% for error in form.company.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div> {% endcomment %}
+
+<div class="form-group mb-4">
+    <label class="font-weight-bold">Компанія (Дилер)</label>
+    <div class="position-relative autocomplete-wrapper">
+        <input type="text" id="company_search" class="form-control pr-5" 
+               placeholder="Оберіть компанію..." autocomplete="off">
+        <!-- Іконка стрілочки -->
+        <div id="autocomplete-caret" class="autocomplete-caret">▼</div>
+        
+        <input type="hidden" name="company" id="id_company_hidden">
+    </div>
+</div>
+
+                        <!-- 3. ПОЛЕ: Email -->
+                        <div class="form-group mb-4">
+                            <label class="font-weight-bold {% if form.email.errors %}text-danger{% endif %}">
+                                {{ form.email.label }}
+                            </label>
+                            {{ form.email }}
+                            {% for error in form.email.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- 4. ПОЛЕ: Телефон -->
+                        <div class="form-group mb-4">
+                            <label class="font-weight-bold {% if form.phone.errors %}text-danger{% endif %}">
+                                {{ form.phone.label }}
+                            </label>
+                            {{ form.phone }}
+                            {% for error in form.phone.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- 5. ПОЛЕ: Опис -->
+                        <div class="form-group mb-4">
+                            <label class="font-weight-bold {% if form.description.errors %}text-danger{% endif %}">
+                                {{ form.description.label }}
+                            </label>
+                            {{ form.description }}
+                            {% for error in form.description.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Кнопки керування -->
+                        <div class="mt-4 pt-3 border-top d-flex align-items-center">
+                            <button type="submit" class="btn btn-primary px-5 shadow-sm mr-3">Зберегти</button>
+                            <a href="{% url 'manager_list' %}" class="btn btn-link text-muted">
+                                Список менеджерів 
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div> <!-- /card -->
+            
+        </div>
+    </div>
+</div>
+
+
+<script>
+{% comment %}     
+    $(document).ready(function() {
+        
+        // --- 1. ПІДГОТОВКА ДАНИХ ДЛЯ ПОШУКУ ---
+        // Отримуємо список дилерів з Django context
+        const dealers = [
+            {% for dealer in dealers %}
+                { label: "{{ dealer.name|escapejs }}", value: "{{ dealer.id }}" }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+        // --- 2. ІНІЦІАЛІЗАЦІЯ AUTOCOMPLETE ---
+        $("#company_search").autocomplete({
+            source: function(request, response) {
+                const term = request.term.toLowerCase();
+                const matches = dealers.filter(d => d.label.toLowerCase().includes(term));
+                response(matches.slice(0, 10)); // Показуємо перші 10 результатів
+            },
+            minLength: 1,
+            select: function(event, ui) {
+                $("#company_search").val(ui.item.label);
+                $("#id_company_hidden").val(ui.item.value);
+                $("#company_search").removeClass('is-invalid');
+                return false;
+            },
+            focus: function(event, ui) {
+                // Текст у полі змінюється при наведенні, але ID не зачіпаємо
+                $("#company_search").val(ui.item.label);
+                return false;
+            }
+        });
+
+        // Очищення прихованого ID, якщо текст стерто
+        $("#company_search").on('input', function() {
+            if ($(this).val().trim() === "") {
+                $("#id_company_hidden").val("");
+            }
+        });
+
+        // --- 3. ПІДСВІТКА ПОМИЛОК ---
+        // Додаємо клас is-invalid до всіх елементів форми, що мають помилки
+        $('.invalid-feedback').each(function() {
+            $(this).siblings('input, textarea, select').addClass('is-invalid');
+        });
+
+        // --- 4. ГАРЯЧІ КЛАВІШІ ТА ФОКУС ---
+        $('input[name="name"]').focus();
+
+
+    }); {% endcomment %}
+
+$(document).ready(function() {
+    const dealers = [
+        {% for d in dealers %}
+            { "label": "{{ d.name|escapejs }}", "value": "{{ d.id }}" }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const $searchField = $("#company_search");
+
+    $searchField.autocomplete({
+        minLength: 0,
+        source: function(request, response) {
+            const term = request.term.toLowerCase();
+            if (term.length === 0) {
+                response(dealers.slice(0, 30)); // Показати перші 30 при порожньому полі
+            } else {
+                const matches = dealers.filter(d => d.label.toLowerCase().includes(term));
+                response(matches.slice(0, 15));
+            }
+        },
+        select: function(event, ui) {
+            $searchField.val(ui.item.label);
+            $("#id_company_hidden").val(ui.item.value);
+            return false;
+        }
+    });
+
+    // Відкривати весь список при кліку або фокусі
+    $searchField.on("click focus", function() {
+        if ($(this).val().length === 0) {
+            $(this).autocomplete("search", "");
+        }
+    });
+
+    // Обробка натискання клавіші "Вниз", якщо поле порожнє
+    $searchField.on("keydown", function(e) {
+        if (e.keyCode === 40 && $(this).val().length === 0) { // 40 - стрілка вниз
+            $(this).autocomplete("search", "");
+        }
+    });
+});
+
+</script>
+
+
+</body>
+</html>
+
+
+
+{% comment %} 
 <html lang="en">
 <head>
     <title>Add Dealer Manager</title>
@@ -14,6 +293,10 @@
 <a href="/">HOME</a>
 </body>
 </html>
+
+ {% endcomment %}
+
+
 
 
 

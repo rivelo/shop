@@ -1,36 +1,148 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Варіанти оплат</title>
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<title>Тарифи на зберігання</title>
 
+    
+    <style>
+        body { background-color: #f8f9fa; padding: 0px; }
+        .table-container { background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 10px; }
+        
+        /* Стиль для заголовків з сортуванням */
+        th.sortable { cursor: pointer; position: relative; transition: background 0.2s; }
+        th.sortable:hover { background-color: #e9ecef; }
+        th.sortable::after { content: ' \2195'; opacity: 0.3; font-size: 0.8rem; }
+        th.sort-asc::after { content: ' \2191'; opacity: 1; }
+        th.sort-desc::after { content: ' \2193'; opacity: 1; }
 
-<link rel="stylesheet" type="text/css" href="/media/table.css">
+        .btn-action { display: inline-flex; align-items: center; gap: 4px; }
+        .table td { vertical-align: middle; }
+    </style>
+</head>
+<body>
 
+<div class="container-fluid">
+    <div class="table-container">
+        
+        <!-- Заголовок -->
+        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+            <h2 class="text-dark font-weight-bold mb-0">
+                Варіанти зберігання 
+					<a href="/bicycle/storage/type/add/" title="Створити новий тариф" class="badge badge-success"><i class="material-icons">add_circle_outline</i></a>  
+            </h2>
+            <div class="text-muted small">Натисніть на заголовок для сортування</div>
+        </div>
 
-<h1>Варіанти зберігання <a href="/bicycle/storage/type/add/">(Додати)</a></h1>
+        <!-- Таблиця -->
+        <div class="table-responsive">
+            <table class="table table-hover table-striped border" id="storageTable">
+                <thead class="thead-light">
+                    <tr>
+                        <th class="sortable" onclick="sortTable(0)">#</th>
+                        <th class="sortable" onclick="sortTable(1)">ID</th>
+                        <th class="sortable" onclick="sortTable(2)">Назва</th>
+                        <th class="sortable" onclick="sortTable(3)">Ціна</th>
+                        <th class="d-none d-md-table-cell">Опис</th>
+                        <th class="text-right">Дія</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for element in list %}
+                    <tr>
+                        <td class="font-weight-bold">{{ forloop.counter }}</td>
+                        <td>
+                            <a href="/bicycle/storage/type/edit/{{ element.id }}" class="badge badge-info p-2">
+                                {{ element.id }}
+                            </a>
+                        </td>
+                        <td>{{ element.type }}</td>
+                        <td class="text-primary font-weight-bold">{{ element.price }}</td>
+                        <td class="d-none d-md-table-cell text-muted small">{{ element.description|truncatechars:100 }}</td>
+                        <td class="text-right">
+    {% if user.is_authenticated %}
+    <div class="btn-group" role="group">
+        <!-- Кнопка Редагувати -->
+        <a href="/bicycle/storage/type/edit/{{ element.id }}" 
+           class="btn btn-outline-primary btn-sm btn-action" 
+           title="Редагувати">
+            <i class="material-icons" style="font-size: 16px;">edit</i>
+            <span class="d-none d-xl-inline ml-1">Редагувати</span>
+        </a>
+        
+        <!-- Кнопка Видалити -->
+        <a href="{% url 'bicycle_storage_type_delete' element.id %}" 
+           class="btn btn-outline-danger btn-sm btn-action"
+           onclick="return confirm('Видалити запис - {{element.type}}?')"
+           title="Видалити">
+            <i class="material-icons" style="font-size: 16px;">delete</i>
+            <span class="d-none d-xl-inline ml-1">Видалити</span>
+        </a>
+    </div>
+    {% else %}
+    <span class="text-muted small">Доступ обмежено</span>
+    {% endif %}
+</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-<table>
-	<tr>
-		<th>#</th>
-		<th>id</th>
-		<th>Назва</th>
-		<th>Ціна</th>
-		<th>Опис</th>
-		<th>Дія</th>
-	</tr>
-	{% for element in list %}
-	<tr>
-		<td>{{ forloop.counter }}</td>
-		<td><a href="/bicycle/storage/type/edit/{{ element.id }}">{{ element.id }}</a></td>
-		<td>{{ element.type }}</td>
-		<td>{{ element.price }}</td>
-		<td>{{ element.description }}</td>
-		<td>
-{% if user.is_authenticated %}		
-		<a href="/bicycle/storage/type/delete/{{ element.id }}" onclick="return confirm('Видалити запис - {{element.name}}?')">delete</a>
-		</td>		
-{% endif %}
-	</tr>
-	{% endfor %}
-	<table>
+<!-- JavaScript для сортування -->
+<script>
+    let currentSortColumn = -1;
+    let isAscending = true;
 
-	<br>
+    function sortTable(columnIndex) {
+        const table = document.getElementById("storageTable");
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.rows);
+        const headers = table.querySelectorAll("th.sortable");
+
+        // Зміна напрямку
+        if (currentSortColumn === columnIndex) {
+            isAscending = !isAscending;
+        } else {
+            isAscending = true;
+            currentSortColumn = columnIndex;
+        }
+
+        // Візуальна індикація
+        headers.forEach((h, idx) => {
+            h.classList.remove('sort-asc', 'sort-desc');
+            if (idx === columnIndex) {
+                h.classList.add(isAscending ? 'sort-asc' : 'sort-desc');
+            }
+        });
+
+        // Логіка сортування
+        const sortedRows = rows.sort((rowA, rowB) => {
+            const cellA = rowA.cells[columnIndex].innerText.trim();
+            const cellB = rowB.cells[columnIndex].innerText.trim();
+
+            // Перевірка на числа
+            const numA = parseFloat(cellA.replace(/[^\d.-]/g, ''));
+            const numB = parseFloat(cellB.replace(/[^\d.-]/g, ''));
+
+            if (!isNaN(numA) && !isNaN(numB)) {
+                return isAscending ? numA - numB : numB - numA;
+            }
+
+            // Текстове сортування
+            return isAscending 
+                ? cellA.localeCompare(cellB, 'uk') 
+                : cellB.localeCompare(cellA, 'uk');
+        });
+
+        tbody.append(...sortedRows);
+    }
+</script>
+
+</body>
+</html>
+

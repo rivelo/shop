@@ -1,4 +1,4 @@
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+{% comment %} <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <html lang="en">
 <head>
     <title>Менеджери</title>
@@ -51,6 +51,166 @@
 <a href="/">HOME</a>
 <br>
 <a href="/dealer-manager/add/">Add</a>      
+
+</body>
+</html> {% endcomment %}
+
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Менеджери Дилерів</title>
+    
+    <!-- Bootstrap 4.6 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net">
+    <script src="https://cdn.sheetjs.com"></script>
+
+    <style>
+        body { background-color: #f4f7f6; }
+        .table-container { background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); padding: 25px; }
+        .container-fluid { padding: 20px 40px; }
+        
+        th { cursor: pointer; white-space: nowrap; background-color: #343a40; color: white; }
+        th:hover { background-color: #23272b; }
+        
+        td[contenteditable="true"]:focus {
+            background-color: #e8f0fe;
+            outline: 2px solid #007bff;
+        }
+
+        /* Анімація для комбінації клавіш */
+        .search-flash {
+            transition: all 0.3s;
+            border: 2px solid #28a745 !important;
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="table-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-dark font-weight-bold">Менеджери Дилерів
+				<a href="/dealer-manager/add/" title="Створити нового менеджера" class="badge badge-success"><i class="material-icons">add_circle_outline</i></a>  
+			</h2>
+            <button class="btn btn-outline-success" onclick="exportToExcel()">
+                📊 Експорт Менеджерів
+            </button>
+        </div>
+
+        <!-- Пошук з підказкою клавіш -->
+        <div class="form-group">
+            <input type="text" id="managerSearch" class="form-control form-control-lg" 
+                   onkeyup="filterTable()" placeholder="Пошук (Ctrl + / для скидання)" autofocus>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-striped" id="managerTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">Ім'я</th>
+                        <th onclick="sortTable(1)">Компанія (Дилер)</th>
+                        <th onclick="sortTable(2)">Email</th>
+                        <th class="d-none d-md-table-cell" onclick="sortTable(3)">Телефон</th>
+                        <th class="d-none d-lg-table-cell">Опис</th>
+						<th class="d-none d-lg-table-cell">Дія</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for manager in dealer_managers %}
+                    <tr data-id="{{ manager.id }}">
+                        <td contenteditable="true" class="font-weight-bold">{{ manager.name }}</td>
+                        <!-- Вивід ForeignKey (Компанія) -->
+                        <td><span class="badge badge-secondary">{{ manager.company.name }}</span></td>
+                        <td contenteditable="true">
+                            <a href="mailto:{{ manager.email }}">{{ manager.email|default:"-" }}</a>
+                        </td>
+                        <td contenteditable="true" class="d-none d-md-table-cell">
+                            {{ manager.phone|default:"-" }}
+                        </td>
+                        <td contenteditable="true" class="d-none d-lg-table-cell text-muted">
+                            {{ manager.description|truncatechars:80|default:"" }}
+                        </td>
+						<td class="d-flex justify-content-between align-items-center">
+    <!-- Іконка редагування (буде зліва) -->
+    <a href="/dealer-manager/edit/{{ manager.id }}" 
+       class="text-primary" 
+       title="Редагувати [{{ manager.name }}]">
+        <i class="material-icons">edit</i>
+    </a>
+
+    <!-- Іконка видалення (буде справа) -->
+    <a href="/dealer-manager/delete/{{ manager.id }}" 
+       class="text-danger" 
+	   title="Видалити [{{ manager.name }}]"
+       onclick="return confirm('Видалити запис?');">
+        <i class="material-icons">delete_outline</i>
+    </a>
+</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center">Список менеджерів порожній</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Пошук по таблиці
+    function filterTable() {
+        const input = document.getElementById("managerSearch");
+        const filter = input.value.toLowerCase();
+        const rows = document.querySelectorAll("#managerTable tbody tr");
+
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
+        });
+    }
+
+    // 2. Сортування
+    let asc = true;
+    function sortTable(n) {
+        const table = document.getElementById("managerTable");
+        const rows = Array.from(table.tBodies[0].rows);
+        
+        rows.sort((a, b) => {
+            const valA = a.cells[n].innerText.toLowerCase();
+            const valB = b.cells[n].innerText.toLowerCase();
+            return asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        });
+
+        table.tBodies[0].append(...rows);
+        asc = !asc;
+    }
+
+    // 3. Експорт у Excel через SheetJS
+    function exportToExcel() {
+        const table = document.getElementById("managerTable");
+        const wb = XLSX.utils.table_to_book(table, { sheet: "Managers" });
+        XLSX.writeFile(wb, "DealerManagers_List.xlsx");
+    }
+
+    // 4. Гаряча клавіша Ctrl + /
+    document.addEventListener('keydown', function(e) {
+        const searchInput = document.getElementById("managerSearch");
+        
+        if (e.ctrlKey && (e.key === "/" || e.code === "Slash")) {
+            e.preventDefault();
+            searchInput.value = "";
+            filterTable();
+            searchInput.focus();
+            
+            // Візуальний ефект
+            searchInput.classList.add('search-flash');
+            setTimeout(() => searchInput.classList.remove('search-flash'), 400);
+        }
+    });
+</script>
 
 </body>
 </html>

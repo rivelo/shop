@@ -1,3 +1,187 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Список велосипедів на зберіганні</title>
+    
+   
+    <style>
+        body { background-color: #f4f7f6; padding: 0px; font-size: 0.9rem; }
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 25px; }
+        
+        /* Сортування */
+        th.sortable { cursor: pointer; white-space: nowrap; position: relative; padding-right: 25px !important; }
+        th.sortable:hover { background-color: #f1f1f1; }
+        th.sortable::after { content: '\e5d2'; font-family: 'Material Icons'; position: absolute; right: 5px; opacity: 0.2; font-size: 14px; }
+        th.sort-asc::after { content: '\e5d8'; opacity: 1; color: #007bff; }
+        th.sort-desc::after { content: '\e5db'; opacity: 1; color: #007bff; }
+
+        /* Таблиця */
+        .table img { border-radius: 4px; transition: transform 0.2s; cursor: zoom-in; }
+        .table img:hover { transform: scale(3); position: relative; z-index: 10; }
+        .table td { vertical-align: middle; }
+        
+        /* Пошук */
+        #tableSearch { border-radius: 20px; padding-left: 45px; height: 45px; border: 2px solid #e0e0e0; }
+        .search-wrapper { position: relative; }
+        .search-wrapper i { position: absolute; left: 15px; top: 10px; color: #aaa; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="table-container">
+        
+        <!-- Заголовок та кнопка додавання -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="font-weight-bold text-dark mb-0">
+                Велосипеди на зберіганні
+                <a href="/bicycle/storage/add/" class="btn btn-success btn-sm ml-2 shadow-sm">
+                    <i class="material-icons align-middle">add_circle</i> Додати
+                </a>
+            </h2>
+        </div>
+
+        <!-- Поле пошуку (Клієнт, Модель, Серійник) -->
+        <div class="search-wrapper mb-4">
+            <i class="material-icons">search</i>
+            <input type="text" id="tableSearch" class="form-control" 
+                   onkeyup="filterTable()" placeholder="Швидкий пошук за власником, моделлю або серійним номером (Esc або Ctrl + / для скидання)..." autofocus>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-sm" id="bicycleTable">
+                <thead class="thead-light">
+                    <tr>
+                        <th class="sortable" onclick="sortTable(0)">#</th>
+                        <th class="sortable" onclick="sortTable(1)">ID</th>
+                        <th class="sortable" onclick="sortTable(2)">Власник</th>
+                        <th class="sortable" onclick="sortTable(3)">Модель</th>
+                        <th>Розмір</th>
+                        <th>Колір</th>
+                        <th>Колеса</th>
+                        <th class="sortable" onclick="sortTable(7)">Серійний №</th>
+                        <th>Тип</th>
+                        <th class="sortable" onclick="sortTable(9)">Ціна</th>
+                        <th>Сервіс</th>
+                        <th>Мийка</th>
+                        <th>Тариф</th>
+                        <th class="sortable" onclick="sortTable(13)">Прийнято</th>
+                        <th class="sortable" onclick="sortTable(14)">Видача</th>
+                        <th>Фото</th>
+                        <th class="text-right">Дія</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for element in list %}
+                    <tr>
+                        <td class="text-muted">{{ forloop.counter }}</td>
+                        <td><a href="/bicycle/storage/{{ element.id }}/edit/" class="badge badge-light border">{{ element.id }}</a></td>
+                        <td class="font-weight-bold">{{ element.client }}</td>
+                        <td>{{ element.model }}</td>
+                        <td>{{ element.size }}</td>
+                        <td><span class="badge badge-pill border" style="background-color: {{ element.color }}; color: transparent;">.</span> {{ element.color }}</td>
+                        <td>{{ element.wheel_size }}</td>
+                        <td class="text-monospace">{{ element.serial_number }}</td>
+                        <td>{{ element.biketype }}</td>
+                        <td class="text-primary">{{ element.price }}</td>
+                        <td>{{ element.service|yesno:"Так,Ні" }}</td>
+                        <td>{{ element.washing|yesno:"Так,Ні" }}</td>
+                        <td>{{ element.type }}</td>
+                        <td class="small">{{ element.date_in|date:"d.m.Y" }}</td>
+                        <td class="small text-danger font-weight-bold">{{ element.date_out|date:"d.m.Y" }}</td>
+                        <td>
+                            {% for photo in element.get_photos %}
+                                <img src="/media/{{ photo.image }}" width="50" alt="bike">
+                            {% endfor %}
+                        </td>
+                        <td class="text-right">
+                            {% if user.is_authenticated %}
+                            <div class="btn-group">
+                                <a href="/bicycle/storage/{{ element.id }}/edit/" class="btn btn-sm btn-outline-primary" title="Редагувати">
+                                    <i class="material-icons" style="font-size: 16px;">edit</i>
+                                </a>
+                                <a href="/bicycle/storage/{{ element.id }}/delete/" class="btn btn-sm btn-outline-danger" 
+                                   onclick="return confirm('Видалити запис - {{ element.model }}?')" title="Видалити">
+                                    <i class="material-icons" style="font-size: 16px;">delete</i>
+                                </a>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. ПОШУК (Клієнт, Модель, Серійник)
+    function filterTable() {
+        const input = document.getElementById("tableSearch");
+        const filter = input.value.toLowerCase();
+        const rows = document.querySelectorAll("#bicycleTable tbody tr");
+
+        rows.forEach(row => {
+            // Отримуємо текст з конкретних колонок: 2 (Клієнт), 3 (Модель), 7 (Серійний номер)
+            const client = row.cells[2].innerText.toLowerCase();
+            const model = row.cells[3].innerText.toLowerCase();
+            const serial = row.cells[7].innerText.toLowerCase();
+            
+            if (client.includes(filter) || model.includes(filter) || serial.includes(filter)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    // 2. СОРТУВАННЯ
+    let sortAsc = true;
+    function sortTable(n) {
+        const table = document.getElementById("bicycleTable");
+        const rows = Array.from(table.tBodies[0].rows);
+        const headers = table.querySelectorAll("th.sortable");
+
+        headers.forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
+
+        rows.sort((a, b) => {
+            const x = a.cells[n].innerText.toLowerCase();
+            const y = b.cells[n].innerText.toLowerCase();
+            
+            if (!isNaN(x) && !isNaN(y)) return sortAsc ? x - y : y - x;
+            return sortAsc ? x.localeCompare(y) : y.localeCompare(x);
+        });
+
+        table.tBodies[0].append(...rows);
+        headers[n < headers.length ? n : 0]?.classList.add(sortAsc ? 'sort-asc' : 'sort-desc');
+        sortAsc = !sortAsc;
+    }
+
+    // 3. ГАРЯЧІ КЛАВІШІ (Ctrl + /)
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && (e.key === "/" || e.code === "Slash")) {
+            e.preventDefault();
+            const search = document.getElementById("tableSearch");
+            search.value = "";
+            filterTable();
+            search.focus();
+        }
+    });
+</script>
+
+</body>
+</html>
+
+
+
+
+
+{% comment %} 
+
+
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Зберігання велосипедів</title>
@@ -61,4 +245,4 @@
 	{% endfor %}
 	<table>
 
-	<br>
+	<br> {% endcomment %}

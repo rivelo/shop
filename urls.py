@@ -149,12 +149,13 @@ urlpatterns = [
     url(r'^bike/lookup/$', catalog.bike_lookup),
     
     #storage bicycle
-    url(r'^bicycle/storage/type/view/$', catalog.bicycle_storage_type_list),
+    url(r'^bicycle/storage/type/view/$', catalog.bicycle_storage_type_list, name='bicycle_storage_type_list'),
     url(r'^bicycle/storage/type/add/$', catalog.bicycle_storage_type_add),
+    url(r'^bicycle/storage/type/(?P<id>\d+)/delete/$', catalog.bicycle_storage_type_delete, name='bicycle_storage_type_delete'),    
     url(r'^bicycle/storage/add/$', catalog.bicycle_storage_add),
     url(r'^bicycle/storage/(?P<id>\d+)/edit/$', catalog.bicycle_storage_edit),
     url(r'^bicycle/storage/(?P<id>\d+)/delete/$', catalog.bicycle_storage_delete),
-    url(r'^bicycle/storage/view/$', catalog.bicycle_storage_list),
+    url(r'^bicycle/storage/view/$', catalog.bicycle_storage_list, name='bicycle_storage_list'),
         
     # Dealer/Dealer Managers operation
     url(r'^dealer/payment/add/$', catalog.dealer_payment_add),
@@ -190,7 +191,7 @@ urlpatterns = [
     url(r'^dealer/delete/(?P<id>\d+)/$', catalog.dealer_del),
 
     url(r'^dealer-manager/add/$', catalog.dealer_manager_add),
-    url(r'^dealer-manager/view/$', catalog.dealer_manager_list),
+    url(r'^dealer-manager/view/$', catalog.dealer_manager_list, name='manager_list'),
     url(r'^dealer-manager/edit/(?P<id>\d+)/$', catalog.dealer_manager_edit),    
     url(r'^dealer-manager/delete/(?P<id>\d+)/$', catalog.dealer_manager_del),
 
