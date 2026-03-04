@@ -1,10 +1,218 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Розміри рам та геометрія</title>
+
+
+    <style>
+        body { background-color: #f8f9fa; padding: 0px; font-size: 0.9rem; }
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 10px; }
+        
+        /* Сортування */
+        th.sortable { cursor: pointer; position: relative; padding-right: 25px !important; white-space: nowrap; background-color: #f1f3f5; }
+        th.sortable:hover { background-color: #e9ecef; }
+        th.sortable::after { content: '\e5d2'; font-family: 'Material Icons'; position: absolute; right: 5px; opacity: 0.3; font-size: 14px; }
+        th.sort-asc::after { content: '\e5d8'; opacity: 1; color: #17a2b8; }
+        th.sort-desc::after { content: '\e5db'; opacity: 1; color: #17a2b8; }
+
+        /* Геометрія - виділення */
+        .geo-cell { background-color: #fffdf5; font-family: 'Roboto Mono', monospace; font-size: 0.85rem; }
+        .badge-size { font-size: 1rem; padding: 0.5em 0.8em; }
+        
+        /* Пошук */
+        .search-box { border-radius: 30px; padding-left: 45px; border: 2px solid #dee2e6; transition: 0.3s; }
+        .search-box:focus { border-color: #17a2b8; box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.1); }
+        .search-icon { position: absolute; left: 15px; top: 11px; color: #adb5bd; }
+
+		/* Стиль для головного заголовка-бейджа */
+.badge-main-title {
+    font-size: 1.8rem; /* Збільшений розмір */
+    font-weight: 800;
+    letter-spacing: -0.5px;
+/*    padding: 12px 25px; */
+    border-radius: 12px;
+    vertical-align: middle;
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+}
+
+/* Кнопка "Створити" поруч */
+.btn-create-sub {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    margin-left: 15px;
+    vertical-align: middle;
+}
+
+    </style>
+</head>
+
+{# {% load poll_extras %} #}
+
+<body>
+
+<div class="container-fluid">
+    <div class="table-container">
+        
+        <!-- Заголовок -->
+        <div class="d-flex justify-content-between align-items-center mb-1">
+
+			<h2 class="mb-1">
+    <span class="badge badge-info shadow-sm badge-main-title">Розміри рам</span>
+   
+	<a href="/bicycle-framesize/add/" title="Створити новий розмір" class="badge badge-success"><i class="material-icons">add_circle_outline</i></a>  
+			</h2>
+        </div>
+
+        <!-- Пошук -->
+        <div class="position-relative mb-1">
+            <i class="material-icons search-icon">search</i>
+            <input type="text" id="frameSearch" class="form-control form-control-lg search-box" 
+                   onkeyup="filterFrames()" placeholder="Пошук за назвою, літерою або зростом (Ctrl + /)..." autofocus>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered" id="frameTable">
+                <thead class="thead-light">
+                    <tr>
+                        <th class="sortable" onclick="sortTable(0)">ID</th>
+                        <th class="sortable" onclick="sortTable(1)">Назва</th>
+                        <th class="sortable" onclick="sortTable(2)">Літера</th>
+                        <th class="sortable text-info" onclick="sortTable(3)">см / дюйм</th>
+                        <th class="sortable" onclick="sortTable(4)">Зріст (см)</th>
+                        <th class="geo-cell sortable" onclick="sortTable(5)" title="Effective Top Tube">ETT (мм)</th>
+                        <th class="geo-cell sortable" onclick="sortTable(6)">Standover</th>
+                        <th class="geo-cell d-none d-xl-table-cell">Кути (ST/HT)</th>
+                        <th class="geo-cell d-none d-xl-table-cell">Wheelbase</th>
+                        <th class="text-center">Звіт</th>
+                        <th class="text-center">Дія</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for type in framesizes %}
+                    <tr>
+                        <td class="text-muted">{{ type.id }}</td>
+                        <td><a href="/bicycle/framesize/edit/{{ type.id }}" class="font-weight-bold">{{ type.name }}</a></td>
+                        <td class="text-center"><span class="badge badge-secondary badge-size">{{ type.letter|default:"-" }}</span></td>
+                        <td>
+                            <span class="text-primary font-weight-bold">{{ type.cm }}</span> см / 
+                            <span class="text-success">{{ type.inch }}</span>"
+                        </td>
+                        <td>
+                            <span class="badge badge-light border">
+                                {{ type.rider_height_min }} - {{ type.rider_height_max }} см
+                            </span>
+                        </td>
+                        <td class="geo-cell font-weight-bold text-center">{{ type.ett_toptube|default:"0" }}</td>
+                        <td class="geo-cell text-center">{{ type.standover|default:"0" }}</td>
+                        <td class="geo-cell d-none d-xl-table-cell small text-center">
+                            {{ type.seattube_angle }}° / {{ type.headtube_angle }}°
+                        </td>
+                        <td class="geo-cell d-none d-xl-table-cell text-center">{{ type.wheelbase|default:"0" }}</td>
+                        <td class="text-center">
+                            <a href="/bicycle/store/report/bysize/{{ type.id }}/" class="btn btn-sm btn-outline-info" title="Наявні велосипеди">
+                                <i class="material-icons">list_alt</i>
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <a href="/bicycle/framesize/delete/{{ type.id }}" 
+                               class="btn btn-sm btn-outline-danger" 
+                               onclick="return confirm('Видалити запис - {{type.name}}?')">
+                                <i class="material-icons">delete_forever</i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Пошук
+    function filterFrames() {
+        const query = document.getElementById("frameSearch").value.toLowerCase();
+        const rows = document.querySelectorAll("#frameTable tbody tr");
+
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(query) ? "" : "none";
+        });
+    }
+
+    // 2. Сортування
+    let sortAsc = true;
+ function sortTable(n) {
+    const table = document.getElementById("frameTable");
+    // ВИПРАВЛЕННЯ: Додаємо [0], щоб звернутися до першого tbody
+    const tbody = table.tBodies[0]; 
+    if (!tbody) return; // Захист, якщо tbody відсутній
+
+    const rows = Array.from(tbody.rows);
+    const headers = table.querySelectorAll("th.sortable");
+
+    // Видаляємо старі класи сортування
+    headers.forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
+
+    rows.sort((a, b) => {
+        // Отримуємо текст із комірок n
+        let x = a.cells[n].textContent.trim().toLowerCase();
+        let y = b.cells[n].textContent.trim().toLowerCase();
+        
+        // Спроба перетворити на числа для колонок з цифрами (ID, см, дюйми, ETT тощо)
+        // Видаляємо все крім цифр та крапок для коректного порівняння float
+        let numX = parseFloat(x.replace(/[^\d.-]/g, ''));
+        let numY = parseFloat(y.replace(/[^\d.-]/g, ''));
+
+        if (!isNaN(numX) && !isNaN(numY)) {
+            return sortAsc ? numX - numY : numY - numX;
+        }
+        
+        return sortAsc ? x.localeCompare(y, 'uk') : y.localeCompare(x, 'uk');
+    });
+
+    // Перезаписуємо рядки у tbody
+    tbody.append(...rows);
+
+    // Додаємо стрілочку до заголовка
+    if (headers[n]) {
+        headers[n].classList.add(sortAsc ? 'sort-asc' : 'sort-desc');
+    }
+
+    sortAsc = !sortAsc;
+}
+
+    // 3. Гаряча клавіша Ctrl + /
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && (e.key === "/" || e.code === "Slash")) {
+            e.preventDefault();
+            const s = document.getElementById("frameSearch");
+            s.value = "";
+            filterFrames();
+            s.focus();
+        }
+    });
+</script>
+
+</body>
+</html>
+
+
+
+{% comment %} 
+
+
+
+
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 {# <link rel="stylesheet" type="text/css" href="/media/table.css"> #}
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <title>Розміри рам</title>
 
-{% load poll_extras %}
+
 
 
 <h1><span class="badge badge-info">Розміри рам </span> <a href="/bicycle-framesize/add/" class="badge badge-success">Створити <i class="material-icons">add_circle_outline</i></a></h1>
@@ -48,4 +256,5 @@
 </table>
 
 </div>
-</div>
+</div> 
+{% endcomment %}

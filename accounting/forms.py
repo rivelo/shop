@@ -122,13 +122,31 @@ class BicycleTypeForm(forms.ModelForm):
         fields = '__all__'
 
 
+# class BicycleFrameSizeForm(forms.ModelForm):
+#     name = forms.CharField(label='Назва')
+#     cm = forms.FloatField(min_value=0, label='Розмір, см (cm)')
+#     inch = forms.FloatField(min_value=0, label='Розмір, дюйми (inch)')
+#     class Meta:
+#         model = FrameSize
+#         fields = '__all__'    
+
 class BicycleFrameSizeForm(forms.ModelForm):
-    name = forms.CharField(label='Назва')
-    cm = forms.FloatField(min_value=0, label='Розмір, см (cm)')
-    inch = forms.FloatField(min_value=0, label='Розмір, дюйми (inch)')
     class Meta:
         model = FrameSize
-        fields = '__all__'    
+        fields = [
+            'name', 'letter', 'cm', 'inch', 'rider_height_min', 'rider_height_max',
+            'ett_toptube', 'seattube', 'seattube_angle', 'headtube', 'headtube_angle', 
+            'standover', 'wheelbase', 'description'
+        ]
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        #super().__init__(*args, **kwargs)
+        super(BicycleFrameSizeForm, self).__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})        
 
 
 class BicycleForm(forms.ModelForm):

@@ -494,23 +494,44 @@ def bicycle_type_list(request):
     context.update(custom_proc(request)) 
     return render(request, 'index.html', context)
 
-@csrf_exempt
+
 def bicycle_framesize_add(request):
-    a = FrameSize()
     if request.method == 'POST':
-        form = BicycleFrameSizeForm(request.POST, instance=a)
+        # Створюємо форму на основі POST-даних
+        form = BicycleFrameSizeForm(request.POST)
         if form.is_valid():
-#            name = form.cleaned_data['name']
-#            cm = form.cleaned_data['cm']
-#            inch = form.cleaned_data['inch']
-            #FrameSize(name=name, cm=cm, inch=inch).save()
+            # Зберігаємо новий об'єкт FrameSize
             form.save()
-            return HttpResponseRedirect('/bicycle-framesize/view/')
+            # Використовуємо redirect замість HttpResponseRedirect для зручності
+            return redirect('/bicycle-framesize/view/')
     else:
-        form = BicycleFrameSizeForm(instance=a)
-    context = {'form': form, 'weblink': 'bicycle_framesize.html', 'text': 'Створення нового розміру рами'}
-    context.update(custom_proc(request))   
+        # Порожня форма для GET-запиту
+        form = BicycleFrameSizeForm()
+
+    context = {
+        'form': form, 
+        'text': 'Створення нового розміру рами',
+        'weblink': 'bicycle_framesize.html' # Переконайтеся, що index.html використовує цю змінну
+    }
     return render(request, 'index.html', context)
+
+# @csrf_exempt
+# def bicycle_framesize_add(request):
+#     a = FrameSize()
+#     if request.method == 'POST':
+#         form = BicycleFrameSizeForm(request.POST, instance=a)
+#         if form.is_valid():
+# #            name = form.cleaned_data['name']
+# #            cm = form.cleaned_data['cm']
+# #            inch = form.cleaned_data['inch']
+#             #FrameSize(name=name, cm=cm, inch=inch).save()
+#             form.save()
+#             return HttpResponseRedirect('/bicycle-framesize/view/')
+#     else:
+#         form = BicycleFrameSizeForm(instance=a)
+#     context = {'form': form, 'weblink': 'bicycle_framesize.html', 'text': 'Створення нового розміру рами'}
+# #    context.update(custom_proc(request))   
+#     return render(request, 'index.html', context)
 
 @csrf_exempt
 def bicycle_framesize_edit(request, id):
@@ -1123,7 +1144,7 @@ def store_report_bysize(request, id):
     frame = FrameSize.objects.get(id=id)
     frame_str = u"Розмір рами " + frame.name
     frames = FrameSize.objects.all()
-    return render_to_response('index.html', {'bicycles': list, 'weblink': 'bicycle_store_list.html', 'text': frame_str, 'sizes': frames, 'next': current_url(request)}, context_instance=RequestContext(request, processors=[custom_proc]))
+    return render(request, 'index.html', {'bicycles': list, 'weblink': 'bicycle_store_list.html', 'text': frame_str, 'sizes': frames, 'next': current_url(request)})
 
     
 def store_report_bytype(request, id):

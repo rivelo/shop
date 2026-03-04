@@ -1,3 +1,327 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Налаштування геометрії рами</title>
+    
+    <style>
+        body { background-color: #f8f9fa; padding: 0px 0; }
+        .form-card { 
+            background: white; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+            padding: 20px; 
+            width: 100%;
+        }
+        .section-title { 
+            font-size: 1.1rem; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            color: #17a2b8; 
+            border-bottom: 2px solid #f1f1f1; 
+            padding-bottom: 10px; 
+            margin-bottom: 25px; 
+        }
+        label { font-weight: 600; color: #495057; margin-bottom: 8px; display: block; }
+        .form-control:focus { border-color: #17a2b8; box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.15); }
+        .is-invalid { border-color: #dc3545 !important; }
+        
+        @media (min-width: 992px) {
+            .form-wrapper { padding-left: 1%; }
+            .form-card { max-width: 800px; }
+        }
+    </style>
+</head>
+<body>
+{% comment %} 
+<div class="container-fluid form-wrapper">
+    <div class="row justify-content-center justify-content-lg-start">
+        <div class="col-12 col-md-10 col-lg-8">
+            
+            <div class="form-card">
+                <h2 class="mb-4">
+                    <span class="badge badge-info shadow-sm py-2 px-3" style="font-size: 1.7rem; border-radius: 10px;">
+                        Геометрія рами
+                    </span>
+                </h2>
+
+                <form method="post" novalidate id="frameForm">
+                    {% csrf_token %}
+
+                    <!-- Блок 1: Маркування -->
+                    <div class="section-title mt-4">Основні параметри</div>
+                    
+                    {% for field in form %}
+                        {% if field.name == 'name' or field.name == 'letter' or field.name == 'cm' or field.name == 'inch' %}
+                            <div class="form-group mb-4">
+                                <label {% if field.errors %}class="text-danger"{% endif %}>{{ field.label }}</label>
+                                {{ field }}
+                                {% for error in field.errors %}<small class="text-danger font-weight-bold">{{ error }}</small>{% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                    <!-- Блок 2: Зріст -->
+                    <div class="section-title mt-5">Антропометрія (Зріст вершника)</div>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label>Мін. зріст (см)</label>
+                            {{ form.rider_height_min }}
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Макс. зріст (см)</label>
+                            {{ form.rider_height_max }}
+                        </div>
+                    </div>
+
+                    <!-- Блок 3: Технічна геометрія -->
+                    <div class="section-title mt-5">Технічна геометрія (мм/градуси)</div>
+                    {% for field in form %}
+                        {% if field.name in "ett_toptube seattube seattube_angle headtube headtube_angle standover wheelbase description" %}
+                            <div class="form-group mb-4">
+                                <label {% if field.errors %}class="text-danger"{% endif %}>{{ field.label }}</label>
+                                {{ field }}
+                                {% for error in field.errors %}<small class="text-danger font-weight-bold">{{ error }}</small>{% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                    <div class="mt-5 pt-4 border-top d-flex align-items-center">
+                        <button type="submit" class="btn btn-info btn-lg px-5 shadow mr-4">Зберегти параметри</button>
+                        <a href="/bicycle/framesize/list/" class="text-muted">Скасувати <small>(Ctrl + /)</small></a>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-info">
+            <div class="card-header bg-info text-white">Візуалізація геометрії</div>
+            <div class="card-body text-center bg-white">
+                <!-- Полотно для малювання -->
+                <canvas id="bikeCanvas" width="600" height="400" style="max-width: 100%; height: auto;"></canvas>
+                <div class="mt-2 small text-muted">Схема побудована на основі введених ETT, Seattube та кутів.</div>
+            </div>
+        </div>
+    </div>
+</div> {% endcomment %}
+
+
+<div class="container-fluid form-wrapper">
+    <div class="row justify-content-center justify-content-lg-start">
+        
+        <!-- ЛІВА КОЛОНКА: ФОРМА -->
+        <div class="col-12 col-lg-7 mb-4">
+            <div class="form-card shadow-sm">
+                <h2 class="mb-4">
+                    <span class="badge badge-info shadow-sm py-2 px-3" style="font-size: 1.7rem; border-radius: 10px;">
+                        Геометрія рами
+                    </span>
+                </h2>
+
+                <form method="post" novalidate id="frameForm">
+                    {% csrf_token %}
+                    
+                    <div class="section-title">Основні параметри</div>
+                    {{ form.name.label }} {{ form.name }}
+                    <div class="form-row">
+                        <div class="col-6">{{ form.letter.label }} {{ form.letter }}</div>
+                        <div class="col-3">{{ form.cm.label }} {{ form.cm }}</div>
+                        <div class="col-3">{{ form.inch.label }} {{ form.inch }}</div>
+                    </div>
+
+<div class="section-title mt-4">Рекомендований зріст (см)</div>
+<div class="form-row">
+    <div class="col-md-6 mb-3">
+        <label for="id_rider_height_min" class="font-weight-bold text-muted small">Мінімальний зріст</label>
+        <div class="input-group shadow-sm">
+            <div class="input-group-prepend">
+                <span class="input-group-text bg-white"><i class="material-icons" style="font-size: 18px;">height</i></span>
+            </div>
+            {{ form.rider_height_min }}
+        </div>
+        {% if form.rider_height_min.help_text %}<small class="text-muted">{{ form.rider_height_min.help_text }}</small>{% endif %}
+    </div>
+    <div class="col-md-6 mb-3">
+        <label for="id_rider_height_max" class="font-weight-bold text-muted small">Максимальний зріст</label>
+        <div class="input-group shadow-sm">
+            <div class="input-group-prepend">
+                <span class="input-group-text bg-white"><i class="material-icons" style="font-size: 18px;">vertical_align_top</i></span>
+            </div>
+            {{ form.rider_height_max }}
+        </div>
+        {% if form.rider_height_max.help_text %}<small class="text-muted">{{ form.rider_height_max.help_text }}</small>{% endif %}
+    </div>
+</div>
+
+                    <div class="section-title mt-4">Технічні дані (мм / °)</div>
+                    <div class="form-row">
+                        <div class="col-md-4">{{ form.ett_toptube.label }} {{ form.ett_toptube }}</div>
+                        <div class="col-md-4">{{ form.seattube.label }} {{ form.seattube }}</div>
+                        <div class="col-md-4">{{ form.seattube_angle.label }} {{ form.seattube_angle }}</div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-4">{{ form.headtube.label }} {{ form.headtube }}</div>
+                        <div class="col-md-4">{{ form.headtube_angle.label }} {{ form.headtube_angle }}</div>
+                        <div class="col-md-4">{{ form.wheelbase.label }} {{ form.wheelbase }}</div>
+                    </div>
+                    {{ form.standover.label }} {{ form.standover }}
+                    {{ form.description.label }} {{ form.description }}
+
+                    <div class="mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-info btn-lg px-5 shadow">Зберегти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ПРАВА КОЛОНКА: ВІЗУАЛІЗАЦІЯ (на ПК зліва, на мобайл знизу) -->
+        <div class="col-12 col-lg-5">
+            <div class="card shadow-sm border-info sticky-top" style="top: 20px; z-index: 100;">
+                <div class="card-header bg-info text-white font-weight-bold">
+                    <i class="material-icons align-middle">Directions_bike</i> Ескіз геометрії
+                </div>
+                <div class="card-body text-center bg-white p-2">
+                    <canvas id="bikeCanvas" width="500" height="350" style="width: 100%; height: auto;"></canvas>
+                    <hr>
+                    <div class="row small text-muted">
+                        <div class="col-6 text-left"><b>ETT:</b> <span id="val_ett"></span>мм</div>
+                        <div class="col-6 text-right"><b>База:</b> <span id="val_wb"></span>мм</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+<script>
+function drawBikeFrame() {
+    const canvas = document.getElementById('bikeCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Отримання значень
+    const ett = parseFloat(document.getElementById('id_ett_toptube').value) || 560;
+    const st = parseFloat(document.getElementById('id_seattube').value) || 500;
+    const st_angle = parseFloat(document.getElementById('id_seattube_angle').value) || 73;
+    const ht = parseFloat(document.getElementById('id_headtube').value) || 140;
+    const ht_angle = parseFloat(document.getElementById('id_headtube_angle').value) || 71;
+    const wb = parseFloat(document.getElementById('id_wheelbase').value) || 1050;
+
+    // Оновлення тексту під канвасом
+    document.getElementById('val_ett').innerText = ett;
+    document.getElementById('val_wb').innerText = wb;
+
+    const scale = 0.28; // Трохи зменшив масштаб, щоб влізли колеса
+    const offset_x = 180;
+    const offset_y = 280;
+
+    const bb = { x: offset_x, y: offset_y };
+    const st_rad = st_angle * Math.PI / 180;
+    const sc = { 
+        x: bb.x - (st * Math.cos(st_rad)) * scale, 
+        y: bb.y - (st * Math.sin(st_rad)) * scale 
+    };
+    const head_top = { x: sc.x + (ett * scale), y: sc.y };
+    const ht_rad = ht_angle * Math.PI / 180;
+    const head_bottom = {
+        x: head_top.x + (ht * Math.cos(ht_rad)) * scale,
+        y: head_top.y + (ht * Math.sin(ht_rad)) * scale
+    };
+
+    // Точки коліс (відносно BB та Wheelbase)
+    // Задня вісь (спрощено 430мм від BB)
+    const rear_axle = { x: bb.x - (435 * scale), y: bb.y };
+    // Передня вісь (на відстані Wheelbase від задньої)
+    const front_axle = { x: rear_axle.x + (wb * scale), y: bb.y };
+
+    // МАЛЮВАННЯ КОЛІС
+    const wheel_radius = 320 * scale; // Приблизно 28-29 дюймів
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#dee2e6';
+    
+    // Заднє колесо
+    ctx.beginPath(); ctx.arc(rear_axle.x, rear_axle.y, wheel_radius, 0, Math.PI*2); ctx.stroke();
+    // Переднє колесо
+    ctx.beginPath(); ctx.arc(front_axle.x, front_axle.y, wheel_radius, 0, Math.PI*2); ctx.stroke();
+
+    // МАЛЮВАННЯ РАМИ
+    ctx.beginPath();
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#17a2b8';
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    ctx.moveTo(bb.x, bb.y); ctx.lineTo(sc.x, sc.y); // Seattube
+    ctx.lineTo(head_top.x, head_top.y); // Toptube
+    ctx.lineTo(head_bottom.x, head_bottom.y); // Headtube
+    ctx.lineTo(bb.x, bb.y); // Downtube
+    
+    // Задній трикутник
+    ctx.moveTo(sc.x, sc.y); ctx.lineTo(rear_axle.x, rear_axle.y);
+    ctx.lineTo(bb.x, bb.y);
+    
+    // Вилка (спрощено до передньої осі)
+    ctx.moveTo(head_bottom.x, head_bottom.y); ctx.lineTo(front_axle.x, front_axle.y);
+
+    ctx.stroke();
+
+    // Центр каретки (BB)
+    ctx.beginPath(); ctx.fillStyle = '#343a40'; ctx.arc(bb.x, bb.y, 6, 0, Math.PI*2); ctx.fill();
+}
+
+// Прив'язка до всіх числових полів
+document.addEventListener('DOMContentLoaded', () => {
+    drawBikeFrame();
+    const fields = ['ett_toptube', 'seattube', 'seattube_angle', 'headtube', 'headtube_angle', 'wheelbase'];
+    fields.forEach(f => {
+        const el = document.getElementById('id_' + f);
+        if(el) el.addEventListener('input', drawBikeFrame);
+    });
+});
+
+
+</script>
+
+
+
+<script>
+    $(document).ready(function() {
+        // Підсвітка помилок
+        $('small.text-danger').each(function() {
+            $(this).siblings('.form-control').addClass('is-invalid');
+        });
+
+        // Автофокус на назву
+        $('input[name="name"]').focus();
+
+        // Гаряча клавіша Ctrl + /
+        $(document).keydown(function(e) {
+            if (e.ctrlKey && (e.key === "/" || e.code === "Slash")) {
+                e.preventDefault();
+                window.location.href = "/bicycle/framesize/list/";
+            }
+        });
+    });
+</script>
+
+
+
+
+</body>
+</html>
+
+
+{% comment %} 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <html lang="en">
 
@@ -14,4 +338,4 @@
 <br>
 <a href="/bicycle-framesize/view/">Розміри рам</a>
 
-</body>
+</body> {% endcomment %}
