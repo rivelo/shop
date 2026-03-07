@@ -143,8 +143,9 @@ urlpatterns = [
     # bicycle order by client
     url(r'^bicycle/order/view/$', catalog.bicycle_order_list),
     url(r'^bicycle/order/done/$', catalog.bicycle_order_done),
-    url(r'^bicycle/order/add/$', catalog.bicycle_order_add),
-    url(r'^bicycle/order/edit/(?P<id>\d+)/$', catalog.bicycle_order_edit),
+    url(r'^bicycle/order/add/$', catalog.bicycle_order_add_edit),
+#    url(r'^bicycle/order/edit/(?P<id>\d+)/$', catalog.bicycle_order_edit),
+    url(r'^bicycle/order/edit/(?P<order_id>\d+)/$', catalog.bicycle_order_add_edit),
     url(r'^bicycle/order/(?P<id>\d+)/delete/$', catalog.bicycle_order_del),
     url(r'^bike/lookup/$', catalog.bike_lookup),
     
@@ -310,6 +311,7 @@ urlpatterns = [
 
     # Client
     url(r'^client/(?P<id>\d+)$', catalog.client_data, name="client-data"),
+    url(r'^client/(?P<id>\d+)/$', catalog.client_data, name="client-data"),
     url(r'^clients/balance/$', catalog.client_balance_list),
     url(r'^client/add/$', catalog.client_add),
     url(r'^client/edit/(?P<id>\d+)$', catalog.client_edit, name="client-edit"),

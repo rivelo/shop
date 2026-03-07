@@ -19,6 +19,7 @@ from django.core import serializers
 from django.core.urlresolvers import resolve
 
 from django.shortcuts import render_to_response, redirect, render
+from django.shortcuts import get_object_or_404
 
 from django.contrib.auth.models import Group
 from django.contrib import auth
@@ -32,7 +33,7 @@ from django.utils.text import slugify
 
 from django.urls import reverse
 
-from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,  FrameSize, Bicycle_Store, Bicycle_Sale, Bicycle_Order, Bicycle_Storage, Bicycle_Photo, Storage_Type, Bicycle_Parts
+from models import Manufacturer, Country, Type, Currency, Bicycle_Type, Bicycle,  FrameSize, Bicycle_Store, Bicycle_Sale, Bicycle_Order, Bicycle_Storage, Bicycle_Photo, Storage_Type, Bicycle_Parts, Wheel_Size
 from models import Catalog, Client, ClientDebts, ClientCredits, ClientInvoice, ClientOrder, ClientMessage, ClientReturn, InventoryList
 from models import Dealer, DealerManager, DealerManager, DealerPayment, DealerInvoice, InvoiceComponentList, Bank, Exchange, PreOrder, CashType, Discount, Shop
 from models import WorkGroup, WorkType, WorkShop, WorkStatus, WorkTicket, CostType, Costs, ShopDailySales, Rent, ShopPrice, Photo, WorkDay, Check, CheckPay, PhoneStatus, YouTube
@@ -58,6 +59,7 @@ from PIL import Image
 from urlparse import urlsplit
 from _mysql import NULL
 from django.template.context_processors import request
+
 
 
 def custom_proc(request):
@@ -1021,6 +1023,31 @@ def bicycle_store_del(request, id):
     return HttpResponseRedirect('/bicycle-store/view/seller/')
 
 
+# def bicycle_store_list(request, id=None, all=False, shop=None):
+#     # Отримуємо всі товари на складі з пов'язаними даними для швидкості
+#     items = Bicycle_Store.objects.filter(count=1).select_related(
+#         'model', 
+#         'model__brand', 
+#         'model__wheel_size', 
+#         'size', 
+#         'currency', 
+#         'shop'
+#     ).all()
+
+#     # Отримуємо списки для випадаючих фільтрів у шаблоні
+#     shops = Shop.objects.all()
+#     wheel_sizes = Wheel_Size.objects.all()
+
+#     context = {
+#         'items': items,
+#         'shops': shops,
+#         'wheel_sizes': wheel_sizes,
+#         'weblink': 'bicycle_store_list.html'
+#     }
+    
+#     return render(request, 'index.html', context)
+
+
 def bicycle_store_list(request, id=None, all=False, shop=None):
     list = None
     shopId = None
@@ -1831,72 +1858,170 @@ def bicycle_sale_report(request):
     return render(request, 'index.html', context)
 
 
-
 def bicycle_sale_report_by_brand(request):
     list = Bicycle_Sale.objects.values('model__model__brand__name', 'model__model__brand', 'model__model__brand__id').annotate(bcount=Count("model__model__model")).order_by('-bcount') #("model__model__brand")
     context = {'bicycles': list, 'weblink': 'bicycle_sale_report_bybrand.html', }
     context.update(custom_proc(request))    
     return render(request, 'index.html', context)    
 
-@csrf_exempt
-def bicycle_order_add(request):
-    if auth_group(request.user, 'seller') == False:
-        return HttpResponse('Для виконання дій авторизуйтесь', content_type="text/plain;charset=UTF-8;")
-    a = Bicycle_Order(prepay=0, sale=0, currency=Currency.objects.get(id=3))
-    if request.method == 'POST':
-        form = BicycleOrderForm(request.POST, instance = a)
-        if form.is_valid():
-            cid = form.cleaned_data['client_id']
-            client = Client.objects.get(pk = cid)
-            mid = form.cleaned_data['model_id']
-            model = Bicycle.objects.get(pk = mid)
-            size = form.cleaned_data['size']
-            price = form.cleaned_data['price']
-            sale = form.cleaned_data['sale']
-            prepay = form.cleaned_data['prepay']
-            currency = form.cleaned_data['currency']
-            date = form.cleaned_data['date']
-            #done = form.cleaned_data['done']
-            description = form.cleaned_data['description']
-            user = None             
-            cashtype = None
-            if request.user.is_authenticated():
-                user = request.user
-              
-            if request.POST.has_key('cash'):
-                o_id = request.POST.get( 'cash' )            
-                cashtype = CashType.objects.get(id = o_id)
-                
-            Bicycle_Order(client=client, model=model, size=size, price=price, sale=sale, currency=currency, date=date,  description=description, prepay=prepay, user=user).save()
-            ClientCredits(client=client, date=date, price=prepay, description="Передоплата за "+str(model), user=user, cash_type=cashtype).save()                        
-            return HttpResponseRedirect('/bicycle/order/view/')
-    else:
-        form = BicycleOrderForm(instance = a)
-    
-    context = {'form': form, 'weblink': 'bicycle_order.html', }
-    context.update(custom_proc(request))
-    return render(request, 'index.html',  context)
-    
 
-def bicycle_order_list(request):
-    #list = Bicycle_Order.objects.all().order_by("-date")
-    list = Bicycle_Order.objects.all().order_by("-date").values('model__id', 'model__model', 'model__brand__name', 'model__year', 'model__color', 'model__type__type', 'client__id', 'client__name', 'client__forumname', 'size', 'price', 'prepay', 'sale', 'date', 'done', 'id', 'currency__name', 'description', 'user')
-    context = {'order': list, 'weblink': 'bicycle_order_list.html', }
-    context.update(custom_proc(request))
-    return render(request, 'index.html', context)
-    
-@csrf_exempt
-def bicycle_order_edit(request, id):
-    a = Bicycle_Order.objects.get(pk=id)
-    if request.method == 'POST':
-        form = BicycleOrderForm(request.POST, instance=a)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect('/bicycle/order/view/')
+def bicycle_order_add_edit(request, order_id=None):
+    if not auth_group(request.user, 'seller'):
+        return HttpResponse('Для виконання дій авторизуйтесь', content_type="text/plain;charset=UTF-8;")
+
+    if order_id:
+        instance = get_object_or_404(Bicycle_Order, pk=order_id)
+        text = u"Редагування замовлення №{}".format(order_id)
     else:
-        form = BicycleOrderForm(instance=a, initial={'client_id': a.client.pk, 'model_id': a.model.pk})
-    context = {'form': form, 'weblink': 'bicycle_order.html'}
+        instance = Bicycle_Order(prepay=0, sale=0, currency=Currency.objects.get(id=3))
+        text = u"Створення нового замовлення"
+
+    if request.method == 'POST':
+        form = BicycleOrderForm(request.POST, instance=instance)
+        
+        if form.is_valid():
+            data = form.cleaned_data
+            client = Client.objects.get(pk=data['client_id'])
+            model = Bicycle.objects.get(pk=data['model_id'])
+            user = request.user if request.user.is_authenticated else None
+            
+            # Обробка каси
+            cashtype = None
+            if 'cash' in request.POST:
+                cashtype = CashType.objects.filter(id=request.POST.get('cash')).first()
+
+            # Збереження замовлення
+            order = form.save(commit=False)
+            order.client = client
+            order.model = model
+            order.user = user
+            order.save()
+
+            # ЛОГІКА ОПЛАТИ (ClientCredits)
+            pay_date = data.get('date') or datetime.datetime.today()
+            pay_description = u"Передоплата за {}".format(model)
+
+            if order_id:
+                # РЕДАГУВАННЯ: Шукаємо існуючий запис передоплати для цього замовлення
+                # Шукаємо за клієнтом та специфічним описом
+                credit_note = ClientCredits.objects.filter(
+                    client=client, 
+                    description=pay_description
+                ).first()
+
+                if credit_note:
+                    # Якщо знайшли — оновлюємо суму та тип каси
+                    credit_note.price = data['prepay']
+                    credit_note.cash_type = cashtype
+                    credit_note.save()
+                elif data['prepay'] > 0:
+                    # Якщо запису не було, але з'явилася сума — створюємо
+                    ClientCredits.objects.create(
+                        client=client, date=pay_date, price=data['prepay'],
+                        description=pay_description, user=user, cash_type=cashtype
+                    )
+            else:
+                # СТВОРЕННЯ НОВОГО: Просто створюємо запис
+                ClientCredits.objects.create(
+                    client=client, date=pay_date, price=data['prepay'],
+                    description=pay_description, user=user, cash_type=cashtype
+                )
+            
+            return redirect('/bicycle/order/view/')
+        else:
+            print(form.errors.as_data()) 
+    else:
+        form = BicycleOrderForm(instance=instance)
+    
+    context = {'form': form, 'weblink': 'bicycle_order.html', 'text': text, 'order_id': order_id}
     return render(request, 'index.html', context)
+
+
+
+# def bicycle_order_add(request):
+#     if auth_group(request.user, 'seller') == False:
+#         return HttpResponse('Для виконання дій авторизуйтесь', content_type="text/plain;charset=UTF-8;")
+#     a = Bicycle_Order(prepay=0, sale=0, currency=Currency.objects.get(id=3))
+#     if request.method == 'POST':
+#         form = BicycleOrderForm(request.POST, instance = a)
+#         if form.is_valid():
+#             cid = form.cleaned_data['client_id']
+#             client = Client.objects.get(pk = cid)
+#             mid = form.cleaned_data['model_id']
+#             model = Bicycle.objects.get(pk = mid)
+#             size = form.cleaned_data['size']
+#             price = form.cleaned_data['price']
+#             sale = form.cleaned_data['sale']
+#             prepay = form.cleaned_data['prepay']
+#             currency = form.cleaned_data['currency']
+#             date = form.cleaned_data['date']
+#             #done = form.cleaned_data['done']
+#             description = form.cleaned_data['description']
+#             user = None             
+#             cashtype = None
+#             if request.user.is_authenticated():
+#                 user = request.user
+              
+#             if request.POST.has_key('cash'):
+#                 o_id = request.POST.get( 'cash' )            
+#                 cashtype = CashType.objects.get(id = o_id)
+                
+#             Bicycle_Order(client=client, model=model, size=size, price=price, sale=sale, currency=currency, date=date,  description=description, prepay=prepay, user=user).save()
+#             ClientCredits(client=client, date=date, price=prepay, description="Передоплата за "+str(model), user=user, cash_type=cashtype).save()                        
+#             return HttpResponseRedirect('/bicycle/order/view/')
+#     else:
+#         form = BicycleOrderForm(instance = a)
+    
+#     context = {'form': form, 'weblink': 'bicycle_order.html', }
+# #    context.update(custom_proc(request))
+#     return render(request, 'index.html',  context)
+
+from django.contrib.auth.decorators import login_required
+@login_required
+def bicycle_order_list(request):
+    # Використовуємо select_related для ForeignKey полів (client, model, currency, shop, user)
+    # Це дозволить завантажити всі дані одним SQL-запитом
+    orders = Bicycle_Order.objects.select_related(
+        'client', 
+        'model', 
+        'model__brand', # якщо бренд — це окрема модель
+        'currency', 
+        'shop', 
+        'user'
+    ).all()
+    #order_state().all() # .all() або ваш кастомний менеджер фільтрації
+
+    # Отримуємо список усіх магазинів для випадаючого списку фільтрації
+    shops = Shop.objects.all()
+
+    context = {
+        'orders': orders,
+        'shops': shops,
+        'text': 'Список замовлень велосипедів',
+        'weblink': 'bicycle_order_list.html'
+    }
+    
+    return render(request, 'index.html', context)
+
+# def bicycle_order_list(request):
+#     #list = Bicycle_Order.objects.all().order_by("-date")
+#     list = Bicycle_Order.objects.all().order_by("-date").values('model__id', 'model__model', 'model__brand__name', 'model__year', 'model__color', 'model__type__type', 'client__id', 'client__name', 'client__forumname', 'size', 'price', 'prepay', 'sale', 'date', 'done', 'id', 'currency__name', 'description', 'user')
+#     context = {'orders': list, 'weblink': 'bicycle_order_list.html', }
+#     context.update(custom_proc(request))
+#     return render(request, 'index.html', context)
+    
+# @csrf_exempt
+# def bicycle_order_edit(request, id):
+#     a = Bicycle_Order.objects.get(pk=id)
+#     if request.method == 'POST':
+#         form = BicycleOrderForm(request.POST, instance=a)
+#         if form.is_valid():
+#             form.save()
+#             return HttpResponseRedirect('/bicycle/order/view/')
+#     else:
+#         form = BicycleOrderForm(instance=a, initial={'client_id': a.client.pk, 'model_id': a.model.pk})
+#     context = {'form': form, 'weblink': 'bicycle_order.html'}
+#     return render(request, 'index.html', context)
 
 
 def bicycle_order_del(request, id):

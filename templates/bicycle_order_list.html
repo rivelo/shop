@@ -1,3 +1,378 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Список замовлень велосипедів</title>
+
+    <style>
+        body { background-color: #f8f9fa; padding: 0px; font-size: 0.9rem; }
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 25px; }
+        
+        /* Статуси рядків */
+        .order-done { background-color: #e8f5e9 !important; border-left: 5px solid #28a745; }
+        .order-pending { border-left: 5px solid #ffc107; }
+
+        /* Сортування */
+        th.sortable { cursor: pointer; position: relative; white-space: nowrap; padding-right: 25px !important; }
+        th.sortable:hover { background-color: #eee; }
+        th.sortable::after { content: '\e5d2'; font-family: 'Material Icons'; position: absolute; right: 5px; opacity: 0.3; font-size: 14px; }
+        th.sort-asc::after { content: '\e5d8'; opacity: 1; color: #007bff; }
+        th.sort-desc::after { content: '\e5db'; opacity: 1; color: #007bff; }
+
+        /* Пошук та фільтри */
+        .search-box { border-radius: 20px; padding-left: 40px; border: 2px solid #ddd; height: 40px; }
+        .search-icon { position: absolute; left: 15px; top: 10px; color: #888; }
+        .filter-select { border-radius: 20px; height: 40px; border: 2px solid #ddd; }
+
+        .price-text { font-weight: bold; color: #007bff; }
+        .prepay-text { color: #dc3545; font-size: 0.8rem; }
+    </style>
+</head>
+
+{% load poll_extras %}
+
+<body>
+
+<div class="container-fluid">
+    <div class="table-container shadow-sm">
+        
+        <!-- Заголовок -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="font-weight-bold text-dark mb-0">
+                Замовлення велосипедів
+                <a href="/bicycle/order/add/" class="btn btn-success btn-sm ml-2 shadow-sm">
+                    <i class="material-icons align-middle">add_box</i> Створити
+                </a>
+            </h2>
+        </div>
+
+        <!-- Панель фільтрів -->
+        <div class="row mb-4">
+            <div class="col-lg-6 col-md-12 position-relative mb-2">
+                <i class="material-icons search-icon">search</i>
+                <input type="text" id="orderSearch" class="form-control search-box" 
+                       onkeyup="applyFilters()" placeholder="Швидкий пошук (Клієнт, Модель, Опис)..." autofocus>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-2">
+                <select id="statusFilter" class="form-control filter-select" onchange="applyFilters()">
+                    <option value="all">📊 Всі замовлення</option>
+                    <option value="pending">⏳ В роботі (Pending)</option>
+                    <option value="done">✅ Виконано (Done)</option>
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-2">
+                <select id="shopFilter" class="form-control filter-select" onchange="applyFilters()">
+                    <option value="all">🏠 Всі магазини</option>
+                    {% for shop in shops %}
+                        <option value="{{ shop.name }}">{{ shop.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover" id="orderTable">
+                <thead class="thead-light">
+                    <tr>
+                        <th class="sortable" onclick="sortTable(0)">ID</th>
+                        <th class="sortable" onclick="sortTable(1)">Клієнт</th>
+                        <th class="sortable" onclick="sortTable(2)">Модель</th>
+                        {% comment %} <th class="d-none d-lg-table-cell">Розмір</th> {% endcomment %}
+						<th class="sortable d-none d-lg-table-cell" onclick="sortTable(3)">Розмір</th>
+                        <th class="sortable" onclick="sortTable(4)">Ціна</th>
+                        <th class="d-none d-xl-table-cell">Знижка</th>
+                        <th class="d-none d-md-table-cell">Аванс</th>
+                        <th class="sortable" onclick="sortTable(7)">Дата</th>
+                        <th class="d-none d-xl-table-cell">Магазин</th>
+                        <th>Статус</th>
+                        <th class="text-right">Дії</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr class="{% if order.done %}order-done{% else %}order-pending{% endif %}" 
+                        data-status="{% if order.done %}done{% else %}pending{% endif %}"
+                        data-shop="{{ order.shop.name|default:'all' }}">
+                        
+                        <td class="font-weight-bold text-muted">{{ order.id }}</td>
+                        <td>
+                            <a href="/client/{{ order.client.id }}/" class="text-dark font-weight-bold">
+                                {{ order.client.name }}
+                            </a>
+                            <div class="small text-muted d-block d-md-none">{{ order.client.phone }}</div>
+                        </td>
+                        <td>
+                            {{ order.model.brand }} {{ order.model.model }}
+                            <div class="small d-lg-none">Розмір: <strong>{{ order.size }}</strong></div>
+                        </td>
+                        <td class="d-none d-lg-table-cell">{{ order.size }}</td>
+                        <td>
+                            <div class="price-text">{{ order.price }} {{ order.currency.name }}</div>
+                        </td>
+                        <td class="d-none d-xl-table-cell text-center">
+                            {% if order.sale > 0 %}<span class="badge badge-warning">-{{ order.sale }}%</span>{% else %}-{% endif %}
+                        </td>
+                        <td class="d-none d-md-table-cell">
+                            <span class="prepay-text">{{ order.prepay }}</span>
+                        </td>
+                        <td data-order="{{ order.date|date:'Ymd' }}">
+						    {{ order.date|date:"d.m.Y" }}
+						</td>
+                        <td class="d-none d-xl-table-cell small">{{ order.shop.name|default:"-" }}</td>
+                        <td class="text-center" >
+                            {% if order.done %}
+                                <span class="badge badge-success px-2 py-1 ref_done" id_order="{{order.id}}">DONE</span>
+                            {% else %}
+                                <span class="badge badge-warning px-2 py-1 ref_done" id_order="{{order.id}}">PENDING</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-right text-nowrap">
+                            <a href="/bicycle/order/edit/{{ order.id }}/" class="btn btn-sm btn-outline-primary shadow-sm mr-1" title="Редагувати">
+                                <i class="material-icons" style="font-size: 16px;">edit</i>
+                            </a>
+                            <a href="/bicycle/order/delete/{{ order.id }}/" class="btn btn-sm btn-outline-danger shadow-sm" 
+                               onclick="return confirm('Видалити замовлення №{{ order.id }}?')" title="Видалити">
+                                <i class="material-icons" style="font-size: 16px;">delete</i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="11" class="text-center py-5 text-muted">Замовлень не знайдено</td></tr>
+                    {% endfor %}
+                </tbody>
+{% if request.user|has_group:"admin" %}				
+<tfoot class="bg-light font-weight-bold">
+    <tr>
+        <td colspan="3" class="text-right">Всього за списком: <span id="totalCount">0</span></td>
+        <td class="d-none d-lg-table-cell"></td>
+        <td><span id="totalSum" class="text-primary">0</span> <small>грн</small></td>
+        <td class="d-none d-xl-table-cell"></td>
+        <td class="d-none d-md-table-cell"><span id="totalPrepay" class="text-danger">0</span> <small>грн</small></td>
+        <td colspan="4"></td>
+    </tr>
+</tfoot>				
+{% endif %}
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// 1. Оголошуємо змінні глобально
+let sortAsc = true;
+
+// 2. Функція сортування (має бути доступна глобально для onclick)
+function sortTable(n) {
+    const table = document.getElementById("orderTable");
+    const tbody = table.tBodies[0];
+    const rows = Array.from(tbody.rows);
+    let dir = table.getAttribute("data-sort-dir") === "asc" ? "desc" : "asc";
+    table.setAttribute("data-sort-dir", dir);
+
+    // Мапа пріоритетів для текстових розмірів
+    const sizeMap = { 'XXS': 1, 'XS': 2, 'S': 3, 'M': 4, 'L': 5, 'XL': 6, 'XXL': 7, 'XXXL': 8 };
+
+    const sortedRows = rows.sort((a, b) => {
+        let x = a.cells[n].innerText.trim().toUpperCase();
+        let y = b.cells[n].innerText.trim().toUpperCase();
+
+        // Логіка для колонки Розмір (індекс 3)
+        if (n === 3) {
+            let valA = sizeMap[x] || parseFloat(x) || x;
+            let valB = sizeMap[y] || parseFloat(y) || y;
+            
+            if (valA < valB) return dir === "asc" ? -1 : 1;
+            if (valA > valB) return dir === "asc" ? 1 : -1;
+            return 0;
+        }
+
+        // Стандартне сортування для інших колонок
+        let numA = parseFloat(x.replace(/[^\d.-]/g, ''));
+        let numB = parseFloat(y.replace(/[^\d.-]/g, ''));
+
+        if (!isNaN(numA) && !isNaN(numB)) {
+            return dir === "asc" ? numA - numB : numB - numA;
+        }
+
+        return dir === "asc" ? x.localeCompare(y) : y.localeCompare(x);
+    });
+
+    // Оновлюємо таблицю
+    tbody.append(...sortedRows);
+    
+    // Оновлюємо візуальні стрілочки в заголовках
+    updateSortIcons(n, dir);
+}
+
+function updateSortIcons(columnIndex, direction) {
+    const headers = document.querySelectorAll('th.sortable');
+    headers.forEach((th, idx) => {
+        th.classList.remove('sort-asc', 'sort-desc');
+        if (idx === columnIndex) {
+            th.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
+        }
+    });
+}
+
+// 3. Функція фільтрації
+function applyFilters() {
+    const search = document.getElementById("orderSearch") ? document.getElementById("orderSearch").value.toLowerCase() : "";
+    const statusFilter = document.getElementById("statusFilter") ? document.getElementById("statusFilter").value : "all";
+    const shopFilter = document.getElementById("shopFilter") ? document.getElementById("shopFilter").value : "all";
+    const rows = document.querySelectorAll("#orderTable tbody tr");
+
+    let c = 0, s = 0, p = 0;
+
+    rows.forEach(row => {
+        if (row.cells.length < 5) return; 
+
+        const rowText = row.innerText.toLowerCase();
+        const rowStatus = row.getAttribute("data-status") || "";
+        const rowShop = row.getAttribute("data-shop") || "";
+
+        const matchSearch = rowText.includes(search);
+        const matchStatus = (statusFilter === "all" || rowStatus === statusFilter);
+        const matchShop = (shopFilter === "all" || rowShop === shopFilter);
+
+        if (matchSearch && matchStatus && matchShop) {
+            row.style.display = "";
+            c++;
+            
+            const pCell = row.querySelector('.price-text');
+            const prCell = row.querySelector('.prepay-text');
+            
+            s += pCell ? (parseFloat(pCell.getAttribute('data-val')) || 0) : 0;
+            p += prCell ? (parseFloat(prCell.getAttribute('data-val')) || 0) : 0;
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    if(document.getElementById("resCount")) document.getElementById("resCount").innerText = c;
+    if(document.getElementById("resSum")) document.getElementById("resSum").innerText = s.toFixed(2);
+    if(document.getElementById("resPrepay")) document.getElementById("resPrepay").innerText = p.toFixed(2);
+}
+
+// 4. Ініціалізація після завантаження сторінки
+document.addEventListener('DOMContentLoaded', function() {
+    applyFilters();
+    
+    // Ctrl + / для скидання
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && (e.key === "/" || e.code === "Slash")) {
+            e.preventDefault();
+            const searchField = document.getElementById("orderSearch");
+            if (searchField) {
+                searchField.value = "";
+                document.getElementById("statusFilter").value = "all";
+                document.getElementById("shopFilter").value = "all";
+                applyFilters();
+                searchField.focus();
+            }
+        }
+    });
+});
+
+function calculateTotals() {
+    let totalCount = 0;
+    let totalSum = 0;
+    let totalPrepay = 0;
+
+    // Отримуємо всі рядки тіла таблиці
+    const rows = document.querySelectorAll('#orderTable tbody tr');
+
+    rows.forEach(row => {
+        // Рахуємо лише видимі рядки (які не сховав фільтр)
+        if (row.style.display !== 'none' && !row.classList.contains('empty-row')) {
+            totalCount++;
+
+            // Отримуємо ціну (4-та колонка, індекс 4)
+            // Видаляємо назву валюти та зайві пробіли
+            let priceText = row.cells[4].innerText.replace(/[^\d.-]/g, '');
+            let price = parseFloat(priceText) || 0;
+            totalSum += price;
+
+            // Отримуємо аванс (6-та колонка, індекс 6)
+            let prepayText = row.cells[6].innerText.replace(/[^\d.-]/g, '');
+            let prepay = parseFloat(prepayText) || 0;
+            totalPrepay += prepay;
+        }
+    });
+
+    // Оновлюємо значення у футері
+    document.getElementById('totalCount').innerText = totalCount;
+    document.getElementById('totalSum').innerText = totalSum.toLocaleString('uk-UA');
+    document.getElementById('totalPrepay').innerText = totalPrepay.toLocaleString('uk-UA');
+}
+
+// Функція фільтрації (додайте виклик calculateTotals в кінці)
+function applyFilters() {
+    const searchText = document.getElementById('orderSearch').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const shopFilter = document.getElementById('shopFilter').value;
+    const rows = document.querySelectorAll('#orderTable tbody tr');
+
+    rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        const status = row.getAttribute('data-status');
+        const shop = row.getAttribute('data-shop');
+
+        const matchesSearch = text.includes(searchText);
+        const matchesStatus = (statusFilter === 'all' || status === statusFilter);
+        const matchesShop = (shopFilter === 'all' || shop === shopFilter);
+
+        if (matchesSearch && matchesStatus && matchesShop) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // ПЕРЕРАХУНОК після фільтрації
+    calculateTotals();
+}
+
+// Запуск при завантаженні
+window.onload = calculateTotals;
+
+$(document).ready(function() {
+$("body").on('click', 'span.ref_done', function() {
+	var obj_click = $(this); 
+	$.ajax({
+		type: "POST",
+        url: "/bicycle/order/done/",
+        data: { border_id: $(this).attr('id_order') },
+        dataType: "text",
+        success:function(msg){
+            // $(this).html(item['done']);
+                 obj_click.html(msg);
+                 if (msg == 'True') {
+                 obj_click.parent().parent().attr('class', 'd_true');
+                 }
+                 else {
+                 obj_click.parent().parent().attr('class', 'd_false');
+                 }
+                //console.log("PREV = ",  obj_click.parent().parent().attr('class', 'd_true'));
+                 
+        },
+        error:function(){
+        	alert("При відправці виникли помилки");
+        	$(this).html("При відправці виникли помилки")
+        }
+    });      
+}); 
+});
+
+
+</script>
+
+</body>
+</html>
+
+
+
+{% comment %} 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Замовленні велосипеди</title>
@@ -162,4 +537,4 @@ $("body").on('click', 'span.ref_done', function() {
 </table>
 
 {% load poll_extras %}
-{% orm_debug %}
+{% orm_debug %} {% endcomment %}

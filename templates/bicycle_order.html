@@ -1,194 +1,256 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Замовлення велосипеду</title>
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{{ text|default:"Замовлення велосипеду" }}</title>
 
- 
- 	
-{% comment %}
-<style>
-  .custom-combobox {
-    position: relative;
-    display: inline-block;
-  }
-  .custom-combobox-toggle {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    margin-left: -1px;
-    padding: 0;
-  }
-  .custom-combobox-input {
-    margin: 0;
-    padding: 5px 10px;
-  }
-</style>  
-{% endcomment %}
-	
-<script type="text/javascript">
+    <style>
+        body { background-color: #f4f7f6; padding: 0px; }
+        .form-card { 
+            background: white; border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+            padding: 35px; width: 100%;
+        }
+        .section-title { 
+            font-size: 1rem; text-transform: uppercase; color: #007bff; 
+            border-bottom: 2px solid #f1f1f1; padding-bottom: 8px; 
+            margin: 25px 0 20px 0; font-weight: bold;
+        }
+        /* Спеціальний клас для ваших інпутів */
+        .form-control2 {
+            display: block; width: 100%; height: calc(1.5em + .75rem + 2px);
+            padding: .375rem .75rem; font-size: 1rem; font-weight: 400;
+            line-height: 1.5; color: #495057; background-color: #fff;
+            border: 1px solid #ced4da; border-radius: .25rem;
+        }
+        .form-control2.is-invalid { border-color: #dc3545 !important; }
+        .invalid-feedback { display: block; color: #dc3545; font-weight: bold; font-size: 85%; }
+        
+        /* Автокомпліт */
+        .ui-autocomplete { z-index: 1050; max-height: 250px; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        
+        #result { color: #28a745; font-weight: bold; display: block; margin-top: 5px; }
 
+        @media (min-width: 992px) {
+            .form-wrapper { padding-left: 2rem; }
+            .form-card { max-width: 900px; }
+        }
+
+        #id_description {
+            height: auto !important; /* Дозволяємо полю змінювати висоту */
+            min-height: 80px;        /* Приблизна висота для 3-х рядків тексту */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid form-wrapper">
+    <div class="row justify-content-center justify-content-lg-start">
+        <div class="col-12 col-md-11 col-lg-10">
+            
+            <div class="form-card shadow-sm">
+                <h2 class="mb-4 text-dark font-weight-bold border-bottom pb-3">
+                    {{ text|default:"Замовлення велосипеду" }}
+                </h2>
+
+                <form id="UserEnter" action="." method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    <!-- ВИВІД ЗАГАЛЬНИХ ПОМИЛОК -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- БЛОК 1: КЛІЄНТ -->
+                    <div class="section-title">Дані клієнта</div>
+                    <div class="form-group mb-4">
+                        <label for="id_client_id" class="font-weight-bold {% if form.client_id.errors %}text-danger{% endif %}">
+                            Пошук клієнта (ПІБ або ID)
+                        </label>
+                        <!-- Hidden поля для Django, видимі для Autocomplete -->
+                        {{ form.client_id }} 
+                        <input type="text" id="client_display" class="form-control2" placeholder="Введіть ПІБ або ID клієнта...">
+                        {% for error in form.client_id.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- БЛОК 2: ВЕЛОСИПЕД -->
+                    <div class="section-title">Вибір велосипеда</div>
+                    <div class="form-group mb-4">
+                        <label for="id_model_id" class="font-weight-bold {% if form.model_id.errors %}text-danger{% endif %}">
+                            Модель велосипеда
+                        </label>
+                        {{ form.model_id }}
+                        <input type="text" id="model_display" class="form-control2" placeholder="Пошук бренду або моделі...">
+                        {% for error in form.model_id.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="col-md-6 mb-3">
+                            <label class="font-weight-bold">Розмір рами</label>
+                            {{ form.size }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="font-weight-bold">Магазин</label>
+                            {{ form.shop }}
+                        </div>
+                    </div>
+
+                    <!-- БЛОК 3: ФІНАНСИ -->
+                    <div class="section-title">Вартість та оплата</div>
+                    <div class="form-row">
+                        <div class="col-md-4 mb-3">
+                            <label class="font-weight-bold">Ціна (грн)</label>
+                            {{ form.price }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="font-weight-bold">Знижка (%)</label>
+                            {{ form.sale }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="font-weight-bold">Валюта</label>
+                            {{ form.currency }}
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="font-weight-bold">Передоплата</label>
+                            <div class="input-group d-block">
+                                {{ form.prepay }}
+                                <!-- Селект каси (створиться скриптом) -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- БЛОК 4: ДОДАТКОВО -->
+                    <div class="section-title">Примітки</div>
+                    <div class="form-group mb-4">
+                        {{ form.description }}
+                    </div>
+
+                    <div class="mt-5 pt-4 border-top">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 shadow">
+                            <i class="material-icons align-middle">save</i> Зберегти замовлення
+                        </button>
+                        <a href="/bicycle/order/view/" class="btn btn-link text-muted ml-3">Скасувати</a>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<script>
+<!-- 2. СКРИПТИ -->
 $(document).ready(function() {
+    var $form = $('#UserEnter');
 
-	$('#id_client_id').focus();
-		
-    $( "#id_client_id" ).autocomplete({
-    	source: function( request, response ) {
-        	$.ajax({
-                type: "GET",
-                url: "/client/lookup",
-				data: { query: $("#id_client_id").val() },
-                dataType: "json",
-                success: function( data ) {
-                        	response( $.map( data, function( item ) {
-                            return {
-                                label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
-                                value: item.fields.name,
-                                sale: item.fields.sale,
-                                pk_id: item.pk,
-    							}
-                        	}));                                
-                            }
-            })
-        },
-        minLength: 3,
-        select: function( event, ui ) {
-           	$('#id_client_id').val(ui.item.pk_id);
-	    	$(this).attr('c_id', ui.item.pk_id)
-	    	$('#id_sale').val(ui.item.sale);
-        },
-        open: function() {
-        	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
-        },
-        close: function() {
-        	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
-        }
+    // Налаштування класів
+    $form.find('input, select, textarea').addClass('form-control2');
+    
+    // Підсвітка помилок Django
+    $form.find('.invalid-feedback').each(function() {
+        $(this).siblings('input, select, textarea, .form-control2').addClass('is-invalid');
     });
 
+    // Динамічна каса
+    $("#id_prepay").after('<select name="cash" id="id_cash" class="form-control2 mt-2">' +
+        '<option value="1" selected="selected">💵 Готівка</option>' +
+        '<option value="2">💳 Термінал pb.ua</option>' +
+    '</select>');
 
-    $("#id_model_id").autocomplete({
-    	source: function( request, response ) {
-        	$.ajax({
-                type: "POST",
-                url: "/bike/lookup/",
-				data: { query: $("#id_model_id").val() },
-                dataType: "json",
-                success: function( data ) {
-                        	response( $.map( data, function( item ) {
-                            return {
-                                label: "["+item.pk + "] : " + item.fields.brand[1] +" - "+ item.fields.model +" ("+item.fields.year.split("-")[0]+") " +item.fields.color,
-                                value: item.fields.model,
-                                sale: item.fields.sale,
-                                pk_id: item.pk,
-								price: item.fields.price,
-                                /*label: item.id + ": [" + item.brand__name + "] "+ item.model,
-                                value: item.model,
-                                sale: item.sale,
-                                pk_id: item.id,
-                                */
-    							}
-                        	}));                                
-                            }
-            })
-        },
-        minLength: 3,
-        select: function( event, ui ) {
-	    	$(this).attr('c_id', ui.item.pk_id)
-	    	$('#id_sale').val(ui.item.sale);
-	    	$('#id_price').val(ui.item.price);
-	    	$('#id_model').val(ui.item.pk_id);
-        },
-        open: function() {
-        	$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
-        },
-        close: function() {
-        	$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
-        }
-    });
-	
-	
-	$('#id_sale').change(function(){
-		$('#result').empty();
-		var res = $('#id_price').val() * (1 - this.value /100);
-		$('#id_sale').after('<span id="result"> Зі знижкою ' + res.toFixed(2) + ' грн.</span>');
-	});
-
-
-$("#UserEnter").submit(function() {
-      if ($("#id_price").val()) {
-      	$("#id_client_id").val($("#id_client_id").attr('c_id'));
-      	$("#id_model_id").val($("#id_model_id").attr('c_id'));
-      	//$("#id_count").val(Math.round($("#id_count").val()));
-        return true;
-      }
-      $("#id_price").after("<b>Введіть суму!</b>");
-      return false;
-});
-
-function id2name(){
-	if ( $("#id_client_id").val() != "" ) {
-		
-		$("#id_client_id").attr('c_id',	$("#id_client_id").val());
-		
+    // --- AUTOCOMPLETE: КЛІЄНТ ---
+    $( "#client_display" ).autocomplete({
+        source: function( request, response ) {
             $.ajax({
-                type: "GET",
-                url: "/client/lookup/byid/",
-                data: { client_id: $("#id_client_id").val() },
+                type: "GET", url: "/client/lookup",
+                data: { query: request.term },
                 dataType: "json",
-                success:function(msg){
-                	$.each(msg,function(index,item){
-                		$("#id_client_id").val(item)    
-                    });
-                	
-                },
-                error:function(){
-                    alert("При отправке возникли проблемы");
+                success: function( data ) {
+                    response( $.map( data, function( item ) {
+                        return {
+                            label: item.pk + ": [" + item.fields.forumname + "] "+ item.fields.name,
+                            value: item.fields.name, sale: item.fields.sale, pk_id: item.pk
+                        }
+                    }));
                 }
-            });      
-	}
-	
-	
-	if ( $("#id_model_id").val() != "" ) {
-		$("#id_model_id").attr('c_id', $("#id_model_id").val());
-        $.ajax({
-            type: "POST",
-            url: "/bike/lookup/",
-            data: { bike_id: $("#id_model_id").val() },
-            dataType: "text",
-            success:function(msg){
-            		$("#id_model_id").val(msg);    
-            },
-            error:function(){
-                alert("При отправке возникли проблемы");
-            }
-        });		
-	}
-};
+            });
+        },
+        minLength: 3,
+        select: function( event, ui ) {
+            // Записуємо в приховане поле Django (ID)
+            $('#id_client_id').val(ui.item.pk_id); 
+            // Відображаємо текст для юзера
+            $('#client_display').val(ui.item.label); 
+            $('#id_sale').val(ui.item.sale).trigger('change');
+            return false; // Важливо, щоб autocomplete не перезаписав поле назвою
+        }
+    });
 
-id2name();
+    // --- AUTOCOMPLETE: ВЕЛОСИПЕД ---
+    $("#model_display").autocomplete({
+        source: function( request, response ) {
+            $.ajax({
+                type: "POST", url: "/bike/lookup/",
+                data: { query: request.term },
+                dataType: "json",
+                success: function( data ) {
+                    response( $.map( data, function( item ) {
+                        return {
+                            label: "["+item.pk + "] : " + (item.fields.brand[1] || item.fields.brand) +" - "+ item.fields.model,
+                            value: item.fields.model, sale: item.fields.sale, pk_id: item.pk, price: item.fields.price
+                        }
+                    }));
+                }
+            });
+        },
+        minLength: 3,
+        select: function( event, ui ) {
+            // Записуємо в приховане поле Django (ID)
+            $('#id_model_id').val(ui.item.pk_id); 
+            // Відображаємо текст для юзера
+            $('#model_display').val(ui.item.label); 
+            $('#id_price').val(ui.item.price).trigger('change');
+            return false;
+        }
+    });
 
-$("#id_prepay").after('<select name="cash" id="id_cash">' +
-'<option value="2">Термінал pb.ua</option>' +
-'<option value="1" selected="selected">Готівка</option>' +
-'</select>');
+    // --- РОЗРАХУНОК ЗНИЖКИ ---
+    $('#id_sale, #id_price').on('change input', function(){
+        $('#result').remove();
+        var price = parseFloat($('#id_price').val()) || 0;
+        var sale = parseFloat($('#id_sale').val()) || 0;
+        var res = price * (1 - sale / 100);
+        $('#id_sale').after('<span id="result">💰 Зі знижкою: ' + res.toFixed(2) + ' грн.</span>');
+    });
 
-$("#id_size").parents('li').before($("#id_client_id").parents("li"));
-$("#id_size").parents('li').before($("#id_model_id").parents("li"));
+    // --- INITIAL ID TO NAME (Редагування) ---
+    function id2name(){
+        var cid = $("#client_id").val();
+        if (cid) {
+            $.getJSON("/client/lookup/byid/", { client_id: cid }, function(msg){
+                $("#client_display").val(msg[0] || msg);
+            });
+        }
+        var mid = $("#id_model_id").val();
+        if (mid) {
+            $.post("/bike/lookup/", { bike_id: mid }, function(msg){
+                $("#model_display").val(msg);
+            }, "text");
+        }
+    }
+    id2name();
 
-$('#id_client_id').focus();
+    $('#client_display').focus();
 });
-  
-
 </script>
 
-
-<h1>Створити замовлення велосипеду{{text}}</h1>
-<form id="UserEnter" action="." method="POST" enctype="multipart/form-data" >
-<button type="submit" class="btn btn-primary mb-2">Зберегти</button>
-<ul>
-	{{ form.as_ul }}
-</ul>
-<input type="submit" value="Зберегти" class="btn btn-primary mb-2">
-</form>
-
-
-<br>
-
+</body>
+</html>
+    

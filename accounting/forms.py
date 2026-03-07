@@ -271,22 +271,69 @@ class BicycleSaleEditForm(forms.ModelForm):
         fields = '__all__'
 
 
+
 class BicycleOrderForm(forms.ModelForm):
-    cur_year = datetime.datetime.today().year
-    client_id = forms.CharField(widget=forms.TextInput(attrs={'size': '50'}), max_length=50, label = 'Клієнт')
-    model_id = forms.CharField(widget=forms.TextInput(attrs={'size': '100'}), label = 'Модель велосипеду')    
-    size = forms.CharField(max_length=50, label = 'Розмір рами')
-    price = forms.FloatField(initial = 0, label = 'Ціна')
-    sale = forms.IntegerField(initial = 0, label = 'Знижка (%)')
-    prepay = forms.FloatField(initial = 0, label = 'Аванс')
-    currency = forms.ModelChoiceField(queryset = Currency.objects.all(), label='Валюта')
-    date = forms.DateTimeField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), label='Дата')
-    description = forms.CharField(label='Опис', widget=forms.Textarea(), required=False)
-    
+    # Визначаємо поля для Autocomplete як CharField, 
+    # щоб передавати ID як текст і не завантажувати тисячі об'єктів у Select
+    client_id = forms.CharField(widget=forms.HiddenInput(), required=False)
+    model_id = forms.CharField(widget=forms.HiddenInput(), required=False)
+
+    # client_id = forms.IntegerField(widget=forms.HiddenInput(), required=True)
+    # model_id = forms.IntegerField(widget=forms.HiddenInput(), required=True)
+
     class Meta:
         model = Bicycle_Order
-        fields = '__all__'
-        exclude = ['user', 'done', 'client', 'model']         
+        # Перелічуємо поля, які будуть відображатися
+        fields = ['size', 'price', 'sale', 'prepay', 'currency', 'description', 'shop']
+        # Додаємо мітки для полів
+        labels = {
+            'size': u'Розмір рами',
+            'price': u'Ціна (грн)',
+            'sale': u'Знижка (%)',
+            'prepay': u'Передоплата',
+            'currency': u'Валюта',
+            'description': u'Примітки',
+            'shop': u'Магазин',
+        }
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        # Python 2.7 сумісний super()
+        super(BicycleOrderForm, self).__init__(*args, **kwargs)
+        # Додаємо клас form-control2 для інтеграції з вашим дизайном
+        for field_name, field in self.fields.items():
+            field.widget.attrs.update({'class': 'form-control2'})
+        # Якщо ми редагуємо існуючий запис, заповнюємо початкові значення для Autocomplete
+        if self.instance and self.instance.pk:
+            if self.instance.client:
+                self.initial['client_id'] = self.instance.client.id
+            if self.instance.model:
+                self.initial['model_id'] = self.instance.model.id
+
+    def clean_price(self):
+        price = self.cleaned_data.get('price')
+        if price <= 0:
+            raise forms.ValidationError(u"Ціна повинна бути більшою за нуль!")
+        return price
+
+# class BicycleOrderForm(forms.ModelForm):
+#     cur_year = datetime.datetime.today().year
+#     client_id = forms.CharField(widget=forms.TextInput(attrs={'size': '50'}), max_length=50, label = 'Клієнт')
+#     model_id = forms.CharField(widget=forms.TextInput(attrs={'size': '100'}), label = 'Модель велосипеду')    
+#     size = forms.CharField(max_length=50, label = 'Розмір рами')
+#     price = forms.FloatField(initial = 0, label = 'Ціна')
+#     sale = forms.IntegerField(initial = 0, label = 'Знижка (%)')
+#     prepay = forms.FloatField(initial = 0, label = 'Аванс')
+#     currency = forms.ModelChoiceField(queryset = Currency.objects.all(), label='Валюта')
+#     date = forms.DateTimeField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), label='Дата')
+#     description = forms.CharField(label='Опис', widget=forms.Textarea(), required=False)
+    
+#     class Meta:
+#         model = Bicycle_Order
+#         fields = '__all__'
+#         exclude = ['user', 'done', 'client', 'model']         
 
 
 #===============================================================================
