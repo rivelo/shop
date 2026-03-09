@@ -949,7 +949,7 @@ class FrameSize(models.Model):
 #    STACK = 
     wheelbase = models.PositiveIntegerField("Wheelbase size in mm", default=0, blank=True)
     #user_update = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
-#    brand =  
+#    brand =  Щ
 #    model = models.ManyToManyField( , blank=True)
 
     def rider_height_str(self):
@@ -1682,6 +1682,12 @@ class Bicycle(models.Model):
     def photo_count(self):
         return self.photo_url.count()        
 
+    @property
+    def final_price(self):
+        if self.sale and self.sale > 0:
+            return self.price * (1 - (self.sale / 100))
+        return self.price    
+
     def get_simple_name(self):
         return u'Велосипед %s. Модель %s. (%s)' % (self.brand, self.model, self.color)
 
@@ -1855,7 +1861,6 @@ class Bicycle_Order(models.Model):
     description = models.TextField(blank=True, null=True)
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     shop = models.ForeignKey(Shop, blank=True, null=True, verbose_name="Магазин")    
-
     #def convert_to_ua(self):
     
     def __unicode__(self):

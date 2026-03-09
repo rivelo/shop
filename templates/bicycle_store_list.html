@@ -1,3 +1,757 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Склад велосипедів | {{ shopName|default:"Всі магазини" }}</title>
+
+{% load poll_extras %}
+
+    <style>
+        body { background-color: #f4f7f6; font-size: 0.82rem; color: #333; }
+        .card { border: none; border-radius: 10px; overflow: hidden; }
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .table { margin-bottom: 0; border-collapse: separate; border-spacing: 0; }
+        
+        thead th { 
+            position: sticky; top: 0; background: #f8f9fa !important; 
+            z-index: 10; box-shadow: inset 0 -1px 0 #dee2e6;
+            white-space: nowrap; cursor: pointer;
+        }
+
+        #bikeTable th:first-child, #bikeTable td:first-child {
+            position: sticky; left: 0; z-index: 5; background-color: #ffffff;
+            border-right: 2px solid #dee2e6; min-width: 180px;
+        }
+
+        #bikeTable th:first-child { z-index: 15; }
+        #bikeTable tr:hover td:first-child { background-color: #f1f1f1 !important; }
+
+        .price-cell { font-weight: bold; color: #007bff; white-space: nowrap; }
+        .rrp-cell { color: #6c757d; font-size: 0.78rem; font-weight: bold; white-space: nowrap; }
+        .serial-cell { font-family: 'Courier New', Courier, monospace; color: #555; font-size: 0.75rem; }
+        
+        /* Приховування адмін-колонки за замовчуванням */
+        .col-admin-price { display: none; }
+
+        @media (max-width: 991.98px) {
+            .table td, .table th { white-space: nowrap; padding: 10px 12px; }
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            #bikeTable th:first-child, #bikeTable td:first-child { position: static; border: none; }
+        }
+
+		/* Обрізка серійного номера на мобільних */
+		@media (max-width: 991.98px) {
+			.serial-truncate {
+				max-width: 85px; /* Приблизно 10-11 символів моноширинного шрифту */
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				display: inline-block;
+				vertical-align: middle;
+			}
+		}
+
+/* Стиль для підказки (стандартний browser tooltip) */
+.serial-cell {
+    cursor: help;
+}
+
+    .position-relative { position: relative; }
+    
+    .clear-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #ccc;
+        display: none; /* Ховаємо, поки поле порожнє */
+        line-height: 1;
+        transition: color 0.2s;
+    }
+    
+    .clear-btn:hover { color: #dc3545; } /* Червоний при наведенні */
+    
+    .clear-btn i { font-size: 18px; }
+
+    /* Додаємо відступ справа в інпуті, щоб текст не налізав на іконку */
+    .pr-4 { padding-right: 1.8rem !important; }
+
+#footer_total_sum .last-child-no-border:last-child {
+    border-right: none !important;
+    margin-right: 0 !important;
+}
+.badge-danger {
+    background-color: #dc3545;
+    font-size: 0.7rem;
+    vertical-align: top;
+}
+
+/* Підсвітка акційного рядка */
+.row-sale { background-color: #fff9e6 !important; }
+.row-sale:hover { background-color: #fff3cd !important; }
+
+/* Вертикальний стек для ціни */
+.price-stack { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: flex-end; 
+    line-height: 1.2;
+}
+
+/* Кнопка фільтра Акцій */
+.btn-sale-filter.active {
+    background-color: #dc3545 !important;
+    color: white !important;
+    border-color: #dc3545;
+}
+
+.price-stack { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; /* Центрування вмісту всередині стека */
+    justify-content: center;
+    line-height: 1.1;
+    min-height: 50px;
+}
+
+.rrp-cell {
+    vertical-align: middle !important; /* Центрування по вертикалі в комірці */
+}
+
+   /* Центрування по вертикалі для всієї таблиці */
+    #bikeTable th, 
+    #bikeTable td {
+        vertical-align: middle !important;
+    }
+
+    /* Специфічне налаштування для зафіксованої першої колонки */
+    #bikeTable td:first-child {
+        display: table-cell; /* Гарантує коректну роботу sticky разом з вертикальним вирівнюванням */
+    }
+
+    /* Налаштування для блоку цін (stack), щоб він теж був по центру */
+    .price-stack {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        min-height: 54px; /* Мінімальна висота для 3-х рядків ціни */
+    }
+
+.editable-serial {
+    cursor: pointer;
+    border-bottom: 1px dashed #ccc; /* Підкреслення, що поле можна редагувати */
+}
+.editable-serial:hover {
+    background-color: #fff3cd;
+    border-bottom: 1px dashed #007bff;
+}
+
+.f_shop:hover {
+    color: #007bff;
+    text-decoration: underline;
+}
+
+
+.d-none-important {
+        display: none !important;
+    }
+
+    </style>
+</head>
+<body>
+
+<div class="container-fluid py-3">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-0 no-print">
+            
+            <!-- ВЕРХНЯ ПАНЕЛЬ: Заголовок та Кнопки дій -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                <h5 class="mb-2 font-weight-bold text-uppercase text-dark tracking-wider">
+                    🚲 Склад велосипедів
+                </h5>
+                
+                <div class="d-flex align-items-center mb-2">
+                    <div class="btn-group mr-3" role="group">
+						<button type="button" class="btn btn-outline-secondary btn-sm px-3" onclick="resetAllFilters()" title="Скинути всі фільтри">
+        					<i class="material-icons align-middle" style="font-size: 16px;">filter_alt_off</i> Скинути
+					    </button>
+					    <button class="btn btn-outline-warning btn-sm px-3" onclick="toggleRealizationCol()">
+        					<i class="material-icons align-middle mr-1" style="font-size: 16px;">assignment</i> Тип
+					    </button>
+                        {% if request.user|has_group:"admin" %}
+                        <button class="btn btn-outline-primary btn-sm px-3" onclick="toggleAdminPrice()">
+                            <i class="material-icons align-middle mr-1" style="font-size: 16px;">visibility</i> Ціна Маг
+                        </button>
+                        {% endif %}
+                        <button type="button" id="saleFilterBtn" class="btn btn-outline-danger btn-sm px-3" onclick="toggleSaleFilter()">
+                            🔥 Акції
+                        </button>
+                    </div>
+                    
+                    <span class="badge badge-info px-3 py-2 shadow-sm" style="font-size: 0.85rem;">
+                        Знайдено: <span id="footer_total_count" class="font-weight-bold">0</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- НИЖНЯ ПАНЕЛЬ: Фільтри пошуку -->
+            <div class="form-row align-items-end bg-light p-3 rounded shadow-sm mx-0">
+                <div class="col-xl-3 col-lg-3 col-md-6 mb-2 mb-lg-0">
+                    <label class="small font-weight-bold text-muted mb-1">Пошук моделі</label>
+                    <div class="position-relative">
+                        <input type="text" id="searchModel" class="form-control form-control-sm pr-4 bg-white" 
+                               placeholder="Бренд, назва..." onkeyup="toggleClearBtn(); filterTable()">
+                        <span id="clearSearchModel" class="clear-btn no-print" onclick="clearInput('searchModel')">
+                            <i class="material-icons">cancel</i>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="col-xl-2 col-lg-2 col-md-6 mb-2 mb-lg-0">
+                    <label class="small font-weight-bold text-muted mb-1">Серійний №</label>
+                    <input type="text" id="searchSerial" class="form-control form-control-sm bg-white" 
+                           placeholder="Номер рами..." onkeyup="filterTable()">
+                </div>
+
+                <div class="col-xl-1 col-lg-1 col-md-3 col-6 mb-2 mb-lg-0">
+                    <label class="small font-weight-bold text-muted mb-1">Рік</label>
+                    <input type="text" id="searchYear" class="form-control form-control-sm bg-white text-center" 
+                           placeholder="2024" onkeyup="filterTable()">
+                </div>
+
+                <div class="col-xl-2 col-lg-2 col-md-4 col-6 mb-2 mb-lg-0">
+                    <label class="small font-weight-bold text-muted mb-1">Колеса</label>
+                    <select id="filterWheel" class="form-control form-control-sm bg-white" onchange="filterTable()">
+                        <option value="">Всі колеса</option>
+                        {% for w in wheel_sizes %}<option value="{{ w.type }}">{{ w.type }}"</option>{% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-xl-3 col-lg-3 col-md-5 col-12 mb-2 mb-lg-0">
+                    <label class="small font-weight-bold text-muted mb-1">Магазин</label>
+                    <div class="d-flex">
+                        <select id="filterShop" class="form-control form-control-sm bg-white mr-2" onchange="filterTable()">
+                            <option value="">Всі магазини</option>
+                            {% for shop in shops %}<option value="{{ shop.name }}">{{ shop.name }}</option>{% endfor %}
+                        </select>
+                        <button class="btn btn-light btn-sm px-2 border" onclick="location.reload()" title="Оновити">
+                            <i class="material-icons align-middle">refresh</i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="table-responsive">
+            <table class="table table-hover" id="bikeTable">
+                <thead class="thead-light">
+                    <tr>
+                        <th onclick="sortTable(0)">Модель</th>
+                        <th onclick="sortTable(1)">Колір</th>
+                        <th onclick="sortTable(2)">Серійний №</th>
+                        <th onclick="sortTable(3)" class="text-center d-none d-lg-table-cell">Рік</th>
+                        <th onclick="sortTable(4)" class="text-center d-none d-lg-table-cell">Колеса</th>
+                        <th onclick="sortTable(5)" class="text-center">Розмір</th>
+                        
+                        <!-- Колонка для Адміна -->
+                        {% if request.user|has_group:"admin" %}
+                        <th onclick="sortTable(6)" class="col-admin-price">Ціна (Маг)</th>
+                        {% endif %}
+                        
+                        <th onclick="sortTable(7)" class="text-center">
+							РРЦ <i class="material-icons sort-icon">sort_by_alpha</i>
+						</th>
+                        <th class="d-none d-lg-table-cell">Магазин</th>
+						<th onclick="sortTable(9)" class="text-center d-none d-md-table-cell col-realization d-none-important">Тип</th>
+                        <th class="text-center no-print">Дії</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr class="{% if item.model.sale > 0 %}row-sale{% endif %}" 
+					    data-has-sale="{% if item.model.sale > 0 %}true{% else %}false{% endif %}"
+						data-shop="{{ item.shop.name|default:'' }}" 
+                        data-wheel="{{ item.model.wheel_size.type|default:'' }}" 
+                        data-year="{{ item.model.year|date:'Y' }}">
+                        
+                        {% comment %} <td class="font-weight-bold">{{ item.model.brand.name }} {{ item.model.model }}</td> {% endcomment %}
+						<td class="font-weight-bold">
+							<!-- Додаємо клас та обробку кліку -->
+							<span class="f_brand" 
+								style="cursor: pointer;" 
+								title="Подвійний клік для фільтрації"
+								ondblclick="filterByBrand('{{ item.model.brand.name }}')">
+								{{ item.model.brand.name }}
+							</span> 
+							{{ item.model.model }}
+						</td>						
+                        <td><small>{{ item.model.color|default:"-" }}</small></td>
+                        {% comment %} <td class="serial-cell" title="{{ item.serial_number|default:'---' }}" id_serial="{{item.id}}">
+							<span class="serial-truncate">
+								{{ item.serial_number|default:"---" }}
+							</span>
+						</td> {% endcomment %}
+						<td class="serial-cell" title="Подвійний клік для редагування">
+						<span class="serial-truncate editable-serial" 
+							data-id="{{ item.id }}" 
+							id="serial-text-{{ item.id }}">
+							{{ item.serial_number|default:"---" }}
+						</span>
+						</td>
+
+                        <td class="text-center d-none d-lg-table-cell" data-val="{{ item.model.year|date:'Y' }}">{{ item.model.year|date:"Y" }}</td>
+                        <td class="text-center d-none d-lg-table-cell" data-val="{{ item.model.wheel_size.type }}">{{ item.model.wheel_size.type|default:"-" }}"</td>
+                        <td class="text-center"><span class="badge badge-light border px-2">{{ item.size.letter_str|default:"-" }}</span></td>
+                        
+                        {% if request.user|has_group:"admin" %}
+                        <td class="price-cell col-admin-price" data-val="{{ item.price }}">
+                            {{ item.price|floatformat:2 }} <small>{{ item.currency.ids_char }}</small>
+                        </td>
+                        {% endif %}
+												
+						<td class="rrp-cell text-center" 
+							data-val="{{ item.model.final_price }}" 
+							data-sale="{{ item.model.sale|default:0 }}">
+							
+							<div class="price-stack align-items-center"> <!-- Змінено на align-items-center -->
+								{% if item.model.sale > 0 %}
+									<del class="text-muted small">{{ item.model.price|floatformat:0 }}</del>
+									<span class="badge badge-danger my-1" style="font-size: 0.65rem;">-{{ item.model.sale|floatformat:0 }}%</span>
+									<span class="font-weight-bold text-danger">
+										{{ item.model.final_price|floatformat:0 }} <small class="rrp-currency">{{ item.model.currency.ids_char }}</small>
+									</span>
+								{% else %}
+									<span class="font-weight-bold">
+										{{ item.model.price|floatformat:0 }} <small class="rrp-currency">{{ item.model.currency.ids_char }}</small>
+									</span>
+								{% endif %}
+							</div>
+						</td>
+						<td class="d-none d-lg-table-cell small shop-name-cell">
+    <span class="f_shop" 
+          style="cursor: pointer;" 
+          title="Подвійний клік: показати тільки цей магазин"
+          ondblclick="filterByShop('{{ item.shop.name|default:'' }}')">
+        {{ item.shop.name|default:"-" }}
+    </span>
+</td>
+
+<td class="text-center d-none d-md-table-cell col-realization realization-cell d-none-important">
+    {% if item.realization %}
+        <span class="badge badge-warning" style="font-size: 0.7rem;">Trade-In</span>
+    {% else %}
+        <span class="badge badge-light border text-muted" style="font-size: 0.7rem;">Склад</span>
+    {% endif %}
+</td>
+{#                         <td class="d-none d-lg-table-cell small shop-name-cell">{{ item.shop.name|default:"-" }}</td> #}
+                        <td class="text-center no-print">
+							{% if request.user|has_group:"admin" %}
+                            <a href="{% url 'bicycle-store-edit' item.id %}" class="text-primary" title="Редагувати" data-toggle="tooltip" data-placement="right" data-html="true"><i class="material-icons" style="font-size: 30px;">edit</i></a>
+							{% endif %}
+            <a href="{% url 'bicycle-sale-add' item.id %}" class="text-primary" title="Продати" data-toggle="tooltip" data-placement="right" data-html="true"><i class="material-icons" style="font-size: 30px;">shopping_cart</i></a>
+
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                {% if request.user|has_group:"admin" %}
+				<tfoot class="bg-light font-weight-bold">
+					<tr>
+						<td colspan="1" class="text-right d-mobile-none">Підсумок:</td>
+						<td colspan="5" class="d-none d-lg-table-cell"></td>
+						<!-- Контейнер для списку валют -->
+						<td id="footer_total_sum" colspan="4" class="text-primary h6 mb-0">
+							0.00
+						</td>
+					</tr>
+				</tfoot>
+				{% endif %}
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleAdminPrice() {
+    const cols = document.querySelectorAll('.col-admin-price');
+    cols.forEach(el => {
+        el.style.display = (el.style.display === 'table-cell' || el.style.display === 'table-footer-group') ? 'none' : (el.tagName === 'TFOOT' ? 'table-footer-group' : 'table-cell');
+    });
+}
+
+let onlySales = false;
+
+function toggleSaleFilter() {
+    const btn = document.getElementById("saleFilterBtn");
+    onlySales = !onlySales; // Перемикаємо true/false
+    
+    // Візуальна активація кнопки (Bootstrap клас active)
+    if (onlySales) {
+        btn.classList.add("active");
+        btn.innerHTML = "🔥 Тільки Акції";
+    } else {
+        btn.classList.remove("active");
+        btn.innerHTML = "🔥 Акції";
+    }
+    
+    filterTable(); // Запускаємо перерахунок таблиці
+}
+
+function toggleRealizationCol() {
+    // Знаходимо всі елементи з класом col-realization і перемикаємо клас приховування
+    $('.col-realization').toggleClass('d-none-important');
+}
+
+
+function filterTable() {
+    const vModel = document.getElementById("searchModel").value.toUpperCase();
+    const vSerial = document.getElementById("searchSerial").value.toUpperCase();
+    const vYear = document.getElementById("searchYear").value;
+    const vWheel = document.getElementById("filterWheel").value;
+    const vShop = document.getElementById("filterShop").value;
+	const vReal = (document.getElementById("filterRealization") || {value: ""}).value; // Наш селект
+	
+    const rows = document.querySelectorAll("#bikeTable tbody tr");
+    let count = 0;
+    let currencyTotals = {};
+
+    rows.forEach(row => {
+        // Отримуємо дані з атрибутів рядка
+        const hasSale = row.getAttribute("data-has-sale") === "true";
+        const rowYear = row.getAttribute("data-year") || "";
+        const rowShop = row.getAttribute("data-shop") || "";
+        const rowWheel = row.getAttribute("data-wheel") || "";
+        const fullText = row.innerText.toUpperCase();
+		 const rowReal = row.getAttribute("data-realization");
+
+        // Логіка фільтрації
+        const matchModel = fullText.includes(vModel);
+        const matchSerial = fullText.includes(vSerial);
+        const matchYear = vYear === "" || rowYear.includes(vYear);
+        const matchWheel = vWheel === "" || rowWheel === vWheel;
+        const matchShop = vShop === "" || rowShop === vShop;
+        const matchSale = !onlySales || hasSale;
+		const mReal = vReal === "" || rowReal === vReal;
+
+        if (matchModel && matchSerial && matchYear && matchWheel && matchShop && matchSale) {
+            row.style.display = "";
+            count++;
+
+            // ШУКАЄМО ЗА КЛАСОМ (безпечний метод)
+            const priceCell = row.querySelector('.price-cell'); 
+            
+            if (priceCell) {
+                const price = parseFloat(priceCell.getAttribute("data-val")) || 0;
+                
+                // Витягуємо назву валюти (наприклад, з тегу <small> або тексту)
+                const currElem = priceCell.querySelector('small');
+                const currency = currElem ? currElem.innerText.trim() : "грн";
+
+                if (!currencyTotals[currency]) {
+                    currencyTotals[currency] = 0;
+                }
+                currencyTotals[currency] += price;
+            }
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    // Оновлення підсумків
+    document.getElementById("footer_total_count").innerText = count;
+    updateFooterSums(currencyTotals);
+}
+
+
+function updateFooterSums(totals) {
+    const container = document.getElementById("footer_total_sum");
+    let html = "";
+    Object.keys(totals).sort().forEach(curr => {
+        html += `<div class="d-inline-block border-right pr-3 mr-3">
+                    <span class="small text-muted">${curr}:</span> 
+                    <span class="text-primary font-weight-bold">${totals[curr].toLocaleString('uk-UA', {minimumFractionDigits: 2})}</span>
+                 </div>`;
+    });
+    container.innerHTML = html || "0.00";
+}
+
+function sortTable(n) {
+    const table = document.getElementById("bikeTable");
+    const tbody = table.querySelector("tbody");
+    const rows = Array.from(tbody.rows);
+    const dir = table.getAttribute("data-dir") === "asc" ? "desc" : "asc";
+    table.setAttribute("data-dir", dir);
+
+    const sizeMap = { 'XXS': 1, 'XS': 2, 'S': 3, 'M': 4, 'L': 5, 'XL': 6, 'XXL': 7 };
+    
+    // Числові колонки: 2(Серійник-якщо цифри), 3(Рік), 4(Колеса), 6(Ціна Маг), 7(РРЦ)
+    const numericIndices = [3, 4, 6, 7];
+
+    rows.sort((a, b) => {
+        let xCell = a.cells[n];
+        let yCell = b.cells[n];
+
+        // СПЕЦІАЛЬНЕ СОРТУВАННЯ ДЛЯ РРЦ (Індекс 7)
+        if (n === 7) {
+            let saleX = parseFloat(xCell.getAttribute('data-sale')) || 0;
+            let saleY = parseFloat(yCell.getAttribute('data-sale')) || 0;
+            
+            // Якщо знижки різні — сортуємо по знижці
+            if (saleX !== saleY) {
+                return dir === "asc" ? saleX - saleY : saleY - saleX;
+            }
+            // Якщо знижки однакові — сортуємо за фінальною ціною
+            let priceX = parseFloat(xCell.getAttribute('data-val')) || 0;
+            let priceY = parseFloat(yCell.getAttribute('data-val')) || 0;
+            return dir === "asc" ? priceX - priceY : priceY - priceX;
+        }
+
+        // Стандартне числове сортування (Рік, Колеса тощо)
+        if (numericIndices.includes(n)) {
+            let vX = parseFloat(xCell.getAttribute('data-val') || xCell.innerText) || 0;
+            let vY = parseFloat(yCell.getAttribute('data-val') || yCell.innerText) || 0;
+            return dir === "asc" ? vX - vY : vY - vX;
+        }
+
+        // Розмір рами (5)
+        if (n === 5) {
+            let wX = sizeMap[xCell.innerText.trim().toUpperCase()] || 0;
+            let wY = sizeMap[yCell.innerText.trim().toUpperCase()] || 0;
+            return dir === "asc" ? wX - wY : wY - wX;
+        }
+
+		// Звичайне текстове порівняння
+        const textA = xCell.innerText.trim();
+        const textB = yCell.innerText.trim();
+        return dir === "asc" ? textA.localeCompare(textB, 'uk') : textB.localeCompare(textA, 'uk');
+        // Текст
+//        return dir === "asc" ? xCell.innerText.localeCompare(yCell.innerText) : yCell.innerText.localeCompare(xCell.innerText);
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+}
+
+/**
+ * Скидає всі активні фільтри, перевіряючи наявність елементів у DOM
+ */
+function resetAllFilters() {
+    const fields = [
+        "searchModel", 
+        "searchSerial", 
+        "searchYear", 
+        "filterWheel", 
+        "filterShop", 
+        "filterRealization"
+    ];
+
+    // Очищаємо кожне поле, якщо воно існує на сторінці
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.value = "";
+        }
+    });
+
+    // Окремо обробляємо логіку кнопки "Акції"
+    // Якщо акції увімкнені (onlySales === true), вимикаємо їх через існуючу функцію
+    if (typeof onlySales !== 'undefined' && onlySales === true) {
+        toggleSaleFilter(); 
+    } else {
+        // Якщо акції не були активні, просто оновлюємо таблицю та кнопку очищення
+        if (typeof toggleClearBtn === 'function') toggleClearBtn();
+        filterTable();
+    }
+
+    // Повертаємо фокус на головне поле, якщо воно є
+    const mainSearch = document.getElementById("searchModel");
+    if (mainSearch) mainSearch.focus();
+}
+
+/**
+ * Функція для швидкої фільтрації по бренду при подвійному кліку
+ */
+function filterByBrand(brandName) {
+    const searchInput = document.getElementById("searchModel");
+    if (searchInput) {
+        // Записуємо назву бренду в поле пошуку
+        searchInput.value = brandName;
+        // Очищаємо інші фільтри, якщо це потрібно для точності
+        // document.getElementById("searchSerial").value = ""; 
+        
+        // Викликаємо існуючу функцію фільтрації
+        filterTable();
+        
+        // Візуальний ефект: фокус на полі пошуку
+        searchInput.classList.add("is-valid");
+        setTimeout(() => searchInput.classList.remove("is-valid"), 1000);
+    }
+}
+
+/**
+ * Показує або ховає кнопку очищення залежно від вмісту поля
+ */
+function toggleClearBtn() {
+    const input = document.getElementById("searchModel");
+    const btn = document.getElementById("clearSearchModel");
+    if (input && btn) {
+        btn.style.display = (input.value && input.value.length > 0) ? "block" : "none";
+    }
+}
+
+/**
+ * Очищає поле, ховає кнопку та оновлює таблицю
+ */
+function clearInput(id) {
+    const input = document.getElementById(id);
+    if (input) {
+        input.value = "";
+        toggleClearBtn(); // Сховати іконку
+        filterTable();    // Скинути фільтр таблиці
+        input.focus();    // Повернути фокус на поле
+    }
+}
+
+// Додаємо виклик toggleClearBtn у вашу функцію filterByBrand, 
+// щоб іконка з'являлася після подвійного кліку по бренду
+function filterByBrand(brandName) {
+    const searchInput = document.getElementById("searchModel");
+    if (searchInput) {
+        searchInput.value = brandName;
+        toggleClearBtn(); // <--- Додано сюди
+        filterTable();
+    }
+}
+
+/**
+ * Швидка фільтрація по магазину при подвійному кліку
+ */
+function filterByShop(shopName) {
+    const shopSelect = document.getElementById("filterShop");
+    if (shopSelect) {
+        // Якщо shopName порожній (для товарів без магазину), скидаємо фільтр
+        shopSelect.value = shopName;
+        
+        // Викликаємо існуючу функцію фільтрації
+        filterTable();
+        
+        // Візуальна індикація: підсвічуємо селект на секунду
+        shopSelect.classList.add("border-primary");
+        setTimeout(() => shopSelect.classList.remove("border-primary"), 1000);
+    }
+}
+
+
+{% comment %} $("body").on("click", ".serial-cell", function(e){
+     $(this).editable('/bicycle-store/edit/', {
+     	 id   : 'id',
+         name : 'serial',
+         submitdata : function() {
+      	 	return {id : $(this).attr('id_serial')};
+    	 },
+         indicator : 'Saving...',
+         tooltip   : 'Click to edit...',
+         select : true,
+         style  : "inherit",
+         callback : function(value, settings) {
+         $(this).html(value);
+     	}
+     });
+  }); {% endcomment %}
+
+
+$(document).ready(function() {
+    $(document).on('dblclick', '.editable-serial', function() {
+        var $el = $(this);
+        var originalVal = $el.text().trim(); // Зберігаємо старе значення
+        var id = $el.data('id');
+        var isSaving = false; // Прапорець для запобігання дублюванню запитів
+        
+        // Створюємо інпут
+        var $input = $('<input type="text" class="form-control form-control-sm" style="width:120px; display:inline-block;">');
+        $input.val(originalVal === "---" ? "" : originalVal);
+        
+        $el.replaceWith($input);
+        $input.focus();
+
+        // Функція скасування (повертаємо як було)
+        function cancelEdit() {
+            var $span = $('<span class="serial-truncate editable-serial"></span>');
+            $span.attr('data-id', id).text(originalVal);
+            $input.replaceWith($span);
+        }
+
+        // Функція збереження через AJAX
+        function saveChange() {
+            if (isSaving) return;
+            var newVal = $input.val().trim() || "---";
+
+            // Якщо нічого не змінилося — просто скасовуємо редагування без запиту до БД
+            if (newVal === originalVal) {
+                cancelEdit();
+                return;
+            }
+
+            isSaving = true;
+            $.ajax({
+                url: '/bicycle-store/edit/',
+                type: 'POST',
+                data: {
+                    'id': id,
+                    'serial': newVal,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    var $newSpan = $('<span class="serial-truncate editable-serial"></span>');
+                    $newSpan.attr('data-id', id).text(response.new_serial);
+                    $input.replaceWith($newSpan);
+                    
+                    // Візуальний ефект успіху (блимання зеленим)
+                    $newSpan.css('color', '#28a745').animate({opacity: 0.5}, 200).animate({opacity: 1}, 200, function() {
+                        $newSpan.css('color', '');
+                    });
+                },
+                error: function() {
+                    alert('Помилка при збереженні!');
+                    cancelEdit(); // У разі помилки повертаємо старе значення
+                }
+            });
+        }
+
+        // Обробка клавіш
+        $input.on('keyup', function(e) {
+            if (e.which === 13) { // Enter
+                saveChange();
+            }
+            if (e.which === 27) { // Escape
+                isSaving = true; // Блокуємо збереження по blur
+                cancelEdit();
+            }
+        });
+        
+        // Збереження при втраті фокусу (якщо не було натиснуто Esc)
+        $input.on('blur', function() {
+            if (!isSaving) saveChange();
+        });
+    });
+});
+
+window.onload = filterTable;
+</script>
+</body>
+</html>
+
+
+{% comment %} 
+
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Велосипеди в магазині {{shopName|default:""}}</title>
@@ -434,4 +1188,4 @@ $("body").on("click", ".change_sale", function(e){
 	
 </body>
 
-		
+		 {% endcomment %}

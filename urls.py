@@ -106,7 +106,7 @@ urlpatterns = [
     url(r'^bicycle-store/shop/all/view/$', catalog.bicycle_store_list, {'shop': True}, name="bicycles-in-all-shops"),
     url(r'^bicycle-store/view/$', catalog.bicycle_store_list),
     url(r'^bicycle-store/shop/(?P<id>\d+)/view/$', catalog.bicycle_store_list, {'shop': None, 'all': False}, name="bicycles-in-shop-by-id"),
-    url(r'^bicycle-store/edit/(?P<id>\d+)/$', catalog.bicycle_store_edit),
+    url(r'^bicycle-store/edit/(?P<id>\d+)/$', catalog.bicycle_store_edit, name='bicycle-store-edit'),
     url(r'^bicycle-store/edit/$', catalog.bicycle_store_edit),
     url(r'^bicycle-store/delete/(?P<id>\d+)/$', catalog.bicycle_store_del),
     url(r'^bicycle-store/search/$', catalog.bicycle_store_search),
@@ -114,7 +114,7 @@ urlpatterns = [
     
     url(r'^bicycle/price/set/$', catalog.bicycle_price_set),
 
-    url(r'^bicycle/sale/add/(?P<id>\d+)/$', catalog.bicycle_sale_add),
+    url(r'^bicycle/sale/add/(?P<id>\d+)/$', catalog.bicycle_sale_add, name='bicycle-sale-add'),
     url(r'^bicycle/sale/add/$', catalog.bicycle_sale_add),
     url(r'^bicycle/sale/id/(?P<id>\d+)/view/$', catalog.bicycle_sale_list),
 #    url(r'^bicycle/sale/id/(?P<id>\d+)/view/$', catalog.bicycle_sale_list_by_brand),

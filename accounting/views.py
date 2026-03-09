@@ -961,26 +961,25 @@ def bicycle_store_edit(request, id=None):
             POST = request.POST  
             if POST.has_key('id'):
                 id = request.POST.get('id')
-                p = request.POST.get('serial')
+                p = request.POST.get('serial').strip()
                 obj = Bicycle_Store.objects.get(pk = id)
+                print "OBject = %s . New Serial = [%s]" % (obj.id , p)
                 obj.serial_number = p
                 obj.shop = get_shop_from_ip(request.META['REMOTE_ADDR'])
                 obj.save() 
-                c = Bicycle_Store.objects.filter(pk = id).values_list('serial_number', flat=True)
+                #c = Bicycle_Store.objects.filter(pk = id).values_list('serial_number', flat=True)
                 #c = "ajax work"
-                return HttpResponse(c)
+#                return HttpResponse(c)
+                return JsonResponse({'status': 'success', 'new_serial': p})
             else:
-                return HttpResponse("Ajax dont work ")
+                return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+#                return HttpResponse("Ajax dont work ")
     
     a = Bicycle_Store.objects.get(pk=id)
     start_ins = Bicycle_Store.objects.get(pk=id)
     if request.method == 'POST':
         form = BicycleStoreForm(request.POST, instance=a)
-        print ("\nFORM PRE valid!")
-        print ("\nPrice = %s; Currency = %s" % (a.price, a.currency))
         if form.is_valid():
-            print ("\nFORM - SAVE")
-            print ("\nFORM price = %s" % form.fields['price'])
             if auth_group(request.user, "admin") == False:
                 serial_number = form.cleaned_data['serial_number']
                 size = form.cleaned_data['size']
@@ -994,7 +993,6 @@ def bicycle_store_edit(request, id=None):
                 a.price = start_ins.price
                 a.currency = start_ins.currency
                 a.count = start_ins.count
-                print ("\n>> Price = %s; Currency = %s <<\n" % (start_ins.price, start_ins.currency))
                 a.save()
             else:
                 form.save()
@@ -1023,57 +1021,57 @@ def bicycle_store_del(request, id):
     return HttpResponseRedirect('/bicycle-store/view/seller/')
 
 
-# def bicycle_store_list(request, id=None, all=False, shop=None):
-#     # Отримуємо всі товари на складі з пов'язаними даними для швидкості
-#     items = Bicycle_Store.objects.filter(count=1).select_related(
-#         'model', 
-#         'model__brand', 
-#         'model__wheel_size', 
-#         'size', 
-#         'currency', 
-#         'shop'
-#     ).all()
-
-#     # Отримуємо списки для випадаючих фільтрів у шаблоні
-#     shops = Shop.objects.all()
-#     wheel_sizes = Wheel_Size.objects.all()
-
-#     context = {
-#         'items': items,
-#         'shops': shops,
-#         'wheel_sizes': wheel_sizes,
-#         'weblink': 'bicycle_store_list.html'
-#     }
-    
-#     return render(request, 'index.html', context)
-
-
 def bicycle_store_list(request, id=None, all=False, shop=None):
-    list = None
-    shopId = None
-    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
-    try:
-        shopId = Shop.objects.get(pk = id)
-    except:
-        shopId = shopN
-    if all==True:
-        list = Bicycle_Store.objects.all()
-    else:
-        list = Bicycle_Store.objects.filter(count=1) #.values('model__model', 'model__sale', 'model__year', 'model__brand__name', 'model__price', 'model__color', 'model__id', 'size__name', 'size__cm', 'size__inch', 'model__type__type', 'serial_number', 'size', 'price', 'currency', 'count', 'description', 'date', 'id')
-    if shop == None:
-        id = shopN.pk
-    if id <> None:
-        list = list.filter(shop = shopId.pk)
-    price_summ = 0
-    bike_summ = 0
-    price_profit_summ = 0
-    for item in list:
-        price_profit_summ = price_profit_summ + item.get_profit()[1] #item['price'] * item['count']
-        price_summ = price_summ + item.get_uaprice() 
-    bike_sum = list.count()
-    context = {'bicycles': list, 'weblink': 'bicycle_store_list.html', 'price_summ': price_summ, 'price_profit_summ':price_profit_summ, 'bike_summ': bike_summ, 'shopName': shopId, 'shopAll': shop}
+    # Отримуємо всі товари на складі з пов'язаними даними для швидкості
+    items = Bicycle_Store.objects.filter(count=1).select_related(
+        'model', 
+        'model__brand', 
+        'model__wheel_size', 
+        'size', 
+        'currency', 
+        'shop'
+    ).all()
+
+    # Отримуємо списки для випадаючих фільтрів у шаблоні
+    shops = Shop.objects.all()
+    wheel_sizes = Wheel_Size.objects.all()
+
+    context = {
+        'items': items,
+        'shops': shops,
+        'wheel_sizes': wheel_sizes,
+        'weblink': 'bicycle_store_list.html'
+    }
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
+
+
+# def bicycle_store_list(request, id=None, all=False, shop=None):
+#     list = None
+#     shopId = None
+#     shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+#     try:
+#         shopId = Shop.objects.get(pk = id)
+#     except:
+#         shopId = shopN
+#     if all==True:
+#         list = Bicycle_Store.objects.all()
+#     else:
+#         list = Bicycle_Store.objects.filter(count=1) #.values('model__model', 'model__sale', 'model__year', 'model__brand__name', 'model__price', 'model__color', 'model__id', 'size__name', 'size__cm', 'size__inch', 'model__type__type', 'serial_number', 'size', 'price', 'currency', 'count', 'description', 'date', 'id')
+#     if shop == None:
+#         id = shopN.pk
+#     if id <> None:
+#         list = list.filter(shop = shopId.pk)
+#     price_summ = 0
+#     bike_summ = 0
+#     price_profit_summ = 0
+#     for item in list:
+#         price_profit_summ = price_profit_summ + item.get_profit()[1] #item['price'] * item['count']
+#         price_summ = price_summ + item.get_uaprice() 
+#     bike_sum = list.count()
+#     context = {'bicycles': list, 'weblink': 'bicycle_store_list.html', 'price_summ': price_summ, 'price_profit_summ':price_profit_summ, 'bike_summ': bike_summ, 'shopName': shopId, 'shopAll': shop}
+#     context.update(custom_proc(request))
+#     return render(request, 'index.html', context)
 
 
 def bicycle_store_list_by_seller(request, all=False, size='all', year='all', brand='all', html=False):
