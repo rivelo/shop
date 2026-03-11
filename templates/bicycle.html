@@ -1,3 +1,541 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Додати велосипед | CRM</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+
+    <style>
+        body { background-color: #f4f7f6; font-size: 0.85rem; }
+        .card { border-radius: 15px; }
+        .form-section-title { 
+            background: #e9ecef; padding: 10px 15px; border-radius: 5px; 
+            font-weight: bold; color: #495057; margin-top: 25px; margin-bottom: 15px;
+            display: flex; align-items: center;
+        }
+        .form-section-title i { margin-right: 10px; color: #007bff; }
+        .photo-form, .video-form { 
+            background: #fff; border: 1px solid #dee2e6; 
+            padding: 10px; border-radius: 8px; margin-bottom: 10px; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <form method="post" enctype="multipart/form-data" id="bicycle-form">
+        {% csrf_token %}
+        
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+                <h4 class="mb-0">🚲 Картка нового велосипеда</h4>
+                <button type="submit" class="btn btn-success px-4 shadow-sm">Зберегти все</button>
+            </div>
+            
+            <div class="card-body p-4">
+                <div class="form-section-title"><i class="material-icons">info</i> Основна інформація</div>
+                <div class="row">
+                    <div class="col-md-6 form-group">
+                        <label class="font-weight-bold">Модель (Назва)</label>
+                        {{ form.model }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Бренд</label>
+                        {{ form.brand }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Тип</label>
+                        {{ form.type }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 form-group">
+						<label class="font-weight-bold">📅 Рік моделі</label>
+						{{ form.year }}
+						{% if form.year.errors %}<div class="text-danger small">{{ form.year.errors.0 }}</div>{% endif %}
+					</div>
+                    <div class="col-md-3 form-group">
+                        <label>Колір</label>
+                        {{ form.color }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Діаметр коліс</label>
+                        {{ form.wheel_size }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Вага (кг)</label>
+                        {{ form.weight }}
+                    </div>
+                </div>
+
+                <div class="form-section-title"><i class="material-icons">payments</i> Комерційні дані</div>
+                <div class="row">
+                    <div class="col-md-3 form-group">
+                        <label class="text-primary font-weight-bold">Ціна (РРЦ)</label>
+                        {{ form.price }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Валюта</label>
+                        {{ form.currency }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Знижка (%)</label>
+                        {{ form.sale }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Країна виробник</label>
+                        {{ form.country_made }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 form-group">
+                        <label>Доступні розміри рами</label>
+                        {{ form.sizes }}
+                    </div>
+					<div class="col-md-3 form-group">
+					<label>🛡️ Гарантія на раму</label>
+					<div class="input-group">
+						{{ form.warranty_frame }}
+						<div class="input-group-append">
+							<span class="input-group-text">міс.</span>
+						</div>
+					</div>
+						{% if form.warranty_frame.errors %}<div class="text-danger small">{{ form.warranty_frame.errors.0 }}</div>{% endif %}
+					</div>
+                    <div class="col-md-3 form-group">
+                        <label>Гарантія (міс.)</label>
+                        {{ form.warranty }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Інтернет</label>
+                        <div class="p-1">{{ form.internet }}</div>
+                    </div>
+                </div>
+
+				<div class="col-md-3 form-group">
+				<label class="font-weight-bold text-warning">⭐ Рейтинг (0-5)</label>
+				{{ form.rating }}
+				{% if form.rating.errors %}
+					<div class="text-danger small">{{ form.rating.errors.0 }}</div>
+				{% endif %}
+				</div>
+
+                <!-- ФОТО -->
+                <div class="form-section-title d-flex justify-content-between">
+                    <span><i class="material-icons">photo_library</i> Галерея фотографій</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="add-photo"> + Додати фото</button>
+                </div>
+                {{ photo_formset.management_form }}
+                <div id="photo-form-list">
+                    {% for p_form in photo_formset %}
+                        <div class="photo-form">
+                            {{ p_form.id }}
+                            <div class="form-group mb-0">
+                                <label>URL фото #{{ forloop.counter }}</label>
+                                {{ p_form.url }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- ВІДЕО -->
+                <div class="form-section-title d-flex justify-content-between">
+                    <span><i class="material-icons">videocam</i> YouTube Відео</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="add-video"> + Додати відео</button>
+                </div>
+                {{ youtube_formset.management_form }}
+                <div id="video-form-list">
+                    {% for y_form in youtube_formset %}
+                        <div class="video-form">
+                            {{ y_form.id }}
+                            <div class="form-group mb-0">
+                                <label>URL відео #{{ forloop.counter }}</label>
+                                {{ y_form.url }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-section-title"><i class="material-icons">description</i> Додатковий опис</div>
+                <div class="form-group">{{ form.description }}</div>
+            </div>
+            
+            <div class="card-footer bg-light p-4 text-right">
+                <button type="submit" class="btn btn-primary btn-lg px-5 shadow">Зберегти Картку</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+function addDynamicForm(btnId, prefix, formClass, listId) {
+    $(btnId).click(function() {
+        var totalForms = $('#id_' + prefix + '-TOTAL_FORMS');
+        var currentCount = parseInt(totalForms.val());
+        
+        var newRow = $('.' + formClass + ':first').clone(true);
+        
+        newRow.find(':input').each(function() {
+            var name = $(this).attr('name');
+            if (name) {
+                var newName = name.replace('-0-', '-' + currentCount + '-');
+                var newId = 'id_' + newName;
+                $(this).attr({'name': newName, 'id': newId}).val('');
+                if($(this).is(':checkbox')) $(this).prop('checked', false);
+            }
+        });
+
+        newRow.find('.select2-container').remove();
+        newRow.find('select').removeClass('select2-hidden-accessible').removeAttr('data-select2-id');
+
+        $('#' + listId).append(newRow);
+        totalForms.val(currentCount + 1);
+
+        // Re-init Select2 if used in dynamic rows
+        if ($.fn.select2) {
+            newRow.find('.select2-dynamic').select2({ width: '100%' });
+        }
+    });
+}
+
+$(document).ready(function() {
+    // Ініціалізація Select2
+    $('.select2-dynamic').select2({ width: '100%' });
+
+    // Підключення функцій додавання
+    addDynamicForm('#add-photo', 'photos', 'photo-form', 'photo-form-list');
+    addDynamicForm('#add-video', 'videos', 'video-form', 'video-form-list');
+});
+</script>
+</body>
+</html>
+
+
+
+{% comment %} <!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Додати велосипед | CRM</title>
+
+
+	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <style>
+        body { background-color: #f8f9fa; font-size: 0.9rem; }
+        .card { border-radius: 15px; overflow: hidden; }
+        .form-section-title { 
+            background: #e9ecef; padding: 10px 15px; 
+            border-radius: 5px; font-weight: bold; color: #495057;
+            margin-top: 25px; margin-bottom: 15px;
+            display: flex; align-items: center;
+        }
+        .form-section-title i { margin-right: 10px; color: #007bff; }
+        .inline-form-row { 
+            background: #fff; border: 1px solid #dee2e6; 
+            padding: 15px; border-radius: 8px; margin-bottom: 10px; 
+        }
+        .select2-container--default .select2-selection--single { height: 38px; border: 1px solid #ced4da; }
+        .select2-selection__rendered { line-height: 36px !important; }
+        .select2-selection__arrow { height: 36px !important; }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <form method="post" enctype="multipart/form-data" id="bicycle-form">
+        {% csrf_token %}
+        
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+                <h4 class="mb-0">🚲 Картка нового велосипеда</h4>
+                <button type="submit" class="btn btn-success px-4 shadow-sm">Зберегти все</button>
+            </div>
+            
+            <div class="card-body p-4">
+                
+                <!-- СЕКЦІЯ 1: Основні дані -->
+                <div class="form-section-title"><i class="material-icons">info</i> Основна інформація</div>
+                <div class="row">
+                    <div class="col-md-6 form-group">
+                        <label class="font-weight-bold">Модель (Назва)</label>
+                        {{ form.model }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Бренд</label>
+                        {{ form.brand }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Тип</label>
+                        {{ form.type }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 form-group">
+                        <label>Рік виробництва</label>
+                        {{ form.year }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Колір</label>
+                        {{ form.color }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Діаметр коліс</label>
+                        {{ form.wheel_size }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Вага (кг)</label>
+                        {{ form.weight }}
+                    </div>
+                </div>
+
+                <!-- СЕКЦІЯ 2: Ціни та Характеристики -->
+                <div class="form-section-title"><i class="material-icons">payments</i> Комерційні дані</div>
+                <div class="row">
+                    <div class="col-md-3 form-group">
+                        <label class="text-primary font-weight-bold">Ціна (РРЦ)</label>
+                        {{ form.price }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Валюта</label>
+                        {{ form.currency }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Знижка (%)</label>
+                        {{ form.sale }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Країна виробник</label>
+                        {{ form.country_made }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 form-group">
+                        <label>Доступні розміри рами</label>
+                        {{ form.sizes }}
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Гарантія (міс.)</label>
+                        {{ form.warranty }}
+                    </div>
+                    <div class="col-md-3 form-group text-center">
+                        <label class="d-block">Статус Web</label>
+                        <div class="custom-control custom-switch mt-2">
+                            {{ form.internet }} 
+                            <label class="ml-2">Для інтернет-магазину</label>
+                        </div>
+                    </div>
+                </div>
+
+<!-- СЕКЦІЯ 3: Фотографії -->
+<div class="form-section-title d-flex justify-content-between">
+    <span><i class="material-icons">photo_library</i> Галерея фотографій</span>
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="add-photo"> + Додати фото</button>
+</div>
+
+<!-- ВАЖЛИВО: використовуємо назви з views.py -->
+{{ photo_formset.management_form }}
+    <div id="photo-form-list">
+        {% for p_form in photo_formset %}
+            <div class="photo-form">
+                {{ p_form.id }} <!-- ОБОВ'ЯЗКОВО ДЛЯ MODELFORMSET -->
+                {{ p_form.url }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- ВІДЕО -->
+    {{ youtube_formset.management_form }}
+    <div id="video-form-list">
+        {% for y_form in youtube_formset %}
+            <div class="video-form">
+                {{ y_form.id }} <!-- ОБОВ'ЯЗКОВО -->
+                {{ y_form.url }}
+            </div>
+        {% endfor %}
+    </div>
+
+
+                <!-- СЕКЦІЯ 5: Опис -->
+                <div class="form-section-title"><i class="material-icons">description</i> Додатковий опис</div>
+                <div class="form-group">
+                    {{ form.description }}
+                </div>
+
+            </div>
+            
+            <div class="card-footer bg-light p-4 text-right">
+                <a href="." class="btn btn-link text-muted mr-3">Скасувати зміни</a>
+                <button type="submit" class="btn btn-primary btn-lg px-5 shadow">Зберегти Картку Велосипеда</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<script>
+function addDynamicForm(btnId, prefix, formClass, listId) {
+    $(btnId).click(function() {
+        var totalForms = $('#id_' + prefix + '-TOTAL_FORMS');
+        var currentCount = parseInt(totalForms.val());
+        
+        // Клонуємо першу форму як шаблон
+        var newRow = $('.' + formClass + ':first').clone(true);
+        
+        // Очищаємо значення та оновлюємо ID/Name
+        newRow.find(':input').each(function() {
+            var name = $(this).attr('name');
+            if (name) {
+                // Замінюємо індекс (наприклад, photos-0-url -> photos-1-url)
+                var newName = name.replace('-0-', '-' + currentCount + '-');
+                var newId = 'id_' + newName;
+                $(this).attr({'name': newName, 'id': newId}).val('').removeAttr('checked');
+            }
+        });
+
+        // Видаляємо старі Select2 контейнери, якщо вони є
+        newRow.find('.select2-container').remove();
+        newRow.find('select').removeClass('select2-hidden-accessible').removeAttr('data-select2-id');
+
+        // Додаємо в список
+        $('#' + listId).append(newRow);
+        
+        // ОНОВЛЮЄМО ЛІЧИЛЬНИК (це виправляє помилку ManagementForm)
+        totalForms.val(currentCount + 1);
+
+        // Переініціалізація Select2 для нових полів
+        if ($.fn.select2) {
+            newRow.find('.select2-dynamic').select2({ width: '100%' });
+        }
+    });
+}
+
+
+
+{% comment %} $(document).ready(function() {
+    // 1. Ініціалізація Select2
+    $('.select2-dynamic').select2({
+        width: '100%',
+        placeholder: "Оберіть зі списку..."
+    });
+
+    // 2. Логіка додавання динамічних форм для Фото
+    $('#add-photo').click(function() {
+// Для фото
+var formIdx = $('#id_photos-TOTAL_FORMS').val();
+// Для відео
+var formIdx = $('#id_videos-TOTAL_FORMS').val();		
+        
+        // Оновлюємо індекси в новому рядку
+        newForm.find(':input').each(function() {
+            var name = $(this).attr('name').replace('-0-', '-' + formIdx + '-');
+            var id = 'id_' + name;
+            $(this).attr({'name': name, 'id': id}).val('');
+        });
+        
+        $('#id_photo_url-TOTAL_FORMS').val(parseInt(formIdx) + 1);
+        $('#photo-form-list').append(newForm);
+    });
+
+    // 3. Логіка додавання динамічних форм для Відео
+    $('#add-video').click(function() {
+        var formIdx = $('#id_youtube_url-TOTAL_FORMS').val();
+        var newForm = $('.video-form:first').clone(true);
+        
+        newForm.find(':input').each(function() {
+            var name = $(this).attr('name').replace('-0-', '-' + formIdx + '-');
+            var id = 'id_' + name;
+            $(this).attr({'name': name, 'id': id}).val('');
+        });
+        
+        $('#id_youtube_url-TOTAL_FORMS').val(parseInt(formIdx) + 1);
+        $('#video-form-list').append(newForm);
+    });
+}); {% endcomment %}
+
+{% comment %}
+$(document).ready(function() {
+
+	addDynamicForm('#add-photo', 'photos', 'photo-form', 'photo-form-list');
+    addDynamicForm('#add-video', 'videos', 'video-form', 'video-form-list');
+
+    // 1. Початкова ініціалізація для статичних полів
+    initSelect2('.select2-dynamic');
+
+    function initSelect2(selector) {
+        $(selector).select2({
+            width: '100%',
+            placeholder: "Оберіть зі списку...",
+            allowClear: true
+        });
+    }
+
+    // 2. Універсальна функція для додавання форм (Фото та Відео)
+    function addForm(btnId, prefix, formClass, listId) {
+        $(btnId).click(function() {
+            var totalForms = $('#id_photos-TOTAL_FORMS'); // ID будується як id_ + prefix + -TOTAL_FORMS
+            var formIdx = parseInt(totalForms.val());
+            
+            // Беремо ОСТАННЮ форму для клонування
+            var newForm = $('.' + formClass + ':last').clone(true);
+            
+            // Видаляємо контейнер Select2, який скопіювався (він нам заважає)
+            newForm.find('.select2-container').remove();
+            newForm.removeClass('select2-hidden-accessible');
+
+            // Оновлюємо індекси в атрибутах name та id
+            newForm.find(':input').each(function() {
+                if ($(this).attr('name')) {
+                    var name = $(this).attr('name').replace('-' + (formIdx-1) + '-', '-' + formIdx + '-');
+                    var id = 'id_' + name;
+                    $(this).attr({'name': name, 'id': id}).val('');
+                    
+                    // Якщо це Select2 поле - знімаємо старі прив'язки
+                    if ($(this).hasClass('select2-dynamic')) {
+                        $(this).removeAttr('data-select2-id');
+                        $(this).find('option').removeAttr('data-select2-id');
+                    }
+                }
+            });
+
+            // Додаємо нову форму в список
+            $('#' + listId).append(newForm);
+            
+            // Оновлюємо лічильник TOTAL_FORMS для Django
+            totalForms.val(formIdx + 1);
+
+            // 3. ПЕРЕІНІЦІАЛІЗАЦІЯ Select2 для нових полів у клоні
+            initSelect2(newForm.find('.select2-dynamic'));
+        });
+    }
+
+    // Викликаємо для обох секцій
+    addForm('#add-photo', 'photos', 'photo-form', 'photo-form-list');
+    addForm('#add-video', 'videos', 'video-form', 'video-form-list');
+});
+
+</script>
+
+</body>
+</html>
+ {% endcomment %}
+
+{% comment %} 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
@@ -75,4 +613,4 @@ function youtube_upload() {
 
 
 
-
+ {% endcomment %}

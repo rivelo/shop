@@ -1,27 +1,25 @@
 # -*- coding: utf-8 -*-
 from django import forms
 from django.forms import ModelForm
+from django.forms import inlineformset_factory
+from django.forms import formset_factory
+from django.forms import modelformset_factory
+
 from models import Manufacturer, Country, Type, Bicycle_Type, Bicycle, Currency, FrameSize, Bicycle_Store, Catalog, Size, Bicycle_Sale, Bicycle_Order, Wheel_Size, Storage_Type, Bicycle_Storage, Bicycle_Photo 
 from models import DealerManager, DealerPayment, DealerInvoice, Dealer, Bank, ShopDailySales, PreOrder, InvoiceComponentList, ClientOrder, InventoryList, Discount 
 from models import ClientInvoiceStorageBox, StorageBox
 from models import Client, ClientDebts, CostType, Costs, ClientCredits, WorkGroup, WorkType, WorkShop, WorkTicket, WorkStatus, Rent, ClientInvoice, CashType, Exchange, Type, ClientMessage, WorkDay, PhoneStatus
-from models import Shop, BoxName
-import csv, codecs, io
-from django.core.exceptions import ValidationError
-
-
-from django.contrib.auth.models import User
-import datetime
-
+from models import Shop, BoxName, Photo, YouTube
 from django.db.models import Q
 
-from django.forms import formset_factory
+from django.core.exceptions import ValidationError
 
-#TOPIC_CHOICES = (
-#    ('general', 'General enquiry'),
-#    ('bug', 'Bug report'),
-#    ('suggestion', 'Suggestion'),
-#)
+from django.contrib.auth.models import User
+
+import datetime
+import csv, codecs, io
+
+
 
 def get_shop_from_ip(ip_addr):
     ip = '.'.join(ip_addr.split('.')[0:3])
@@ -149,32 +147,78 @@ class BicycleFrameSizeForm(forms.ModelForm):
             field.widget.attrs.update({'class': 'form-control'})        
 
 
+# Формсет для фотографій
+PhotoFormSet = modelformset_factory(
+    Photo, fields=['url', 'description'], extra=3, can_delete=True
+)
+
+# Формсет для YouTube лінків
+YouTubeFormSet = modelformset_factory(
+    YouTube, fields=['url', 'description'], extra=2, can_delete=True
+)
+
+
 class BicycleForm(forms.ModelForm):
-    model = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'size': '80'}), )
-    type = forms.ModelChoiceField(queryset = Bicycle_Type.objects.all()) #adult, kids, mtb, road, hybrid
-    #brand = SelectFromModel(objects=Manufacturer.objects.all())
-    brand = forms.ModelChoiceField(queryset = Manufacturer.objects.all())
-    #year = forms.DateField(initial=datetime.date.today, input_formats=("%d.%m.%Y"), widget=forms.DateTimeInput(format='%d.%m.%Y'))
-    year = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))    
-    color = forms.CharField(max_length=255)
-    wheel_size = forms.ModelChoiceField(queryset = Wheel_Size.objects.all())
-#    sizes = forms.CharField(required=False)
-    photo = forms.ImageField(required=False)
-    weight = forms.FloatField(min_value=0, initial=0)
-    price = forms.FloatField(initial=0)
-    offsite_url = forms.URLField(required=False)
-    currency = forms.ModelChoiceField(queryset = Currency.objects.all(), initial=Currency.objects.get(ids_char = 'UAH'))
-    sale = forms.FloatField(min_value=0, initial=0, required=False)
-    warranty = forms.IntegerField(min_value=0, initial=1)
-    geometry = forms.ImageField(required=False)
-    internet = forms.BooleanField(required=False)
-    rating = forms.IntegerField(min_value=0, initial=0)
-    description = forms.CharField(label='Description', widget=forms.Textarea(attrs={'size': '180'}), required=False)
-    country_made = forms.ModelChoiceField(queryset = Country.objects.all())
+#     model = forms.CharField(max_length=255, widget=forms.TextInput(attrs={'size': '80'}), )
+#     type = forms.ModelChoiceField(queryset = Bicycle_Type.objects.all()) #adult, kids, mtb, road, hybrid
+#     #brand = SelectFromModel(objects=Manufacturer.objects.all())
+#     brand = forms.ModelChoiceField(queryset = Manufacturer.objects.all())
+#     #year = forms.DateField(initial=datetime.date.today, input_formats=("%d.%m.%Y"), widget=forms.DateTimeInput(format='%d.%m.%Y'))
+#     year = forms.DateField(initial=datetime.date.today, input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'))    
+#     color = forms.CharField(max_length=255)
+#     wheel_size = forms.ModelChoiceField(queryset = Wheel_Size.objects.all())
+# #    sizes = forms.CharField(required=False)
+#     photo = forms.ImageField(required=False)
+#     weight = forms.FloatField(min_value=0, initial=0)
+#     price = forms.FloatField(initial=0)
+#     offsite_url = forms.URLField(required=False)
+#     currency = forms.ModelChoiceField(queryset = Currency.objects.all(), initial=Currency.objects.get(ids_char = 'UAH'))
+#     sale = forms.FloatField(min_value=0, initial=0, required=False)
+#     warranty = forms.IntegerField(min_value=0, initial=1)
+#     geometry = forms.ImageField(required=False)
+#     internet = forms.BooleanField(required=False)
+#     rating = forms.IntegerField(min_value=0, initial=0)
+#     description = forms.CharField(label='Description', widget=forms.Textarea(attrs={'size': '180'}), required=False)
+#     country_made = forms.ModelChoiceField(queryset = Country.objects.all())
+    year = forms.IntegerField(        label="Рік виробництва",        min_value=1900,        max_value=2100,        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'РРРР'})    )
 
     class Meta:
         model = Bicycle
         fields = '__all__'
+        widgets = {
+            'model': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Назва моделі'}),
+            'type': forms.Select(attrs={'class': 'form-control select2-dynamic'}),
+            'brand': forms.Select(attrs={'class': 'form-control select2-dynamic'}),
+#            'year': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'color': forms.TextInput(attrs={'class': 'form-control'}),
+            'wheel_size': forms.Select(attrs={'class': 'form-control select2-dynamic'}),
+            'sizes': forms.SelectMultiple(attrs={'class': 'form-control select2-dynamic'}),
+            'weight': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control'}),
+            'currency': forms.Select(attrs={'class': 'form-control'}),
+            'sale': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '%'}),
+            'warranty': forms.NumberInput(attrs={'class': 'form-control'}),
+            'warranty_frame': forms.NumberInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'rating': forms.NumberInput(attrs={'class': 'form-control', 'max': 5, 'min': 0}),
+            'country_made': forms.Select(attrs={'class': 'form-control select2-dynamic'}),
+            'offsite_url': forms.URLInput(attrs={'class': 'form-control'}),
+            'internet': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'rating': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'max': '5', 'placeholder': '0-5'}),
+        }
+
+    def clean_year(self):
+        year_int = self.cleaned_data.get('year')
+        if year_int:
+            # Convert integer 2024 to date 2024-01-01
+            return datetime.date(year_int, 1, 1)
+        return None
+
+    def __init__(self, *args, **kwargs):
+        super(BicycleForm, self).__init__(*args, **kwargs)
+        # If editing an existing object, extract just the year from the date
+        if self.instance and self.instance.year:
+            self.initial['year'] = self.instance.year.year
 
 
 class BicycleStoreForm(forms.ModelForm):

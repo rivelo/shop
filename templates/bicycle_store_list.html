@@ -174,7 +174,7 @@
             <!-- ВЕРХНЯ ПАНЕЛЬ: Заголовок та Кнопки дій -->
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
                 <h5 class="mb-2 font-weight-bold text-uppercase text-dark tracking-wider">
-                    🚲 Склад велосипедів
+                    🚲 Наявність велосипедів в магазинах
                 </h5>
                 
                 <div class="d-flex align-items-center mb-2">
@@ -183,11 +183,11 @@
         					<i class="material-icons align-middle" style="font-size: 16px;">filter_alt_off</i> Скинути
 					    </button>
 					    <button class="btn btn-outline-warning btn-sm px-3" onclick="toggleRealizationCol()">
-        					<i class="material-icons align-middle mr-1" style="font-size: 16px;">assignment</i> Тип
+        					<i class="material-icons align-middle mr-1" style="font-size: 16px;">assignment</i> Trade-In
 					    </button>
                         {% if request.user|has_group:"admin" %}
                         <button class="btn btn-outline-primary btn-sm px-3" onclick="toggleAdminPrice()">
-                            <i class="material-icons align-middle mr-1" style="font-size: 16px;">visibility</i> Ціна Маг
+                            <i class="material-icons align-middle mr-1" style="font-size: 16px;">visibility</i> Ціна
                         </button>
                         {% endif %}
                         <button type="button" id="saleFilterBtn" class="btn btn-outline-danger btn-sm px-3" onclick="toggleSaleFilter()">
@@ -263,7 +263,7 @@
                         
                         <!-- Колонка для Адміна -->
                         {% if request.user|has_group:"admin" %}
-                        <th onclick="sortTable(6)" class="col-admin-price">Ціна (Маг)</th>
+                        <th onclick="sortTable(6)" class="col-admin-price">Ціна</th>
                         {% endif %}
                         
                         <th onclick="sortTable(7)" class="text-center">
@@ -316,7 +316,71 @@
                             {{ item.price|floatformat:2 }} <small>{{ item.currency.ids_char }}</small>
                         </td>
                         {% endif %}
-												
+
+<td class="rrp-cell text-center" 
+    data-val="{{ item.model.final_price }}" 
+    data-sale="{{ item.model.sale|default:0 }}"
+    data-id="{{ item.model.id }}"> <!-- ID моделі Bicycle для AJAX -->
+   <div class="price-stack align-items-center">
+        {% if item.model.sale > 0 %}
+            <!-- Подвійний клік по закресленій ціні редагує базу -->
+            <del class="text-muted small {% if request.user|has_group:'admin' %}edit-base-price{% endif %}" title="Подвійний клік для редагування РРЦ">
+                {{ item.model.price|floatformat:0 }}
+            </del>
+
+            <!-- Подвійний клік по бейджу редагує % знижки -->
+            <span class="badge badge-danger my-1 {% if request.user|has_group:'admin' %}edit-sale-percent{% endif %}" 
+                  style="font-size: 0.65rem; cursor: pointer;" 
+                  title="Змінити % знижки">
+                -{{ item.model.sale|floatformat:0 }}%
+            </span>
+            
+            <span class="font-weight-bold text-danger">
+                <span class="final-price-val">{{ item.model.final_price|floatformat:0 }}</span> 
+                <small class="rrp-currency">{{ item.model.currency.ids_char }}</small>
+            </span>
+        {% else %}
+            <!-- Якщо знижки немає, клік по ціні теж дозволяє її редагувати -->
+            <span class="font-weight-bold {% if request.user|has_group:'admin' %}edit-base-price{% endif %} " style="cursor:pointer">
+                {{ item.model.price|floatformat:0 }}
+            </span>
+            <small class="rrp-currency">{{ item.model.currency.ids_char }}</small>
+            {% if request.user|has_group:"admin" %}
+            <!-- Прихований елемент для додавання знижки, якщо її не було -->
+            <span class="edit-sale-percent badge badge-light border text-muted mt-1" 
+                  style="font-size: 0.5rem; cursor: pointer;">+ %</span>
+			{% endif %}
+        {% endif %}
+    </div> 
+
+{% comment %} 
+<div class="price-stack align-items-center">
+    {% if item.model.sale > 0 %}
+        <del class="text-muted small {% if request.user|has_group:'admin' %}edit-base-price{% endif %}">
+            {{ item.model.price|floatformat:0 }}
+        </del>
+        
+        <span class="badge badge-danger my-1 {% if request.user|has_group:'admin' %}edit-sale-percent{% endif %}" 
+              style="font-size: 0.65rem; {% if request.user|has_group:'admin' %}cursor: pointer;{% endif %}">
+            -{{ item.model.sale|floatformat:0 }}%
+        </span>
+        
+        <span class="font-weight-bold text-danger">
+            <span class="final-price-val">{{ item.model.final_price|floatformat:0 }}</span> 
+            <small class="rrp-currency">{{ item.model.currency.ids_char }}</small>
+        </span>
+    {% else %}
+        <span class="font-weight-bold {% if request.user|has_group:'admin' %}edit-base-price{% endif %}" 
+              style="{% if request.user|has_group:'admin' %}cursor:pointer;{% endif %}">
+            {{ item.model.price|floatformat:0 }}
+        </span>
+        <small class="rrp-currency">{{ item.model.currency.ids_char }}</small>
+    {% endif %}
+</div> {% endcomment %}
+
+</td>
+
+{% comment %} 												
 						<td class="rrp-cell text-center" 
 							data-val="{{ item.model.final_price }}" 
 							data-sale="{{ item.model.sale|default:0 }}">
@@ -335,6 +399,7 @@
 								{% endif %}
 							</div>
 						</td>
+{% endcomment %}
 						<td class="d-none d-lg-table-cell small shop-name-cell">
     <span class="f_shop" 
           style="cursor: pointer;" 
@@ -743,6 +808,71 @@ $(document).ready(function() {
         });
     });
 });
+
+
+$(document).on('dblclick', '.edit-base-price, .edit-sale-percent', function() {
+    var $el = $(this);
+    var $td = $el.closest('td');
+    var bikeId = $td.data('id');
+    var isSaleField = $el.hasClass('edit-sale-percent');
+    var originalVal = $el.text().replace(/[^\d]/g, '') || "0";
+    var isSaving = false;
+
+    // Створюємо поле вводу
+    var $input = $('<input type="number" class="form-control form-control-sm text-center" style="width:60px; height:20px; font-size:0.7rem;">');
+    $input.val(originalVal);
+    $el.replaceWith($input);
+    $input.focus();
+
+    function revert() {
+        if (isSaleField) {
+            $input.replaceWith($el.text('-' + originalVal + '%'));
+        } else {
+            $input.replaceWith($el.text(originalVal));
+        }
+    }
+
+    function save() {
+        if (isSaving) return;
+        var newVal = $input.val() || "0";
+        if (newVal === originalVal) { isSaving = true; revert(); return; }
+
+        isSaving = true;
+        $.ajax({
+            url: '/bicycle/price/set/ajax/', // Ваш URL
+            type: 'POST',
+            data: {
+                'id': bikeId,
+                'field': isSaleField ? 'sale' : 'price',
+                'value': newVal,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(res) {
+                // Оновлюємо текст (реверт з новим значенням)
+                originalVal = newVal; 
+                revert();
+                
+                // ОНОВЛЮЄМО ФІНАЛЬНУ ЦІНУ В ТАБЛИЦІ
+                $td.attr('data-val', res.final_price);
+                $td.find('.final-price-val').text(Math.round(res.final_price));
+                
+                // Оновлюємо загальний підсумок у футері
+                filterTable();
+            },
+            error: function() {
+                alert('Помилка збереження');
+                revert();
+            }
+        });
+    }
+
+    $input.on('keyup', function(e) {
+        if (e.which === 13) save();
+        if (e.which === 27) { isSaving = true; revert(); }
+    });
+    $input.on('blur', function() { if (!isSaving) save(); });
+});
+
 
 window.onload = filterTable;
 </script>

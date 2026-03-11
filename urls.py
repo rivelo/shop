@@ -68,12 +68,13 @@ urlpatterns = [
     url(r'^bicycle/framesize/delete/(?P<id>\d+)/$', catalog.bicycle_framesize_del),
     #url(r'^bicycle/framesize/delete/(?P<id>\d)/$', catalog.bicycle_framesize_del'),
 
-    url(r'^bicycle/add/$', catalog.bicycle_add),
+#    url(r'^bicycle/add/$', catalog.bicycle_add),
+    url(r'^bicycle/add/$', catalog.bicycle_create),
     url(r'^bicycle/year/(?P<year>\d+)/view/$', catalog.bicycle_list),
     url(r'^bicycle/year/(?P<year>\d+)/bycompany/(?P<brand>\d+)/view/$', catalog.bicycle_list),    
     url(r'^bicycle/year/(?P<year>\d+)/bycompany/(?P<brand>\d+)/add/sale/(?P<percent>\d+)/$', catalog.bicycle_list),    
 # ?    url(r'^bicycle/all/view/$', catalog.bicycle_all_list'),
-    url(r'^bicycle/view/$', catalog.bicycle_list),
+    url(r'^bicycle/view/$', catalog.bicycle_list, name='bicycle-list'),
     url(r'^bicycle/edit/(?P<id>\d+)/$', catalog.bicycle_edit, name='bicycle-edit'),    
     url(r'^bicycle/delete/(?P<id>\d+)/$', catalog.bicycle_del),
     url(r'^bicycle/photo/(?P<id>\d+)/$', catalog.bicycle_photo, name='bicycle-photo'),
@@ -113,6 +114,7 @@ urlpatterns = [
     url(r'^bicycle-store/search/result/$', catalog.bicycle_store_search_result),
     
     url(r'^bicycle/price/set/$', catalog.bicycle_price_set),
+    url(r'^bicycle/price/set/ajax/$', catalog.edit_price_ajax),
 
     url(r'^bicycle/sale/add/(?P<id>\d+)/$', catalog.bicycle_sale_add, name='bicycle-sale-add'),
     url(r'^bicycle/sale/add/$', catalog.bicycle_sale_add),

@@ -23,10 +23,13 @@ from django.shortcuts import get_object_or_404
 
 from django.contrib.auth.models import Group
 from django.contrib import auth
+from django.contrib.auth.decorators import user_passes_test
 
+from django.template.context_processors import request
 from django.template import RequestContext
 
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.conf import settings
 
 from django.utils.text import slugify
@@ -43,7 +46,9 @@ from forms import CatalogForm, ClientForm, ClientDebtsForm, ClientCreditsForm, C
 from forms import ManufacturerForm, CountryForm, CurencyForm, CategoryForm, BicycleTypeForm, BicycleForm, BicycleFrameSizeForm, BicycleStoreForm, BicycleSaleForm, BicycleOrderForm, BicycleStorage_Form, StorageType_Form
 from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoiceForm, InvoiceComponentListForm, BankForm, ExchangeForm, PreOrderForm, InvoiceComponentForm, CashTypeForm, DiscountForm 
 from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm, WorkShopFormset, SalaryForm
-  
+from forms import PhotoFormSet, YouTubeFormSet 
+
+
 import datetime
 import calendar
 import codecs
@@ -58,7 +63,7 @@ import StringIO, requests, os
 from PIL import Image
 from urlparse import urlsplit
 from _mysql import NULL
-from django.template.context_processors import request
+
 
 
 
@@ -759,7 +764,57 @@ def bicycle_part_add(request):
     
             response = JsonResponse(d)
             return response            
-    
+
+
+def bicycle_create(request):
+    if request.method == "POST":
+        form = BicycleForm(request.POST, request.FILES)
+        photo_fs = PhotoFormSet(request.POST, request.FILES, queryset=Photo.objects.none(), prefix='photos')
+        youtube_fs = YouTubeFormSet(request.POST, queryset=YouTube.objects.none(), prefix='videos')
+        if form.is_valid() and photo_fs.is_valid() and youtube_fs.is_valid():
+            # 1. Save the main Bicycle object
+            bicycle = form.save()
+
+            # 2. Save new Photos and link them
+            photos = photo_fs.save(commit=False)
+            for photo in photos:
+                photo.user = request.user # Set current user
+                photo.save()
+                bicycle.photo_url.add(photo) # Link to ManyToMany
+
+            # 3. Save new Videos and link them
+            videos = youtube_fs.save(commit=False)
+            for video in videos:
+                video.user = request.user
+                video.save()
+                bicycle.youtube_url.add(video) # Link to ManyToMany
+            
+            return redirect('bicycle-list')
+        else:
+              # ЦЕ ВИВЕДЕ ПОМИЛКИ В КОНСОЛЬ ПІТОНА
+            print("Bicycle Form Errors:", form.errors)
+            print("Photo Formset Errors:", photo_fs.errors)
+            print("YouTube Formset Errors:", youtube_fs.errors)
+    else:
+        # Important: use queryset=Photo.objects.none() to show only empty extra fields
+        form = BicycleForm()
+        photo_fs = PhotoFormSet(queryset=Photo.objects.none(), prefix='photos')
+        youtube_fs = YouTubeFormSet(queryset=YouTube.objects.none(), prefix='videos')
+
+    context = {'form': form,
+            'photo_formset': photo_fs,
+            'youtube_formset': youtube_fs,
+            'weblink': 'bicycle.html', 
+            'text': 'Велосипед з каталогу (створення)'}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
+    # return render(request, 'bicycle_form.html', {
+    #     'form': form,
+    #     'photo_formset': photo_fs,
+    #     'youtube_formset': youtube_fs,
+    # })
+
+
 @csrf_exempt
 def bicycle_add(request):
     if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
@@ -1930,8 +1985,8 @@ def bicycle_order_add_edit(request, order_id=None):
             print(form.errors.as_data()) 
     else:
         form = BicycleOrderForm(instance=instance)
-    
     context = {'form': form, 'weblink': 'bicycle_order.html', 'text': text, 'order_id': order_id}
+    context.update(custom_proc(request)) 
     return render(request, 'index.html', context)
 
 
@@ -9676,6 +9731,40 @@ def catalog_set_type(request):
     cat = Catalog.objects.filter(id = cid).values('type__name', 'type__id')
     return HttpResponse(simplejson.dumps(list(cat)), content_type="application/json")
 #    return HttpResponse(cat[0][0], content_type="text/plain;charset=UTF-8;")
+
+
+# Функція для перевірки, чи є користувач адміном
+def is_admin(user):
+    return user.is_authenticated and user.groups.filter(name='admin').exists()
+
+@require_POST
+@user_passes_test(is_admin) # Повертає 403 або редірект, якщо не адмін
+def edit_price_ajax(request):
+    try:
+        bike_id = request.POST.get('id')
+        field = request.POST.get('field')  # 'price' або 'sale'
+        value = request.POST.get('value').replace(',', '.')
+        
+        # Додаткова перевірка всередині (безпека)
+        if field not in ['price', 'sale']:
+            return JsonResponse({'status': 'error', 'message': 'Invalid field'}, status=400)
+
+        bike = Bicycle.objects.get(pk=bike_id)
+        
+        if field == 'price':
+            bike.price = float(value)
+        else:
+            bike.sale = float(value)
+            
+        bike.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'new_value': value,
+            'final_price': bike.final_price  # Використовуємо ваш @property метод
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 @csrf_exempt
 def bicycle_price_set(request):

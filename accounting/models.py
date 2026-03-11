@@ -1646,7 +1646,7 @@ class Bicycle(models.Model):
     sale = models.FloatField(default = 0, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     warranty = models.PositiveIntegerField(default = 12, blank=True)
-    warranty_frame = models.PositiveIntegerField(default = 12)
+    warranty_frame = models.PositiveIntegerField(default = 12, blank=True)
     geometry = models.ImageField(upload_to = 'upload/bicycle/geometry/', max_length=255, blank=True, null=True)
     internet = models.BooleanField(default=False)
     youtube_url = models.ManyToManyField(YouTube, blank=True)
