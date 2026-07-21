@@ -840,7 +840,7 @@ class ClientForm(forms.ModelForm):
         model = Client
         fields = '__all__'
 
-
+""" 
 class ClientEditForm(forms.ModelForm):
     name = forms.CharField(max_length=255)
     forumname = forms.CharField(max_length=255, required=False)    
@@ -857,6 +857,79 @@ class ClientEditForm(forms.ModelForm):
     class Meta:
         model = Client
         fields = '__all__'
+ """
+class ClientEditForm(forms.ModelForm):
+    name = forms.CharField(max_length=255, label="ПІБ")
+    forumname = forms.CharField(max_length=255, required=False, label="Нік, логін")    
+    country = forms.ModelChoiceField(queryset=Country.objects.all(), initial=1, label="Країна")
+    city = forms.CharField(max_length=255, label="Місто")
+    email = forms.EmailField(required=False)
+    phone = forms.CharField(max_length=255, required=False)
+    phone1 = forms.CharField(max_length=255, required=False)
+    sale = forms.IntegerField(required=False, initial=0, label="Знижка %")
+    summ = forms.FloatField(initial=0, label="Загальна сума покупок")
+    birthday = forms.DateField(
+        label='Дата народження', 
+        # HTML5 input[type="date"] завжди відправляє та приймає дані у форматі YYYY-MM-DD
+        input_formats=['%Y-%m-%d'], 
+        widget=forms.DateInput(
+            format='%Y-%m-%d',
+            attrs={
+                'type': 'date',
+                'class': 'form-control' # додаємо базовий клас Bootstrap
+            }
+        ), 
+        required=False
+    )
+    description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255, required=False)    
+    # НОВІ ПОЛЯ: додаємо відображення для вибору магазину та користувача
+    reg_shop = forms.ModelChoiceField(queryset=Shop.objects.all(), required=False, label="Магазин реєстрації")
+    reg_user = forms.ModelChoiceField(queryset=User.objects.all(), required=False, label="Хто зареєстрував")
+    reg_date_display = forms.CharField(
+        label="Дата реєстрації", 
+        required=False,
+        widget=forms.TextInput(attrs={'readonly': True})
+    )
+
+    class Meta:
+        model = Client
+        fields = '__all__'
+
+    # Автоматично додаємо класи Bootstrap до ВСІХ полів при ініціалізації
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super(ClientEditForm, self).__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            # Для чекбоксів потрібен інший клас в Bootstrap 4
+            if isinstance(field.widget, forms.CheckboxInput):
+                # Додаємо класи та примусово скидаємо абсолютне позиціонування
+                field.widget.attrs.update({
+                    'class': 'form-check-input',
+                    'style': 'position: relative; margin-top: 0; margin-left: 0;'
+                })
+            else:
+                field.widget.attrs.update({'class': 'form-control'})
+        # Наповнюємо поле дати реєстрації значенням
+        if self.instance and self.instance.pk and self.instance.reg_date:
+            # Якщо клієнт вже існує, виводимо його дату реєстрації у форматі ДД.ММ.РРРР
+            self.fields['reg_date_display'].initial = self.instance.reg_date.strftime('%d.%m.%Y')
+        else:
+            # Якщо це новий клієнт, можна написати "Створюється зараз" або залишити порожнім
+            self.fields['reg_date_display'].initial = "Автоматично при збереженні"
+
+        # Логіка обмеження доступу до поля sale
+        if user:
+            # Перевіряємо, чи користувач НЕ є суперкористувачем і НЕ в групі "admin"
+            is_admin = user.is_superuser or user.groups.filter(name='admin').exists()
+            if not is_admin:
+                # Варіант 1: Блокуємо поле (користувач бачить значення, але не може змінити)
+                self.fields['sale'].widget.attrs['readonly'] = True
+#                self.fields['reg_date'].widget.attrs['readonly'] = True
+                self.fields['reg_shop'].disabled = True
+                self.fields['reg_user'].disabled = True
+
+                # Варіант 2 (альтернатива): Якщо хочете повністю вимкнути поле, розкоментуйте рядок нижче:
+                # self.fields['sale'].disabled = True
 
 
 class ClientDebtsForm(forms.ModelForm):

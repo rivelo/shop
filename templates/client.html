@@ -1,5 +1,5 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title> Редагування клієнта </title>
+<title> {{ page_label }}  </title>
 
  <script src="/media/jquery.textchange.min.js"></script> 
 
@@ -112,9 +112,9 @@ $('#id_name').bind('notext', function () {
 {% if not request.user|has_group:"admin" %}
 	$("#id_sale_on").parents('div.form-group').hide();
 	$("#id_summ").parents('div.form-group').hide();
-	$("#id_sale").parents('div.form-group').hide();
-	$("#id_reg_shop").parents('div.form-group').hide();
-	$("#id_reg_user").parents('div.form-group').hide();
+//	$("#id_sale").parents('div.form-group').hide();
+/*	$("#id_reg_shop").parents('div.form-group').hide();
+	$("#id_reg_user").parents('div.form-group').hide(); */
 {% endif %}
 
 });
@@ -122,22 +122,17 @@ $('#id_name').bind('notext', function () {
 
 
 
-
 <body onload="document.getElementById('id_name').focus()">
     
-<h1> <span class="badge badge-secondary">Створення/Редагування Клієнта</span></h1>
+<h1> <span class="badge badge-secondary">{{ page_label }}</span> </h1>
 
-<div >
+<div>
 
 <form method="post" novalidate>
-
-{% comment %}
-{% endcomment %}
 
 {% for hidden_field in form.hidden_fields %}
     {{ hidden_field }}
 {% endfor %}
-
 
 {% if form.non_field_errors %}
     <div class="alert alert-danger" role="alert">
@@ -147,61 +142,80 @@ $('#id_name').bind('notext', function () {
     </div>
 {% endif %}
 
-
-  {% for field in form.visible_fields %}
+{% for field in form.visible_fields %}
+  
+  <!-- ПЕРЕВІРКА ЗА НАЗВОЮ ПОЛЯ ЧЕКБОКСА -->
+  {% if field.name == 'sale_on' %}
+    
     <div class="form-group col-12 col-lg-8 col-xl-6">
-      {{ field.label_tag }}
+      <div class="form-check py-2">
+        <!-- Використовуємо d-inline-flex для ідеального центрування тексту за вертикаллю -->
+        <label class="form-check-label font-weight-bold d-inline-flex align-items-center" style="cursor: pointer; padding-left: 0;">
+          
+          <!-- Огортаємо чекбокс у div, який перевизначить абсолютне позиціонування та збільшить його -->
+          <div style="transform: scale(1.4); transform-origin: left center; margin-right: 15px; display: inline-block; position: relative; line-height: 1;">
+            {{ field }}
+          </div>
+          
+          <!-- Текст мітки -->
+          <span>{{ field.label }}</span>
+        </label>
+      </div>
+      
+      {% if field.errors %}
+        {% for error in field.errors %}
+          <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+      {% endif %}
+    </div>
 
-      {% if form.is_bound %}
-        {% if field.errors %}
-          {{ field|add_attr:"class:form-control is-invalid" }}
+  {% else %}
+    
+    <!-- Стандартний вивід для всіх інших полів (ім'я, телефон, знижка тощо) -->
+    <div class="form-group col-12 col-lg-8 col-xl-6">
+	<!-- Створюємо тег label вручну, передаючи туди id поля та кастомний label -->
+      <label for="{{ field.id_for_label }}" class="font-weight-bold">{{ field.label }}:</label>
+      {{ field }}
+
+      {% if field.errors %}
           {% for error in field.errors %}
-            <div class="invalid-feedback">
-              {{ error }}
-            </div>
+            <div class="invalid-feedback d-block">{{ error }}</div>
           {% endfor %}
-        {% else %}
-	        {{ field|add_attr:"class:form-control is-valid" }}
-        {% endif %}
-      {% else %}
-      	{{ field|add_attr:"class:form-control" }}
-      	{% if field.name == 'name' %}
-      	<div id="name_result" >
-      	<h5><span class="badge badge-info" id="test_client" >
-      	<a href="javascript:void(0)" class="text-white" id="chk_link" onclick="chk_client()"></a>
-      	</span></h5>
-	      	<div id="client_list">
-    	  	</div>
-      	</div>
-      	{% endif %}
-      	
-      	{% if field.name == 'phone' %}
-      	<div id="phone_result" >
-      	<h5><span class="badge badge-info" id="test_client_phone" >
-      	<a href="javascript:void(0)" class="text-white" id="chk_phone_link" onclick="chk_client_phone()"></a>
-      	</span></h5>
-	      	<div id="client_phone_list">
-    	  	</div>
-      	</div>
-      	{% endif %}
-      	
       {% endif %}
 
-
+      <!-- Ваші кастомні JS-перевірки для Name та Phone -->
+      {% if field.name == 'name' %}
+      <div id="name_result" >
+          <h5><span class="badge badge-info" id="test_client" >
+            <a href="javascript:void(0)" class="text-white" id="chk_link" onclick="chk_client()"></a>
+          </span></h5>
+          <div id="client_list"></div>
+      </div>
+      {% endif %}
       
+      {% if field.name == 'phone' %}
+      <div id="phone_result" >
+          <h5><span class="badge badge-info" id="test_client_phone" >
+            <a href="javascript:void(0)" class="text-white" id="chk_phone_link" onclick="chk_client_phone()"></a>
+          </span></h5>
+          <div id="client_phone_list"></div>
+      </div>
+      {% endif %}
+
       {% if field.help_text %}
         <small class="form-text text-muted">{{ field.help_text }}</small>
       {% endif %}
     </div>
-  {% endfor %}
 
+  {% endif %}
+{% endfor %}
 
-            {#{ form.as_ul }#}        
      <div class="form-group col-12 col-lg-8 col-xl-6">
         <input type="submit" value="Зберегти" class="btn btn-success w-100">
      </div>
         
 </form>
+
 </div>
 
 </body>

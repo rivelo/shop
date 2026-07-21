@@ -2,7 +2,7 @@
 from django.db.models import Q
 from django.db.models import F
 from django.db import connection
-from django.db.models import Sum, Count, Max, Avg
+from django.db.models import Sum, Count, Max, Avg, F, ExpressionWrapper, FloatField, Func
 from django.db.models.functions import ExtractDay, ExtractMonth, ExtractYear
 
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
@@ -65,6 +65,8 @@ from urlparse import urlsplit
 from _mysql import NULL
 
 
+class Abs(Func):
+    function = 'ABS'
 
 
 def custom_proc(request):
@@ -874,7 +876,9 @@ def bicycle_add(request):
 @csrf_exempt
 def bicycle_edit(request, id):
     if (auth_group(request.user, 'seller') or auth_group(request.user, 'admin')) == False:
-        return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
+        #return render_to_response('index.html', {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}, context_instance=RequestContext(request, processors=[custom_proc]))
+        context = {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}
+        return render(request, 'index.html', context)
         #return HttpResponseRedirect('/bicycle/view/')
     a = Bicycle.objects.get(pk=id)
     url_youtube = None
@@ -1920,7 +1924,8 @@ def bicycle_sale_report_by_brand(request):
 
 def bicycle_order_add_edit(request, order_id=None):
     if not auth_group(request.user, 'seller'):
-        return HttpResponse('Для виконання дій авторизуйтесь', content_type="text/plain;charset=UTF-8;")
+        context = {'weblink': 'error_message.html', 'mtext': 'Ви не залогувались на порталі або у вас не вистачає повноважень для даних дій.'}
+        return render(request, 'index.html', context)
 
     if order_id:
         instance = get_object_or_404(Bicycle_Order, pk=order_id)
@@ -4830,48 +4835,50 @@ def catalog_get_locality(request):
 
 # ------------- Clients -------------
 @csrf_exempt
-def client_add(request):
+def client_add(request, page_label=None):
+    # Визначаємо поточного користувача
+    current_user = None
+    if request.user.is_authenticated():
+        current_user = request.user
+
     if request.method == 'POST':
-        form = ClientForm(request.POST)
+        # Змінюємо на ClientEditForm та обов'язково передаємо user=current_user
+        form = ClientEditForm(request.POST, user=current_user)
+        
         if form.is_valid():
-            name = form.cleaned_data['name']
-            forumname = form.cleaned_data['forumname']
-            country = form.cleaned_data['country']
-            city = form.cleaned_data['city']
-            email = form.cleaned_data['email']
-            phone = form.cleaned_data['phone']
-            phone1 = form.cleaned_data['phone1']
-            sale = form.cleaned_data['sale']
-            summ = form.cleaned_data['summ']
-            description = form.cleaned_data['description']
-            birthday = form.cleaned_data['birthday']
-            sale_on = form.cleaned_data['sale_on']
-            user = None             
-            if request.user.is_authenticated():
-                user = request.user
-            shopN = get_shop_from_request(request)
-            a = Client(name=name, forumname=forumname, country=country, city=city, email=email, phone=phone, sale=sale, summ=summ, description=description, phone1=phone1, birthday=birthday, sale_on=sale_on, reg_user=user, reg_shop=shopN)
-            a.save()
-            #return HttpResponseRedirect('/client/view/')
-            return HttpResponseRedirect('/client/result/search/?id=' + str(a.id))
+            # Метод save(commit=False) автоматично створює об'єкт з усіх полів форми,
+            # але ще не зберігає його в базу даних (дозволяє нам додати системні поля)
+            client_obj = form.save(commit=False)
+            
+            # Автоматично заповнюємо системні поля на основі сесії та запиту
+            client_obj.reg_user = current_user
+            client_obj.reg_shop = get_shop_from_request(request)
+            
+            # Зберігаємо клієнта в базу даних
+            client_obj.save()
+            
+            return HttpResponseRedirect('/client/result/search/?id=' + str(client_obj.id))
     else:
-        form = ClientForm()
-    context = {'form': form, 'weblink': 'client.html', }
+        # Для GET-запиту також використовуємо ClientEditForm і передаємо користувача
+        form = ClientEditForm(user=current_user)
+        
+    context = {'form': form, 'weblink': 'client.html', 'page_label': page_label}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
+
 @csrf_exempt
-def client_edit(request, id):
+def client_edit(request, id, page_label=None):
     a = Client.objects.get(pk=id)
     if request.method == 'POST':
-        form = ClientEditForm(request.POST, instance=a)
+        form = ClientEditForm(request.POST, instance=a, user=request.user)
         if form.is_valid():
             form.save()
             #return HttpResponseRedirect('/client/view/')
             return HttpResponseRedirect('/client/result/search/?id='+id)
     else:
-        form = ClientEditForm(instance=a)
-    context = {'form': form, 'weblink': 'client.html', }
+        form = ClientEditForm(instance=a, user=request.user)
+    context = {'form': form, 'weblink': 'client.html', 'page_label': page_label}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
@@ -5448,7 +5455,8 @@ def client_invoice_set(request):
             if auth_group(request.user, 'seller')==False:
                 return HttpResponse('Error: У вас не має прав для редагування', content_type="text/plain;charset=UTF-8;")
             POST = request.POST  
-            if POST.has_key('ids[]'):
+            """ 
+            if 'ids[]' in POST:                
                 ids = request.POST.getlist('ids[]')
                 if POST.has_key('client'):
                     client = request.POST['client']
@@ -5456,8 +5464,24 @@ def client_invoice_set(request):
                     client = False
                 if POST.has_key('count'):
                     count = request.POST['count']
+ """
+            if 'ids[]' in POST:
+                ids = POST.getlist('ids[]')
+                client = POST.get('client', False)
+                count = POST.get('count', 0)                    
                 
-                ci_list = ClientInvoice.objects.filter(id__in = ids)
+                diff_expression = ExpressionWrapper(
+                    Abs(F('pay') - F('sum')),
+                    output_field=FloatField()
+                   )
+                ci_list = None
+                if auth_group(request.user, 'admin') == True:
+                    ci_list = ClientInvoice.objects.filter(id__in = ids)
+                else:
+                    ci_list = ClientInvoice.objects.filter(id__in = ids).annotate(pay_diff=diff_expression).filter( pay_diff__gt=0.01 ) # Якщо різниця менша за 0.001 — вважаємо, що оплачено
+
+                updated_data = [] # Сюди збережемо результати для AJAX
+
                 for ci in ci_list:
                     if int(count) != 0:
                         ci.count = count
@@ -5466,9 +5490,19 @@ def client_invoice_set(request):
                         ci.client = Client.objects.get(id = client)
                         ci.update_sale()
                     ci.save()
-                result = 'Виконано'
-                return HttpResponse(result, content_type="text/plain;charset=UTF-8;")
+
+                    # Додаємо змінені дані в масив
+                    updated_data.append({
+                        'id': ci.id,
+                        'client_name': ci.client.name + "("+ ci.client.forumname +")",
+                        'client_id': ci.client.id,
+                        'count': ci.count,
+                        'sum': round(ci.sum, 2) # Округлюємо для красивого виводу
+                    })
                 
+                # Повертаємо успішний JSON-статус та масив даних
+                return JsonResponse({'status': 'success', 'data': updated_data})
+
             return HttpResponse("Помилка", content_type="text/plain;charset=UTF-8;")
 
 
