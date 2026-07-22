@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Замовлення товару</title>
+    <title>Замовлення товару: {{ catalog_item.name }}</title>
 
     {% load poll_extras %}
 
@@ -54,7 +54,12 @@
                 <h1 class="mb-4">
                     <span class="badge badge-secondary badge-title shadow-sm">Замовлення товару</span>
                 </h1>
-
+                    <label class="font-weight-bold text-secondary">Товар:</label>
+{% if catalog_item %}                    
+    <div id="item_return" class="p-2 border rounded bg-light font-weight-bold" style="background-color: #f1ecf9 !important; color: #5b3a8a;"> 
+      [ {{ catalog_item.get_code.0 }} ] {{ catalog_item.name }}
+    </div>
+{% endif %}
                 <form action="" method="POST" id="orderForm">
                     {% csrf_token %}
 
@@ -63,7 +68,7 @@
                         <div class="col-lg-6 col-12 mb-3">
                             <label for="catalog">Товар з каталогу</label>
                             {{form.post_id|add_attr:"class:d-none"}} <!-- Прихований ID -->
-                            <input type="text" class="form-control form-control-lg shadow-sm" id="catalog" autocomplete="off">
+                            <input type="text" class="form-control form-control-lg shadow-sm" id="catalog" autocomplete="off" value="{% if catalog_item %}{{ catalog_item.name }}{% endif %}">
                         </div>
                         <div class="col-lg-6 col-12 mb-3">
                             <label for="s_client">Клієнт</label>

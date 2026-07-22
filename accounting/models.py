@@ -27,7 +27,7 @@ from datetime import date
 from django.urls import reverse
 from pyexpat import model
 #from ctypes.test.test_pep3118 import s_bool
-
+import math
 
 # Group Type = Group for Component category 
 class GroupType(models.Model):
@@ -1417,7 +1417,14 @@ class ClientInvoice(models.Model):
     shop = models.ForeignKey(Shop, blank=True, null=True)
     #storage_box = models.ManyToManyField(StorageBox, blank = True)   
 
-    def update_sale(self):
+    def update_sale(self, custom_sale=None):
+        # Якщо передано ручну знижку з діалогового вікна, використовуємо її
+        if custom_sale is not None:
+            self.sale = custom_sale
+            self.sum = float(self.count) * ((1.0 - (float(self.sale) / 100.0)) * float(self.price))
+            self.save()
+            return True
+                
         if (self.catalog.sale == 0) and (self.client.sale > self.catalog.sale):
             self.sale = self.client.sale
             self.sum = float(self.count) * ((1-(float(self.client.sale)/100.0)) * float(self.price))
@@ -1442,33 +1449,94 @@ class ClientInvoice(models.Model):
         else:
             return False
 
+    def get_component_price(self):
+        invoice_year = self.date.year
+        cc = self.catalog.invoicecomponentlist_set.filter(
+            price__gt=0, 
+            date__year=invoice_year
+        ).order_by('-date', '-id')  # Сортуємо від найновішого до найстарішого
+        # 1. Беремо перший (тобто останній за датою) запис із відфільтрованих
+        latest_component = cc.first()
+        if latest_component:
+            return latest_component.price
+        # 2. Якщо в цьому році записів немає, рахуємо середнє за весь час (також > 0)
+        avg_price = self.catalog.invoicecomponentlist_set.filter(
+            price__gt=0
+        ).aggregate(Avg('price'))['price__avg']
+        return avg_price or 0.0
+
+
     def get_profit(self):
         profit = 0
-        dn = self.date
-        month = dn.month
-        year = dn.year
         ua = 0
-        cc = self.catalog.invoicecomponentlist_set.filter(price__gt = 0) #.aggregate(isum = Sum('price'), )
-        if not cc:
-            return (0, 0)
-        #ic_count = cc.count() #aggregate(icount = Count('price'))['icount']
-        ic_count = 0
-        sum = 0
-        for item in cc:
-            sum = sum + item.get_uaprice(self.date) * item.count
-            ic_count = ic_count + item.count
-        if ic_count != 0:
-            ua = sum / ic_count
-        if (self.currency.ids_char == 'UAH'):
-            try:
-                percent_sale = (100-self.sale)*0.01
-            except:
-                percent_sale = (100-0)*0.01
-                self.sale = 0
-                self.save()
-            profit = self.price * percent_sale * self.count - ua * self.count 
-        #return cur_exchange1
-        return (ua, profit)
+        p_sale = 0
+        ua_sale = 0
+        
+        invoice_year = self.date.year
+
+        # 1. ШУКАЄМО ОСТАННІЙ ЗАПИС ЗА ПОТОЧНИЙ РІК
+        latest_component = self.catalog.invoicecomponentlist_set.filter(
+            price__gt=0, 
+            date__year=invoice_year
+        ).order_by('-date', '-id').first()
+
+        if latest_component:
+            # Конвертуємо ціну знайденого компонента в UAH на дату цього ClientInvoice
+            ua = latest_component.get_uaprice(self.date)
+        else:
+            # 2. ЯКЩО В ЦЬОМУ РОЦІ НЕМАЄ, РАХУЄМО СЕРЕДНЄ З УСІХ ЗАПИСІВ
+            all_components = self.catalog.invoicecomponentlist_set.filter(price__gt=0)
+            
+            if all_components.exists():
+                # Конвертуємо кожен запис закупівлі у гривню на дату ClientInvoice
+                ua_prices = [item.get_uaprice(self.date) for item in all_components]
+                ua = sum(ua_prices) / len(ua_prices)
+            else:
+                # Якщо товар взагалі ніколи не купувався
+                return (0, 0, 0, 0)
+
+        if ua == 0:
+            return (0, 0, 0, 0)
+
+        # 3. КОНВЕРТАЦІЯ ЦІНИ ПРОДАЖУ (self.price) В ГРИВНЮ
+        if self.currency.ids_char == 'UAH':
+            price_in_uah = self.price
+        else:
+            # Шукаємо курс валюти продажу на місяць та рік інвойсу клієнта
+            cur_exchange = Exchange.objects.filter(
+                currency__ids_char=self.currency.ids_char, 
+                date__month=self.date.month, 
+                date__year=self.date.year
+            ).aggregate(average_val=Avg('value'))['average_val']
+            
+            if cur_exchange:
+                price_in_uah = self.price * cur_exchange
+            else:
+                price_in_uah = self.price * 1  # якщо курс не знайдено, залишаємо як є
+
+        # 4. ЛОГІКА РОЗРАХУНКУ ПРИБУТКУ ТА ВІДСОТКІВ (Тепер повністю в UAH)
+        try:
+            percent_sale = (100 - (self.sale or 0)) * 0.01
+        except:
+            percent_sale = 1.0
+            self.sale = 0
+            self.save()
+            
+        # Рахуємо прибуток, використовуючи ціну продажу в гривнях (price_in_uah)
+        profit = price_in_uah * percent_sale * self.count - ua * self.count 
+        
+        try:
+            # Використовуємо переведену в гривню ціну продажу для розрахунку відсотку
+            p_sale = abs(ua / (price_in_uah * 0.01) - 97)
+            
+            # ТУТ ВРАХОВУЄТЬСЯ КОНВЕРТАЦІЯ: ua_sale тепер рахується від гривневої ціни
+            ua_sale = price_in_uah * p_sale / 100
+        except ZeroDivisionError:
+            p_sale = 0
+            ua_sale = 0
+
+        return (ua, profit, p_sale, ua_sale)
+
 
     def get_client_profit(self):
         try:
@@ -1493,6 +1561,22 @@ class ClientInvoice(models.Model):
                 st = u"Місце: Видалене!" 
             res_list.append(st)
         return res_list
+
+    # def get_clean_description(self):
+    #     """Повертає опис БЕЗ слова Місце та всього, що йде після нього"""
+    #     if not self.description:
+    #         return ""
+    #     # Розбиваємо текст по слову "Місце"
+    #     parts = self.description.split(u"Місце")
+    #     return parts[0].strip()
+
+    # def get_embedded_location(self):
+    #     """Витягує тільки частину тексту, яка йде ПІСЛЯ слова Місце"""
+    #     if not self.description or u"Місце" not in self.description:
+    #         return ""
+    #     parts = self.description.split(u"Місце", 1)
+    #     # Повертаємо слово "Місце" разом із залишком тексту
+    #     return (u"Місце" + parts[1]).strip()
 
     def save(self, **kwargs):
         update_fields = kwargs.get("update_fields")

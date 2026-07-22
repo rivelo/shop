@@ -333,12 +333,14 @@ urlpatterns = [
     url(r'^client/invoice/view/$', catalog.client_invoice_view, name="clientinvoice-view"),
     url(r'^client/invoice/view/notpay/$', catalog.client_invoice_view, {'notpay': True}, name="clientinvoice-now-notpay"),
     url(r'^client/invoice/set/$', catalog.client_invoice_set),
+    url(r'^client/invoice/update/sale/$', catalog.client_invoice_update_sale, name='update_client_invoice_sale'),
 #    url(r'^client/invoice/(?P<id>\d+)/edit/$', catalog.client_invoice_edit, name="client-invoice-edit"),
     url(r'^client/invoice/(?P<ciid>\d+)/edit/$', catalog.client_invoice, name="client-invoice-edit"),
     url(r'^client/invoice/add/$', catalog.client_invoice_add, name='client-invoice-add-by-catalog'),
     url(r'^client/(?P<cid>\d+)/invoice/add/$', catalog.client_invoice),
     url(r'^client/(?P<client_id>\d+)/invoice/sale/$', catalog.client_invoice_view, name="clientinvoice-sale-by-client"),
     url(r'^client/(?P<client_id>\d+)/invoice/sale/all/$', catalog.client_invoice_view, {'day': 'all', 'all': 'all', 'notpay': True}, name="clientinvoice-all-sales-by-client"),
+    url(r'^client/(?P<client_id>\d+)/invoice/sale/year/(?P<year>\d+)/all/$', catalog.client_invoice_view, {'day': 'all', 'all': 'all', 'notpay': True}, name="clientinvoice-all-sales-by-client-year"),
 # ajax table for client invoice    
     url(r'^client/(?P<client_id>\d+)/invoice/lookup/$', catalog.client_invoice_lookup),
     url(r'^client/invoice/catalog/(?P<cid>\d+)/add/$', catalog.client_invoice),
@@ -384,6 +386,7 @@ urlpatterns = [
     url(r'^clientcredits/set/$', catalog.clientcredits_set),
 
     url(r'^client/order/add/$', catalog.client_order_add),
+    url(r'^client/order/catalog/(?P<cid>\d+)/add/$', catalog.client_order_add, name='client-order-add-by-catalog'),
     url(r'^client/order/view/$', catalog.client_order_list),
     url(r'^client/order/delete/(?P<id>\d+)$', catalog.client_order_delete),
     url(r'^client/order/edit/(?P<id>\d+)/$', catalog.client_order_edit),

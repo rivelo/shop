@@ -5554,6 +5554,230 @@ def client_invoice_delete(request, id=None):
 
 
 def client_invoice_view(request, month=None, year=None, day=None, id=None, notpay=False, shop=None, client_id=None, all=None):
+    show_month = month
+    
+    # 1. Визначаємо поточний рік та місяць за замовчуванням
+    if year is None:
+        year = datetime.datetime.now().year
+    if month is None:
+        month = datetime.datetime.now().month
+        show_month = month 
+
+    # Переносимо оригінальну логіку визначення поточного дня для контексту шаблону
+    current_day = datetime.datetime.now().day
+        
+    base_queryset = ClientInvoice.objects.select_related('catalog', 'currency')
+
+    # 2. Логіка фільтрації за датами (з урахуванням збереження оригінальної поведінки)
+    if day is None:
+        # Якщо day немає в URL, фільтруємо за сьогоднішнім днем, але для контексту ставимо поточне число
+        invoice_list = base_queryset.filter(
+            date__year=year, 
+            date__month=month, 
+            date__day=current_day
+        ).order_by("-date", "-id")
+        template_day = current_day  # Передаємо в шаблон число, щоб не було None
+    else:
+        if day == 'all':
+            invoice_list = base_queryset.filter(
+                date__year=year, 
+                date__month=month
+            ).order_by("-date", "-id")            
+            template_day = 'all'
+        else:
+            invoice_list = base_queryset.filter(
+                date__year=year, 
+                date__month=month, 
+                date__day=day
+            ).order_by("-date", "-id")            
+            template_day = int(day) # Передаємо в шаблон число
+
+    # 3. Додаткові фільтри
+    if client_id:
+        invoice_list = invoice_list.filter(client=client_id)
+        
+    if client_id and all:
+        invoice_list = base_queryset.filter(date__year=year, client=client_id).order_by("-date", "-id")
+        show_month = 'all'
+
+    if shop and shop != '0':
+        invoice_list = invoice_list.filter(shop=shop)
+
+    if notpay:    
+        invoice_list = invoice_list.exclude(sum=F('pay'))
+   
+    if shop is None:
+        shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+        shop = shopN.id or 0
+        if all != 'all':
+            invoice_list = invoice_list.filter(shop=shop)
+
+    # 4. Обчислення загальних сум
+    psum = 0
+    scount = 0
+    sprofit = 0
+    for item in invoice_list:
+        psum += item.sum
+        scount += item.count
+        try:
+            # Зверніть увагу: оскільки get_profit повертає кортеж, беремо індекс 1 (чистий прибуток)
+            sprofit += item.get_profit()[1]
+        except (IndexError, TypeError):
+            pass
+    
+    days = xrange(1, calendar.monthrange(int(year), int(month))[1] + 1)
+    shops = Shop.objects.all()
+        
+    # 5. Пагінація
+    paginator = Paginator(invoice_list, 15)
+    page = request.GET.get('page', 1)
+    try:
+        cinvoices = paginator.page(page)
+    except PageNotAnInteger:
+        cinvoices = paginator.page(1)
+    except EmptyPage:
+        cinvoices = paginator.page(paginator.num_pages)
+        
+    # 6. Формування контексту
+    context = {
+        'sel_year': year, 
+        'sel_month': month, 
+        'show_month': show_month, 
+        'month_days': days, 
+        'sel_day': template_day,  # ТУТ ТЕПЕР НІКОЛИ НЕ БУДЕ NONE
+        'buycomponents': cinvoices, 
+        'shops': shops, 
+        "shop": int(shop), 
+        'sumall': psum, 
+        'sum_profit': sprofit, 
+        'countall': scount, 
+        'weblink': 'clientinvoice_list.html', 
+        'view': True,
+    }
+    
+    if 'custom_proc' in globals() or 'custom_proc' in locals():
+        custom_dict = custom_proc(request)
+        context.update(custom_dict)
+        
+    return render(request, 'index.html', context)
+
+# def client_invoice_view(request, month=None, year=None, day=None, id=None, notpay=False, shop=None, client_id=None, all=None):
+#         show_month = month
+        
+#         # Визначаємо поточний рік та місяць за замовчуванням
+#         if year is None:
+#             year = datetime.datetime.now().year
+#         if month is None:
+#             month = datetime.datetime.now().month
+#             show_month = month 
+            
+#         # Створюємо базовий QuerySet. 
+#         # select_related підвантажує пов'язані моделі за 1 запит, що усуває проблему N+1 у шаблоні
+#         base_queryset = ClientInvoice.objects.select_related('catalog', 'currency')
+
+#         # Фільтрація за датами (Рік / Місяць / День)
+#         if day is None:
+#             invoice_list = base_queryset.filter(
+#                 date__year=year, 
+#                 date__month=month, 
+#                 date__day=datetime.datetime.now().day
+#             ).order_by("-date", "-id")
+#         else:
+#             if day == 'all':
+#                 invoice_list = base_queryset.filter(
+#                     date__year=year, 
+#                     date__month=month
+#                 ).order_by("-date", "-id")            
+#             else:
+#                 invoice_list = base_queryset.filter(
+#                     date__year=year, 
+#                     date__month=month, 
+#                     date__day=day
+#                 ).order_by("-date", "-id")            
+#                 day = int(day)
+
+#         # Додаткові фільтри (Клієнт, Магазин, Статус оплати)
+#         if client_id:
+#             invoice_list = invoice_list.filter(client=client_id)
+            
+#         if client_id and all:
+#             invoice_list = base_queryset.filter(date__year=year, client=client_id).order_by("-date", "-id")
+#             show_month = 'all'
+
+#         # Виправлено застарілий оператор `<>` на стандартний `!=`
+#         if shop and shop != '0':
+#             invoice_list = invoice_list.filter(shop=shop)
+
+#         if notpay:    
+#             invoice_list = invoice_list.exclude(sum=F('pay'))
+    
+#         # Визначення магазину за IP-адресою, якщо параметр shop не передано
+#         if shop is None:
+#             # Функція get_shop_from_ip має бути імпортована або визначена у вашому проекті
+#             shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+#             shop = shopN.id or 0
+#             if all != 'all':
+#                 invoice_list = invoice_list.filter(shop=shop)
+
+#         # Розрахунок загальних підсумкових сум для статистики поточної сторінки/вибірки
+#         psum = 0
+#         scount = 0
+#         sprofit = 0
+#         for item in invoice_list:
+#             psum += item.sum
+#             scount += item.count
+            
+#             # Виклик оновленого методу моделі get_profit()
+#             # Оскільки ми використовуємо оновлений get_profit, він повертає кортеж.
+#             # Індекс [1] — це чистий прибуток у гривні.
+#             try:
+#                 sprofit += item.get_profit()[1]
+#             except (IndexError, TypeError):
+#                 pass
+
+#         # Розрахунок кількості днів у місяці для календаря шаблону
+#         days = xrange(1, calendar.monthrange(int(year), int(month))[1] + 1)
+#         shops = Shop.objects.all()
+            
+#         # Налаштування пагінації (15 записів на сторінку)
+#         paginator = Paginator(invoice_list, 15)
+#         page = request.GET.get('page', 1)
+#         try:
+#             cinvoices = paginator.page(page)
+#         except PageNotAnInteger:
+#             cinvoices = paginator.page(1)
+#         except EmptyPage:
+#             cinvoices = paginator.page(paginator.num_pages)
+            
+#         # Формування контексту для шаблону
+#         context = {
+#             'sel_year': year, 
+#             'sel_month': month, 
+#             'show_month': show_month, 
+#             'month_days': days, 
+#             'sel_day': day, 
+#             'buycomponents': cinvoices, 
+#             'shops': shops, 
+#             "shop": int(shop), 
+#             'sumall': psum, 
+#             'sum_profit': sprofit, 
+#             'countall': scount, 
+#             'weblink': 'clientinvoice_list.html', 
+#             'view': True,
+#         }
+        
+#         # Додаємо кастомний процесор контексту (якщо використовується)
+#         if 'custom_proc' in globals() or 'custom_proc' in locals():
+#             custom_dict = custom_proc(request)
+#             context.update(custom_dict)
+            
+#         return render(request, 'index.html', context)
+
+
+
+
+""" 
+def client_invoice_view(request, month=None, year=None, day=None, id=None, notpay=False, shop=None, client_id=None, all=None):
     # upd = ClientInvoice.objects.filter(sale = None).update(sale=0) # update recors with sale = 0
     show_month = month
     if year == None:
@@ -5616,11 +5840,49 @@ def client_invoice_view(request, month=None, year=None, day=None, id=None, notpa
         cinvoices = paginator.page(paginator.num_pages)
         
 #    context = {'sel_year':year, 'sel_month':int(month), 'month_days':days, 'sel_day':day, 'buycomponents': cinvoices, 'shops': shops, "shop": int(shop), 'sumall':psum, 'sum_profit':sprofit, 'countall':scount, 'weblink': 'clientinvoice_list.html', 'view': True,} 
-    context = {'sel_year':year, 'sel_month':month, 'show_month': show_month, 'month_days':days, 'sel_day':day, 'buycomponents': cinvoices, 'shops': shops, "shop": int(shop), 'sumall':psum, 'sum_profit':sprofit, 'countall':scount, 'weblink': 'clientinvoice_list.html', 'view': True,}
+    context = {'sel_year':year, 'sel_month':month, 'show_month': show_month, 'month_days':days, 'sel_day':day, 'buycomponents': cinvoices, 'shops': shops, "shop": int(shop), 'sumall':psum, 'sum_profit':sprofit, 'countall':scount, 
+                'weblink': 'clientinvoice_list.html', 'view': True,
+              }
     custom_dict = custom_proc(request)
     context.update(custom_dict)
     return render(request, 'index.html', context)
 
+ """
+
+@login_required
+@require_POST
+def client_invoice_update_sale(request):
+    invoice_id = request.POST.get('invoice_id')
+    new_sale = request.POST.get('sale')
+
+    try:
+        new_sale = int(new_sale)
+        if not (0 <= new_sale <= 100):
+            return JsonResponse({'success': False, 'error': 'Відсоток має бути від 0 до 100'}, status=400)
+
+        invoice = ClientInvoice.objects.get(pk=invoice_id)
+        
+        # ВИКЛИКАЄМО ВАШУ ФУНКЦІЮ (Вона сама порахує суму і збереже модель)
+        invoice.update_sale(custom_sale=new_sale)
+
+        # Отримуємо нові дані прибутку та собівартості
+        profit_data = invoice.get_profit()
+
+        return JsonResponse({
+            'success': True,
+            'sale': invoice.sale,
+            'sum': round(invoice.sum, 2),       # Повертаємо нову суму продажу клієнту
+            'ua': round(profit_data[0], 2),       # Собівартість
+            'profit': round(profit_data[1], 0),   # Прибуток
+            'p_sale': round(profit_data[2], 0),   # Маржа %
+            'ua_sale': round(profit_data[3], 0)   # Сума націнки/знижки
+        })
+
+    except ClientInvoice.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Інвойс не знайдено'}, status=404)
+    except (ValueError, TypeError):
+        return JsonResponse({'success': False, 'error': 'Некоректні дані'}, status=400)
+    
 
 @csrf_exempt
 def client_invoice_lookup(request, client_id):
@@ -5792,7 +6054,7 @@ def client_order_list(request):
     context = {'c_order': list, 'weblink': 'client_order_list.html'}
     context.update(custom_proc(request)) 
     return render(request, 'index.html', context)    
-
+""" 
 @csrf_exempt
 def client_order_add(request, cid=None):
     #a = ClientOrder(date=datetime.datetime.today(), pay=0, count=1, currency=Currency.objects.get(id=3), catalog=Catalog.objects.all())
@@ -5835,6 +6097,67 @@ def client_order_add(request, cid=None):
     context = {'form': form, 'weblink': 'clientorder.html', 'next': current_url(request)}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
+ """
+
+@csrf_exempt
+def client_order_add(request, cid=None):
+    # Створюємо базовий об'єкт замовлення
+    a = ClientOrder(date=datetime.datetime.today(), pay=0, count=1, currency=Currency.objects.get(id=3))
+    catalog_obj = None
+    # Визначаємо початкові дані для форми
+    initial_data = {}
+    if cid:
+        # Перевіряємо, чи існує такий товар у каталозі, щоб уникнути помилок
+        catalog_obj = get_object_or_404(Catalog, id=cid)
+        # Записуємо ID товару в initial. Замініть 'post_id' на 'catalog', 
+        # якщо у вашій формі ClientOrderForm поле вибору товару називається інакше.
+        initial_data['catalog'] = catalog_obj.id
+        initial_data['price'] = catalog_obj.price
+        initial_data['sum'] = catalog_obj.price * 1 
+        # Якщо у формі є текстове поле опису, можна автоматично додати назву товару
+#        initial_data['description'] = u"Замовлення: %s" % catalog_obj.name
+
+    if request.method == 'POST':
+        form = ClientOrderForm(request.POST, instance=a)        
+        if form.is_valid():
+            client = form.cleaned_data['client']
+            post = form.cleaned_data['post_id']
+            
+            catalog = None
+            if post:
+                catalog = Catalog.objects.get(id=post)
+                
+            description = form.cleaned_data['description']
+            count = form.cleaned_data['count']
+            price = form.cleaned_data['price']
+            sum = form.cleaned_data['sum']
+            currency = form.cleaned_data['currency']
+            pay = form.cleaned_data['pay']
+            date = form.cleaned_data['date']
+            cash_type = form.cleaned_data['cash_type']
+            
+            user = None
+            if request.user.is_authenticated():
+                user = request.user
+                
+            if catalog:
+                s = u"Аванс - " + catalog.name + "(" + description + ")"
+            else:
+                s = u"Аванс - " + description 
+                
+            ccred = ClientCredits(client=client, date=datetime.datetime.now(), price=pay, description=s, cash_type=cash_type, user=user)
+            ccred.save()
+
+            ClientOrder(client=client, catalog=catalog, count=count, sum=sum, price=price, currency=currency, pay=pay, date=date, description=description, user=user, credit=ccred).save()
+            return HttpResponseRedirect('/client/order/view/')
+    else:
+        # ПЕРЕДАЄМО INITIAL_DATA ДЛЯ GET-ЗАПИТУ
+        form = ClientOrderForm(instance=a, initial=initial_data)
+        
+    context = {'form': form, 'catalog_item': catalog_obj, 'weblink': 'clientorder.html', 'next': current_url(request)}
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
+
 
 @csrf_exempt
 def client_order_edit(request, id):
