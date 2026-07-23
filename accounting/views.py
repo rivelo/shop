@@ -6354,23 +6354,28 @@ def client_result(request, tdelta = 30, id = None, email=False):
     except ObjectDoesNotExist:
         client_name = ""
     
+    # 1. Розраховуємо часовий поріг
+    time_threshold = now - datetime.timedelta(days=tdelta)
     credit_list = None
     cash_id = CashType.objects.get(id = 6) # Зарплата
     if auth_group(request.user, "admin") == False:
         #if str(request.user.username.encode('utf8')) == str(client_name['forumname'].encode('utf8')):
         if request.user.username == client_name.forumname.encode('utf8'):
         #if request.user.username == client_name['forumname'].encode('utf8'):            
-            credit_list = ClientCredits.objects.filter(client=user, date__gt=now-datetime.timedelta(days=tdelta))
+#            credit_list = ClientCredits.objects.filter(client=user, date__gt=time_threshold)
+            credit_list = ClientCredits.objects.filter(client=user).filter(Q(date__gt=time_threshold) | Q(cash_type_id=8))
         else:    
-            credit_list = ClientCredits.objects.filter(client=user, date__gt=now-datetime.timedelta(days=tdelta)).exclude(cash_type = cash_id)
+            #credit_list = ClientCredits.objects.filter(client=user, date__gt=time_threshold).exclude(cash_type = cash_id)
+            credit_list = ClientCredits.objects.filter(client=user).filter(Q(date__gt=time_threshold) | Q(cash_type_id=8)).exclude(cash_type = cash_id)
     else: 
-        credit_list = ClientCredits.objects.filter(client=user, date__gt=now-datetime.timedelta(days=tdelta))
-    debt_list = ClientDebts.objects.filter(client=user, date__gt=now-datetime.timedelta(days=tdelta))
-    client_invoice = ClientInvoice.objects.filter(Q(client=user) & (Q(pay__lt = F('sum')) | Q(date__gt=now-datetime.timedelta(days=tdelta))) ).order_by("-date", "-id")
+#        credit_list = ClientCredits.objects.filter(client=user, date__gt=time_threshold)
+        credit_list = ClientCredits.objects.filter(client=user).filter(Q(date__gt=time_threshold) | Q(cash_type_id=8))
+    debt_list = ClientDebts.objects.filter(client=user, date__gt=time_threshold)
+    client_invoice = ClientInvoice.objects.filter(Q(client=user) & (Q(pay__lt = F('sum')) | Q(date__gt=time_threshold)) ).order_by("-date", "-id")
      
     if client_invoice.count()>45 :
         tdelta = 6
-        client_invoice = ClientInvoice.objects.filter(Q(client=user) & (Q(pay__lt = F('sum')) | Q(date__gt=now-datetime.timedelta(days=tdelta))) ).order_by("-date", "-id")
+        client_invoice = ClientInvoice.objects.filter(Q(client=user) & (Q(pay__lt = F('sum')) | Q(date__gt=time_threshold)) ).order_by("-date", "-id")
     client_invoice_sum = 0
     for a in client_invoice:
         client_invoice_sum = client_invoice_sum + a.sum
@@ -6419,9 +6424,13 @@ def client_result(request, tdelta = 30, id = None, email=False):
         client.sale = 100
     client.save()
     if email == True :
-        context = {'clients': res, 'invoice': client_invoice, 'email': email, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta}
+        context = {'clients': res, 'invoice': client_invoice, 'email': email, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 
+                   'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 
+                   'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta}
         return render(request, 'client_result.html', context)
-    context = {'weblink': 'client_result.html', 'clients': res, 'invoice': client_invoice, 'email': email, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta}  
+    context = {'weblink': 'client_result.html', 'clients': res, 'invoice': client_invoice, 'email': email, 'client_invoice_sum': client_invoice_sum, 
+                'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 
+                'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta}  
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 

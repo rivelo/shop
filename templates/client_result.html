@@ -4,8 +4,8 @@
 <head>
 {#	<link rel="stylesheet" href="/media/css/table.css"> #}  
 {#	<link rel="stylesheet" href="/media/jquery-ui.min.css"> #}
-<script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script>
 {#	<script src="/media/jquery-ui.min.js"></script> #}	
+{% comment %} <script src="/media/jquery.jeditable.mini.js" type="text/javascript" charset="utf-8"></script> {% endcomment %}
 
 </head>
 
@@ -67,6 +67,13 @@ td.mark_false {
 
 .price_error {
 	background-color: #da8d8d;
+}
+
+.viber-color {
+    color: #7360f2 !important; /* Фірмовий фіолетовий колір Viber */
+}
+.viber-btn:hover {
+    opacity: 0.8;
 }
 </style>
 
@@ -150,12 +157,209 @@ let html_tr = `
 return html_tr
 };
 
+// Підрахунок ПОМИЛКОВИХ оплат	
+function calculateErrorTotal() {
+    var totalError = 0;
+
+    // 1. Рахуємо суму всіх помилкових комірок
+    $('.price_error').not('#error_sum_block').each(function() {
+        var priceAttr = $(this).attr('value');
+        if (priceAttr) {
+            var price = parseFloat(priceAttr);
+            if (!isNaN(price)) {
+                totalError += price;
+            }
+        }
+    });
+
+    // Записуємо суму помилок на екран
+    $("#error_sum_display").html(totalError.toFixed(2));
+
+    // 2. Отримуємо загальну суму клієнта з h1
+    var clientSumAttr = $("#client_sum").attr('value');
+    var totalClient = parseFloat(clientSumAttr);
+
+    if (!isNaN(totalClient)) {
+        // Рахуємо різницю
+        var cleanSum = totalClient - totalError;
+        
+        // Записуємо чисту суму на екран
+        $("#clean_sum_display").html(cleanSum.toFixed(2));
+
+        // ДИНАМІЧНА ЗМІНА КОЛЬОРУ БЛОКУ:
+        var $cleanBlock = $("#clean_sum_block");
+        
+        if (cleanSum < 0) {
+            // Якщо результат ВІД'ЄМНИЙ — робимо блок червоним
+            $cleanBlock.removeClass('alert-success').addClass('alert-danger');
+            // Оновлюємо текст всередині, додаючи попереджувальний знак
+            $cleanBlock.html(`⚠️ Чиста сума (від'ємний баланс): <span id="clean_sum_display">${cleanSum.toFixed(2)}</span> грн.`);
+        } else {
+            // Якщо результат ДОДАТНІЙ або 0 — робимо блок зеленим
+            $cleanBlock.removeClass('alert-danger').addClass('alert-success');
+            // Оновлюємо текст з позитивною галочкою
+            $cleanBlock.html(`✅ Чиста сума (без помилкових): <span id="clean_sum_display">${cleanSum.toFixed(2)}</span> грн.`);
+        }
+    }
+
+    // 3. Логіка показу/ховання блоків
+    if (totalError > 0) {
+        $("#error_sum_block").show();
+        $("#clean_sum_block").show(); 
+    } else {
+        $("#error_sum_block").hide();
+        $("#clean_sum_block").hide(); 
+    }
+    
+    return totalError;
+}
+
+
 $(document).ready(function() {
+
+calculateErrorTotal(); 
 
 //	$('[data-toggle="tooltip"]').tooltip();
 //	$('[data-toggle="tooltip"]').show();
 	
-	$("#dialog").hide();
+<!-- Start diaolg Client BIKEs -->	
+    // 1. ОДИН РАЗ налаштовуємо та створюємо діалог (він прихований завдяки autoOpen: false)
+    $("#dialog").dialog({
+        autoOpen: false,
+        modal: true,
+        width: 'auto',       // Авто-ширина під контент
+        maxWidth: 650,       // Обмеження максимальної ширини
+        resizable: false,    // Заборона ручної зміни розміру
+        open: function() {
+            // Примусовий перерахунок ширини після рендерингу карток
+            $(this).dialog("option", "width", "auto");
+        }
+    });
+
+    // 2. При кліку на іконку просто НАКАЗУЄМО діалогу відкритися
+    $("#img_bike").click(function() {
+        $("#dialog").dialog("open"); // ОЦЕЙ РЯДОК ПРОСТО ВІДКРИВАЄ СТВОРЕНЕ ВІКНО
+    });
+
+
+ $(document).on('click', '.bike_serv', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        var $badge = $(this);
+        var bikeId = $badge.attr('id_bike');
+        
+        // --- КРОК 2: ПІДТВЕРДЖЕННЯ (Другий клік — відправка запиту на сервер) ---
+        if ($badge.hasClass('awaiting-confirm')) {
+            
+            var currentStatus = $badge.attr('data-old-status') === 'success' ? '1' : '0';
+            var newStatus = currentStatus === '1' ? '0' : '1';
+
+            // Блокуємо бадж на час завантаження AJAX
+            $badge.css('pointer-events', 'none').css('opacity', '0.7');
+
+            $.ajax({
+                url: '/bicycle/sale/service/',
+                type: 'POST',
+                data: {
+                    id: bikeId,
+                    value: newStatus
+                },
+                success: function(response) {
+                    // Знімаємо стан очікування
+                    $badge.removeClass('awaiting-confirm btn-warning').removeAttr('data-old-status');
+                    $badge.css('pointer-events', 'auto').css('opacity', '1');
+
+                    // Записуємо новий постійний статус
+                    if (newStatus === '1') {
+                        $badge.removeClass('badge-danger').addClass('badge-success');
+                        $badge.find('i').text('check_circle');
+                        $badge.find('span.align-middle').text('Пройдено');
+                    } else {
+                        $badge.removeClass('badge-success').addClass('badge-danger');
+                        $badge.find('i').text('cancel');
+                        $badge.find('span.align-middle').text('Не пройдено');
+                    }
+                },
+                error: function() {
+                    alert('Помилка оновлення статусу сервісу');
+                    resetBadge($badge);
+                }
+            });
+
+        // --- КРОК 1: ПОПЕРЕДЖЕННЯ (Перший клік — запит користувача "Точно?") ---
+        } else {
+            // Повертаємо всі інші активні баджі до початкового ладу
+            $('.bike_serv.awaiting-confirm').each(function() {
+                resetBadge($(this));
+            });
+
+            // Запам'ятовуємо старий статус
+            var currentClass = $badge.hasClass('badge-success') ? 'success' : 'danger';
+            $badge.attr('data-old-status', currentClass);
+
+            // Робимо бадж жовтим з попередженням
+            $badge.removeClass('badge-success badge-danger')
+                  .addClass('badge-warning awaiting-confirm')
+                  .css('color', '#212529');
+            
+            $badge.find('i').text('help_outline');
+            $badge.find('span.align-middle').text('Точно змінити?');
+
+            // Якщо користувач не підтвердив дію за 4 секунди — автоматично скасовуємо
+            setTimeout(function() {
+                if ($badge.hasClass('awaiting-confirm')) {
+                    resetBadge($badge);
+                }
+            }, 4000);
+        }
+    });
+
+    // Допоміжна функція відновлення початкового стану баджа
+    function resetBadge($el) {
+        var oldStatus = $el.attr('data-old-status');
+        if (oldStatus) {
+            $el.removeClass('badge-warning awaiting-confirm').css('color', '#fff');
+            $el.css('pointer-events', 'auto').css('opacity', '1');
+            
+            if (oldStatus === 'success') {
+                $el.addClass('badge-success');
+                $el.find('i').text('check_circle');
+                $el.find('span.align-middle').text('Пройдено');
+            } else {
+                $el.addClass('badge-danger');
+                $el.find('i').text('cancel');
+                $el.find('span.align-middle').text('Не пройдено');
+            }
+            $el.removeAttr('data-old-status');
+        }
+    }
+
+    // Скасування підтвердження при кліку повз бадж
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.bike_serv').length) {
+            $('.bike_serv.awaiting-confirm').each(function() {
+                resetBadge($(this));
+            });
+        }
+    });  
+
+<!-- end diaolg Client BIKEs -->	
+
+
+{% comment %} 
+$('.bike_serv').editable('/bicycle/sale/service/', {
+	
+     data   : " {'1':'Пройдено','0':'Не пройдено'}",
+     submitdata : function() {
+      	return {id : $(this).attr('id_bike')};
+    	 },
+     type   : 'select',
+//     tooltip   : 'Натисніть для редагування...',
+     submit : 'OK'
+});
+ {% endcomment %}
+	
 	$("#dialog_r").hide();
 	$("#dialog_msg").hide();
 	$("#dialog_ajax_load").hide();
@@ -325,6 +529,8 @@ $('#statusModalPhone').on('hidden.bs.modal', function () {
     }
 
 // --------------------- end of change work Status 
+
+
 // --------------------- Workshop ticket modal form -------------------
   	$( "#img_repair" ).click(function() {
   		{% if client_name.check_workticket %}
@@ -340,10 +546,9 @@ $('#statusModalPhone').on('hidden.bs.modal', function () {
 		$("#tabs-3").append($("#t_workticket"));
     // Put your TD color reset code here!
 	});
-// -------- Client Bike ----------  	
-  	$( "#img_bike" ).click(function() {
-  		$( "#dialog" ).dialog();
-	});
+
+
+
 // -------- Message client --------	
 	$( "#img_msg" ).click(function() {
   		$( "#dialog_msg" ).dialog({
@@ -364,9 +569,7 @@ $('#statusModalPhone').on('hidden.bs.modal', function () {
                 data: {client:  {{client_name.id}}, msg: $("#msg_text").val() },
                 dataType: "json",
                 success:function(data){
-                	//$( "#dialog_msg" ).dialog("close");
                 	$("#img_msg").css("opacity", 1);
-                //	$("#dialog_msg p:last").after("<p><b>Message: </b> <br>"+ $('#msg_text').val() +"</p>");
                 	$("#dialog_msg").after("<p><b>Message: </b> <br>"+ $('#msg_text').val() +"</p>");
                 	$("#msg_text").remove();
                 	$("#msg_button").remove();
@@ -400,6 +603,7 @@ $('#statusModalPhone').on('hidden.bs.modal', function () {
 {% endif %}
 	
 
+{% comment %} 
 $('.cred_price').each(function() {
 	$(this).editable('/clientcredits/set/', {
 		 loadurl : '/cashtype/list/',
@@ -425,7 +629,8 @@ $('.cred_price').each(function() {
 	     tooltip   : 'Натисніть для редагування...',
 	     submit : 'OK'
 	});
-	});
+	}); 
+{% endcomment %}
 
 
 }); // end Ready
@@ -482,27 +687,12 @@ $(function() {
                 	$("#1month_cred").attr("cred_day", 0);
                 	$("#1month_cred").hide();
                 	$.each(msg,function(index,item){
-//                		var tdate = item.fields.date.split(" ")[0].replace("-", "/").replace("-", "/");
-//                		var fcol = '<abbr title="' + item.fields.date.split(" ")[1] + ' - [user]">' + tdate + '</abbr>';
-//                		var cdesc = item.fields.description + " <a href='/clientcredits/delete/" + item.pk + "'>delete</a>";
-//                		var price = '<td class="cred_price" tcash_id="'+item.fields.cash_type+'" id_cred="' + item.pk + '" value="'+ item.fields.price+'"><abbr title="' + item.fields.cash_type.name + '">' + item.fields.price + '</abbr>';
-//                	    $('.in_cred').after('<tr class="tr_cred"><td>'+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</tr>');
-//						var fcol = '<abbr title="' + item['user__username'] + '">' + item['date'] + '</abbr>';
-
-						{% comment %} 
-						var fcol = 'title="' + item['user__username'] + '"' + ' data-toggle="tooltip" data-placement="right">' + item['date'];
-						var ed = '<a href="/clientcredits/edit/'+item['id']+'"><i class="material-icons" >edit</i></a>';
-						var cdesc = item['description'] + ed + " <a href='/clientcredits/delete/" + item['id'] + "'" + "onclick='return confirm(&#039Видалити борг?&#039)'><i class='material-icons'>delete</i></a>";
-						var price = '<td class="cred_price" tcash_id="'+item['cash_type']+'" id_cred="'+item['id']+'" value="'+item['price']+'" title="' + item['cash_type__name'] + '"' + 'data-toggle="tooltip" data-placement="right">' + item['price'];
-                	    $('.in_cred').after('<tr class="tr_cred"><td '+ fcol +'</td><td>'+ cdesc +'</td>' + price +'</td></tr>'); 
-						{% endcomment %}
-//						console.log("DATE = " + item['date']);
 						gen_html = generateCredCell(item['date'], item['credit_datetime'], item['user__username'], item['description'] , item['id'], item['cash_type__name'], item['price'], item['cash_type'])
 						$('.in_cred').after(gen_html);
 					});
                 $('[data-toggle="tooltip"]').tooltip();	
 				$( "#dialog_ajax_load" ).dialog("close");
-				reload_price();
+//				reload_price();
                 },
                 error:function(){
                     alert("При отправке возникли проблемы");
@@ -578,7 +768,7 @@ $(function() {
 						$('.in_cred').after(gen_html);
 
                     });
-                    reload_price();
+//                    reload_price();
 					$('[data-toggle="tooltip"]').tooltip();
                 },
                 error:function(){
@@ -654,17 +844,6 @@ $(function() {
 		$("#tabs-3").append($("#t_workticket"));
 	});
 
-$('.bike_serv').editable('/bicycle/sale/service/', {
-     data   : " {'1':'Пройдено','0':'Не пройдено'}",
-     submitdata : function() {
-      	return {id : $(this).attr('id_bike')};
-    	 },
-     type   : 'select',
-//     tooltip   : 'Натисніть для редагування...',
-     submit : 'OK'
-});
-
-
 
 	$('#selectall').click(function(event) {  //on click 
         if(this.checked) { // check select status
@@ -683,10 +862,149 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
       
 });
 
+//Зміна типу ОПЛАТИ у клієнта
+    // Працює на dblclick як для старих, так і для нових комірок (завдяки $(document).on)
+    $(document).on('dblclick', '.cred_price', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var $cell = $(this);
+        
+        // Якщо меню вже відкрито — нічого не робимо
+        if ($cell.find('select').length > 0) return;
+
+        var currentCashId = $cell.attr('tcash_id');
+        var creditId = $cell.attr('id_cred');
+        var priceValue = $cell.attr('value');
+
+        $.ajax({
+            url: '/cashtype/list/',
+            type: 'POST',
+            data: { sel: currentCashId },
+            success: function(response) {
+                var selectHtml = `<div class="d-flex align-items-center form-inline m-0 p-0" style="gap: 5px;">
+                    <select class="form-control form-control-sm spec-cash-select" style="min-width: 120px; font-size: 0.85rem; height: auto; padding: 2px 5px;">`;
+                
+                try {
+                    var cashTypes = typeof response === 'string' ? jQuery.parseJSON(response) : response;
+                    $.each(cashTypes, function(id, name) {
+                        var selected = (id == currentCashId) ? 'selected' : '';
+                        selectHtml += `<option value="${id}" ${selected}>${name}</option>`;
+                    });
+                } catch(err) {
+                    selectHtml += response;
+                }
+
+                selectHtml += `</select>
+                    <button class="btn btn-sm btn-success save-cash-btn p-1 font-weight-bold" style="font-size: 0.75rem; line-height: 1;">OK</button>
+                    <button class="btn btn-sm btn-secondary cancel-cash-btn p-1 font-weight-bold" style="font-size: 0.75rem; line-height: 1;">X</button>
+                </div>`;
+
+                // Зберігаємо старий вигляд комірки і вставляємо селект
+                $cell.data('old-html', $cell.html());
+                $cell.html(selectHtml);
+            },
+            error: function() {
+                alert('Не вдалося завантажити список кас');
+            }
+        });
+    });
+
+    // Кнопка "Х" (Скасування)
+    $(document).on('click', '.cancel-cash-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $cell = $(this).closest('.cred_price');
+        $cell.html($cell.data('old-html'));
+    });
+
+    // Кнопка "ОК" (Збереження)
+    $(document).on('click', '.save-cash-btn', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var $cell = $(this).closest('.cred_price');
+        var creditId = $cell.attr('id_cred');
+        var priceValue = $cell.attr('value');
+        var newCashId = $cell.find('.spec-cash-select').val();
+
+        $.ajax({
+            url: '/clientcredits/set/',
+            type: 'POST',
+            data: {
+                id: creditId,
+                value: newCashId
+            },
+            success: function(response) {
+                // Точна копія вашої старої callback-логіки для розбору JSON
+                var obj = typeof response === 'string' ? jQuery.parseJSON(response) : response;
+                
+                // Витягуємо дані з першого елемента масиву, як було у вашому jeditable
+                var updatedCashId = obj[0]["cash_type__id"];
+                var updatedCashName = obj[0]["cash_type__name"];
+                
+                // Оновлюємо атрибути
+                $cell.attr("tcash_id", updatedCashId);
+                $cell.attr("title", updatedCashName);
+				// Знищуємо стару підказку з пам'яті та записуємо нове значення в data-original-title
+                $cell.tooltip('dispose'); 
+                $cell.attr("data-original-title", updatedCashName);				
+                
+                // Перевірка на помилкову касу
+                if (updatedCashName === "Помилкова") {
+                    $cell.addClass('price_error');
+                } else {
+                    $cell.removeClass('price_error');
+                }
+
+                // Повертаємо ціну з новою підказкою abbr
+                var str = '<abbr title="' + updatedCashName + '">' + priceValue + '</abbr>';
+                $cell.html(str);
+				$cell.tooltip({ placement: 'right' });
+				calculateErrorTotal();
+            },
+            error: function() {
+                alert('Помилка при збереженні каси кредиту');
+                $cell.html($cell.data('old-html'));
+            }
+        });
+    });
+
+
+    // ========================================================
+    // 📅 ЗАПИТ КРЕДИТІВ КЛІЄНТА (КЛІК НА #1month_cred)
+    // ========================================================
+    $("#1month_cred").click(function(){
+        var Id = {{ client_name.id }};
+        $.ajax({
+            type: "POST",
+            url: "/client_history/cred/",
+            data: { client_id: Id, cred_day: $(this).attr("cred_day"), cred_month: $(this).attr("grid_month") }, // виправлено за вашим кодом
+            dataType: "json",
+            success: function(msg){
+                if ($("#1month_cred").attr("cred_day") == 0) {
+                    alert("Виведено всі проплати клієнта");
+                }
+                var prev_day = parseInt($("#1month_cred").attr("cred_day")) + 30;
+                $("#1month_cred").html("+ " + (prev_day-30) + " днів");
+                $("#1month_cred").attr("cred_day", prev_day);
+                
+                $.each(msg, function(index, item){
+                    var gen_html = generateCredCell(item['date'], item['credit_datetime'], item['user__username'], item['description'], item['id'], item['cash_type__name'], item['price'], item['cash_type']);
+                    $('.in_cred').after(gen_html);
+                });
+				calculateErrorTotal(); 
+                $('[data-toggle="tooltip"]').tooltip();
+            },
+            error: function(){
+                alert("При отправке возникли проблемы");
+            }
+        });      
+    });
 
 
 
-function reload_price() {
+{% comment %} function reload_price() {
 
 $('.cred_price').each(function() {
 $(this).editable('/clientcredits/set/', {
@@ -713,7 +1031,7 @@ $(this).editable('/clientcredits/set/', {
      submit : 'OK'
 });
 });
-}
+} {% endcomment %}
 
 
 
@@ -1093,14 +1411,71 @@ function showToast(text) {
 </div>
 
 
-
-
-<div id="dialog" title="Придбані велосипеди">
+<div id="dialog" title="Придбані велосипеди" class="px-1" style="min-width: 480px;">
 {% for bike in b_bike %}
-<p><b>Велосипед {{bike.model__model__brand__name}} {{bike.model__model__model}} {{bike.model__size__name}}</b> S/N: [{{bike.model__serial_number}}] <br> Дата продажу: {{bike.date}} 
-<br> Сервіс: <b class="bike_serv" id_bike={{bike.id}}>{{bike.service|yesno:"Пройдено,Не пройдено"}}</b></p>
+
+<div class="card shadow-sm border-light mb-3" style="min-width: 450px; width: 100%;">
+  <div class="card-body p-3">
+
+    <!-- Головний рядок: Назва велосипеда + Розмір -->
+    <div class="d-flex align-items-center flex-wrap mb-2">
+      <i class="material-icons text-primary mr-2" style="font-size: 24px;">directions_bike</i>
+      <h5 class="card-title font-weight-bold mb-0 text-dark mr-2" style="font-size: 1.15rem; white-space: nowrap;">
+        {{ bike.model__model__brand__name }} {{ bike.model__model__model }}
+      </h5>
+      <span class="badge badge-secondary px-2 py-1 font-weight-bold shadow-sm" style="font-size: 0.85rem; letter-spacing: 0.5px;">
+        Розмір: {{ bike.model__size__name }}
+      </span>
+    </div>
+
+    <!-- Блок характеристик (ЗМІНЕНО: заменено row на d-flex flex-wrap для плавності) -->
+    <div class="d-flex flex-wrap text-secondary justify-content-between" style="font-size: 0.95rem; gap: 10px 20px;">
+      
+      <!-- Серійний номер -->
+      <div class="d-flex align-items-center" style="white-space: nowrap;">
+        <i class="material-icons mr-1 text-muted" style="font-size: 18px;">fingerprint</i>
+        <span>S/N: <strong class="text-dark">[{{ bike.model__serial_number }}]</strong></span>
+      </div>
+
+      <!-- Дата продажу -->
+      <div class="d-flex align-items-center" style="white-space: nowrap;">
+        <i class="material-icons mr-1 text-muted" style="font-size: 18px;">calendar_today</i>
+        <span>Дата продажу: <strong class="text-dark">{{ bike.date|date:"d.m.Y" }}</strong></span>
+      </div>
+
+    </div>
+
+    <!-- Лінія розділення -->
+    <hr class="my-2 border-light">
+
+    <!-- Статус сервісу -->
+    <div class="d-flex align-items-center justify-content-between pt-1">
+      <span class="text-muted font-weight-bold mr-2" style="font-size: 0.9rem; white-space: nowrap;">Технічний сервіс:</span>
+      
+		<span class="bike_serv badge {% if bike.service %}badge-success{% else %}badge-danger{% endif %} px-3 py-2 text-wrap font-weight-bold shadow-sm" 
+			id_bike="{{ bike.id }}" 
+			data-toggle="popover"
+			data-html="true"
+			data-placement="left"
+			style="font-size: 0.9rem; cursor: pointer;">
+		<i class="material-icons align-middle mr-1" style="font-size: 16px;">
+			{% if bike.service %}check_circle{% else %}cancel{% endif %}
+		</i>
+		<span class="align-middle">{{ bike.service|yesno:"Пройдено,Не пройдено" }}</span>
+		</span>
+
+    </div>
+
+  </div>
+</div>
+
 {% endfor %}  
-</div>	
+</div>
+
+
+{% comment %} <p><b>Велосипед {{bike.model__model__brand__name}} {{bike.model__model__model}} {{bike.model__size__name}}</b> S/N: [{{bike.model__serial_number}}] <br> Дата продажу: {{bike.date}} 
+<br> Сервіс: <b class="bike_serv" id_bike={{bike.id}}>{{bike.service|yesno:"Пройдено,Не пройдено"}}</b></p>
+ {% endcomment %}
 
 {# DIALOG END #}
 
@@ -1119,8 +1494,15 @@ function showToast(text) {
     <a id="client_fio" href=/client/edit/{{client_name.id}} client_name="{{client_name.name}}"> {{client_name.name}} ({{client_name.forumname}}) </a>
     </span>
 	<i class="material-icons md-48 align-middle clienticons" title="копіювати" data-toggle="tooltip" data-placement="bottom" onclick="copyElementText('client_fio')">content_copy</i>
-    </h1>
-	
+	<a href="viber://chat?number={{ client_name.show_ua_phone }}" 
+	   class="viber-btn d-inline-flex align-items-center text-decoration-none" 
+	   data-toggle="tooltip" 
+	   data-placement="bottom" 
+	   title="Написати у Viber">
+		<i class="material-icons viber-color mr-1" style="font-size: 20px;">chat</i>
+		<span class="viber-color font-weight-bold" style="font-size: 0.95rem;">Viber</span>
+	</a>
+</h1>
 </div>
 
 <!-- button toolbar -->
@@ -1180,7 +1562,7 @@ function showToast(text) {
 
 <div class="row">
 <div class="col">
-<h1> 
+<h1 id="client_sum" value="{{clients|floatformat:2}}"> 
 {% if clients < 0 %}
 	 <span class="badge badge-danger">
 {% elif clients > 0.1 %}
@@ -1190,6 +1572,15 @@ function showToast(text) {
 {% endif %}
 Cума:  {{clients|floatformat:2}} грн.</span>
 </h1>
+
+
+<div id="error_sum_block" class="alert font-weight-bold text-dark text-left py-3 my-3 shadow-sm" style="display: none; background-color: #da8d8d; font-size: 1.25rem; border: none;">
+    🚨 Сума помилкових оплат: <span id="error_sum_display">0</span> грн.
+</div>
+<div id="clean_sum_block" class="alert alert-success font-weight-bold text-left py-3 my-3 shadow-sm" style="display: none; font-size: 1.25rem;">
+    ✅ Чиста сума (без помилкових): <span id="clean_sum_display">0</span> грн.
+</div>
+
 </div>	
 </div>
 
@@ -1303,7 +1694,7 @@ Cума:  {{clients|floatformat:2}} грн.</span>
         </div>
     </td>
 	
-    <td  style="vertical-align: middle;" data-toggle="tooltip" data-placement="right"
+    {% comment %} <td  style="vertical-align: middle;" data-toggle="tooltip" data-placement="right"
 		tcash_id="{{credit.cash_type.id}}" id_cred={{credit.id}} value="{{credit.price}}" title="{{credit.cash_type.name}}" 
 		class="cred_price text-center p-1  
 {% if credit.cash_type.name == "Помилкова"  %}
@@ -1312,6 +1703,20 @@ Cума:  {{clients|floatformat:2}} грн.</span>
 	">       
 		{{credit.price}}
     </td>
+ {% endcomment %}
+<td style="vertical-align: middle;" 
+    data-toggle="tooltip" 
+    data-placement="right"
+    tcash_id="{{ credit.cash_type.id }}" 
+    id_cred="{{ credit.id }}" 
+    value="{{ credit.price }}" 
+    title="{{ credit.cash_type.name }}" 
+    class="cred_price text-center p-1 {% if credit.cash_type.name == 'Помилкова' %}price_error{% endif %}">       
+    
+    <!-- Додано обгортку, яку раніше робив JS, щоб при наведенні висвічувалася назва каси -->
+    <abbr title="{{ credit.cash_type.name }}">{{ credit.price }}</abbr>
+</td>
+
 	</tr>
 {% endfor %}
 {% comment %} </tr> {% endcomment %}

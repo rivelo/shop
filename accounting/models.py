@@ -1287,6 +1287,12 @@ class Client(models.Model):
             str = self.phone1[0:3] + '-' + self.phone1[3:6] + '-' + self.phone1[6:8]  + '-' + self.phone1[8:]
         return str 
 
+    def show_ua_phone(self):
+        str = ''
+        if self.phone:
+            str = '38'+self.phone
+        return str 
+
     def check_rent(self):
         if self.rent_set.filter(status = False):
             return True
