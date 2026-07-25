@@ -312,7 +312,7 @@ urlpatterns = [
     url(r'^catalog/delete/attribute/$', catalog.catalog_del_attr), # POST AJAX
 
     # Client
-    url(r'^client/(?P<id>\d+)$', catalog.client_data, name="client-data"),
+#    url(r'^client/(?P<id>\d+)$', catalog.client_data, name="client-data"),
     url(r'^client/(?P<id>\d+)/$', catalog.client_data, name="client-data"),
     url(r'^clients/balance/$', catalog.client_balance_list),
     url(r'^client/add/$', catalog.client_add, {'page_label': 'Створити нового клієнта'}),
@@ -321,6 +321,7 @@ urlpatterns = [
     url(r'^client/email/view/$', catalog.client_email_list),
     url(r'^client/delete/(?P<id>\d+)$', catalog.client_delete),
     url(r'^client/search/$', catalog.client_search),
+    url(r'^client/(?P<client_id>\d+)/balance/$', catalog.client_balance_sheet_view, name='client_balance_sheet'),
     url(r'^client/search/result/$', catalog.client_search_result),
     url(r'^client/result/search/$', catalog.client_result),
     url(r'^client/(?P<id>\d+)/card/$', catalog.client_result, name="client-card-byid"),

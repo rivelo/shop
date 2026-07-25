@@ -1,0 +1,160 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Баланс по клієнту: {{client}}</title>
+
+<style>
+    /* Стиль для підсвічування рядка при наведенні мишки */
+    .balance-table tbody tr:hover {
+        background-color: #f1f5f9 !important; /* Легкий сіро-блакитний відтінок */
+        cursor: pointer;
+    }
+    
+    /* Зберігаємо білий колір для комірки дати, щоб вона не перекривалася */
+    .balance-table tbody tr:hover td[rowspan] {
+        background-color: #f8fafc !important; 
+    }
+
+    .price_error {
+    	background-color: #da8d8d;
+    }
+
+</style>
+
+<body>
+
+<!-- ХЕДЕР З БАДЖЕМ КЛІЄНТА -->
+<div style="font-family: sans-serif; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+    
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <h1 style="margin: 0; font-size: 22px; color: #1e293b; font-weight: 600;">
+            Взаєморозрахунки
+        </h1>
+        <!-- Бадж клієнта -->
+         <a href="{% url 'client-card-byid' client.id %}">
+        <span style="background-color: #3b82f6; color: white; padding: 4px 12px; border-radius: 20px; font-size: 24px; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            👤 Клієнт: {{ client }}
+        </span>
+        </a>
+    </div>
+
+    <!-- Інформація про вибраний період -->
+    <div style="font-size: 14px; color: #64748b; font-weight: 500;">
+        Період звіту: 
+        <strong style="color: #334155;">
+            {% if selected_month == 'all' %}
+                {{ selected_year }} рік
+            {% else %}
+                {{ selected_month }}/{{ selected_year }}
+            {% endif %}
+        </strong>
+    </div>
+
+</div>
+
+
+<!-- ФОРМА ФІЛЬТРАЦІЇ -->
+<div style="margin-bottom: 20px; padding: 15px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+    <form method="GET" action="" style="display: flex; gap: 15px; align-items: center; font-family: sans-serif;">
+        <div>
+            <label for="year" style="font-weight: bold; margin-right: 5px;">Рік:</label>
+            <select name="year" id="year" style="padding: 5px; border-radius: 4px; border: 1px solid #cbd5e1;">
+                {% for y in years_range %}
+                    <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+<div>
+    <label for="month" style="font-weight: bold; margin-right: 5px;">Місяць:</label>
+    <select name="month" id="month" style="padding: 5px; border-radius: 4px; border: 1px solid #cbd5e1;">
+        {% for m_val, m_name in months_range %}
+            {# Співставлення працює для 'all' та для чисел, якщо перетворити обидва у рядок #}
+            <option value="{{ m_val }}" {% if m_val == selected_month|stringformat:"s" %}selected{% endif %}>
+                {{ m_name }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
+
+
+        <button type="submit" style="padding: 6px 12px; background-color: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
+            Фільтрувати
+        </button>
+        
+        <a href="?" style="color: #64748b; text-decoration: none; font-size: 14px;">Скинути (поточний місяць)</a>
+    </form>
+</div>
+
+<!-- ТАБЛИЦЯ ДАНИХ (Код залишається майже без змін) -->
+<table class="balance-table" style="border-collapse: collapse; width: 100%; font-family: sans-serif; font-size: 14px; border: 2px solid #94a3b8;">
+    <thead>
+        <tr style="background-color: #e2e8f0; border-bottom: 2px solid #94a3b8;">
+            <th style="border: 1px solid #94a3b8; padding: 8px;">Дата (наведіть для підсумку)</th>
+            <th colspan="3" style="color: #15803d; border: 1px solid #94a3b8; padding: 8px; text-align: center;">ПРОПЛАТИ (ClientCredits)</th>
+            <th colspan="3" style="color: #b91c1c; border: 1px solid #94a3b8; padding: 8px; text-align: center;">БОРГИ (ClientDebts)</th>
+        </tr>
+        <tr style="background-color: #f1f5f9; font-size: 12px; border-bottom: 2px solid #94a3b8;">
+            <th style="border: 1px solid #cbd5e1; padding: 6px;"></th>
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Опис</th>
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Тип оплати</th>
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Сума</th>
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Сума</th>
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Каса?</th>
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Опис</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for group in table_data %}
+            {% for credit, debt in group.rows %}
+            <tr style="border-bottom: 1px solid #cbd5e1;" >
+                {# Комірка дати з чіткими межами #}
+                {% if forloop.first %}
+                    <td rowspan="{{ group.rowspan }}" 
+                        style="vertical-align: top; font-weight: bold; background-color: #f8fafc; cursor: help; text-align: center; padding: 8px; border: 1px solid #94a3b8;"
+                        title="Підсумок за {{ group.day|date:'d.m.Y' }}:&#10;Проплати: {{ group.day_credits }}&#10;Борги: {{ group.day_debts }}&#10;Баланс дня: {{ group.day_balance }}">
+                        {{ group.day|date:"d.m.Y" }} ℹ️
+                    </td>
+                {% endif %}
+
+                {# ЛІВА ЧАСТИНА: ПРОПЛАТИ #}
+                <td style="color: #64748b; font-size: 13px; padding: 8px; border-right: 2px solid #94a3b8;">{{ credit.description|default_if_none:"" }}</td>
+                <td style="padding: 8px; border-right: 1px solid #e2e8f0;" class="{% if credit.cash_type.name == 'Помилкова' %}price_error{% endif %}">{{ credit.cash_type|default_if_none:"" }}</td>
+
+                <td style="color: #16a34a; font-weight: 500; padding: 8px; border-right: 1px solid #e2e8f0;">{{ credit.price|default_if_none:"" }}</td>
+
+                {# ПРАВА ЧАСТИНА: БОРГИ #}
+                <td style="color: #dc2626; font-weight: 500; padding: 8px; border-right: 1px solid #e2e8f0;">{{ debt.price|default_if_none:"" }}</td>
+                <td style="padding: 8px; border-right: 1px solid #e2e8f0;">{% if debt %}{% if debt.cash %}Так{% else %}Ні{% endif %}{% endif %}</td>
+                <td style="color: #64748b; font-size: 13px; padding: 8px; border-right: 1px solid #cbd5e1;">{{ debt.description|default_if_none:"" }}</td>
+            </tr>
+            {% endfor %}
+        {% empty %}
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 20px; border: 1px solid #cbd5e1;">За вказаний період записів не знайдено</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+    
+    <tfoot>
+        <tr style="background-color: #cbd5e1; font-weight: bold; border-top: 2px solid #94a3b8;">
+            <td style="text-align: right; padding: 10px; border: 1px solid #94a3b8;">ПІДСУМОК ЗА ПЕРІОД:</td>
+            <td style="color: #15803d; font-size: 16px; padding: 10px; border: 1px solid #94a3b8;">{{ total_credits }}</td>
+            <td colspan="2" style="border: 1px solid #94a3b8;"></td>
+            <td style="color: #b91c1c; font-size: 16px; padding: 10px; border: 1px solid #94a3b8;">{{ total_debts }}</td>
+            <td colspan="2" style="border: 1px solid #94a3b8;"></td>
+        </tr>
+        <tr style="background-color: #94a3b8; font-weight: bold; color: white;">
+            <td colspan="1" style="text-align: right; padding: 10px; border: 1px solid #94a3b8;">БАЛАНС ЗА ПЕРІОД:</td>
+            <td colspan="6" style="font-size: 16px; padding-left: 10px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #94a3b8;">
+                {% if total_balance > 0 %}
+                    За цей період борг зріс на: <span style="color: #fee2e2; background-color: #991b1b; padding: 2px 6px; border-radius: 4px;">{{ total_balance }}</span>
+                {% elif total_balance < 0 %}
+                    За цей період виплачено більше на: <span style="color: #dcfce7; background-color: #166534; padding: 2px 6px; border-radius: 4px;">{{ total_balance }}</span>
+                {% else %}
+                    В нуль за цей період
+                {% endif %}
+            </td>
+        </tr>
+    </tfoot>
+</table>
+
+</body>

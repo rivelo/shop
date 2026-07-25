@@ -6434,6 +6434,90 @@ def client_result(request, tdelta = 30, id = None, email=False):
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
+from collections import defaultdict
+from itertools import izip_longest as zip_longest
+from django.db.models.functions import TruncDate
+
+def client_balance_sheet_view(request, client_id):
+    client = get_object_or_404(Client, id=client_id)
+    
+    current_now = datetime.datetime.now()
+    selected_year = request.GET.get('year', str(current_now.year))
+    # За замовчуванням показуємо поточний місяць
+    selected_month = request.GET.get('month', str(current_now.month))
+    
+    years_range = list(range(2000, current_now.year + 1))
+    
+    # Додаємо варіант 'all' на початок списку місяців
+    months_range = [
+        ('all', '— За цілий рік —'),
+        ('1', 'Січень'), ('2', 'Лютий'), ('3', 'Березень'), ('4', 'Квітень'),
+        ('5', 'Травень'), ('6', 'Червень'), ('7', 'Липень'), ('8', 'Серпень'),
+        ('9', 'Вересень'), ('10', 'Жовтень'), ('11', 'Листопад'), ('12', 'Грудень')
+    ]
+
+    # Базові фільтри за роком (завжди активні)
+    debts_filters = {'client': client, 'date__year': selected_year}
+    credits_filters = {'client': client, 'date__year': selected_year}
+    
+    # Якщо НЕ обрано "За цілий рік", додаємо фільтр місяця
+    if selected_month != 'all':
+        debts_filters['date__month'] = selected_month
+        credits_filters['date__month'] = selected_month
+
+    # Виконуємо запити до БД з урахуванням фільтрів
+    debts_qs = ClientDebts.objects.filter(**debts_filters).annotate(
+        clean_date=TruncDate('date')
+    ).select_related('user', 'shop').order_by('date')
+    
+    credits_qs = ClientCredits.objects.filter(**credits_filters).annotate(
+        clean_date=TruncDate('date')
+    ).select_related('cash_type', 'user', 'shop').order_by('date')
+    
+    # Зведення та групування даних (залишається незмінним)
+    combined_data = defaultdict(lambda: {'credits': [], 'debts': [], 'day_credits': 0.0, 'day_debts': 0.0})
+    total_debts = 0.0
+    total_credits = 0.0
+    
+    for d in debts_qs:
+        combined_data[d.clean_date]['debts'].append(d)
+        combined_data[d.clean_date]['day_debts'] += d.price
+        total_debts += d.price
+        
+    for c in credits_qs:
+        combined_data[c.clean_date]['credits'].append(c)
+        combined_data[c.clean_date]['day_credits'] += c.price
+        total_credits += c.price
+        
+    final_rows = []
+    for day, data in sorted(combined_data.items(), key=lambda x: x, reverse=True):
+        day_rows = list(zip_longest(data['credits'], data['debts'], fillvalue=None))
+        day_balance = data['day_debts'] - data['day_credits']
+        
+        final_rows.append({
+            'day': day,
+            'rows': day_rows,
+            'rowspan': len(day_rows),
+            'day_credits': data['day_credits'],
+            'day_debts': data['day_debts'],
+            'day_balance': day_balance
+        })
+        
+    total_balance = total_debts - total_credits
+    
+    return render(request, 'client_balance_sheet.html', {
+        'client': client,
+        'table_data': final_rows,
+        'total_debts': total_debts,
+        'total_credits': total_credits,
+        'total_balance': total_balance,
+        'years_range': years_range,
+        'months_range': months_range,
+        'selected_year': int(selected_year),
+        # Передаємо рядок 'all' або число, тому прибираємо примусове приведення до int
+        'selected_month': selected_month if selected_month == 'all' else int(selected_month),
+    })
+
 
 def client_lookup(request):
     data = []
