@@ -14,7 +14,11 @@
     }
 
     .price_error {
-    	background-color: #da8d8d;
+    	background-color: #da8d8d !important;
+    }
+
+    .balance_credit {
+        background-color: #69b86d !important;
     }
 
 </style>
@@ -34,6 +38,24 @@
             👤 Клієнт: {{ client }}
         </span>
         </a>
+
+ <!-- КНОПКИ ДЛЯ СТВОРЕННЯ (Нові елементи) -->
+        <div style="display: flex; gap: 10px; margin-left: 10px;">
+            <!-- Створити Оплату (Зелена кнопка) -->
+            <a href="{% url 'client-credit-add' id=client.id %}" 
+               target="_blank" 
+               style="background-color: #16a34a; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                ➕ Оплату
+            </a>
+            
+            <!-- Створити Борг (Червона кнопка) -->
+            <a href="{% url 'client-debet-add' id=client.id %}" 
+               target="_blank" 
+               style="background-color: #dc2626; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                ➕ Борг
+            </a>
+        </div>        
+
     </div>
 
     <!-- Інформація про вибраний період -->
@@ -89,16 +111,18 @@
     <thead>
         <tr style="background-color: #e2e8f0; border-bottom: 2px solid #94a3b8;">
             <th style="border: 1px solid #94a3b8; padding: 8px;">Дата (наведіть для підсумку)</th>
-            <th colspan="3" style="color: #15803d; border: 1px solid #94a3b8; padding: 8px; text-align: center;">ПРОПЛАТИ (ClientCredits)</th>
-            <th colspan="3" style="color: #b91c1c; border: 1px solid #94a3b8; padding: 8px; text-align: center;">БОРГИ (ClientDebts)</th>
+            <th colspan="4" style="color: #15803d; border: 1px solid #94a3b8; padding: 8px; text-align: center;">ПРОПЛАТИ (ClientCredits)</th>
+            <th colspan="4" style="color: #b91c1c; border: 1px solid #94a3b8; padding: 8px; text-align: center;">БОРГИ (ClientDebts)</th>
         </tr>
         <tr style="background-color: #f1f5f9; font-size: 12px; border-bottom: 2px solid #94a3b8;">
             <th style="border: 1px solid #cbd5e1; padding: 6px;"></th>
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Опис</th>
             <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Опис</th>
             <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Тип оплати</th>
             <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Сума</th>
             <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Сума</th>
             <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Каса?</th>
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Опис</th>
             <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Опис</th>
         </tr>
     </thead>
@@ -109,6 +133,7 @@
                 {# Комірка дати з чіткими межами #}
                 {% if forloop.first %}
                     <td rowspan="{{ group.rowspan }}" 
+                        class="{% if group.day_balance < 0 %}price_error{% endif %} {% if group.day_balance > 0 %}balance_credit{% endif %}"
                         style="vertical-align: top; font-weight: bold; background-color: #f8fafc; cursor: help; text-align: center; padding: 8px; border: 1px solid #94a3b8;"
                         title="Підсумок за {{ group.day|date:'d.m.Y' }}:&#10;Проплати: {{ group.day_credits }}&#10;Борги: {{ group.day_debts }}&#10;Баланс дня: {{ group.day_balance }}">
                         {{ group.day|date:"d.m.Y" }} ℹ️
@@ -116,15 +141,29 @@
                 {% endif %}
 
                 {# ЛІВА ЧАСТИНА: ПРОПЛАТИ #}
-                <td style="color: #64748b; font-size: 13px; padding: 8px; border-right: 2px solid #94a3b8;">{{ credit.description|default_if_none:"" }}</td>
+ <td style="color: #16a34a; font-weight: 500; padding: 8px; border-right: 1px solid #e2e8f0;">
+    {% if credit %}
+        <a href="{% url 'client-credit-edit' id=credit.id %}" target="_blank" style="color: #16a34a; text-decoration: none;">
+            ✏️ {{ credit.price }}
+        </a>
+    {% endif %}
+</td>
+                <td style="color: #64748b; font-size: 13px; padding: 8px; border-right: 1px solid #e2e8f0;">{{ credit.description|default_if_none:"" }}</td>
                 <td style="padding: 8px; border-right: 1px solid #e2e8f0;" class="{% if credit.cash_type.name == 'Помилкова' %}price_error{% endif %}">{{ credit.cash_type|default_if_none:"" }}</td>
 
-                <td style="color: #16a34a; font-weight: 500; padding: 8px; border-right: 1px solid #e2e8f0;">{{ credit.price|default_if_none:"" }}</td>
+                <td style="color: #16a34a; font-weight: 500; padding: 8px; border-right: 3px solid #131414;">{{ credit.price|default_if_none:"" }}</td>
 
                 {# ПРАВА ЧАСТИНА: БОРГИ #}
                 <td style="color: #dc2626; font-weight: 500; padding: 8px; border-right: 1px solid #e2e8f0;">{{ debt.price|default_if_none:"" }}</td>
                 <td style="padding: 8px; border-right: 1px solid #e2e8f0;">{% if debt %}{% if debt.cash %}Так{% else %}Ні{% endif %}{% endif %}</td>
                 <td style="color: #64748b; font-size: 13px; padding: 8px; border-right: 1px solid #cbd5e1;">{{ debt.description|default_if_none:"" }}</td>
+<td style="color: #dc2626; font-weight: 500; padding: 8px; border-right: 1px solid #e2e8f0;">
+    {% if debt %}
+        <a href="{% url 'client-debet-edit' id=debt.id %}" target="_blank" style="color: #dc2626; text-decoration: none;">
+            ✏️ {{ debt.price }}
+        </a>
+    {% endif %}
+</td>
             </tr>
             {% endfor %}
         {% empty %}
@@ -137,14 +176,17 @@
     <tfoot>
         <tr style="background-color: #cbd5e1; font-weight: bold; border-top: 2px solid #94a3b8;">
             <td style="text-align: right; padding: 10px; border: 1px solid #94a3b8;">ПІДСУМОК ЗА ПЕРІОД:</td>
-            <td style="color: #15803d; font-size: 16px; padding: 10px; border: 1px solid #94a3b8;">{{ total_credits }}</td>
             <td colspan="2" style="border: 1px solid #94a3b8;"></td>
+            <td colspan="1" style="border: 1px solid #94a3b8;"></td>
+            <td style="color: #15803d; font-size: 16px; padding: 10px; border: 1px solid #94a3b8;">{{ total_credits }}</td>
             <td style="color: #b91c1c; font-size: 16px; padding: 10px; border: 1px solid #94a3b8;">{{ total_debts }}</td>
             <td colspan="2" style="border: 1px solid #94a3b8;"></td>
+            <td colspan="1" style="border: 1px solid #94a3b8;"></td>
         </tr>
         <tr style="background-color: #94a3b8; font-weight: bold; color: white;">
             <td colspan="1" style="text-align: right; padding: 10px; border: 1px solid #94a3b8;">БАЛАНС ЗА ПЕРІОД:</td>
             <td colspan="6" style="font-size: 16px; padding-left: 10px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #94a3b8;">
+            <td colspan="6" style="font-size: 16px; padding-left: 10px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #94a3b8;">                
                 {% if total_balance > 0 %}
                     За цей період борг зріс на: <span style="color: #fee2e2; background-color: #991b1b; padding: 2px 6px; border-radius: 4px;">{{ total_balance }}</span>
                 {% elif total_balance < 0 %}

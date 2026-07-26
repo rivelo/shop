@@ -373,16 +373,16 @@ urlpatterns = [
     url(r'^client/invoice/return/list/$', catalog.client_invioce_return_view, {'limit': 100}),
     url(r'^client/invoice/return/list/(?P<limit>\d+)/limit/$', catalog.client_invioce_return_view),
 
-    url(r'^clientdebts/add/(?P<id>\d+)$', catalog.clientdebts_add),
+    url(r'^clientdebts/add/(?P<id>\d+)/$', catalog.clientdebts_add, name="client-debet-add"),
     url(r'^clientdebts/view/$', catalog.clientdebts_list),
-    url(r'^clientdebts/edit/(?P<id>\d+)$', catalog.clientdebts_edit),
+    url(r'^clientdebts/edit/(?P<id>\d+)/$', catalog.clientdebts_edit, name='client-debet-edit'),
     url(r'^clientdebts/delete/(?P<id>\d+)$', catalog.clientdebts_delete),
     url(r'^clientdebts/(?P<client_id>\d+)/delete/all/$', catalog.clientdebts_delete_all),
 
-    url(r'^clientcredits/add/(?P<id>\d+)$', catalog.clientcredits_add),
+    url(r'^clientcredits/add/(?P<id>\d+)/$', catalog.clientcredits_add, name="client-credit-add"),
     url(r'^clientcredits/view/$', catalog.clientcredits_list),
-    url(r'^clientcredits/edit/(?P<id>\d+)$', catalog.clientcredits_edit),    
-    url(r'^clientcredits/delete/(?P<id>\d+)$', catalog.clientcredits_delete),
+    url(r'^clientcredits/edit/(?P<id>\d+)/$', catalog.clientcredits_edit, name='client-credit-edit'),    
+    url(r'^clientcredits/delete/(?P<id>\d+)/$', catalog.clientcredits_delete),
     url(r'^clientcredits/(?P<client_id>\d+)/delete/all/$', catalog.clientcredits_delete_all),
     url(r'^clientcredits/set/$', catalog.clientcredits_set),
 
@@ -399,16 +399,12 @@ urlpatterns = [
     url(r'^client/payform/$', catalog.client_payform),
     url(r'^client/workshop/payform/$', catalog.client_ws_payform),
     
-    # Example:
-    # url(r'^catalog/', include('catalog.foo.urls')),
-#    url(r'^sendmail/$', catalog.sendemail'),
     url(r'^asearch/$', catalog.ajax_search),
 
 #    url(r'^media/(?P<path>.*)', 'django.views.static.serve', {'document_root': os.path.join(dirname, 'media')}),
      # static files
     #{'document_root': 'D:/develop/catalog/media'}),
     #{'document_root': os.path.join(dirname, 'media')}),
-    
 #    url(r'^images/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
     
     url(r'^accounts/login/$',  catalog.login),

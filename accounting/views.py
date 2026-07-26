@@ -48,6 +48,9 @@ from forms import DealerManagerForm, DealerForm, DealerPaymentForm, DealerInvoic
 from forms import WorkGroupForm, WorkTypeForm, WorkShopForm, WorkStatusForm, WorkTicketForm, CostTypeForm, CostsForm, ShopDailySalesForm, RentForm, WorkDayForm, ImportDealerInvoiceForm, ImportPriceForm, PhoneStatusForm, WorkShopFormset, SalaryForm
 from forms import PhotoFormSet, YouTubeFormSet 
 
+from collections import defaultdict
+from itertools import izip_longest as zip_longest
+from django.db.models.functions import TruncDate
 
 import datetime
 import calendar
@@ -6434,9 +6437,6 @@ def client_result(request, tdelta = 30, id = None, email=False):
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
-from collections import defaultdict
-from itertools import izip_longest as zip_longest
-from django.db.models.functions import TruncDate
 
 def client_balance_sheet_view(request, client_id):
     client = get_object_or_404(Client, id=client_id)
@@ -6445,8 +6445,9 @@ def client_balance_sheet_view(request, client_id):
     selected_year = request.GET.get('year', str(current_now.year))
     # За замовчуванням показуємо поточний місяць
     selected_month = request.GET.get('month', str(current_now.month))
-    
-    years_range = list(range(2000, current_now.year + 1))
+
+    client_year = client.reg_date.year
+    years_range = list(range(client_year, current_now.year + 1))
     
     # Додаємо варіант 'all' на початок списку місяців
     months_range = [
@@ -6492,7 +6493,7 @@ def client_balance_sheet_view(request, client_id):
     final_rows = []
     for day, data in sorted(combined_data.items(), key=lambda x: x, reverse=True):
         day_rows = list(zip_longest(data['credits'], data['debts'], fillvalue=None))
-        day_balance = data['day_debts'] - data['day_credits']
+        day_balance = data['day_credits'] - data['day_debts']
         
         final_rows.append({
             'day': day,

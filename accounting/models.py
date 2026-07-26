@@ -1318,7 +1318,47 @@ class Client(models.Model):
     def list_order_items(self):
         list = self.clientorder_set.filter(status = False)
         return list
-    
+
+    def get_absolute_oldest_year(self):
+        """
+        Знаходить найстаріший рік або з проплат, або з боргів.
+        Якщо записів немає, повертає 2024 рік як базовий.
+        """
+        years = []
+        
+        # Шукаємо найстарішу проплату
+        try:
+            first_credit = self.clientcredits_set.earliest('date')
+            years.append(first_credit.date.year)
+        except self.clientcredits_set.model.DoesNotExist:
+            pass
+            
+        # Шукаємо найстаріший борг
+        try:
+            first_debt = self.clientdebts_set.earliest('date')
+            years.append(first_debt.date.year)
+        except self.clientdebts_set.model.DoesNotExist:
+            pass
+            
+        # Повертаємо мінімальний рік із знайдених, або 2024, якщо історія пуста
+        if years:
+            return min(years)
+        return 2024
+
+    @property
+    def oldest_credit_year(self):
+        """
+        Знаходить найпершу проплату клієнта та повертає її рік.
+        Якщо проплат ще не було, повертає None.
+        """
+        try:
+            # self.clientcredits_set — це автоматичний зворотний зв'язок від ClientCredits
+            first_credit = self.clientcredits_set.earliest('date')
+            return first_credit.date.year
+        except self.clientcredits_set.model.DoesNotExist:
+            # Якщо у клієнта немає жодної проплати
+            return None
+
     def __unicode__(self):
         return u"%s - [%s]" % (self.name, self.forumname)
 
