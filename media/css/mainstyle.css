@@ -17,3 +17,28 @@ a.select {
 .table-yellow{
 	background-color: #feff81 !important;
 }
+
+.toast {
+  visibility: hidden;
+  min-width: 250px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 8px;
+  padding: 16px;
+  position: fixed; /* Залишаємо fixed, щоб не залежати від прокрутки сторінки */
+  z-index: 1000;
+  left: 0; /* Буде перевизначено через JS */
+  top: 0;  /* Буде перевизначено через JS */
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  transform: translateY(10px); /* Ефект появи знизу-вгору */
+  pointer-events: none; /* Щоб toast не заважав клікати, якщо з'явиться під мишкою */
+}
+
+/* Клас, який активує показ */
+.toast.show {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0); /* Повертається в точну позицію курсору */
+}

@@ -3,6 +3,7 @@
 <title>Виконані роботи за {{sel_day}}.{{sel_month}}.{{sel_year}}</title>
 
 <link rel="stylesheet" type="text/css" href="/media/css/table.css"> 
+<link rel="stylesheet" type="text/css" href="/media/css/mainstyle.css">
 
 {% load poll_extras %}
 
@@ -66,6 +67,44 @@ $.ajax({
  });
 }; // end function
 
+
+function unsecuredCopyToClipboard(text, event) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    document.execCommand('copy');
+  } catch (err) {
+    console.error('Unable to copy to clipboard', err);
+  }
+  document.body.removeChild(textArea);
+  showToast(text, event);
+}
+
+function showToast(text, event) {
+  const toast = document.getElementById("toast");
+  toast.innerHTML = "Текст скопійовано! <br>" + text;
+
+  if (event) {
+    // Отримуємо координати кліку мишки
+    const x = event.clientX;
+    const y = event.clientY;
+
+    // Встановлюємо позицію toast біля курсору
+    toast.style.left = `${x + 15}px`; 
+    toast.style.top = `${y + 15}px`;
+  }
+
+  // Додаємо клас для показу
+  toast.classList.add("show");
+
+  // Через 3 секунди прибираємо повідомлення
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3000);
+}
 
 $(document).ready(function() {
 
@@ -197,7 +236,6 @@ $(".w_del").click(function(){
  </div>
 </div>
 	
-
     <table id="iTable" class = "table table-bordered table-hover table-condensed">
     <tr>
     	<th>#</th>
@@ -227,6 +265,10 @@ $(".w_del").click(function(){
 	<a href="/client/result/search/?id={{type.client.id}}" title="Телефон: {{type.client.phone|phone2Str}}" data-toggle="tooltip" data-html="true" data-placement="right">
 	{{type.client.name}} {% if type.client.forumname %} ({{type.client.forumname}}) {% endif %}   
 	</a>
+	<i class="material-icons align-middle mr-1 text-success mx-1" 
+               style="font-size: 18px; cursor: pointer;" 
+               title="копіювати" data-toggle="tooltip" data-placement="bottom" 
+               onclick="unsecuredCopyToClipboard('{{type.client.name}}', event)">content_copy</i>  
 	</td>
 	<td align='center'>       
 	{{type.date|date:'d-m-Y H:i' }} ({{type.time}} хвилин)
@@ -331,9 +373,7 @@ $(".w_del").click(function(){
     	<th>
     	</th>
 </tr> 
-
 </table>
-<br>
-
+<div id="toast" class="toast">Текст скопійовано!</div>
 </form>
 
