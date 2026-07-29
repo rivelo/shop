@@ -21,6 +21,16 @@
         background-color: #69b86d !important;
     }
 
+    /* Ефект наведення на заголовок проплат */
+    .balance-table thead th a[style*="color: #15803d"]:hover {
+        background-color: #dcfce7 !important; /* Насиченіший зелений фон */
+    }
+
+    /* Ефект наведення на заголовок боргів */
+    .balance-table thead th a[style*="color: #b91c1c"]:hover {
+        background-color: #fee2e2 !important; /* Насиченіший червоний фон */
+    }
+
 </style>
 
 <body>
@@ -111,8 +121,22 @@
     <thead>
         <tr style="background-color: #e2e8f0; border-bottom: 2px solid #94a3b8;">
             <th style="border: 1px solid #94a3b8; padding: 8px;">Дата (наведіть для підсумку)</th>
-            <th colspan="4" style="color: #15803d; border: 1px solid #94a3b8; padding: 8px; text-align: center;">ПРОПЛАТИ (ClientCredits)</th>
-            <th colspan="4" style="color: #b91c1c; border: 1px solid #94a3b8; padding: 8px; text-align: center;">БОРГИ (ClientDebts)</th>
+            <th colspan="4" style="color: #15803d; border: 1px solid #94a3b8; padding: 8px; text-align: center;">
+                <a href="{% url 'client-credit-add' id=client.id %}" 
+                   target="_blank" 
+                   title="Натисніть, щоб додати нову проплату цьому клієнту"
+                   style="color: #15803d; text-decoration: none; display: block; padding: 8px; background-color: #f0fdf4; font-weight: bold;">
+                    ➕ ПРОПЛАТИ (ClientCredits)
+                </a>                
+            </th>
+            <th colspan="4" style="color: #b91c1c; border: 1px solid #94a3b8; padding: 8px; text-align: center;">
+                <a href="{% url 'client-debet-add' id=client.id %}" 
+                   target="_blank" 
+                   title="Натисніть, щоб додати новий борг цьому клієнту"
+                   style="color: #b91c1c; text-decoration: none; display: block; padding: 8px; background-color: #fef2f2; font-weight: bold;">
+                    ➕ БОРГИ (ClientDebts)
+                </a>                
+            </th>
         </tr>
         <tr style="background-color: #f1f5f9; font-size: 12px; border-bottom: 2px solid #94a3b8;">
             <th style="border: 1px solid #cbd5e1; padding: 6px;"></th>
@@ -126,6 +150,7 @@
             <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Опис</th>
         </tr>
     </thead>
+
     <tbody>
         {% for group in table_data %}
             {% for credit, debt in group.rows %}
@@ -144,7 +169,13 @@
  <td style="color: #16a34a; font-weight: 500; padding: 8px; border-right: 1px solid #e2e8f0;">
     {% if credit %}
         <a href="{% url 'client-credit-edit' id=credit.id %}" target="_blank" style="color: #16a34a; text-decoration: none;">
-            ✏️ {{ credit.price }}
+            ✏️ {{ credit.id }}
+        </a>
+        <a href="{% url 'client-credit-delete' id=credit.id %}" 
+           onclick="return confirm('Ви впевнені, що хочете видалити цю ПРОПЛАТУ на суму {{ credit.price }}?');" 
+           title="Видалити проплату" 
+           style="color: #dc2626; text-decoration: none; font-size: 12px; margin-left: 4px;">
+            ❌
         </a>
     {% endif %}
 </td>
@@ -160,7 +191,13 @@
 <td style="color: #dc2626; font-weight: 500; padding: 8px; border-right: 1px solid #e2e8f0;">
     {% if debt %}
         <a href="{% url 'client-debet-edit' id=debt.id %}" target="_blank" style="color: #dc2626; text-decoration: none;">
-            ✏️ {{ debt.price }}
+            ✏️ {{ debt.id }}
+        </a>
+         <a href="{% url 'client-debet-delete' id=debt.id %}" 
+           onclick="return confirm('Ви впевнені, що хочете видалити цей БОРГ на суму {{ debt.price }}?');" 
+           title="Видалити борг" 
+           style="color: #dc2626; text-decoration: none; font-size: 12px; margin-left: 4px;">
+            ❌
         </a>
     {% endif %}
 </td>
