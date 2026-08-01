@@ -1689,6 +1689,38 @@ Cума:  {{clients|floatformat:2}} грн.</span>
 	</tr>
 {% endfor %}
 
+<!-- НОВИЙ РЯДОК З ПАГІНАЦІЄЮ ДЛЯ ПРОПЛАТ -->
+{% if credit_list.has_other_pages %}
+<tr class="table-light">
+    <td colspan="3" class="p-2">
+        <div class="d-flex align-items-center justify-content-center">
+            {% if credit_list.has_previous %}
+                <a class="btn btn-sm btn-outline-primary mx-1 py-1 px-2" 
+                   href="?id={{ client_name.id }}&tdelta={{ tdelta }}&page_credits={{ credit_list.previous_page_number }}&page_debts={{ debt_list.number }}">
+                    « Назад
+                </a>
+            {% else %}
+                <button class="btn btn-sm btn-outline-secondary mx-1 py-1 px-2" disabled>« Назад</button>
+            {% endif %}
+
+            <span class="mx-2 font-weight-bold text-secondary" style="font-size: 13px;">
+                Сторінка {{ credit_list.number }} з {{ credit_list.paginator.num_pages }}
+            </span>
+
+            {% if credit_list.has_next %}
+                <a class="btn btn-sm btn-outline-primary mx-1 py-1 px-2" 
+                   href="?id={{ client_name.id }}&tdelta={{ tdelta }}&page_credits={{ credit_list.next_page_number }}&page_debts={{ debt_list.number }}">
+                    Вперед »
+                </a>
+            {% else %}
+                <button class="btn btn-sm btn-outline-secondary mx-1 py-1 px-2" disabled>Вперед »</button>
+            {% endif %}
+        </div>
+    </td>
+</tr>
+{% endif %}
+
+
 	{% comment %} Client Payment {% endcomment %}
 <tr BGCOLOR="#F11111" class="in_debt">
     <td style="vertical-align: middle; color: white; font-weight: bold;" class="text-center p-1">
@@ -1772,6 +1804,39 @@ Cума:  {{clients|floatformat:2}} грн.</span>
 	</tr>
 	{% endfor %}
 	</tr>
+
+<!-- НОВИЙ РЯДОК З ПАГІНАЦІЄЮ ДЛЯ Боргів -->
+{% if debt_list.has_other_pages %}
+<tr class="table-light">
+    <td colspan="3" class="p-2">
+        <div class="d-flex align-items-center justify-content-center">
+            {% if debt_list.has_previous %}
+                <a class="btn btn-sm btn-outline-primary mx-1 py-1 px-2" 
+                   href=href="?id={{ client_name.id }}&tdelta={{ tdelta }}&page_credits={{ credit_list.number }}&page_debts={{ debt_list.previous_page_number }}">
+                    « Назад
+                </a>
+            {% else %}
+                <button class="btn btn-sm btn-outline-secondary mx-1 py-1 px-2" disabled>« Назад</button>
+            {% endif %}
+
+            <span class="mx-2 font-weight-bold text-secondary" style="font-size: 13px;">
+                Сторінка {{ debt_list.number }} з {{ debt_list.paginator.num_pages }}
+            </span>
+
+            {% if debt_list.has_next %}
+                <a class="btn btn-sm btn-outline-primary mx-1 py-1 px-2" 
+                   href="?id={{ client_name.id }}&tdelta={{ tdelta }}&page_credits={{ credit_list.number }}&page_debts={{ debt_list.next_page_number }}">
+                    Вперед »
+                </a>
+            {% else %}
+                <button class="btn btn-sm btn-outline-secondary mx-1 py-1 px-2" disabled>Вперед »</button>
+            {% endif %}
+        </div>
+    </td>
+</tr>
+{% endif %}
+
+
 </tbody>	
 	</table>
 </div>

@@ -1,20 +1,133 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Проплата клієнта</title>
-
-<html lang="en">
+<!DOCTYPE html>
+<html lang="uk">
 <head>
-{# {% include "top.html" %} #}
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>
+            {% if client_obj %}
+                📉 Додати проплату для: {{ client_obj.name }}
+            {% else %}
+                📉 Додати ПРОПЛАТУ Клієнту
+            {% endif %}
+    </title>
+    
+    <!-- Підключаємо Material Icons для сучасних іконок на кнопках -->
+    <link href="https://googleapis.com" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .form-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: none;
+        }
+        /* Універсальна стилізація текстових та числових полів форми */
+        .form-group input[type="text"], 
+        .form-group input[type="number"], 
+        .form-group select, 
+        .form-group textarea {
+            display: block;
+            width: 100%;
+            height: calc(1.5em + .75rem + 2px);
+            padding: .375rem .75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+        }
+        .form-group textarea {
+            height: auto;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #16a34a; /* Зелений колір фокусу для проплат */
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.25);
+            outline: 0;
+        }
+    </style>
 </head>
+
 <body onload="document.getElementById('id_price').focus()">
-    <h1>Додати проплату клієнта</h1>
-    <form action="" method="POST" enctype="multipart/form-data">
-        <table>
-            {{ form.as_table }}
-        </table>
-        <p><input type="submit" value="Save"></p>
-    </form>
+
+<div class="container-fluid py-4 pl-sm-4 pl-md-5">
+    <div class="row">
+        
+        <!-- На мобільних розгортається на всю ширину (12), на ПК фіксується ліворуч -->
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+            
+            <!-- Хедер сторінки -->
+            <div class="d-flex align-items-center mb-4">
+                <h1 class="h3 mb-0 font-weight-bold text-dark">
+                    <span class="badge badge-success px-3 py-2" style="border-radius: 8px;">
+            {% if client_obj %}
+                        💵 Додати проплату клієнта: {{ client_obj.name }}
+            {% else %}
+                        💵 Додати проплату клієнта
+            {% endif %}                        
+                    </span>
+                </h1>
+            </div>
+
+            <!-- Головна картка форми -->
+            <div class="card form-card p-4 p-sm-5">
+                <form action="" method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    {% for hidden_field in form.hidden_fields %}
+                        {{ hidden_field }}
+                    {% endfor %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger border-0 mb-4 shadow-sm" role="alert">
+                          {% for error in form.non_field_errors %}
+                            {{ error }}
+                          {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Поколонний вивід полів форми Django -->
+                    {% for field in form.visible_fields %}
+                        <div class="form-group mb-4">
+                            <label for="{{ field.id_for_label }}" class="font-weight-bold text-secondary mb-1" style="font-size: 14px;">
+                                {{ field.label }}:
+                            </label>
+                            
+                            {{ field }}
+
+                            {% if field.errors %}
+                                {% for error in field.errors %}
+                                    <div class="invalid-feedback d-block mt-1">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if field.help_text %}
+                                <small class="form-text text-muted mt-1">{{ field.help_text }}</small>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <!-- Велика зелена кнопка збереження -->
+                    <div class="form-group mb-0 mt-5">
+                        <button type="submit" class="btn btn-success btn-lg w-100 font-weight-bold shadow-sm" style="border-radius: 8px; font-size: 16px; background-color: #16a34a; border: none;">
+                            <i class="material-icons align-middle mr-1" style="font-size: 20px;">save</i> Зберегти проплату
+                        </button>
+                    </div>
+                        
+                </form>
+            </div> <!-- /card -->
+
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
-
-

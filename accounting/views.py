@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.db.models import F
 from django.db import connection
 from django.db.models import Sum, Count, Max, Avg, F, ExpressionWrapper, FloatField, Func
-from django.db.models.functions import ExtractDay, ExtractMonth, ExtractYear
+from django.db.models.functions import ExtractDay, ExtractMonth, ExtractYear, Coalesce
 
 from django.http import HttpResponseRedirect, HttpRequest, HttpResponseNotFound
 from django.http import HttpResponse, Http404 
@@ -4873,6 +4873,8 @@ def client_add(request, page_label=None):
 @csrf_exempt
 def client_edit(request, id, page_label=None):
     a = Client.objects.get(pk=id)
+    if page_label == None:
+        page_label = "Редагування клієнта"
     if request.method == 'POST':
         form = ClientEditForm(request.POST, instance=a, user=request.user)
         if form.is_valid():
@@ -5039,35 +5041,50 @@ def client_data(request, id):
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
+
 @csrf_exempt
 def clientdebts_add(request, id=None):
-    shop_id = get_shop_from_ip(request.META['REMOTE_ADDR'])
+    shop_id = get_shop_from_ip(request.META.get('REMOTE_ADDR', ''))
+    client_obj = None  # Створюємо змінну для об'єкта клієнта
+    
+    # Якщо ID передано, дістаємо клієнта з бази (або видаємо 404, якщо його немає)
+    if id is not None:
+        client_obj = get_object_or_404(Client, id=id)
+    
     if request.method == 'POST':
         form = ClientDebtsForm(request.POST)
         if form.is_valid():
-            client = form.cleaned_data['client']
-            date = form.cleaned_data['date']
-            price = form.cleaned_data['price']
-            description = form.cleaned_data['description']
-            cash = form.cleaned_data['cash']
-            shop = form.cleaned_data['shop']
-            if request.user.is_authenticated():
-                user = request.user
-            ClientDebts(client=client, date=date, price=price, description=description, user=user, cash=cash, shop=shop).save()
+            debt = form.save(commit=False)
             
-            if id != None:
-                return HttpResponseRedirect('/client/result/search/?id='+str(id))
+            if request.user and request.user.is_authenticated:
+                debt.user = request.user
             else:
-                return HttpResponseRedirect('/clientdebts/view/')
+                debt.user = None
+                
+            debt.save()
+            
+            if id is not None:
+                return redirect('client-card-byid', id=id)
+            else:
+                return redirect('/clientdebts/view/')
     else:
-        if id != None:
-            form = ClientDebtsForm(initial={'client': id, 'date': datetime.datetime.now(), 'shop': shop_id})
-        else:
-            form = ClientDebtsForm()
-    #return render_to_response('clientdebts.html', {'form': form})
-    context = {'form': form, 'weblink': 'clientdebts.html',}
+        initial_data = {}
+        if id is not None:
+            initial_data = {
+                'client': id, 
+                'date': datetime.datetime.now(), 
+                'shop': shop_id
+            }
+        form = ClientDebtsForm(initial=initial_data)
+        
+    context = {
+        'form': form, 
+        'weblink': 'clientdebts.html',
+        'client_obj': client_obj  # Передаємо клієнта в HTML-шаблон
+    }
     context.update(custom_proc(request)) 
     return render(request, 'index.html', context)
+
 
 @csrf_exempt
 def clientdebts_edit(request, id):
@@ -5078,18 +5095,15 @@ def clientdebts_edit(request, id):
         form = ClientDebtsForm(request.POST, instance=a)
         if form.is_valid():
             form.save()
-#===============================================================================
-#            client = form.cleaned_data['client']
-#            date = form.cleaned_data['date']
-#            work_type = form.cleaned_data['work_type']
-#            price = form.cleaned_data['price']
-#            description = form.cleaned_data['description']
-#            WorkShop(id=id, client=client, date=date, work_type=work_type, price=price, description=description).save()
-#===============================================================================
-            return HttpResponseRedirect('/clientdebts/view/')
+            return redirect('client-card-byid', id=a.client_id)
     else:
         form = ClientDebtsForm(instance=a)
-    context = {'form': form, 'weblink': 'client.html', }
+    # Якщо ID передано, дістаємо клієнта з бази (або видаємо 404, якщо його немає)
+    if id is not None:
+        client_obj = get_object_or_404(Client, id=a.client_id)       
+    context = {'form': form, 'weblink': 'clientdebts.html',
+                'client_obj': client_obj  # Передаємо клієнта в HTML-шаблон 
+                }
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
@@ -5166,8 +5180,11 @@ def clientcredits_add(request, id=None):
             form = ClientCreditsForm(initial={'client': id, 'date': datetime.datetime.now(), 'price': borg, 'description': "Закриття боргу ", 'shop': shop_id})
         else:
             form = ClientCreditsForm()
-    #return render_to_response('clientcredits.html', {'form': form})
-    context = {'form': form, 'weblink': 'clientcredits.html', }
+    # Якщо ID передано, дістаємо клієнта з бази (або видаємо 404, якщо його немає)
+    if id is not None:
+        client_obj = get_object_or_404(Client, id=id)                   
+    
+    context = {'form': form, 'weblink': 'clientcredits.html', 'client_obj': client_obj}
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
@@ -5200,10 +5217,14 @@ def clientcredits_edit(request, id):
         form = ClientCreditsForm(request.POST, instance=a)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect('/clientcredits/view/')
+#            return HttpResponseRedirect('/clientcredits/view/')
+            return redirect('client-card-byid', id=a.client_id)
     else:
         form = ClientCreditsForm(instance=a)
-    context = {'form': form, 'weblink': 'clientcredits.html', }
+    # Якщо ID передано, дістаємо клієнта з бази (або видаємо 404, якщо його немає)
+    if id is not None:
+        client_obj = get_object_or_404(Client, id=a.client_id)              
+    context = {'form': form, 'weblink': 'clientcredits.html', 'client_obj': client_obj}
     context.update(custom_proc(request))         
     return render(request, 'index.html', context)
 
@@ -6328,7 +6349,7 @@ def client_search_result(request):
 
 
 #----- Виписка клієнта -----
-def client_result(request, tdelta = 30, id = None, email=False):
+""" def client_result(request, tdelta = 30, id = None, email=False):
     now = datetime.datetime.now()
     user = None
     if request.GET.has_key('id'):
@@ -6423,8 +6444,6 @@ def client_result(request, tdelta = 30, id = None, email=False):
     #if (client.id == 138) or (client.id == 1277):
         client.sale = 0
         
-    if (client.id == 1257):
-        client.sale = 100
     client.save()
     if email == True :
         context = {'clients': res, 'invoice': client_invoice, 'email': email, 'client_invoice_sum': client_invoice_sum, 'workshop': client_workshop, 
@@ -6434,6 +6453,147 @@ def client_result(request, tdelta = 30, id = None, email=False):
     context = {'weblink': 'client_result.html', 'clients': res, 'invoice': client_invoice, 'email': email, 'client_invoice_sum': client_invoice_sum, 
                 'workshop': client_workshop, 'client_workshop_sum': client_workshop_sum, 'debt_list': debt_list, 'credit_list': credit_list, 'client_name': client_name, 
                 'b_bike': b_bike, 'workshopTicket': workshop_ticket, 'messages': messages, 'status_msg':status_msg, 'status_rent':status_rent, 'status_order':status_order, 'tdelta': tdelta}  
+    context.update(custom_proc(request))
+    return render(request, 'index.html', context)
+ """
+
+def client_result(request, tdelta = 30, id = None, email=False):
+    now = datetime.datetime.now()
+    
+    # 1. Визначаємо ID клієнта з аргументів або GET-параметрів
+    user_id = id if id is not None else request.GET.get('id')
+    if not user_id:
+        return render(request, 'client_result.html', {'res': u"Клієнта не вказано"})
+
+    # 2. Безпечно дістаємо об'єкт клієнта
+    try:
+        client_name = Client.objects.get(id=user_id)
+    except Client.DoesNotExist:
+        return render(request, 'client_result.html', {'res': u"Такого клієнта не існує"})
+    
+    # 3. Оптимізований підрахунок загального сальдо через агрегацію бази даних
+    credits_sum = ClientCredits.objects.filter(client_id=user_id).aggregate(s=Coalesce(Sum('price'), 0.0))['s']
+    debts_sum = ClientDebts.objects.filter(client_id=user_id).aggregate(s=Coalesce(Sum('price'), 0.0))['s']
+    res = credits_sum - debts_sum
+    
+    # 4. Розраховуємо часовий поріг для вибірки за період
+    time_threshold = now - datetime.timedelta(days=tdelta)
+    
+    # 5. Оптимізація вибірки проплат (додано select_related та фільтрація через Q)
+    cash_id = 6  # Зарплата
+    credits_qs = ClientCredits.objects.filter(client_id=user_id).filter(Q(date__gt=time_threshold) | Q(cash_type_id=8))
+    
+    if auth_group(request.user, "admin") == False:
+        if request.user.username != client_name.forumname.encode('utf8'):            
+            credits_qs = credits_qs.exclude(cash_type_id=cash_id)
+            
+    # Формуємо чисті QuerySet з підтягуванням зв'язаних таблиць в один запит
+    credit_list_raw = credits_qs.select_related('cash_type', 'user', 'shop').order_by('-date')
+    debt_list_raw = ClientDebts.objects.filter(client_id=user_id, date__gt=time_threshold).select_related('user', 'shop').order_by('-date')
+    
+    # 6. Оптимізація накладних та перерахунок tdelta за потреби
+    invoice_filter = Q(client_id=user_id) & (Q(pay__lt=F('sum')) | Q(date__gt=time_threshold))
+    client_invoice = ClientInvoice.objects.filter(invoice_filter).order_by("-date", "-id")
+    
+    if client_invoice.count() > 45:
+        tdelta = 6
+        time_threshold = now - datetime.timedelta(days=tdelta)
+        invoice_filter = Q(client_id=user_id) & (Q(pay__lt=F('sum')) | Q(date__gt=time_threshold))
+        client_invoice = ClientInvoice.objects.filter(invoice_filter).order_by("-date", "-id")
+        
+    # Рахуємо суми накладних та майстерні через агрегацію (швидше за цикли Python)
+    client_invoice_sum = client_invoice.aggregate(s=Coalesce(Sum('sum'), 0.0))['s']
+    
+    client_workshop = WorkShop.objects.filter(client_id=user_id).order_by("-date")
+    client_workshop_sum = client_workshop.aggregate(s=Coalesce(Sum('price'), 0.0))['s']
+            
+    # 7. Оптимальна вибірка зв'язаних сутностей через .values()
+    b_bike = Bicycle_Sale.objects.filter(client_id=user_id).values(
+        'model__model__model', 'model__model__brand__name', 'model__serial_number', 'model__size__name', 'date', 'service', 'id'
+    )
+    workshop_ticket = WorkTicket.objects.filter(client_id=user_id).values(
+        'id', 'date', 'description', 'status__name', 'phone_status__name', 'phone_user__username', 'phone_date', 'bike_part_type', 'bicycle', 'shop__name', 'user__username'
+    ).order_by('-date')
+    
+    messages = ClientMessage.objects.filter(client_id=user_id).values('msg', 'status', 'date', 'user__username', 'id')
+    
+    # Оптимізація статусів через .exists() — база повертає лише True/False
+    status_msg = ClientMessage.objects.filter(client_id=user_id, status=False).exists()
+    status_rent = Rent.objects.filter(client_id=user_id, status=False).exists()
+    status_order = ClientOrder.objects.filter(client_id=user_id, status=False).exists()
+        
+    # 8. Розрахунок загальних покупок та оновлення картки клієнта
+    isum = ClientInvoice.objects.filter(client_id=user_id).aggregate(s=Coalesce(Sum('sum'), 0.0))['s']
+    client_name.summ = float(isum) + float(client_workshop_sum)
+    
+    # Оптимізована логіка автоматичних знижок
+    sale_limits = [
+        (settings.CLIENT_SALE_10, 10),
+        (settings.CLIENT_SALE_7, 7),
+        (settings.CLIENT_SALE_5, 5),
+        (settings.CLIENT_SALE_3, 3),
+        (settings.CLIENT_SALE_1, 1)
+    ]
+    
+    new_sale = 0
+    if client_name.sale_on:
+        for limit, sale_val in sale_limits:
+            if client_name.summ > limit:
+                new_sale = sale_val
+                break
+        if new_sale > client_name.sale:
+            client_name.sale = new_sale
+    else:
+        client_name.sale = 0
+        
+    # Зберігаємо тільки змінені числові поля в обхід оновлення всієї таблиці клієнтів
+    client_name.save(update_fields=['summ', 'sale'])
+    
+    # 9. РЕАЛІЗАЦІЯ НЕЗАЛЕЖНОЇ ПАГІНАЦІЇ (по 15 записів на сторінку)
+    # Пагінація для ПРОПЛАТ
+    paginator_credits = Paginator(credit_list_raw, 15)
+    page_c = request.GET.get('page_credits')
+    try:
+        credit_list_page = paginator_credits.page(page_c)
+    except PageNotAnInteger:
+        credit_list_page = paginator_credits.page(1)
+    except EmptyPage:
+        credit_list_page = paginator_credits.page(paginator_credits.num_pages)
+
+    # Пагінація для БОРГІВ
+    paginator_debts = Paginator(debt_list_raw, 15)
+    page_d = request.GET.get('page_debts')
+    try:
+        debt_list_page = paginator_debts.page(page_d)
+    except PageNotAnInteger:
+        debt_list_page = paginator_debts.page(1)
+    except EmptyPage:
+        debt_list_page = paginator_debts.page(paginator_debts.num_pages)
+        
+    # 10. Формування єдиного контексту даних
+    context = {
+        'clients': res, 
+        'invoice': client_invoice, 
+        'email': email, 
+        'client_invoice_sum': client_invoice_sum, 
+        'workshop': client_workshop, 
+        'client_workshop_sum': client_workshop_sum, 
+        'debt_list': debt_list_page,        # Передаємо сторінку пагінації замість сирого QuerySet
+        'credit_list': credit_list_page,    # Передаємо сторінку пагінації замість сирого QuerySet
+        'client_name': client_name, 
+        'b_bike': b_bike, 
+        'workshopTicket': workshop_ticket, 
+        'messages': messages, 
+        'status_msg': status_msg, 
+        'status_rent': status_rent, 
+        'status_order': status_order, 
+        'tdelta': tdelta
+    }
+    
+    if email:
+        return render(request, 'client_result.html', context)
+        
+    context['weblink'] = 'client_result.html'
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
 
@@ -7430,21 +7590,6 @@ def shopdailysales_add(request, id=None):
         deb = ClientDebts.objects.filter(date__year=now.year, date__month=now.month, date__day=now.day).order_by()
         cred = ClientCredits.objects.filter(date__year=now.year, date__month=now.month, date__day=now.day).order_by()
 #        cash_credsum = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price"))
-        #=======================================================================
-        # try:
-        #     cashCred = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price")).get(cash_type=1)['suma']
-        # except ClientCredits.DoesNotExist:
-        #     cashCred = 0
-        # try:
-        #     TcashCred = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price")).get(cash_type=9)['suma'] # PUMB
-        # except ClientCredits.DoesNotExist:
-        #     TcashCred = 0
-        # try:
-        #     cashDeb = deb.values('cash').annotate(suma=Sum("price")).get(cash='True')['suma']
-        # except ClientDebts.DoesNotExist:
-        #     cashDeb = 0
-        #=======================================================================
-        
         cashCred = sum_casa['cashCred'] 
         TcashCred = sum_casa['termCred']
         cashDeb = sum_casa['cashDeb']

@@ -1,13 +1,133 @@
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Додати борг</title>
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>
+            {% if client_obj %}
+                📉 Додати борг для: {{ client_obj.name }}
+            {% else %}
+                📉 Додати БОРГ Клієнту
+            {% endif %}
+    </title>
+    
+    <!-- Material Icons for the action buttons -->
+    <link href="https://googleapis.com" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .form-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: none;
+        }
+        /* Modern form fields inputs */
+        .form-group input[type="text"], 
+        .form-group input[type="number"], 
+        .form-group select, 
+        .form-group textarea {
+            display: block;
+            width: 100%;
+            height: calc(1.5em + .75rem + 2px);
+            padding: .375rem .75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+        }
+        .form-group textarea {
+            height: auto;
+        }
+        /* Distinct red border and shadow focus for charges/debts */
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #dc2626; 
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25);
+            outline: 0;
+        }
+    </style>
+</head>
 
 <body onload="document.getElementById('id_price').focus()">
-    <h1>Додати БОРГ Клієнту</h1>
-    <form action="" method="POST" enctype="multipart/form-data">
-        <table>
-            {{ form.as_table }}
-        </table>
-        <p><input type="submit" value="Save"></p>
-    </form>
-</body>
 
+<div class="container-fluid py-4 pl-sm-4 pl-md-5">
+    <div class="row">
+        
+        <!-- Fully responsive container aligned to the left side on desktop screens -->
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-5">
+            
+            <!-- Page Header Badge -->
+<div class="d-flex align-items-center mb-4">
+    <h1 class="h3 mb-0 font-weight-bold text-dark">
+        <span class="badge badge-danger px-3 py-2" style="border-radius: 8px; background-color: #dc2626;">
+            {% if client_obj %}
+                📉 Додати борг для: {{ client_obj.name }}
+            {% else %}
+                📉 Додати БОРГ Клієнту
+            {% endif %}
+        </span>
+    </h1>
+</div>
+            <!-- Form Wrapper Card -->
+            <div class="card form-card p-4 p-sm-5">
+                <form action="" method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    {% for hidden_field in form.hidden_fields %}
+                        {{ hidden_field }}
+                    {% endfor %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger border-0 mb-4 shadow-sm" role="alert">
+                          {% for error in form.non_field_errors %}
+                            {{ error }}
+                          {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Columnar field rendering layout -->
+                    {% for field in form.visible_fields %}
+                        <div class="form-group mb-4">
+                            <label for="{{ field.id_for_label }}" class="font-weight-bold text-secondary mb-1" style="font-size: 14px;">
+                                {{ field.label }}:
+                            </label>
+                            
+                            {{ field }}
+
+                            {% if field.errors %}
+                                {% for error in field.errors %}
+                                    <div class="invalid-feedback d-block mt-1">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+
+                            {% if field.help_text %}
+                                <small class="form-text text-muted mt-1">{{ field.help_text }}</small>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <!-- Save changes button action -->
+                    <div class="form-group mb-0 mt-5">
+                        <button type="submit" class="btn btn-danger btn-lg w-100 font-weight-bold shadow-sm" style="border-radius: 8px; font-size: 16px; background-color: #dc2626; border: none;">
+                            <i class="material-icons align-middle mr-1" style="font-size: 20px;">save</i> Зберегти борг
+                        </button>
+                    </div>
+                        
+                </form>
+            </div> <!-- /card -->
+
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

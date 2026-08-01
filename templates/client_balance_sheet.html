@@ -140,14 +140,14 @@
         </tr>
         <tr style="background-color: #f1f5f9; font-size: 12px; border-bottom: 2px solid #94a3b8;">
             <th style="border: 1px solid #cbd5e1; padding: 6px;"></th>
-            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Опис</th>
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;"></th>
             <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Опис</th>
             <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Тип оплати</th>
             <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Сума</th>
             <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Сума</th>
             <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Каса?</th>
             <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Опис</th>
-            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;">Опис</th>
+            <th style="border: 1px solid #cbd5e1; padding: 6px; text-align: left;"></th>
         </tr>
     </thead>
 
@@ -171,6 +171,7 @@
         <a href="{% url 'client-credit-edit' id=credit.id %}" target="_blank" style="color: #16a34a; text-decoration: none;">
             ✏️ {{ credit.id }}
         </a>
+        {{ credit.date|date:"H:i" }}
         <a href="{% url 'client-credit-delete' id=credit.id %}" 
            onclick="return confirm('Ви впевнені, що хочете видалити цю ПРОПЛАТУ на суму {{ credit.price }}?');" 
            title="Видалити проплату" 
@@ -193,6 +194,7 @@
         <a href="{% url 'client-debet-edit' id=debt.id %}" target="_blank" style="color: #dc2626; text-decoration: none;">
             ✏️ {{ debt.id }}
         </a>
+        {{ debt.date|date:"H:i" }}
          <a href="{% url 'client-debet-delete' id=debt.id %}" 
            onclick="return confirm('Ви впевнені, що хочете видалити цей БОРГ на суму {{ debt.price }}?');" 
            title="Видалити борг" 
