@@ -128,74 +128,6 @@
     }
 
 
-    {% comment %} // НАДІЙНИЙ І СТАБІЛЬНИЙ ЗБІР ДАНИХ ПРИ ВІДПРАВЦІ ФОРМИ
-    $("form").on("submit", function(event) {
-        // Отримуємо посилання на саму форму
-        var current_form = this; 
-        
-        // Перевіряємо, чи ми вже успішно підготували JSON дані (захист від нескінченного циклу)
-        if ($(current_form).data('json_ready') === true) {
-            return true; // Дозволяємо стандартне відправлення форми на сервер
-        }
-
-        // Примусово зупиняємо відправку форми на сервер, поки працює наш JavaScript
-        event.preventDefault();
-
-        var price_field = $("#id_price");
-        var price_val = parseFloat(price_field.val());
-
-        // Перевірка на нульову або пусту суму
-        if (isNaN(price_val) || price_val <= 0) {
-            price_field.removeClass("is-invalid");
-            price_field.parent().find(".js-custom-error").remove();
-
-            price_field.addClass("is-invalid");
-            price_field.after("<div class='invalid-feedback d-block js-custom-error font-weight-bold'>Помилка: Сума залишка на наступний день не може бути нульовою! Введіть реальну суму.</div>");
-            
-            $('html, body').animate({
-                scrollTop: price_field.offset().top - 100
-            }, 300);
-            
-            price_field.focus();
-            return false; // Зупиняємо виконання скрипту
-        }
-
-        // =======================================================
-        // ЗАЛІЗОБЕТОННИЙ ЗБІР ДАНИХ КАЛЬКУЛЯТОРА В JSON ПЕРЕД POST
-        // =======================================================
-        var calc_hash = {};
-        
-        $('.calc_input').each(function() {
-            var parent_elem = $(this).parent();
-            if (parent_elem && parent_elem.attr('id')) {
-                var tab_id = parent_elem.attr('id'); // Отримуємо "m_500" або "m_any"
-                var nominal = tab_id.replace('m_', ''); // Залишається "500" або "any"
-                var count_val = parseInt($(this).val());
-                
-                if (!isNaN(count_val) && count_val > 0) {
-                    calc_hash[nominal] = count_val; 
-                }
-            }
-        });
-
-        // Конвертуємо об'єкт (хеш) у JSON-рядок
-        var final_json_string = JSON.stringify(calc_hash);
-        
-        // Записуємо JSON-рядок у наше приховане поле форми
-        $("#calculator_json_data").val(final_json_string);
-        
-        // Виводимо в консоль для діагностики під час тестів (можна потім видалити)
-        console.log("JSON СФОРМОВАНО І ЗАПИСАНО: " + final_json_string);
-
-        // Ставимо прапорець, що збір успішно завершено і форма готова до відправки
-        $(current_form).data('json_ready', true);
-        
-        // Запускаємо відправку форми на сервер програмно — тепер дані точно долетять
-        current_form.submit();
-    });
-
- {% endcomment %}
-
 
 // Надійний збір даних перед відправкою форми (Формуємо подвійний ХЕШ)
 $("form").on("submit", function(event) {
@@ -316,10 +248,11 @@ function recalculate_all_nominals() {
 
     // Отримуємо розрахункову суму каси, яка має бути за даними бази
     var target_sum = parseFloat($("#id_tcash").attr('day_casa_sum'));
+    var wprev_day = parseFloat($("#prev_day").attr("val")) + parseFloat($("#id_cash").attr("value"));
     if (isNaN(target_sum)) { target_sum = 0; }
     
     // Різниця (аудит) рахується як: Чистий залишок мінус Те, що вимагає база
-    var res_sum = sum_remains - target_sum;
+    var res_sum = sum_total_day - target_sum;
     
     // Визначаємо колірні класи Bootstrap для різниці
     var color_class = 'text-danger'; 

@@ -1293,7 +1293,7 @@ class ShopDailySalesForm(forms.ModelForm):
     #date = forms.DateTimeField( input_formats=['%d.%m.%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d.%m.%Y %H:%M:%S'), label="Дата" )
     date = forms.DateTimeField(initial=datetime.datetime.today, input_formats=['%d.%m.%Y %H:%M:%S', '%d/%m/%Y %H:%M:%S'], widget=forms.DateTimeInput(format='%d.%m.%Y %H:%M:%S'), label="Дата")
     price = forms.FloatField(initial=0, label="Сума в касі")    
-    description = forms.CharField(label='Опис', widget=forms.Textarea(), required=False)
+    description = forms.CharField(label='Опис', widget=forms.Textarea(attrs={'rows': 3, 'style': 'height: 80px;'}), required=False)
     user = forms.ModelChoiceField(queryset = User.objects.filter(is_active = True), required=False, label='Користувач')
     cash = forms.FloatField(label="Готівка в касі")
     tcash = forms.FloatField(label="Термінал")
