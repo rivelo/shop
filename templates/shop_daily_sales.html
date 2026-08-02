@@ -1,146 +1,563 @@
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title>Каса за день</title>
-{# <link rel="stylesheet" href="/media/jquery-ui.min.css"> #}
-{# <script src="/media/jquery-ui.min.js"></script> #}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
 
+{% load poll_extras %}
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Каса за день</title>
+
+    <!-- Підключаємо Material Icons для іконок -->
+    <link href="https://googleapis.com" rel="stylesheet">
+
+ 
 <script type="text/javascript">
-$(document).ready( function() {
-	$("#id_cash").after("<b id='prev_day' val='{{lastcasa.price}}' class='ml-1'>+ "+{{lastcasa.price}}+" грн. за минулий день {{lastcasa.date}} </b>");
-	var wprev_day = parseFloat($("#prev_day").attr("val")) + parseFloat($("#id_cash").attr("value"));
-	//$("#prev_day").after("<b style='color:red'>Сума = "+ wprev_day +"</b>");
-	$("#id_tcash").after("<b style='color:red' class='ml-2'>Сума в касі = "+ wprev_day +" грн</b>");
-	$("#id_tcash").attr('day_casa_sum', wprev_day);
-	
-	$("#id_price").after("<b style='color:red' id='day_sum' class='ml-2'>Каса за день = "+ 0 +" грн.</b>");
+    $(document).ready( function() {
+    // Додаємо інформацію про минулий день
+    $("#id_cash").after("<div id='prev_day' val='{{lastcasa.price}}' class='text-muted small mt-1 font-weight-bold'>+ {{lastcasa.price}} грн. за минулий день {{lastcasa.date}}</div>");
+    
+    var wprev_day = parseFloat($("#prev_day").attr("val")) + parseFloat($("#id_cash").attr("value"));
+    if (isNaN(wprev_day)) { wprev_day = 0; }
+
+    // Виводимо суму в касі біля поля терміналу
+    $("#id_tcash").after("<div class='text-danger small mt-1 font-weight-bold' id='total_casa_msg'>Сума в касі = "+ wprev_day +" грн</div>");
+    $("#id_tcash").attr('day_casa_sum', wprev_day);
+    
+    // Початкове виведення каси за день
+    $("#id_price").after("<div id='day_sum' class='text-danger small mt-1 font-weight-bold'>Каса за день = 0 грн.</div>");
+
+    // Зміна текста мітки поля "price" під логіку каси
+    $("label[for='id_price']").html('Сума на наступний день:');
+
+    // Динамічний прорахунок каси при зміні суми на наступний день
+    $("#id_price").on("input change", function() {
+        var input_val = parseFloat($(this).val());
+        if (isNaN(input_val)) { input_val = 0; }
+        var casa_day = parseFloat($("#prev_day").attr("val")) + parseFloat($("#id_cash").attr("value")) - input_val;
+        $("#day_sum").html("Каса за день = "+ casa_day +" грн.");
+    });
+
+    // Робимо розрахункові поля заблокованими для редагування
+    $('#id_cash').attr('readonly','true');
+    $('#id_tcash').attr('readonly','true');
+    $('#id_ocash').attr('readonly','true');
+
+    // Кнопка перемикання видимості калькулятора купюр
+    $(document).on("click", "#btn_calc", function(event) {
+        $("#calc_div").toggle();
+    });
+
+// 1. АВТОМАТИЧНИЙ ФОКУС НА "ЗАГАЛОМ" ПРИ КЛІКУ НА НОМІНАЛ
+    $('#myList a').on('click', function (event) {
+        event.preventDefault();
+        $(this).tab('show');
+        
+        var tab_id = $(this).attr('href'); // Отримуємо наприклад "#m_500"
+        
+        // Знаходимо саме перше поле з класом .calc_input (Загалом) у цьому табі
+        var first_input = $(tab_id).find('.calc_input');
+        
+        // Ставимо фокус та виділяємо текст для швидкого перезапису
+        setTimeout(function() {
+            first_input.focus().select();
+        }, 50); // Мінімальна затримка для стабільного спрацювання анімації Bootstrap
+    });
+
+    // 2. РОЗУМНИЙ ПЕРЕХІД ПО ENTER (ЗАГАЛОМ -> МІНУС -> НАСТУПНИЙ НОМІНАЛ)
+    $(document).on('keypress', '.calc_input, .calc_minus', function(event) {
+        // Перевіряємо, чи натиснуто саме клавішу Enter (код 13)
+        if (event.which === 13) {
+            event.preventDefault(); // Блокуємо відправку форми на сервер по Enter
+            
+            var current_input = $(this);
+            var tab_pane = current_input.parent();
+            
+            if (current_input.hasClass('calc_input')) {
+                // Сценарій А: Ми були на полі "Загалом" -> Переходимо на "Скільки забирають"
+                tab_pane.find('.calc_minus').focus().select();
+            } 
+            else if (current_input.hasClass('calc_minus')) {
+                // Сценарій Б: Ми були на полі "Мінус" -> Переходимо на наступний таб
+                var current_tab_link = $('#myList a.active');
+                var next_tab_link = current_tab_link.next('#myList a');
+                
+                if (next_tab_link.length > 0) {
+                    // Клікаємо на наступний таб програмно
+                    next_tab_link.click();
+                } else {
+                    // Якщо це був останній таб (Решта), переводимо фокус на кнопку збереження каси
+                    $("button[type='submit']").focus();
+                }
+            }
+        }
+    });
+
+    // ========================================================
+    // ВІДНОВЛЕННЯ ДАНИХ КАЛЬКУЛЯТОРА ПІСЛЯ REFRESH З ПОМИЛКАМИ
+    // ========================================================
+    var has_saved_data = false;
+
+    $('.calc_input').each(function(index) {
+        var tab_id = $(this).parent().attr('id'); 
+        var saved_count = localStorage.getItem('calc_' + tab_id);
+        
+        if (saved_count && parseInt(saved_count) > 0) {
+            $(this).val(saved_count);
+            has_saved_data = true;
+            
+            var nominal = (tab_id === "m_any") ? 1 : parseInt(tab_id.split("m_")[1]);
+            var current_sum = parseInt(saved_count) * nominal;
+            $(this).attr('sum', current_sum);
+            $(this).attr('count', saved_count);
+            $(this).parent().children('div.sum_block').html('Сума ' + current_sum + ' грн.');
+        }
+    });
+
+    // Перевіряємо наявність будь-яких помилок від Django на сторінці
+    var has_django_errors = $(".alert-danger").length > 0 || $(".invalid-feedback").length > 0;
+
+    if (has_django_errors && has_saved_data) {
+        // Якщо є помилки валідації — відкриваємо калькулятор і відновлюємо суми
+        $("#calc_div").show();
+        recalculate_all_nominals();
+    } else if (!has_django_errors) {
+        // Якщо помилок немає (чисте перше завантаження) — скидаємо старий непотріб
+        clear_calculator_storage();
+        $('.calc_input').val(0).attr('sum', 0).attr('count', 0);
+    }
 
 
-$("#id_price").change(function() {
-	console.log("work");
-	var casa_day = parseFloat($("#prev_day").attr("val")) + parseFloat($("#id_cash").attr("value")) - parseFloat($("#id_price").val());
-//	$("#id_price").after("<b style='color:red' id="day_sum">Каса за день = "+ casa_day +" грн.</b>");
-	$("#day_sum").html("Каса за день = "+ casa_day +" грн.")
+    {% comment %} // НАДІЙНИЙ І СТАБІЛЬНИЙ ЗБІР ДАНИХ ПРИ ВІДПРАВЦІ ФОРМИ
+    $("form").on("submit", function(event) {
+        // Отримуємо посилання на саму форму
+        var current_form = this; 
+        
+        // Перевіряємо, чи ми вже успішно підготували JSON дані (захист від нескінченного циклу)
+        if ($(current_form).data('json_ready') === true) {
+            return true; // Дозволяємо стандартне відправлення форми на сервер
+        }
 
+        // Примусово зупиняємо відправку форми на сервер, поки працює наш JavaScript
+        event.preventDefault();
+
+        var price_field = $("#id_price");
+        var price_val = parseFloat(price_field.val());
+
+        // Перевірка на нульову або пусту суму
+        if (isNaN(price_val) || price_val <= 0) {
+            price_field.removeClass("is-invalid");
+            price_field.parent().find(".js-custom-error").remove();
+
+            price_field.addClass("is-invalid");
+            price_field.after("<div class='invalid-feedback d-block js-custom-error font-weight-bold'>Помилка: Сума залишка на наступний день не може бути нульовою! Введіть реальну суму.</div>");
+            
+            $('html, body').animate({
+                scrollTop: price_field.offset().top - 100
+            }, 300);
+            
+            price_field.focus();
+            return false; // Зупиняємо виконання скрипту
+        }
+
+        // =======================================================
+        // ЗАЛІЗОБЕТОННИЙ ЗБІР ДАНИХ КАЛЬКУЛЯТОРА В JSON ПЕРЕД POST
+        // =======================================================
+        var calc_hash = {};
+        
+        $('.calc_input').each(function() {
+            var parent_elem = $(this).parent();
+            if (parent_elem && parent_elem.attr('id')) {
+                var tab_id = parent_elem.attr('id'); // Отримуємо "m_500" або "m_any"
+                var nominal = tab_id.replace('m_', ''); // Залишається "500" або "any"
+                var count_val = parseInt($(this).val());
+                
+                if (!isNaN(count_val) && count_val > 0) {
+                    calc_hash[nominal] = count_val; 
+                }
+            }
+        });
+
+        // Конвертуємо об'єкт (хеш) у JSON-рядок
+        var final_json_string = JSON.stringify(calc_hash);
+        
+        // Записуємо JSON-рядок у наше приховане поле форми
+        $("#calculator_json_data").val(final_json_string);
+        
+        // Виводимо в консоль для діагностики під час тестів (можна потім видалити)
+        console.log("JSON СФОРМОВАНО І ЗАПИСАНО: " + final_json_string);
+
+        // Ставимо прапорець, що збір успішно завершено і форма готова до відправки
+        $(current_form).data('json_ready', true);
+        
+        // Запускаємо відправку форми на сервер програмно — тепер дані точно долетять
+        current_form.submit();
+    });
+
+ {% endcomment %}
+
+
+// Надійний збір даних перед відправкою форми (Формуємо подвійний ХЕШ)
+$("form").on("submit", function(event) {
+    var current_form = this; 
+    if ($(current_form).data('json_ready') === true) { return true; }
+    event.preventDefault();
+
+    var price_field = $("#id_price");
+    var price_val = parseFloat(price_field.val());
+    if (isNaN(price_val) || price_val <= 0) {
+        // ... ваш код помилки ціни ...
+        return false;
+    }
+
+    var total_hash = {};
+    var minus_hash = {};
+    
+    $('.calc_input').each(function() {
+        var tab_id = $(this).parent().attr('id');
+        if (tab_id) {
+            var nominal = tab_id.replace('m_', '');
+            var count_total = parseInt($(this).val()) || 0;
+            var count_minus = parseInt($(this).parent().find('.calc_minus').val()) || 0;
+            
+            if (count_total > 0) { total_hash[nominal] = count_total; }
+            if (count_minus > 0) { minus_hash[nominal] = count_minus; }
+        }
+    });
+
+    // Склеюємо підрахунок і віднімання в єдиний JSON-об'єкт (Подвійний Хеш)
+    var final_data = {
+        'total_day': total_hash, // Статистика за весь день
+        'minus_cash': minus_hash // Що забрали з каси
+    };
+    
+    $("#calculator_json_data").val(JSON.stringify(final_data));
+    $(current_form).data('json_ready', true);
+    current_form.submit();
 });
 
-$('#id_cash').attr('readonly','true')
-$('#id_tcash').attr('readonly','true')
-$('#id_ocash').attr('readonly','true')
-
-$("label[for='id_price']").html('Сума на наступний день:');
-$("label[for='id_price']").parents('th').css("width", "130");
-
-
-
-$(document).on("click", "#btn_calc", function(event) {
-    var ci_id = $(this).parents('tr').attr('ci_id');
-    var cat_id = $(this).parents('tr').attr('cat_id');
-    $("#calc_div").toggle();
+    // Очищаємо підсвітку помилки при введенні тексту
+    $("#id_price").on("input", function() {
+        var val = parseFloat($(this).val());
+        if (!isNaN(val) && val > 0) {
+            $(this).removeClass("is-invalid");
+            $(this).parent().find(".js-custom-error").remove();
+        }
+    });
 });
 
+// Функція збереження в localStorage при введенні даних
+// Функція розрахунку калькулятора (враховує мінус)
+$(document).on("change input", ".calc_input, .calc_minus", function(event){
+    var tab_pane = $(this).parent();
+    var total_input = tab_pane.find('.calc_input');
+    var minus_input = tab_pane.find('.calc_minus');
+    
+    var count_total = parseInt(total_input.val()) || 0;
+    var count_minus = parseInt(minus_input.val()) || 0;
+    
+    total_input.attr('count', count_total);
 
-$('#myList a').on('click', function (event) {
-    event.preventDefault()
-    $(this).tab('show')
-//    console.log("click work - " + $(this).attr('href') );
-    var tab = $(this).attr('href');
-    $(tab).children('input').focus();
-    $(tab).children('input').select();
-//    console.log("Input val  = " + $(tab).children('input').val());
-  })
-
-})
-
-
-$(document).on("change", ".calc_input", function(event){
-    var input_val = parseInt($(this).val());
-	$(this).attr('count',  input_val);
-//	$('#myList a.active').attr('href')
     var nominal;
-    if ( $('#myList a.active').attr('href') == "#m_any"){
-    	nominal = 1;
+    var active_tab = $('#myList a.active').attr('href');
+    if (active_tab == "#m_any"){
+        nominal = 1;
+    } else {
+        nominal = parseInt(active_tab.split("#m_")[1]);
     }
-    else {
-    	nominal = parseInt( $('#myList a.active').attr('href').split("#m_")[1] )
-    }
-	var input_sum = input_val * nominal; //parseInt( $('#myList a.active').attr('href').split("#m_")[1] )
-	$(this).attr('sum', input_sum);
-	var tab = $('#myList a.active').attr('href')
-	$(tab).children('div.sum_block').html('Сума ' + input_sum + ' грн.');
-	console.log("change - " + $(this).val() + " | SUM = " + $(this).attr('sum') + " | COUNT = " + $(this).attr('count'));
-	var str_plus = '';
-	var sum_all = 0;
-	$('.calc_input').each(function( index ) {
-		  console.log( index + ": " + $( this ).attr('sum') );
-		  if ( $(this).attr('sum') > 0) { 
-			    str_plus = str_plus + "+ " + $( this ).attr('sum') + " грн. ";
-			    sum_all = sum_all + parseInt($(this).attr('sum'));
-		  };
-	});
-	var res_sum = sum_all - parseFloat($("#id_tcash").attr('day_casa_sum'))
-	$("#suma_alert").html(str_plus + " = <b>" + sum_all +" грн.</b> | <text class='resSum'>Різниця = " + res_sum + "</text>"); //"+ " + input_sum + " грн.");
+    
+    // Рахуємо чистий залишок для цього конкретного таба (Всього - Мінус)
+    var tab_pure_sum = (count_total - count_minus) * nominal;
+    
+    // Записуємо ЧИСТУ СУМУ в атрибут головного інпуту для підсумкового прорахунку
+    total_input.attr('sum', tab_pure_sum);
+    
+    // Оновлюємо інформаційний бадж у табі
+    tab_pane.children('div.sum_block').html('Чистий залишок: ' + tab_pure_sum + ' грн. (Всього за день: ' + (count_total * nominal) + ' грн)');
+    
+    // Збереження в localStorage
+    var tab_name = active_tab.replace('#', '');
+    localStorage.setItem('calc_total_' + tab_name, count_total);
+    localStorage.setItem('calc_minus_' + tab_name, count_minus);
+
+    recalculate_all_nominals();
 });
 
+// Функція повного підсумкового перерахунку
+function recalculate_all_nominals() {
+    var sum_total_day = 0;  // Загальний оборот за день (без віднімання)
+    var sum_minus_cash = 0; // Скільки всього вилучено (інкасація)
+    var sum_remains = 0;    // Чистий залишок в касі на наступний день
+
+    // Пробігаємось по всіх табах купюр і зчитуємо значення
+    $('.calc_input').each(function(index) {
+        var tab_pane = $(this).parent();
+        var total_input = tab_pane.find('.calc_input');
+        var minus_input = tab_pane.find('.calc_minus');
+        
+        var count_total = parseInt(total_input.val()) || 0;
+        var count_minus = parseInt(minus_input.val()) || 0;
+
+        var nominal;
+        var tab_id = tab_pane.attr('id');
+        if (tab_id === "m_any"){
+            nominal = 1;
+        } else {
+            nominal = parseInt(tab_id.split("m_")[1]);
+        }
+        
+        // Математичні підрахунки по кожному номіналу
+        sum_total_day += count_total * nominal;
+        sum_minus_cash += count_minus * nominal;
+    });
+
+    // Чистий залишок — це різниця між оборотом та інкасацією
+    sum_remains = sum_total_day - sum_minus_cash;
+
+    // Отримуємо розрахункову суму каси, яка має бути за даними бази
+    var target_sum = parseFloat($("#id_tcash").attr('day_casa_sum'));
+    if (isNaN(target_sum)) { target_sum = 0; }
+    
+    // Різниця (аудит) рахується як: Чистий залишок мінус Те, що вимагає база
+    var res_sum = sum_remains - target_sum;
+    
+    // Визначаємо колірні класи Bootstrap для різниці
+    var color_class = 'text-danger'; 
+    var sign_prefix = '';            
+
+    if (res_sum > 0) {
+        color_class = 'text-success'; 
+        sign_prefix = '+';            
+    } else if (res_sum === 0) {
+        color_class = 'text-muted';   
+    }
+    
+    // МІНЯЄМО СТРУКТУРУ ВИВЕДЕННЯ НА СТИЛЬНУ ІНФОРМАЦІЙНУ ПАНЕЛЬ
+    var html_report = "" +
+        "<div class='p-2' style='font-size: 14px; line-height: 1.6; text-align: left;'>" +
+            "<div class='d-flex justify-content-between border-bottom pb-1 mb-1'>" +
+                "<span>💰 Загальний оборот за день:</span>" +
+                "<span><b>" + sum_total_day + " грн.</b></span>" +
+            "</div>" +
+            "<div class='d-flex justify-content-between border-bottom pb-1 mb-1 text-danger'>" +
+                "<span>💸 Всього вилучено (інкасація):</span>" +
+                "<span><b>- " + sum_minus_cash + " грн.</b></span>" +
+            "</div>" +
+            "<div class='d-flex justify-content-between border-bottom pb-1 mb-1 text-success'>" +
+                "<span>🔒 Чистий залишок на ранок:</span>" +
+                "<span><b>" + sum_remains + " грн.</b></span>" +
+            "</div>" +
+            "<div class='d-flex justify-content-between pt-1 font-weight-bold' style='font-size: 16px;'>" +
+                "<span>📊 Результат перевірки:</span>" +
+                "<span class='" + color_class + "'>Різниця = " + sign_prefix + res_sum.toFixed(2) + " грн.</span>" +
+            "</div>" +
+        "</div>";
+
+    // Виводимо сформовану панель у ваш блок сповіщення
+    $("#suma_alert").html(html_report);
+
+    // Автоматично підставляємо ЧИСТИЙ ЗАЛИШОК у поле форми Django "Сума на наступний день"
+    $("#id_price").val(sum_remains).trigger('change');
+}
+
+
+
+function clear_calculator_storage() {
+    $('.calc_input').each(function() {
+        var tab_id = $(this).parent().attr('id');
+        localStorage.removeItem('calc_' + tab_id);
+    });
+}
 </script>
 
-<style>
-
-#id_description {
-    width: 100%;
-}
-
-.resSum {
-  //  font-weight: bold;
-    color: red;
-}
-
-</style
 
 
 
-<div class="container-fluid">
-<div class="row">
-<div class="col-12">
-    <h1><span class="badge badge-secondary">Денна каса за {{s_day}}.{{s_month}}.{{s_year}} {# {% now "jS F Y" %} #} 
-{#    <span class="badge badge-info">Shop - {{shopname.shop_cash_sum_by_day.0.name}}</span> #}
-    <span class="badge badge-info">{{shopname}}</span>
-    </span>
-{# <a href="/shop/year/{% now "Y" %}/month/{% now "m" %}/day/{% now "d" %}/view/"  class="badge badge-success"> #}    
-<a href="{% url 'shop-daily-sales' s_year s_month s_day %}"  class="badge badge-success">
-Детально
-</a>
+    <style>
+        body {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .form-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: none;
+        }
+        /* Стилізація полів введення */
+        .form-group input[type="text"], 
+        .form-group input[type="number"], 
+        .form-group select, 
+        .form-group textarea {
+            display: block;
+            width: 100%;
+            height: calc(1.5em + .75rem + 2px);
+            padding: .375rem .75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #495057;
+            background-color: #fff;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+        }
+        .form-group textarea {
+            height: auto;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+            outline: 0;
+        }
+        /* Вимкнення стандартного стилю для readonly полів */
+        .form-group input[readonly] {
+            background-color: #f8fafc;
+            color: #64748b;
+            cursor: not-allowed;
+        }
+        #id_description {
+            width: 100%;
+        }
+        /* Калькулятор купюр */
+        .list-group-item.active {
+            background-color: #2563eb;
+            border-color: #2563eb;
+        }
+    </style>
+</head>
+<body>
 
-{% if unk_cash > 0 %}
-<h3 style='color:red'>
-Клієнт Unknown має різницю оплат і боргів = {{unk_cash}} грн
-</h3>
-{% endif %}
+<div class="container-fluid py-4 pl-sm-4 pl-md-5">
+    <div class="row">
+        <!-- Контейнер форми, притиснутий ліворуч на ПК -->
+        <div class="col-12 col-sm-10 col-md-9 col-lg-7 col-xl-6">
+            
+            <!-- Хедер з баджами дати та магазину -->
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-4">
+                <h1 class="h4 mb-0 font-weight-bold mr-2">
+                    <span class="badge badge-dark px-3 py-2" style="border-radius: 8px;">
+                        📅 Денна каса за {{ s_day }}.{{ s_month }}.{{ s_year }}
+                    </span>
+                </h1>
+                <span class="badge badge-info px-3 py-2 mr-2" style="border-radius: 8px; font-size: 14px;">
+                    🏪 Магазин: {{ shopname }}
+                </span>
+                <a href="{% url 'shop-daily-sales' s_year s_month s_day %}" class="badge badge-success px-3 py-2 text-decoration-none" style="border-radius: 8px; font-size: 14px;">
+                    ℹ️ Детально
+                </a>
+            </div>
+            <!-- БЛОК КРИТИЧНИХ СПОВІЩЕНЬ ПРО НЕПРОВЕДЕНІ ТОВАРИ ТА КЛІЄНТА UNKNOWN -->
+            {% if unk_cash != 0 %}
+                <div class="alert alert-warning border-0 shadow-sm mb-3 d-flex align-items-center">
+                    <i class="material-icons mr-2 text-warning">warning</i>
+                    <div>Клієнт <b>Unknown</b> має різницю оплат і боргів = <span class="text-danger font-weight-bold">{{ unk_cash }} грн</span></div>
+                </div>
+            {% endif %}
 
-{% if ci_status > 0 %}
-<h3 style='color:red'>Клієнт Unknown має не проведені товари - {{ci_status}} шт.</h3>
-{% endif %}
+            {% if ci_status > 0 %}
+                <div class="alert alert-danger border-0 shadow-sm mb-3 d-flex align-items-center">
+                    <i class="material-icons mr-2">error_outline</i>
+                    <div>Клієнт <b>Unknown</b> має непроведені товари — <span class="font-weight-bold">{{ ci_status }} шт.</span></div>
+                </div>
+            {% endif %}
 
-{% if other_ci %}
-<div class="alert alert-danger" role="alert">
-<a href="{% url 'clientinvoice-now-notpay' %}" >
-	У вас є не проведені товари:
-</a>
-</div>
-{% for ci in other_ci %}
-{#	<h3 style='color:red'>{{other_ci.0.catalog.name}} -- {{other_ci.0.sum}} грн.</h3> #}
-	<h4 style='color:red'>{{ci.catalog.name}} -- {{ci.sum}} грн.</h4>
-{% endfor %}
-{% endif %}
+            {% if other_ci %}
+                <div class="alert alert-danger border-0 shadow-sm mb-4">
+                    <div class="font-weight-bold mb-2 d-flex align-items-center">
+                        <i class="material-icons mr-2">assignment_late</i>
+                        <a href="{% url 'clientinvoice-now-notpay' %}" class="text-danger text-decoration-none">
+                            У вас є непроведені товари:
+                        </a>
+                    </div>
+                    <ul class="list-unstyled pl-4 mb-0" style="font-size: 14px;">
+                        {% for ci in other_ci %}
+                            <li>• <span class="font-weight-bold">{{ ci.catalog.name }}</span> — <span class="text-dark font-weight-bold">{{ ci.sum }} грн.</span></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
 
-	</h1>
+            <!-- Головна картка форми з полями Django -->
+            <div class="card form-card p-4 p-sm-5 mb-4">
+            <!-- Повідомлення про зміну сум під час заповнення каси -->
+            {% if error_balance_message %}
+                <!-- Додано клас alert-danger-balance -->
+                <div class="alert alert-danger alert-danger-balance border-0 shadow-sm mb-4 d-flex align-items-center animate-fade-in">
+                    <i class="material-icons mr-3" style="font-size: 32px;">sync_problem</i>
+                    <div class="font-weight-bold" style="font-size: 15px; line-height: 1.4;">
+                        {{ error_balance_message }}
+                    </div>
+                </div>
+            {% endif %}
 
-    <form action="" method="POST" enctype="multipart/form-data">
-        <table>
-            {{ form.as_table }}
-        </table>
-        <p><input type="submit" value="Save"></p>
-    </form>
-</div>
-</div>
+
+                <form action="" method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                     <!-- Зберігаємо стан балансу на момент відкриття сторінки -->
+                    <input type="hidden" name="initial_balance_checkpoint" value="{{ current_casa_balance }}">
+                    <input type="hidden" name="calculator_json_data" id="calculator_json_data" value="">
+
+                    {% for hidden_field in form.hidden_fields %}
+                        {{ hidden_field }}
+                    {% endfor %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger border-0 mb-4 shadow-sm" role="alert">
+                          {% for error in form.non_field_errors %}
+                            {{ error }}
+                          {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <!-- Автоматичний вивід полів форми Django через красиву розмітку -->
+                    {% for field in form.visible_fields %}
+                        
+      <!-- ХОВАЄМО ПОЛЕ ДАТИ ДЛЯ ВСІХ, КРІМ АДМІНІСТРАТОРІВ -->
+                        {% if field.name == 'date' %}
+                            {% if request.user|has_group:"admin" %}
+                                <div class="form-group mb-4">
+                                    <label for="{{ field.id_for_label }}" class="font-weight-bold text-secondary mb-1" style="font-size: 14px;">
+                                        {{ field.label }}:
+                                    </label>
+                                    {{ field }}
+                                </div>
+                            {% else %}
+                                <div style="display: none;">{{ field }}</div>
+                            {% endif %}
+                        {% else %}
+                            <!-- Усі інші поля (сума, каса, термінал тощо) — відкриваючий div відновлено -->
+                            <div class="form-group mb-4">
+                                <label for="{{ field.id_for_label }}" class="font-weight-bold text-secondary mb-1" style="font-size: 14px;">
+                                    {{ field.label }}:
+                                </label>
+                                
+                                {{ field }}
+
+                                {% if field.errors %}
+                                    {% for error in field.errors %}
+                                        <div class="invalid-feedback d-block mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+
+                                {% if field.help_text %}
+                                    <small class="form-text text-muted mt-1">{{ field.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                    <div class="form-group mb-0 mt-5">
+                        <button type="submit" class="btn btn-primary btn-lg w-100 font-weight-bold shadow-sm" style="border-radius: 8px; font-size: 16px; background-color: #2563eb; border: none;">
+                            <i class="material-icons align-middle mr-1" style="font-size: 20px;">lock_clock</i> Закрити та зберегти касу
+                        </button>
+                    </div>
+                </form>
+            </div> <!-- /card -->
+
+
 
 <div class="row ">
 <div class="col-12">
@@ -170,81 +587,36 @@ $(document).on("change", ".calc_input", function(event){
   </div>
 </div>  
 <div class="col-md-3 col-sm-6">
-  <!-- Tab panes -->
-  <div class="tab-content">
-    <div class="tab-pane active" id="m_1000" role="tabpanel">
-        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
-        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
-            Сума: 0 грн.
+
+<div class="tab-content">
+    <!-- Змінено на чистий виклик масиву без використання методу split -->
+    {% for nominal in nominal_list %}
+        <div class="tab-pane {% if forloop.first %}active{% endif %}" id="m_{{ nominal }}" role="tabpanel">
+            <label class="small font-weight-bold text-secondary mb-1">Загалом купюр за день ({{ nominal }} грн):</label>
+            <input type="number" class="form-control calc_input mb-2" min="0" value="0" sum="0" count="0" data-type="total">
+            
+            <!-- Нове поле для інкасації (віднімання) -->
+            <label class="small font-weight-bold text-danger mb-1">Скільки забирають (інкасація / виручка):</label>
+            <input type="number" class="form-control calc_minus mb-2" min="0" value="0" data-type="minus">
+            
+            <div class="alert alert-secondary py-2 px-3 small font-weight-bold sum_block mb-0">Сума за день: 0 грн.</div>
         </div>
-    </div>
-    <div class="tab-pane" id="m_500" role="tabpanel">
-        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
-        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
-            Сума: 0 грн.
-        </div>
-    </div>
-    <div class="tab-pane" id="m_200" role="tabpanel">
-        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
-        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
-            Сума: 0 грн.
-        </div>
-    </div>
-    <div class="tab-pane" id="m_100" role="tabpanel">
-        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
-        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
-            Сума: 0 грн.
-        </div>
-    </div>
-    <div class="tab-pane" id="m_50" role="tabpanel">
-        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
-        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
-            Сума: 0 грн.
-        </div>
-    </div>
-    <div class="tab-pane" id="m_20" role="tabpanel">
-        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
-        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
-            Сума: 0 грн.
-        </div>
-    </div>
-    <div class="tab-pane" id="m_10" role="tabpanel">
-        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
-        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
-            Сума: 0 грн.
-        </div>
-    </div>
-    <div class="tab-pane" id="m_5" role="tabpanel">
-        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
-        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
-            Сума: 0 грн.
-        </div>
-    </div>
-    <div class="tab-pane" id="m_2" role="tabpanel">
-        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
-        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
-            Сума: 0 грн.
-        </div>
-    </div>
-    <div class="tab-pane" id="m_1" role="tabpanel">
-        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
-        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
-            Сума: 0 грн.
-        </div>
-    </div>
+    {% endfor %}
+    
     <div class="tab-pane" id="m_any" role="tabpanel">
-        <input type="number" class="form-control calc_input" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-sm" min=0 value='0' sum=0 count=0>
-        <div class="alert alert-secondary sum_block" role="alert" sum=0 count=0>
-            Сума: 0 грн.
-        </div>
+        <label class="small font-weight-bold text-secondary mb-1">Будь-яка інша сума / копійки (Загалом):</label>
+        <input type="number" class="form-control calc_input mb-2" min="0" value="0" sum="0" count="0" data-type="total">
+        
+        <label class="small font-weight-bold text-danger mb-1">Скільки забирають (копійки):</label>
+        <input type="number" class="form-control calc_minus mb-2" min="0" value="0" data-type="minus">
+        
+        <div class="alert alert-secondary py-2 px-3 small font-weight-bold sum_block mb-0">Сума за день: 0 грн.</div>
     </div>
-    
-    
-    
-  </div>
-</div>
 </div>
 
 
 </div>
-    
+</div>
+
+
+</div>            

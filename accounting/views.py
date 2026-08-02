@@ -7550,86 +7550,144 @@ def workshop_pricelist(request, pprint=False):
 #------------- Shop operation --------------
 @csrf_exempt
 def shopdailysales_add(request, id=None):
-    if auth_group(request.user, 'seller')==False:
-        context = {'weblink': 'error_message.html', 'mtext': 'Помилка: У вас не має доступу до <<Денна каса за місяць>>. Можливо ви не авторизувались.', }
+    # 1. Перевірка прав доступу (тільки для продавців або адмінів)
+    if not auth_group(request.user, 'seller'):
+        context = {
+            'weblink': 'error_message.html', 
+            'mtext': u'Помилка: У вас немає доступу до <<Денна каса за місяць>>. Можливо, ви не авторизувались.'
+        }
         context.update(custom_proc(request))
         return render(request, 'index.html', context)            
-    lastCasa = None
+
     now = datetime.datetime.now()
-    shopN = None
-    #shopN = get_shop_from_ip('192.168.1.55')
-    if id != None :
-        shopN = Shop.objects.get(id = id)
+    error_message = None  # Змінна для повідомлення про зміну каси за секунди заповнення
+    
+    # 2. Визначаємо поточний магазин (по ID або IP)
+    if id is not None:
+        shopN = get_object_or_404(Shop, id=id)
     else: 
-        shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
-        #shopN = get_shop_from_ip('192.168.1.7')
+        shop_id_from_ip = get_shop_from_ip(request.META.get('REMOTE_ADDR', ''))
+        shopN = Shop.objects.filter(id=shop_id_from_ip).first()
+        if not shopN:
+            return render(request, 'index.html', {
+                'weblink': 'error_message.html', 
+                'mtext': u'Магазин за вашою IP-адресою не знайдено'
+            })
+
+    # Поточні розрахункові суми оплат на точці на даний момент
     sum_casa = shopN.shop_cash_sum_by_day()
+    current_casa_balance = sum_casa['cashCred'] - sum_casa['cashDeb']
+
     if request.method == 'POST':
         form = ShopDailySalesForm(request.POST)
         if form.is_valid():
-            date = form.cleaned_data['date']
-            price = form.cleaned_data['price']
-            description = form.cleaned_data['description']
-            cash = form.cleaned_data['cash']
-            tcash = form.cleaned_data['tcash']
-            ocash = form.cleaned_data['ocash']
-            shop = form.cleaned_data['shop']
-            if form.cleaned_data['user']:
-                user = form.cleaned_data['user']
+            # Отримуємо суму на наступний день з очищених даних форми
+            price_next_day = form.cleaned_data.get('price')
+            
+            # ПЕРЕВІРКА А: Сума на наступний день не повинна бути нульовою чи від'ємною
+            if price_next_day is None or price_next_day <= 0:
+                form.add_error('price', u"Сума на наступний день обов'язково має бути більшою за 0 грн.")
             else:
-                user = request.user
-            date = now
-            if request.user.is_authenticated():
-                user = request.user
-            ShopDailySales(date=date, price=price, description=description, user = user, cash=cash, tcash=tcash, ocash=ocash, shop = shop).save()
-            return HttpResponseRedirect('/shop/sale/view/')
+                # ПЕРЕВІРКА Б: Чи не відбулося змін по сумах оплат, поки касир заповнював форму
+                old_balance_str = request.POST.get('initial_balance_checkpoint')
+                if old_balance_str is not None:
+                    try:
+                        old_balance = float(old_balance_str)
+                        # Перевіряємо різницю балансів з бази та чекпоінту форми
+                        if abs(current_casa_balance - old_balance) > 0.01:
+                            error_message = u"Увага! Поки ви заповнювали форму, на точці відбулися зміни по сумах оплат або боргів. " \
+                                            u"Старий розрахунок каси: %s грн. Новий актуальний: %s грн. " \
+                                            u"Дані форми оновлено. Перевірте касу і натисніть кнопку збереження ще раз." % (old_balance, current_casa_balance)
+                    except ValueError:
+                        pass
+
+                # Якщо під час заповнення каси прилетів новий чек
+                if error_message:
+                    # Переініціалізуємо початкові дані форми новими сумами з бази
+                    form = ShopDailySalesForm(initial={
+                        'cash': current_casa_balance, 
+                        'ocash': sum_casa['cashDeb'], 
+                        'tcash': sum_casa['termCred'], 
+                        'user': request.user if request.user.is_authenticated else None, 
+                        'shop': shopN
+                    })
+                else:
+                    # Усе перевірено та стабільно — проводимо фінальне збереження каси
+                    daily_sale = form.save(commit=False)
+                    daily_sale.shop = shopN
+                    
+                    # Регулювання прав на зміну дати
+                    if auth_group(request.user, "admin"):
+                        daily_sale.date = form.cleaned_data['date']
+                    else:
+                        daily_sale.date = now  
+
+                    # ЗБЕРЕЖЕННЯ ХЕШУ КАЛЬКУЛЯТОРА В DESCRIPTION
+                    user_comment = form.cleaned_data.get('description', '') or ''
+                    calc_json = request.POST.get('calculator_json_data', '{}')
+                    print "CALC JSON = %s" % calc_json
+                    
+                    # Якщо касир щось рахував у калькуляторі, склеюємо дані через маркер
+                    if calc_json and calc_json != '{}':
+                        daily_sale.description = u"%s||CALC_DATA||%s" % (user_comment.strip(), calc_json)
+                    else:
+                        daily_sale.description = user_comment.strip()
+
+                    if request.user and request.user.is_authenticated:
+                        daily_sale.user = request.user
+                        
+                    daily_sale.save()
+                    return redirect('/shop/sale/view/')
     else:        
-        unknown_client = Client.objects.get(id = settings.CLIENT_UNKNOWN)
-#        print "USER - " + str(unknown_client.pk)
-             
-        deb = ClientDebts.objects.filter(date__year=now.year, date__month=now.month, date__day=now.day).order_by()
-        cred = ClientCredits.objects.filter(date__year=now.year, date__month=now.month, date__day=now.day).order_by()
-#        cash_credsum = cred.values('cash_type', 'cash_type__name').annotate(suma=Sum("price"))
-        cashCred = sum_casa['cashCred'] 
-        TcashCred = sum_casa['termCred']
-        cashDeb = sum_casa['cashDeb']
+        # Первинне відкриття сторінки (GET-запит)
+        form = ShopDailySalesForm(initial={
+            'cash': current_casa_balance, 
+            'ocash': sum_casa['cashDeb'], 
+            'tcash': sum_casa['termCred'], 
+            'user': request.user if request.user.is_authenticated else None, 
+            'shop': shopN
+        })
         
-        cashCred_sum = 0
-        cashDeb_sum = 0
-        try:
-            cashCred_sum = cred.values('client').annotate(suma=Sum("price")).get(client = settings.CLIENT_UNKNOWN)['suma']
-        except ClientCredits.DoesNotExist:
-            cashCred_sum = 0
-        try:
-            cashDeb_sum = deb.values('client').annotate(suma=Sum("price")).get(client = settings.CLIENT_UNKNOWN)['suma'] #.filter(client = unknown_client).annotate(suma=Sum("price"))
-        except ClientDebts.DoesNotExist:
-            cashDeb_sum = 0
+    # 3. Оптимізований підрахунок сум невідомого клієнта за день через агрегацію бази даних
+    cashCred_sum = ClientCredits.objects.filter(
+        client_id=settings.CLIENT_UNKNOWN,
+        date__year=now.year, date__month=now.month, date__day=now.day
+    ).aggregate(total=Coalesce(Sum('price'), 0.0))['total']
 
-        unk_cash = cashCred_sum - cashDeb_sum
+    cashDeb_sum = ClientDebts.objects.filter(
+        client_id=settings.CLIENT_UNKNOWN,
+        date__year=now.year, date__month=now.month, date__day=now.day
+    ).aggregate(total=Coalesce(Sum('price'), 0.0))['total']
 
-        ci_status = 0
-        other_ci = 0
-        try:
-            ci_array = ClientInvoice.objects.filter(date__year=now.year, date__month=now.month, date__day=now.day)
-            #ci_res = ClientInvoice.objects.filter(client = unknown_client, date__year=now.year, date__month=now.month, date__day=now.day)
-            ci_res = ci_array.filter(client = unknown_client)
-            for ci in ci_res: 
-                if ci.check_payment() == False:
-#                    print "FILTER ok!!!"
-                    ci_status = ci_status + 1
-            other_ci = ci_array.exclude(sum = F('pay'))
-        except ClientInvoice.DoesNotExist:
-            ci_status = 0
+    unk_cash = cashCred_sum - cashDeb_sum
 
-#        lastCasa = ShopDailySales.objects.latest('date')
-        lastCasa = ShopDailySales.objects.filter(shop = shopN).latest('date')
-        casa = cashCred - cashDeb
-        form = ShopDailySalesForm(initial={'cash': casa, 'ocash': cashDeb, 'tcash':TcashCred, 'user': request.user, 'shop': shopN})
+    # 4. Оптимізація перевірки накладних (БЕЗ важких циклів Python)
+    ci_array = ClientInvoice.objects.filter(date__year=now.year, date__month=now.month, date__day=now.day)
+    ci_status = ci_array.filter(client_id=settings.CLIENT_UNKNOWN, pay__lt=F('sum')).count()
+    other_ci = ci_array.exclude(sum=F('pay'))
+
+    # 5. Безпечне отримання останньої каси (Захист від DoesNotExist для нових точок)
+    try:
+        lastCasa = ShopDailySales.objects.filter(shop=shopN).latest('date')
+    except ShopDailySales.DoesNotExist:
+        lastCasa = None  
         
-    syear = now.year
-    smonth = now.month
-    sday = now.day
-    context = {'form': form, 'weblink': 'shop_daily_sales.html', 'lastcasa': lastCasa, 'ci_status': ci_status, 'other_ci':other_ci, 'unk_cash': unk_cash, 's_year': syear, 's_month': smonth, 's_day': sday, 'shopname': shopN }
+    context = {
+        'form': form, 
+        'weblink': 'shop_daily_sales.html', 
+        'lastcasa': lastCasa, 
+        'ci_status': ci_status, 
+        'other_ci': other_ci, 
+        'unk_cash': unk_cash, 
+        's_year': now.year, 
+        's_month': now.month, 
+        's_day': now.day, 
+        'shopname': shopN,
+        'is_admin': auth_group(request.user, "admin"),
+        'current_casa_balance': current_casa_balance,  # Чекпоінт для прихованого input форми
+        'error_balance_message': error_message,        # Червоне вікно помилки зміни балансу
+        'nominal_list': ['1000', '500', '200', '100', '50', '20', '10', '5', '2', '1']        
+    }
     context.update(custom_proc(request)) 
     return render(request, 'index.html', context)
 

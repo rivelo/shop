@@ -78,9 +78,15 @@ $(document).ready( function() {
 	<td>
 	{{type.day_sale}}
 	</td>
-	<td>       
+{% comment %} 	<td>       
 	{{type.description}}
-	</td>
+	</td> {% endcomment %}
+	<td title="Повний звіт каси за день:&#10;{% for item in type.formatted_calculator_list %}{{ item.label }} — Всього: {{ item.total }} шт | Вилучено: {{ item.minus }} шт | Залишилось: {{ item.remains }} шт.&#10;{% endfor %}">
+		{{ type.clean_comment }} 📊
+	</td>	
+{% comment %} <td title="Розкладка по купюрах:&#10;{% for label, count in type.formatted_calculator_list %}{{ label }}: {{ count }} шт.&#10;{% endfor %}">
+    {{ type.clean_comment }} 💵
+</td> {% endcomment %}
 	<td>       
 	{{type.cash}}
 	</td>

@@ -28,6 +28,7 @@ from django.urls import reverse
 from pyexpat import model
 #from ctypes.test.test_pep3118 import s_bool
 import math
+import json
 
 # Group Type = Group for Component category 
 class GroupType(models.Model):
@@ -2245,7 +2246,75 @@ class ShopDailySales(models.Model):
         r = ShopDailySales.objects.filter(date__lt = self.date, shop = self.shop).latest('date')
         res = r.price + self.cash - self.price
         return int(round(res, 0))
+
+    @property
+    def clean_comment(self):
+        if self.description and u"||CALC_DATA||" in self.description:
+            return self.description.split(u"||CALC_DATA||")[0]
+        return self.description or ""
+
+    @property
+    def parsed_calculator_data(self):
+        """Повертає розпарсений Python-словник (хеш) купюр для гарного виведення"""
+        if self.description and u"||CALC_DATA||" in self.description:
+            try:
+                json_str = self.description.split(u"||CALC_DATA||")[1]
+                return json.loads(json_str) # Перетворює JSON-рядок назад у хеш Пайтона
+            except (ValueError, IndexError):
+                return {}
+        return {}
     
+    @property
+    def formatted_calculator_list(self):
+        """
+        Аналізує подвійний хеш і повертає список розширеної статистики:
+        [(номінал, всього_за_день, забрали, залишилось)]
+        """
+        if self.description and u"||CALC_DATA||" in self.description:
+            try:
+                json_str = self.description.split(u"||CALC_DATA||")[1]
+                data_hash = json.loads(json_str)
+                
+                # Підтримка старої структури (якщо раніше зберігався простий хеш)
+                total_day = data_hash.get('total_day', data_hash) if isinstance(data_hash, dict) else {}
+                minus_cash = data_hash.get('minus_cash', {}) if isinstance(data_hash, dict) and 'minus_cash' in data_hash else {}
+                
+                all_nominals = set(total_day.keys()) | set(minus_cash.keys())
+                numeric_keys = []
+                any_data = None
+                
+                for nominal in all_nominals:
+                    t_count = int(total_day.get(nominal, 0))
+                    m_count = int(minus_cash.get(nominal, 0))
+                    remains = t_count - m_count # Скільки реально залишилося в сейфі
+                    
+                    if nominal == 'any':
+                        any_data = (u"Решта/Копійки", t_count, m_count, remains)
+                    else:
+                        try:
+                            numeric_keys.append((int(nominal), t_count, m_count, remains))
+                        except ValueError:
+                            pass
+                
+                # Сортуємо номінали від 1000 до 1
+                numeric_keys.sort(key=lambda x: x[0], reverse=True)
+                
+                formatted_list = []
+                for nom, tc, mc, rem in numeric_keys:
+                    formatted_list.append({
+                        'label': u"%s грн" % nom, 'total': tc, 'minus': mc, 'remains': rem
+                    })
+                    
+                if any_data is not None:
+                    formatted_list.append({
+                        'label': any_data[0], 'total': any_data[1], 'minus': any_data[2], 'remains': any_data[3]
+                    })
+                    
+                return formatted_list
+            except (ValueError, IndexError, AttributeError):
+                return []
+        return []
+
     def __unicode__(self):
         return "[%s] - %s" % (self.date, self.price) 
 
