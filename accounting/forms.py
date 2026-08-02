@@ -840,24 +840,7 @@ class ClientForm(forms.ModelForm):
         model = Client
         fields = '__all__'
 
-""" 
-class ClientEditForm(forms.ModelForm):
-    name = forms.CharField(max_length=255)
-    forumname = forms.CharField(max_length=255, required=False)    
-    country = forms.ModelChoiceField(queryset = Country.objects.all(), initial=1)
-    city = forms.CharField(max_length=255)
-    email = forms.EmailField(required=False)
-    phone = forms.CharField(max_length=255, required=False)
-    phone1 = forms.CharField(max_length=255, required=False)
-    sale = forms.IntegerField(required=False, initial=0)
-    summ = forms.FloatField(initial=0)
-    birthday = forms.DateField(label='Дата народженя (d/m/Y)', input_formats=['%d.%m.%Y', '%d/%m/%Y'], widget=forms.DateTimeInput(format='%d.%m.%Y'), required=False)
-    description = forms.CharField(label='Description', widget=forms.Textarea(), max_length=255, required=False)    
 
-    class Meta:
-        model = Client
-        fields = '__all__'
- """
 class ClientEditForm(forms.ModelForm):
     name = forms.CharField(max_length=255, label="ПІБ")
     forumname = forms.CharField(max_length=255, required=False, label="Нік, логін")    
@@ -890,6 +873,8 @@ class ClientEditForm(forms.ModelForm):
         required=False,
         widget=forms.TextInput(attrs={'readonly': True})
     )
+
+    field_order = ['phone', 'name', 'forumname', 'city', 'country', 'phone1', 'email', 'sale', 'summ', 'birthday', 'description', ] 
 
     class Meta:
         model = Client

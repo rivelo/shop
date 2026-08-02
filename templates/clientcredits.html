@@ -53,6 +53,11 @@
             box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.25);
             outline: 0;
         }
+        /* Додатковий стиль для блоку решти */
+        .change-highlight {
+            font-size: 1.2rem;
+            color: #16a34a;
+        }
     </style>
 </head>
 
@@ -106,6 +111,7 @@
                             {% if field.errors %}
                                 {% for error in field.errors %}
                                     <div class="invalid-feedback d-block mt-1">{{ error }}</div>
+                                # _ADD_BLOCK_CHANGE_
                                 {% endfor %}
                             {% endif %}
 
@@ -114,9 +120,34 @@
                             {% endif %}
                         </div>
                     {% endfor %}
+                                
+            <!-- БЛОК ПІДРАХУНКУ РЕШТИ (Кастомні поля з кнопкою) -->
+            <hr class="my-4" style="border-top: 1px dashed #ced4da;">
+
+            <div class="form-group mb-3">
+                <label for="custom_client_cash" class="font-weight-bold text-secondary mb-1" style="font-size: 14px;">
+                    Отримано від клієнта (грн):
+                </label>
+                <!-- Використовуємо flex-структуру для розміщення кнопки поруч із полем -->
+                <div style="display: flex; gap: 8px;">
+                    <input type="number" id="custom_client_cash" class="form-control" placeholder="0.00" min="0" step="any" style="flex: 1;">
+                    <button type="button" id="btn_apply_cash" class="btn btn-outline-success font-weight-bold" style="border-radius: .25rem; font-size: 14px; white-space: nowrap; border-color: #16a34a; color: #16a34a;">
+                        Внести цю суму
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group mb-4">
+                <span class="font-weight-bold text-secondary" style="font-size: 14px;">Решта:</span>
+                <div class="font-weight-bold change-highlight mt-1">
+                    <span id="custom_change_result">0.00</span> грн
+                </div>
+            </div>
+            <!-- /КІНЕЦЬ БЛОКУ РЕШТИ -->
+
 
                     <!-- Велика зелена кнопка збереження -->
-                    <div class="form-group mb-0 mt-5">
+                    <div class="form-group mb-0 mt-4">
                         <button type="submit" class="btn btn-success btn-lg w-100 font-weight-bold shadow-sm" style="border-radius: 8px; font-size: 16px; background-color: #16a34a; border: none;">
                             <i class="material-icons align-middle mr-1" style="font-size: 20px;">save</i> Зберегти проплату
                         </button>
@@ -128,6 +159,62 @@
         </div>
     </div>
 </div>
+
+<!-- СКРИПТ АВТОМАТИЧНОГО РОЗРАХУНКУ РЕШТИ -->
+<!-- СКРИПТ АВТОМАТИЧНОГО РОЗРАХУНКУ РЕШТИ ТА ПЕРЕЗАПИСУ СУМИ -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const priceInput = document.getElementById('id_price');
+    const cashInput = document.getElementById('custom_client_cash');
+    const changeResult = document.getElementById('custom_change_result');
+    const applyCashBtn = document.getElementById('btn_apply_cash');
+
+    function calculateChange() {
+        const price = parseFloat(priceInput.value) || 0;
+        const cash = parseFloat(cashInput.value) || 0;
+        const change = cash - price;
+
+        if (change > 0) {
+            changeResult.innerText = change.toFixed(2);
+            changeResult.parentElement.style.color = "#16a34a"; // Зелений колір
+        } else if (change < 0) {
+            changeResult.innerText = "Недостатньо коштів (" + change.toFixed(2) + ")";
+            changeResult.parentElement.style.color = "#dc3545"; // Червоний колір
+        } else {
+            changeResult.innerText = "0.00";
+            changeResult.parentElement.style.color = "#1e293b"; // Звичайний колір
+        }
+    }
+
+    // Обробка кліку на кнопку "Внести цю суму"
+    if (applyCashBtn && priceInput && cashInput) {
+        applyCashBtn.addEventListener('click', function() {
+            const cashValue = parseFloat(cashInput.value);
+            
+            // Перевіряємо, чи користувач ввів коректне числове значення
+            if (!isNaN(cashValue) && cashValue > 0) {
+                priceInput.value = cashInput.value; // Переписуємо значення в оригінальне поле Django
+                calculateChange();                  // Оновлюємо решту (вона стане 0.00)
+                
+                // Сповіщаємо інші JS-скрипти (якщо вони є), що значення поля змінилося
+                priceInput.dispatchEvent(new Event('input')); 
+                
+                // Встановлюємо фокус назад на поле суми
+                priceInput.focus();
+            } else {
+                alert("Будь ласка, спочатку введіть коректну суму від клієнта.");
+            }
+        });
+    }
+
+    // Слухаємо введення тексту в обох полях для розрахунку решти "на льоту"
+    if (priceInput && cashInput) {
+        cashInput.addEventListener('input', calculateChange);
+        priceInput.addEventListener('input', calculateChange);
+    }
+});
+</script>
+
 
 </body>
 </html>
