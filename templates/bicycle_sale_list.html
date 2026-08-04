@@ -33,6 +33,112 @@
 
 <script>
 $(document).ready(function() {
+    let targetSaleId = null;
+    const $modal = $('#tradeInModal');
+    const $form = $('#tradeInForm');
+    const $confirmBtn = $('#confirmTradeInBtn');
+    const $spinner = $('#tradeInSpinner');
+    const $cashTypeSelect = $('#tradeInCashType');
+
+    // Функція підвантаження CashType
+    function loadCashTypes() {
+        return $.ajax({
+            url: '/api/cash-types/', // Ваш новий URL
+            type: 'GET',
+            success: function(response) {
+                $cashTypeSelect.empty();
+                if(response.cash_types.length === 0) {
+                    $cashTypeSelect.append('<option value="">Немає доступних кас</option>');
+                    return;
+                }
+                $cashTypeSelect.append('<option value="">-- Оберіть тип оплати --</option>');
+                response.cash_types.forEach(function(item) {
+                    $cashTypeSelect.append(`<option value="${item.id}">${item.name}</option>`);
+                });
+            },
+            error: function() {
+                $cashTypeSelect.empty().append('<option value="">Помилка завантаження кас</option>');
+            }
+        });
+    }
+
+    // Клік на кнопку Trade-in в таблиці
+$('.btn-tradein').on('click', function() {
+    targetSaleId = $(this).data('id');
+    
+    // Зчитуємо дані з натиснутої кнопки
+    let bikeModel = $(this).data('model') || 'Не вказано';
+    let bikeSerial = $(this).data('serial') || 'Не вказано';
+    
+    // Формуємо текст та вставляємо його в модалку
+    let infoHtml = `<strong>Велосипед:</strong> ${bikeModel}<br><strong>S/N:</strong> ${bikeSerial}`;
+    $('#tradeInBikeInfo').html(infoHtml);
+    
+    // Завантажуємо типи кас та відкриваємо вікно
+    loadCashTypes().always(function() {
+        $modal.modal('show');
+    });
+});
+
+    // Надсилання AJAX форми
+    $form.on('submit', function(e) {
+        e.preventDefault();
+        if (!targetSaleId) return;
+
+        $confirmBtn.prop('disabled', true);
+        $spinner.removeClass('d-none');
+
+        let formData = $form.serialize();
+
+        $.ajax({
+            url: `/bicycle/${targetSaleId}/tradein/`,
+            type: 'POST',
+            data: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                $modal.modal('hide');
+                alert(response.message);
+                // Знаходимо рядок таблиці для поточного велосипеда
+                let $row = $(`#sale-row-${targetSaleId}`);
+                
+                if ($row.length > 0) {
+                    // Додаємо клас жовтого фону Bootstrap 4
+                    $row.addClass('bg-warning text-dark');
+                    
+                    // Опціонально: приховуємо або блокуємо кнопку Trade-in в цьому рядку,
+                    // оскільки операцію вже виконано
+                    $row.find('.btn-tradein').prop('disabled', true).addClass('text-muted').removeClass('text-warning');
+                    
+                    // Якщо сума в таблиці виводиться в окремому стовпчику, 
+                    // ви можете динамічно замінити її на 0 без перезавантаження:
+                    // $row.find('.sale-sum-cell').text('0 грн.');
+                } else {
+                    // Якщо рядок з якихось причин не знайдено в DOM — просто оновлюємо сторінку
+                    location.reload();
+                }
+            },
+            error: function(xhr) {
+                $confirmBtn.prop('disabled', false);
+                $spinner.addClass('d-none');
+                
+                let errorMessage = 'Сталася помилка при обробці запиту';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                alert('Помилка: ' + errorMessage);
+            }
+        });
+    });
+
+    // Очищення форми
+    $modal.on('hidden.bs.modal', function () {
+        targetSaleId = null;
+        $form[0].reset(); // Скидання стандартним методом JS
+        $confirmBtn.prop('disabled', false);
+        $spinner.addClass('d-none');
+    });
 
 $('.bike_serv').editable('/bicycle/sale/service/', {
      data   : " {'1':'Пройдено','0':'Не пройдено'}",
@@ -117,7 +223,7 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 	</tr>
 	</thead>
 	{% for type in bicycles %}
-	<tr>
+	<tr id="sale-row-{{ type.id }}">
 		<td title="{{type.user}}" data-toggle="tooltip" data-placement="top">{{forloop.counter}}</td>
 		<td title="Редагувати"><a href="{% url 'bicycle-sale-edit' type.id %}"><i class="material-icons">create</i></a></td>
 <!-- 		<td title="{{type.model.size}}"><a href="/bicycle/photo/{{type.model.model.id}}">{{type.model}}</a></td>
@@ -148,14 +254,107 @@ $('.bike_serv').editable('/bicycle/sale/service/', {
 <td BGCOLOR="#CCCC99" class="bike_serv" id_bike={{type.id}}>
 {{type.service|yesno:"Пройдено,Не пройдено,Невідомо"}}</a>
 {% endif %}		
-
 		</td>
-{#		</td> #}
+
 		<td>{{type.description}}</td>
 		<td>{{type.shop}}</td>
-		<td><a href="/bicycle/sale/{{ type.id }}/check" title="Чек на велосипед" data-toggle="tooltip" data-placement="left"><i class="material-icons">receipt</i></a>
-		<a href="{% url 'tradein-return' type.id %}" onclick="return confirm('Виконати TradeIn?')" title="Trade in" data-toggle="tooltip" data-placement="left"><i class="material-icons">assignment_return</i></a>
-		<a href="/bicycle/sale/delete/{{ type.id }}" onclick="return confirm('Видалити запис?')" title="Видалити" data-toggle="tooltip" data-placement="left"><i class="material-icons">delete_forever</i></a></td>
+		
+<td class="align-middle" style="white-space: nowrap;">
+    <div class="d-flex align-items-center justify-content-start">
+	<!-- Чек міняє колір залежно від наявності: text-success (зелений) або text-secondary (сірий) -->
+        <a href="/bicycle/sale/{{ type.id }}/check" 
+           class="{% if type.check_set.exists %}text-success{% else %}text-secondary{% endif %} mr-3" 
+           title="{% if type.check_set.exists %}Переглянути існуючий чек{% else %}Створити/Переглянути чек (Немає в базі){% endif %}" 
+           data-toggle="tooltip" data-placement="top">
+            <i class="material-icons">receipt</i>
+        </a>
+        
+        <!-- Кнопка Trade In (перероблена під стиль іконки-посилання) -->
+<button type="button" class="btn btn-link text-warning p-0 border-0 mr-3 btn-tradein" 
+        data-id="{{ type.id }}" 
+        data-model="{{ type.model }}" 
+        data-serial="{{ type.model.serial_number }}" 
+        title="Оформити Trade In" data-toggle="tooltip" data-placement="top" style="line-height: 1;">
+    <i class="material-icons">assignment_return</i>
+</button>
+
+        <!-- Видалити -->
+        <a href="/bicycle/sale/delete/{{ type.id }}" class="text-danger" onclick="return confirm('Видалити запис?')" title="Видалити" data-toggle="tooltip" data-placement="top">
+            <i class="material-icons">delete_forever</i>
+        </a>
+    </div>
+
+ <!-- Модальне вікно Bootstrap 4 для Trade-in -->
+<div class="modal fade" id="tradeInModal" tabindex="-1" role="dialog" aria-labelledby="tradeInModalLabel" aria-hidden="true" style="white-space: normal;">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <!-- Заголовок вікна -->
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="tradeInModalLabel">
+                    <i class="material-icons align-middle mr-1">assignment_return</i> 
+                    Оформлення Trade-in
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            
+            <!-- Форма відправки даних -->
+            <form id="tradeInForm">
+                <div class="modal-body text-left">
+                    <p class="mb-3 text-secondary">
+                        Повернення велосипеда на баланс магазину та оформлення виплати клієнту.
+                    </p>
+                    
+                    <!-- Інформаційна картка велосипеда (Дані підставляються через JS) -->
+                    <div class="alert alert-warning border-warning p-3 mb-4" style="font-size: 0.95rem; border-left: 4px solid;">
+                        <div id="tradeInBikeInfo" class="text-dark">
+                            <strong>Велосипед:</strong> <span class="text-muted">Завантаження...</span><br>
+                            <strong>S/N:</strong> <span class="text-muted">Завантаження...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Поле: Сума проплати -->
+                    <div class="form-group">
+                        <label for="tradeInAmount" class="font-weight-bold text-dark">Сума, за яку забираємо (грн):</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="tradeInAmount" name="tradein_amount" min="0" step="0.01" placeholder="0.00" required>
+                            <div class="input-group-append">
+                                <span class="input-group-text">грн</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Поле: Вибір CashType -->
+                    <div class="form-group">
+                        <label for="tradeInCashType" class="font-weight-bold text-dark">Тип оплати (Каса виплати):</label>
+                        <select class="form-control" id="tradeInCashType" name="cash_type" required>
+                            <option value="">Завантаження доступних кас...</option>
+                        </select>
+                    </div>
+
+                    <!-- Поле: Опис / Примітка -->
+                    <div class="form-group">
+                        <label for="tradeInDescription" class="font-weight-bold text-dark">Опис / Примітка:</label>
+                        <textarea class="form-control" id="tradeInDescription" name="tradein_description" rows="3" placeholder="Вкажіть причину повернення, стан велика або додаткові умови..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Кнопки дій -->
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
+                    <button type="submit" class="btn btn-danger" id="confirmTradeInBtn">
+                        <span class="spinner-border spinner-border-sm d-none" id="tradeInSpinner" role="status" aria-hidden="true"></span>
+                        <span id="btnText">Підтвердити та виплатити</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</td>
+
 	</tr>
 	{% endfor %}
 

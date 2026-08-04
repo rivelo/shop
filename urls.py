@@ -140,7 +140,7 @@ urlpatterns = [
     url(r'^bicycle/sale/search/model/$', catalog.bicycle_sale_search_by_name),        
     url(r'^bicycle/sale/search/model/result/$', catalog.bsale_search_by_name_result),
     
-    url(r'^bicycle/(?P<id>\d+)/tradein/$', catalog.bicycle_tradein_return, name='tradein-return'),
+#    url(r'^bicycle/(?P<id>\d+)/tradein/$', catalog.bicycle_tradein_return, name='tradein-return'),
     
     # bicycle order by client
     url(r'^bicycle/order/view/$', catalog.bicycle_order_list),
@@ -618,6 +618,7 @@ urlpatterns = [
     url(r'^cashtype/add/$', catalog.cashtype_add),
     url(r'^cashtype/edit/(?P<id>\d+)$', catalog.cashtype_edit),
     url(r'^cashtype/delete/(?P<id>\d+)$', catalog.cashtype_del),
+    url(r'^api/cash-types/$', catalog.get_cash_types_json, name='api-cash-types'),
     
     url(r'^rent/add/$', catalog.rent_add),
     url(r'^rent/edit/(?P<id>\d+)/$', catalog.rent_edit),

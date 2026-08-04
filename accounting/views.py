@@ -460,6 +460,23 @@ def cashtype_edit(request, id):
     context.update(custom_proc(request))        
     return render(request, 'index.html', context)
 
+def get_cash_types_json(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+        
+    shopN = get_shop_from_ip(request.META['REMOTE_ADDR'])
+
+    if auth_group(request.user, "admin") == True:    
+        cash_types = CashType.objects.filter(pay_status=True).filter()
+    else:
+    # Фільтруємо каси для конкретного магазину або загальні (де shop__isnull=True)
+        cash_types = CashType.objects.filter(pay_status=True).filter(
+        Q(shop=shopN) | Q(shop__isnull=True)
+        )
+    
+    data = [{'id': ct.id, 'name': ct.name} for ct in cash_types]
+    return JsonResponse({'cash_types': data})
+
 # ----------- Bicycle --------------
 @csrf_exempt
 def bicycle_type_add(request):
@@ -1448,6 +1465,7 @@ def bicycle_sale_list_by_brand(request, year=False, month=False, id=None, all=Fa
     price_opt_eur = 0
     profit_summ = 0
     service_summ = 0
+    list = list.prefetch_related('check_set')
     for item in list:
         #price_summ = price_summ + item.price
         price_summ = price_summ + item.price * ((100-item.sale)*0.01)
@@ -1458,7 +1476,6 @@ def bicycle_sale_list_by_brand(request, year=False, month=False, id=None, all=Fa
             price_opt_dol = price_opt_dol + item.model.price
         if item.model.currency.ids_char == 'EUR':    
             price_opt_eur = price_opt_eur + item.model.price
-#        print "\nCURRENCY BIKE = " + str(item.model.currency.ids_char)
         profit_summ = profit_summ + item.get_profit()[1]
         if item.service == False:
             service_summ =  service_summ + 1
@@ -1864,55 +1881,103 @@ def dictfetchall(cursor):
 
 
 def bicycle_tradein_return(request, id):
-    if auth_group(request.user, 'admin') == False:
-        return HttpResponse('Дана дія доступна лише адміністратору', content_type="text/plain;charset=UTF-8;")
-    bs = None
+    if not auth_group(request.user, 'admin'):
+        return JsonResponse({'success': False, 'message': 'Дана дія доступна лише адміністратору'}, status=403)
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Метод не підтримується'}, status=405)
+
+    user_description = request.POST.get('tradein_description', '').strip()
+    tradein_amount_str = request.POST.get('tradein_amount', '0').strip()
+    cash_type_id = request.POST.get('cash_type', '').strip()
+    
+    try:
+        tradein_amount = float(tradein_amount_str) if tradein_amount_str else 0.0
+    except ValueError:
+        return JsonResponse({'success': False, 'message': 'Некоректне значення суми'}, status=400)
+    
     shopN = get_shop_from_ip(request.META['REMOTE_ADDR']) 
     dnow = datetime.datetime.now()
+    
+    # Шукаємо обраний тип оплати
+    cash_type_obj = None
+    if cash_type_id and tradein_amount > 0:
+        try:
+            cash_type_obj = CashType.objects.get(pk=cash_type_id)
+        except CashType.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Обраний тип оплати не знайдено'}, status=400)
+
+    bs = None
+    bikeinStore = None
+    bike_model_name = "Не вказано"
+    bike_serial = "Не вказано"
+
     try: 
-        bs = Bicycle_Sale.objects.get(pk = id);
+        bs = Bicycle_Sale.objects.get(pk=id)
         bikeinStore = bs.model
+        if bikeinStore:
+            bike_model_name = bs.model # getattr(bikeinStore, 'name', 'Не вказано')  # перевірте точну назву поля (name/model_name)
+            bike_serial = bs.model.serial_number #getattr(bikeinStore, 'serial_number', 'Не вказано')  # перевірте точну назву поля (serial_number/seria)
         bikeinStore.realization = True 
         bikeinStore.count = 1
-        bikeinStore.description = u"Trade in ("+ dnow.strftime("%d.%m.%Y") +u"). Last sale ("+ bs.date.strftime("%d/%m/%Y") +u") - " + str(bs.sum) + u" грн." 
+        bikeinStore.description = u"Trade in (" + dnow.strftime("%d.%m.%Y") + u"). Last sale (" + bs.date.strftime("%d/%m/%Y") + u") - " + str(bs.sum) + u" грн." 
         bikeinStore.shop = shopN  
-#        bikeinStore.currency = Currency.objects.get(id=3)
-#        bikeinStore.price = 
         bikeinStore.save() 
-    except:
-        return HttpResponse('Велосипеду не знайдено або вже виконані якісь інші дії з даним продажем', content_type="text/plain;charset=UTF-8;")
-    if re.search("\\n$", bs.description) == None:
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': 'Велосипеду не знайдено або вже виконані якісь інші дії з даним продажем'}, status=400)
+    
+    tradein_comment = u"Trade in (" + dnow.strftime("%d.%m.%Y") + u")"
+    if tradein_amount > 0:
+        tradein_comment += u" [Виплата: " + str(tradein_amount) + u" грн.]"
+    if user_description:
+        tradein_comment += u" - " + user_description
+
+    if re.search("\\n$", bs.description) is None:
         bs.description = bs.description + "\n"
-    bs.description = bs.description + u"Trade in ("+ dnow.strftime("%d.%m.%Y") +u")" 
-    bs.sum = 0
-    bs.save()
-    return HttpResponseRedirect('')
         
+    bs.description = bs.description + tradein_comment
+    bs.sum = 0 
+    bs.save()
+
+    client_obj = getattr(bs, 'client', None) 
+
+    # Формуємо базовий текст
+    credit_description = u"Повернення коштів за Trade-in (Продаж ID: %s). %s  " % (str(id), user_description)
+    # Додаємо інформацію про велосипед з нового рядка (\n)
+    credit_description += u"\nВелосипед: %s | S/N: %s" % (bike_model_name, bike_serial)
+
+    if client_obj and tradein_amount > 0:
+        try:
+            credit = ClientCredits(
+                client=client_obj,
+                date=dnow,
+                price=tradein_amount,  
+                cash_type=cash_type_obj,  # Передаємо знайдений об'єкт CashType
+                description=credit_description,
+                user=request.user,
+                shop=shopN             
+            )
+            credit.save()
+        except Exception as e:
+            return JsonResponse({
+                'success': True, 
+                'message': 'Велосипед повернуто, але виникла помилка фінансового запису: ' + str(e)
+            })
+
+    return JsonResponse({'success': True, 'message': 'Трейд-ін успішно виконано та зафіксовано!'})
+
 
 def bicycle_sale_report(request):
     if auth_group(request.user, 'admin') == False:
         return HttpResponseRedirect('/')
-#    query = "SELECT EXTRACT(year FROM date) as year, EXTRACT(month from date) as month, MONTHNAME(date) as month_name, COUNT(*) as bike_count, sum(price) as s_price FROM accounting_bicycle_sale GROUP BY year,month;"
-    #sql2 = "SELECT sum(price) FROM accounting_clientdebts WHERE client_id = %s;"
-    #user = id;
     list = None
-    #===========================================================================
-    # try:
-    #     cursor = connection.cursor()
-    #     cursor.execute(query)
-    #     list = dictfetchall(cursor)
-    #     #list = cursor.execute(sql1, )   
-    # except TypeError:
-    #     res = "Помилка"
-    #===========================================================================
     list = Bicycle_Sale.objects.annotate(year=ExtractYear('date'), month=ExtractMonth('date')).values('year', 'month').annotate(suma=Sum("price"), bike_count=Count('pk')).order_by()
     sum = 0
     bike_sum = 0
     for month in list:
         sum = sum + month['suma']
         bike_sum = bike_sum + month['bike_count']
-#        sum = sum + month['s_price']
-#        bike_sum = bike_sum + month['bike_count']
+
     context = {'bicycles': list, 'all_sum': sum, 'bike_sum': bike_sum, 'weblink': 'bicycle_sale_report.html', }
     context.update(custom_proc(request))
     return render(request, 'index.html', context)
