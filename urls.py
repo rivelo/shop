@@ -140,7 +140,7 @@ urlpatterns = [
     url(r'^bicycle/sale/search/model/$', catalog.bicycle_sale_search_by_name),        
     url(r'^bicycle/sale/search/model/result/$', catalog.bsale_search_by_name_result),
     
-#    url(r'^bicycle/(?P<id>\d+)/tradein/$', catalog.bicycle_tradein_return, name='tradein-return'),
+    url(r'^bicycle/(?P<id>\d+)/tradein/$', catalog.bicycle_tradein_return, name='tradein-return'),
     
     # bicycle order by client
     url(r'^bicycle/order/view/$', catalog.bicycle_order_list),
