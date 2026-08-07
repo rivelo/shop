@@ -199,78 +199,306 @@ urlpatterns = [
     url(r'^dealer-manager/delete/(?P<id>\d+)/$', catalog.dealer_manager_del),
 
     #Invoice
+    # --- 1. КОМБІНОВАНІ МАРШРУТИ ПЕРШОЇ ЧЕРГИ (ВИРОБНИК + КАТЕГОРІЯ) ---
+    url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/lastsale/month/(?P<month>\d+)/$', 
+        catalog.invoicecomponent_sales_list, 
+        name="invoice-manufacturer-category-last-sale-by-month"),    
+        
+    url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/lastsale/month/(?P<month>\d+)/all/$', 
+        catalog.invoicecomponent_sales_list, 
+        {'all': True}, 
+        name="invoice-manufacturer-category-last-sale-by-month-all"),
+
+    # Категорія + СПИСОК атрибутів (через +) + Останні продажі (Продані повністю)
+    url(r'^invoice/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/lastsale/month/(?P<month>\d+)/$', 
+        catalog.invoicecomponent_sales_list, 
+        {'all': False, 'url_name': 'invoice-cat-attribute-values-id-sales'}, 
+        name="invoice-cat-attribute-values-id-sales"),
+
+    # Категорія + СПИСОК атрибутів (через +) + Останні продажі (Показати всі продажі)
+    url(r'^invoice/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/lastsale/month/(?P<month>\d+)/all/$', 
+        catalog.invoicecomponent_sales_list, 
+        {'all': True, 'url_name': 'invoice-cat-attribute-values-id-sales-all'}, 
+        name="invoice-cat-attribute-values-id-all-sales"),
+
+    url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/all/$', 
+        catalog.invoicecomponent_list, 
+        {'all': True, 'url_name': 'invoice-category-manufacture-by-year-all'}),
+        
+    url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False, 'url_name': 'invoice-category-manufacture-by-year-all'}),
+
+    url(r'^invoice/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False, 'url_name': 'invoice-category-manufacture-by-year-all'}, 
+        name='invoice-category-manufacture-now'),
+        
+    url(r'^invoice/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/all/$', 
+        catalog.invoicecomponent_list, 
+        {'all': True, 'url_name': 'invoice-category-manufacture-by-year-all'}, 
+        name='invoice-category-manufacture-now-all'),
+
+    # --- 2. КОМБІНОВАНІ МАРШРУТИ ПО РОКАХ (ВИРОБНИК + КАТЕГОРІЯ) ---
+    url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False, 'url_name': 'invoice-manufacture-category-by-year'}, 
+        name="invoice-manufacture-category-by-year"),
+
+    url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/all/$', 
+        catalog.invoicecomponent_list, 
+        {'all': True, 'url_name': 'invoice-manufacture-category-by-year-all'}, 
+        name="invoice-manufacture-category-by-year-all"),
+
+    url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/all/$', 
+        catalog.invoicecomponent_list, 
+        {'all': True, 'url_name': 'invoice-category-manufacture-by-year-all'}, 
+        name="invoice-category-manufacture-by-year-all"),
+
+    url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False, 'url_name': 'invoice-category-manufacture-by-year'}, 
+        name="invoice-category-manufacture-by-year"),
+
+    # --- 3. КОМБІНОВАНІ МАРШРУТИ З АТРИБУТАМИ ---
+    url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False, 'url_name': 'invoice-manufacture-category-attr-val-ids-by-year-all'}, 
+        name='invoice-category-manufacture-attr-val-ids'),
+
+    url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', 
+        catalog.invoicecomponent_list, 
+        {'all': True, 'url_name': 'invoice-manufacture-category-attr-val-ids-by-year-all'}, 
+        name='invoice-manufacture-category-attr-val-ids-by-year-all'),
+
+    # --- 4. ДОДАВАННЯ ТА РЕДАГУВАННЯ ОБ'ЄКТІВ ---
     url(r'^invoice/add/$', catalog.invoicecomponent_add),
     url(r'^invoice/catalog/(?P<cid>\d+)/add/$', catalog.invoicecomponent_add),
     url(r'^invoice/manufacture/(?P<mid>\d+)/add/$', catalog.invoicecomponent_add),
     url(r'^invoice/component/(?P<id>\d+)/edit/$', catalog.invoicecomponent_add, name='invoice-component-edit-by-id'),
-    
-    url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-category-manufacture-by-year-all'}),
-    url(r'^invoice/manufacture/(?P<mid>\d+)/lastsale/month/(?P<month>\d+)/$', catalog.invoicecomponent_sales_list, name="invoice-manufacturer-last-sale-by-month"),    
-    url(r'^invoice/manufacture/(?P<mid>\d+)/lastsale/month/(?P<month>\d+)/all/$', catalog.invoicecomponent_sales_list, {'all': True}, name="invoice-manufacturer-last-sale-by-month-all"),
-    url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-category-manufacture-by-year-all'}),
-    url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-manufacture-category-attr-val-ids-by-year-all'}, name='invoice-category-manufacture-attr-val-ids'),
-    url(r'^invoice/manufacture/(?P<mid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-manufacture-attr-val-ids-by-year-all'}, name='invoice-manufacture-attr-val-ids'),    
-    url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-manufacture-category-attr-val-ids-by-year-all'}, name='invoice-manufacture-category-attr-val-ids-by-year-all'),
-    url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-manufacture-attr-val-ids-by-year-all'}, name='invoice-manufacture-attr-val-ids-by-year-all'),    
-#    url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True}),    
-#    url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}),
-#    url(r'^invoice/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list_by_manufacturer'),
-    url(r'^invoice/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-manufacture-by-year-all'}, name="invoice-manufacture-id-list"),    
-    url(r'^invoice/manufacture/(?P<mid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-manufacture-by-year-all'}, name="manufacture_id_list_all"),
-    url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-manufacture-by-year'}, name="invoice-manufacture-by-year"),
-    url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-manufacture-by-year-all'}, name="invoice-manufacture-by-year-all"),
-    url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-category-by-year-all'}, name="invoice-category-by-year-all"),
-    url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-category-by-year"), # invoice sales filter by current YEAR
-#    url(r'^invoice/manufacture/(?P<mid>\d+)/availability/view/$', catalog.invoicecomponent_list_by_manufacturer', {'availability': 1}),
-    url(r'^invoice/manufacture/(?P<mid>\d+)/availability/view/html/$', catalog.invoicecomponent_manufacturer_html, name="sendmail_manufacture"),    
-    url(r'^invoice/category/(?P<mid>\d+)/availability/view/html/$', catalog.invoicecomponent_category_html, name="sendmail_category"),
-#    url(r'^invoice/manufacture/view/$', catalog.invoicecomponent_list_by_manufacturer'),
-    url(r'^invoice/manufacture/view/$', catalog.invoicecomponent_list, {'focus': 1, 'mc_search': True}),
-    url(r'^invoice/category/view/$', catalog.invoicecomponent_list, {'focus': 2, 'mc_search': True}),
-    #url(r'^invoice/category/view/$', catalog.invoicecomponent_list_by_category'),
-#    url(r'^invoice/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list_by_category'),
-    url(r'^invoice/attribute/val/(?P<attr_val_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-val-id-list"),
-    url(r'^invoice/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-values-ids-list"),
-    url(r'^invoice/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True}, name="invoice-attribute-values-ids-list"),
-    
-    url(r'^invoice/category/(?P<cid>\d+)/attribute/value/(?P<attr_val_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-value-id"),
-    url(r'^invoice/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-values-id"),
-    url(r'^invoice/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-values-id-all"),
+    url(r'^invoice/delete/(?P<id>\d+)/$', catalog.invoicecomponent_del),
+    url(r'^invoice/edit/(?P<id>\d+)/$', catalog.invoicecomponent_edit),
 
-    url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-values-ids-by-year-all"),
-    url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-values-ids-by-year"),
-    
-    url(r'^invoice/attribute/(?P<attr_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-id-list"),
-    url(r'^invoice/year/(?P<sel_year>\d+)/attribute/val/(?P<attr_val_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-val-id-list"),
-    url(r'^invoice/year/(?P<sel_year>\d+)/attribute/(?P<attr_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-id-list"),
+    # --- 5. ОДИНАРНІ МАРШРУТИ ВИРОБНИКА (mid) ---
+    url(r'^invoice/manufacture/(?P<mid>\d+)/lastsale/month/(?P<month>\d+)/$', 
+        catalog.invoicecomponent_sales_list, 
+        name="invoice-manufacturer-last-sale-by-month"),    
+        
+    url(r'^invoice/manufacture/(?P<mid>\d+)/lastsale/month/(?P<month>\d+)/all/$', 
+        catalog.invoicecomponent_sales_list, 
+        {'all': True}, 
+        name="invoice-manufacturer-last-sale-by-month-all"),
 
-    url(r'^invoice/category/(?P<cid>\d+)/lastsale/month/(?P<month>\d+)/$', catalog.invoicecomponent_sales_list, name="invoice-category-last-sale-by-month"),    
-    url(r'^invoice/category/(?P<cid>\d+)/lastsale/month/(?P<month>\d+)/all/$', catalog.invoicecomponent_sales_list, {'all': True}, name="invoice-category-last-sale-by-month-all"),
-    url(r'^invoice/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-category-by-year-all'}, name="invoice-category-id-list"),
-    url(r'^invoice/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': "invoice-category-by-year-all"}, name="invoice-category-id-list-all"),
-    url(r'^invoice/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-category-manufacture-by-year-all'}, name='invoice-category-manufacture-now'),
-    url(r'^invoice/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-category-manufacture-by-year-all' }, name='invoice-category-manufacture-now-all'),
-    url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-category-manufacture-by-year-all'}, name="invoice-category-manufacture-by-year-all"),
-    url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-category-manufacture-by-year'} , name="invoice-category-manufacture-by-year"),
+    url(r'^invoice/manufacture/(?P<mid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False, 'url_name': 'invoice-manufacture-attr-val-ids-by-year-all'}, 
+        name='invoice-manufacture-attr-val-ids'),    
+
+    url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/lastsale/month/(?P<month>\d+)/$', 
+        catalog.invoicecomponent_sales_list, 
+        {'all': False, 'url_name': 'invoice-manufacture-attr-val-ids-by-year-sales'}, 
+        name='invoice-manufacture-attr-val-ids-by-year-sales'),
+
+    url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', 
+        catalog.invoicecomponent_list, 
+        {'all': True, 'url_name': 'invoice-manufacture-attr-val-ids-by-year-all'}, 
+        name='invoice-manufacture-attr-val-ids-by-year-sales-all'),    
+
+    url(r'^invoice/manufacture/(?P<mid>\d+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False, 'url_name': 'invoice-manufacture-by-year-all'}, 
+        name="invoice-manufacture-id-list"),    
+        
+    url(r'^invoice/manufacture/(?P<mid>\d+)/view/all/$', 
+        catalog.invoicecomponent_list, 
+        {'all': True, 'url_name': 'invoice-manufacture-by-year-all'}, 
+        name="manufacture_id_list_all"),
+
+    url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False, 'url_name': 'invoice-manufacture-by-year'}, 
+        name="invoice-manufacture-by-year"),
+
+    url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/view/all/$', 
+        catalog.invoicecomponent_list, 
+        {'all': True, 'url_name': 'invoice-manufacture-by-year-all'}, 
+        name="invoice-manufacture-by-year-all"),
+
+    # --- 6. ОДИНАРНІ МАРШРУТИ КАТЕГОРІЇ (cid) ---
+    url(r'^invoice/category/(?P<cid>\d+)/lastsale/month/(?P<month>\d+)/$', 
+        catalog.invoicecomponent_sales_list, 
+        name="invoice-category-last-sale-by-month"),    
+        
+    url(r'^invoice/category/(?P<cid>\d+)/lastsale/month/(?P<month>\d+)/all/$', 
+        catalog.invoicecomponent_sales_list, 
+        {'all': True}, 
+        name="invoice-category-last-sale-by-month-all"),
+
+    url(r'^invoice/category/(?P<cid>\d+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False, 'url_name': 'invoice-category-by-year-all'}, 
+        name="invoice-category-id-list"),
+
+    url(r'^invoice/category/(?P<cid>\d+)/view/all/$', 
+        catalog.invoicecomponent_list, 
+        {'all': True, 'url_name': "invoice-category-by-year-all"}, 
+        name="invoice-category-id-list-all"),
+
+    url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/view/all/$', 
+        catalog.invoicecomponent_list, 
+        {'all': True, 'url_name': 'invoice-category-by-year-all'}, 
+        name="invoice-category-by-year-all"),
+
+    url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False}, 
+        name="invoice-category-by-year"), 
+
+    # --- 7. ОДИНАРНІ МАРШРУТИ АТРИБУТІВ ---
+    url(r'^invoice/category/(?P<cid>\d+)/attribute/value/(?P<attr_val_id>\d+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, 
+        name="invoice-cat-attribute-value-id"),
+
+    url(r'^invoice/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, 
+        name="invoice-cat-attribute-values-id"),
+
+    url(r'^invoice/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', 
+        catalog.invoicecomponent_list, 
+        {'all': True, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, 
+        name="invoice-cat-attribute-values-id-all"),
+
+    url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', 
+        catalog.invoicecomponent_list, 
+        {'all': True, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, 
+        name="invoice-cat-attribute-values-ids-by-year-all"),
+
+    url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, 
+        name="invoice-cat-attribute-values-ids-by-year"),
+    
+    url(r'^invoice/attribute/val/(?P<attr_val_id>\d+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False}, 
+        name="invoice-attribute-val-id-list"),
+
+    url(r'^invoice/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False}, 
+        name="invoice-attribute-values-ids-list"),
+
+    url(r'^invoice/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', 
+        catalog.invoicecomponent_list, 
+        {'all': True}, 
+        name="invoice-attribute-values-ids-list"),
+    
+    url(r'^invoice/attribute/(?P<attr_id>\d+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False}, 
+        name="invoice-attribute-id-list"),
+
+    url(r'^invoice/year/(?P<sel_year>\d+)/attribute/val/(?P<attr_val_id>\d+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False}, 
+        name="invoice-attribute-val-id-list"),
+
+    url(r'^invoice/year/(?P<sel_year>\d+)/attribute/(?P<attr_id>\d+)/view/$', 
+        catalog.invoicecomponent_list, 
+        {'all': False}, 
+        name="invoice-attribute-id-list"),
+
+    # --- 8. ЗАГАЛЬНІ СИСТЕМНІ ТА ПОШУКОВІ МАРШРУТИ ---
     url(r'^invoice/list/(?P<limit>\d+)/view/$', catalog.invoicecomponent_list),
     url(r'^invoice/price/update/(?P<upday>\d+)/view/$', catalog.invoicecomponent_list),
     url(r'^invoice/list/view/$', catalog.invoicecomponent_list),
     url(r'^invoice/id/(?P<id>\d+)/view/$', catalog.invoice_id_list, name='invoice-view'),
     url(r'^invoice/id/(?P<id>\d+)/view/delete/$', catalog.invoice_id_list_delete, name='invoice-list-delete'),    
-    url(r'^invoice/catalog/(?P<cid>\d+)/view/$', catalog.invoice_cat_id_list, name='invoice_catalog_view'), # наявний товар
-    url(r'^invoice/delete/(?P<id>\d+)/$', catalog.invoicecomponent_del),
-    url(r'^invoice/edit/(?P<id>\d+)/$', catalog.invoicecomponent_edit),
+    url(r'^invoice/catalog/(?P<cid>\d+)/view/$', catalog.invoice_cat_id_list, name='invoice_catalog_view'), 
     url(r'^invoice/report/$', catalog.invoice_report),
     url(r'^invoice/all/report/$', catalog.invoicecomponent_sum),
-    url(r'^invoice/search/$', catalog.invoice_search), # Form for search invoicecomponennt by NAME and ID
-    #url(r'^invoice/search/result/$', catalog.invoice_search_result'),
+    url(r'^invoice/search/$', catalog.invoice_search), 
     url(r'^invoice/search/result/$', catalog.invoicecomponent_list),
     url(r'^invoice/search/by/id/(?P<by_id>\d+)$', catalog.invoicecomponent_list, name="serch-invoicecomponennts-by-id"),
     url(r'^invoice/sale/list/$', catalog.invoicecomponent_list, {'isale': True}),
     url(r'^invoice/enddate/list/$', catalog.invoicecomponent_list, {'enddate': True}),
     url(r'^invoice/print/forum/$', catalog.invoicecomponent_print),
-    url(r'^invoice/sales/by/year/$', catalog.invoice_sales_by_year), # AJAX for load group sales by Year
+    url(r'^invoice/sales/by/year/$', catalog.invoice_sales_by_year), 
+    url(r'^invoice/manufacture/view/$', catalog.invoicecomponent_list, {'focus': 1, 'mc_search': True}),
+    url(r'^invoice/category/view/$', catalog.invoicecomponent_list, {'focus': 2, 'mc_search': True}),
+    url(r'^invoice/manufacture/(?P<mid>\d+)/availability/view/html/$', catalog.invoicecomponent_manufacturer_html, name="sendmail_manufacture"),    
+    url(r'^invoice/category/(?P<mid>\d+)/availability/view/html/$', catalog.invoicecomponent_category_html, name="sendmail_category"),
 
+    # url(r'^invoice/add/$', catalog.invoicecomponent_add),
+    # url(r'^invoice/catalog/(?P<cid>\d+)/add/$', catalog.invoicecomponent_add),
+    # url(r'^invoice/manufacture/(?P<mid>\d+)/add/$', catalog.invoicecomponent_add),
+    # url(r'^invoice/component/(?P<id>\d+)/edit/$', catalog.invoicecomponent_add, name='invoice-component-edit-by-id'),
+
+    # url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/lastsale/month/(?P<month>\d+)/$', catalog.invoicecomponent_sales_list, name="invoice-manufacturer-category-last-sale-by-month"),    
+    # url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/lastsale/month/(?P<month>\d+)/all/$', catalog.invoicecomponent_sales_list, {'all': True}, name="invoice-manufacturer-category-last-sale-by-month-all"),
+    
+    # url(r'^invoice/manufacture/(?P<mid>\d+)/lastsale/month/(?P<month>\d+)/$', catalog.invoicecomponent_sales_list, name="invoice-manufacturer-last-sale-by-month"),    
+    # url(r'^invoice/manufacture/(?P<mid>\d+)/lastsale/month/(?P<month>\d+)/all/$', catalog.invoicecomponent_sales_list, {'all': True}, name="invoice-manufacturer-last-sale-by-month-all"),
+    # url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-category-manufacture-by-year-all'}),
+    # url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-manufacture-category-attr-val-ids-by-year-all'}, name='invoice-category-manufacture-attr-val-ids'),
+    # url(r'^invoice/manufacture/(?P<mid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-manufacture-attr-val-ids-by-year-all'}, name='invoice-manufacture-attr-val-ids'),    
+    # url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-manufacture-category-attr-val-ids-by-year-all'}, name='invoice-manufacture-category-attr-val-ids-by-year-all'),
+    # url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-manufacture-attr-val-ids-by-year-all'}, name='invoice-manufacture-attr-val-ids-by-year-all'),    
+    # url(r'^invoice/manufacture/(?P<mid>\d+)/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-category-manufacture-by-year-all'}),
+    # url(r'^invoice/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-manufacture-by-year-all'}, name="invoice-manufacture-id-list"),    
+    # url(r'^invoice/manufacture/(?P<mid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-manufacture-by-year-all'}, name="manufacture_id_list_all"),
+    # url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-manufacture-by-year'}, name="invoice-manufacture-by-year"),
+    # url(r'^invoice/year/(?P<sel_year>\d+)/manufacture/(?P<mid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-manufacture-by-year-all'}, name="invoice-manufacture-by-year-all"),
+    # url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-category-by-year-all'}, name="invoice-category-by-year-all"),
+    # url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-category-by-year"), # invoice sales filter by current YEAR
+    # url(r'^invoice/manufacture/(?P<mid>\d+)/availability/view/html/$', catalog.invoicecomponent_manufacturer_html, name="sendmail_manufacture"),    
+    # url(r'^invoice/category/(?P<mid>\d+)/availability/view/html/$', catalog.invoicecomponent_category_html, name="sendmail_category"),
+    # url(r'^invoice/manufacture/view/$', catalog.invoicecomponent_list, {'focus': 1, 'mc_search': True}),
+    # url(r'^invoice/category/view/$', catalog.invoicecomponent_list, {'focus': 2, 'mc_search': True}),
+    # url(r'^invoice/attribute/val/(?P<attr_val_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-val-id-list"),
+    # url(r'^invoice/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-values-ids-list"),
+    # url(r'^invoice/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True}, name="invoice-attribute-values-ids-list"),
+    
+    # url(r'^invoice/category/(?P<cid>\d+)/attribute/value/(?P<attr_val_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-value-id"),
+    # url(r'^invoice/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-values-id"),
+    # url(r'^invoice/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-values-id-all"),
+
+    # url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-values-ids-by-year-all"),
+    # url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/attribute/values/(?P<attr_val_ids>([\+]\d+)+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-cat-attribute-values-ids-by-year-all'}, name="invoice-cat-attribute-values-ids-by-year"),
+    
+    # url(r'^invoice/attribute/(?P<attr_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-id-list"),
+    # url(r'^invoice/year/(?P<sel_year>\d+)/attribute/val/(?P<attr_val_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-val-id-list"),
+    # url(r'^invoice/year/(?P<sel_year>\d+)/attribute/(?P<attr_id>\d+)/view/$', catalog.invoicecomponent_list, {'all': False}, name="invoice-attribute-id-list"),
+
+    # url(r'^invoice/category/(?P<cid>\d+)/lastsale/month/(?P<month>\d+)/$', catalog.invoicecomponent_sales_list, name="invoice-category-last-sale-by-month"),    
+    # url(r'^invoice/category/(?P<cid>\d+)/lastsale/month/(?P<month>\d+)/all/$', catalog.invoicecomponent_sales_list, {'all': True}, name="invoice-category-last-sale-by-month-all"),
+    # url(r'^invoice/category/(?P<cid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-category-by-year-all'}, name="invoice-category-id-list"),
+    # url(r'^invoice/category/(?P<cid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': "invoice-category-by-year-all"}, name="invoice-category-id-list-all"),
+    # url(r'^invoice/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-category-manufacture-by-year-all'}, name='invoice-category-manufacture-now'),
+    # url(r'^invoice/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-category-manufacture-by-year-all' }, name='invoice-category-manufacture-now-all'),
+    # url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/all/$', catalog.invoicecomponent_list, {'all': True, 'url_name': 'invoice-category-manufacture-by-year-all'}, name="invoice-category-manufacture-by-year-all"),
+    # url(r'^invoice/year/(?P<sel_year>\d+)/category/(?P<cid>\d+)/manufacture/(?P<mid>\d+)/view/$', catalog.invoicecomponent_list, {'all': False, 'url_name': 'invoice-category-manufacture-by-year'} , name="invoice-category-manufacture-by-year"),
+    # url(r'^invoice/list/(?P<limit>\d+)/view/$', catalog.invoicecomponent_list),
+    # url(r'^invoice/price/update/(?P<upday>\d+)/view/$', catalog.invoicecomponent_list),
+    # url(r'^invoice/list/view/$', catalog.invoicecomponent_list),
+    # url(r'^invoice/id/(?P<id>\d+)/view/$', catalog.invoice_id_list, name='invoice-view'),
+    # url(r'^invoice/id/(?P<id>\d+)/view/delete/$', catalog.invoice_id_list_delete, name='invoice-list-delete'),    
+    # url(r'^invoice/catalog/(?P<cid>\d+)/view/$', catalog.invoice_cat_id_list, name='invoice_catalog_view'), # наявний товар
+    # url(r'^invoice/delete/(?P<id>\d+)/$', catalog.invoicecomponent_del),
+    # url(r'^invoice/edit/(?P<id>\d+)/$', catalog.invoicecomponent_edit),
+    # url(r'^invoice/report/$', catalog.invoice_report),
+    # url(r'^invoice/all/report/$', catalog.invoicecomponent_sum),
+    # url(r'^invoice/search/$', catalog.invoice_search), # Form for search invoicecomponennt by NAME and ID
+    # #url(r'^invoice/search/result/$', catalog.invoice_search_result'),
+    # url(r'^invoice/search/result/$', catalog.invoicecomponent_list),
+    # url(r'^invoice/search/by/id/(?P<by_id>\d+)$', catalog.invoicecomponent_list, name="serch-invoicecomponennts-by-id"),
+    # url(r'^invoice/sale/list/$', catalog.invoicecomponent_list, {'isale': True}),
+    # url(r'^invoice/enddate/list/$', catalog.invoicecomponent_list, {'enddate': True}),
+    # url(r'^invoice/print/forum/$', catalog.invoicecomponent_print),
+    # url(r'^invoice/sales/by/year/$', catalog.invoice_sales_by_year), # AJAX for load group sales by Year
+ 
     # Component Type operation
     url(r'^category/add/$', catalog.category_add, name='category-add'),
     url(r'^category/view/$', catalog.category_list, name="category-list"),

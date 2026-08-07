@@ -2276,34 +2276,15 @@ function show_year_sales(cell){
 </div>
 <!-- Modal PHOTO end -->
 
-{% comment %}
-<div class="row ml-50" id="q_search">
-<div class="col-2 ml-50" style="width:300px; float:left;"> 
-<select id="m_combobox">
-<option value="">Select one...</option>
-{% for company in company_list %}
-<option value="/invoice/manufacture/{{company.id}}/view/">{{company.name}}</option>
-{% endfor %}
-</select>
-</div>
 
-<div class="col-2"  >
-<select id="t_combobox">
-<option value="">Select one...</option>
-{% for type in type_list %}
-<option value="/invoice/category/{{type.id}}/view/">{{type.name}}/{{type.name_ukr}}</option>
-{% endfor %}
-</select>
-</div>
-</div>
-{% endcomment %}
 
 <div style="clear:left;">
      <h1>
 {#     <span id="span_show_select" class="badge badge-secondary" title="Показати/приховати рядок вибору по категорії/виробнику" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">unfold_more</i></span> #}
      <span class="badge badge-secondary">Список наявного товару</span> 
      {% if company_name %}<a class="badge badge-info" id="c_c" href="{% url 'invoice-manufacture-id-list' company_id %}">{{company_name|capfirst}} </a> {% endif %} 
-     {% if category_id %} <a class="badge badge-info" id="c_c" href="{% url 'invoice-category-id-list' category_id %}" >{{category_name|capfirst}}</a> {% endif %}   
+{% comment %}      {% if category_id %} <a class="badge badge-info" id="c_c" href="{% url 'invoice-category-id-list' category_id %}" >{{category_name|capfirst}}</a> {% endif %}    {% endcomment %}
+     {% if category_id %} <a class="badge badge-info" id="c_c" href="{% url 'invoice-category-id-list' category_id %}" >{{category_name.name|capfirst}}</a> {% endif %}
      {% if select_year %} <span class="badge badge-success" id="c_c">{{select_year}}</span> {% endif %}
      {% if not head_text_array.0 %}
      <span class="badge badge-info">{{head_text}}</span>
@@ -2312,76 +2293,35 @@ function show_year_sales(cell){
         <a class="badge badge-info" href="{% url 'invoice-attribute-val-id-list' item.id %}">{{item.txt}}</a>
      {% endfor %}
      
-     {% comment %}
-    
-        <span class="badge badge-warning">Company = {{company_id}}</span>
-        <span class="badge badge-warning">Category = {{category_id}}</span>
-        <span class="badge badge-warning">year = {{select_year}}</span>
-        <span class="badge badge-warning">ATTR = {{head_text_array.0}}</span>
- {% endcomment %}   
-
 {% if request.user|has_group:"admin" %}
-     {% for yy in years_range %}
-     {% if company_id and category_id and select_year != 0 and not head_text_array.0 %}
-        <a href="{% url year_url_name yy.0 componentlist.0.catalog__type__id componentlist.0.manufacturer__id %}" class="badge badge-info year_sales">{{yy.0}} 
-     {% endif %}
-     {% if company_id and category_id and select_year == 0 and not head_text_array.0 %}
-        <a href="{% url year_url_name yy.0 componentlist.0.catalog__type__id componentlist.0.manufacturer__id %}" class="badge badge-info year_sales">{{yy.0}} 
-     {% endif %}
-{% comment %}     
- {% endcomment %}
-     {% if not company_id and category_id and not head_text_array.0 %}
-        <a href="{% url year_url_name yy.0 componentlist.0.catalog__type__id %}" class="badge badge-info year_sales">{{yy.0}} 
-     {% endif %}
-     {% if not company_id and category_id and head_text_array.0 %}
-        <a href="{% url year_url_name yy.0 componentlist.0.catalog__type__id attr_ids_str %}" class="badge badge-info year_sales">{{yy.0}} 
-     {% endif %}
-     {% if company_id and not category_id and head_text_array.0 %}
-        <a href="{% url year_url_name yy.0 componentlist.0.manufacturer__id attr_ids_str %}" class="badge badge-info year_sales">{{yy.0}}  
-     {% endif %}
-     {% if company_id and not category_id and not head_text_array.0 %}
-        <a href="{% url year_url_name yy.0 componentlist.0.manufacturer__id %}" class="badge badge-info year_sales">{{yy.0}}  
-     {% endif %}
-     {% if not company_id and not category_id %}
-{#        <a href="{% url year_url_name yy.0 componentlist.0.catalog__type__id %}" class="badge badge-info year_sales">{{yy.0}} #} 
-        <a class="badge badge-info year_sales">{{yy.0}}
-     {% endif %}
-     {% if company_id and category_id and select_year == 0 and head_text_array.0 %}
-        <a href="{% url year_url_name yy.0 componentlist.0.manufacturer__id componentlist.0.catalog__type__id attr_ids_str %}" class="badge badge-info year_sales">{{yy.0}} 
-     {% endif %}
-     {% if company_id and category_id and select_year != 0 and head_text_array.0 %}
-        <a href="{% url year_url_name yy.0 componentlist.0.manufacturer__id componentlist.0.catalog__type__id attr_ids_str %}" class="badge badge-info year_sales">{{yy.0}} 
-     {% endif %}
-             
-          <span class="badge badge-light">{{yy.1|floatformat:"0"}}</span>
-     </a>
-     {% endfor %}
+    {% for item in processed_years %}
+        <a href="{{ item.url }}" class="badge badge-info year_sales">
+            {{ item.year }}
+            <span class="badge badge-light">{{ item.count|floatformat:"0" }}</span>
+        </a>
+    {% endfor %}
       
-{#     коли не має товарів то стається помилка #}
-{% if category_id %}
-    <a href="{% url 'invoice-category-last-sale-by-month' category_id '0' %}" class="badge badge-light year_sales">Продажі за місяць</a>
-{% endif %}
-{% if company_id %}     
-    <a href="{% url 'invoice-manufacturer-last-sale-by-month' company_id '0' %}" class="badge badge-light year_sales">Продажі за місяць</a> 
-{% endif %}     
-{% endif %} 
+    {# Кнопка «Продажі за місяць» з підтримкою категорій, брендів та списку атрибутів #}
+    {% if company_id and category_id %}
+        <a href="{% url 'invoice-manufacturer-category-last-sale-by-month' company_id category_id '0' %}" class="badge badge-light year_sales">Продажі за місяць</a>
+    {% elif category_id and attr_ids_str %}
+        <!-- РЕЖИМ: Категорія разом із обраними атрибутами (через плюс) -->
+        <a href="{% url 'invoice-cat-attribute-values-id-sales' category_id attr_ids_str '0' %}" class="badge badge-light year_sales">Продажі за місяць</a>
+    {% elif category_id %}
+        <a href="{% url 'invoice-category-last-sale-by-month' category_id '0' %}" class="badge badge-light year_sales">Продажі за місяць</a>
+    {% elif company_id %}     
+        <a href="{% url 'invoice-manufacturer-last-sale-by-month' company_id '0' %}" class="badge badge-light year_sales">Продажі за місяць</a> 
+    {% endif %}
 
-
-
-   
-{% if request.user|has_group:"admin" %}
 <span id="span_show_year_select" class="badge badge-info" title="Показати/приховати рядок вибору продажів за рік" data-toggle="tooltip" data-placement="bottom"><i class="material-icons">unfold_more</i></span>     
-{#     <span id="email_send"><img src="/media/images/green-mail-send-icon_48.png" width="42" height="42" title="Відправити вибірку на Email" data-toggle="tooltip" data-placement="bottom"></span> #}
-     {% if category_id %}
-	     <a href="/inventory/type/{{category_id}}/autofix/" title="Звести порахований товар" data-toggle="tooltip" data-placement="bottom"><i class="material-icons md-48 align-middle">playlist_add_check</i> </a>
-     {% endif %}
 {% endif %}
 
-{% if category_id %}
-    <a href="{% url 'invoice-category-id-list-all' category_id %}" class="badge badge-success" title="Показати всі товари в категорії" data-toggle="tooltip" data-placement="bottom">...</a>
-{% endif %}
-{% if company_id %}     
-    <a href="{% url 'manufacture_id_list_all' company_id %}" class="badge badge-success" title="Показати всі товари в категорії" data-toggle="tooltip" data-placement="bottom">...</a> 
+{% if is_sales_report %}
+{# ВИПРАВЛЕНО: Кнопка тепер є повноцінним бейджем (badge badge-success), має такий самий розмір, шрифт та вирівнювання, як і сусідній span #}
+<button type="button" class="badge badge-success border-0 align-middle ml-1" data-toggle="modal" data-target="#salesFilterModal" style="cursor: pointer; padding: .25em .4em; font-size: 75%; font-weight: 700; line-height: 1;">
+    <i class="material-icons align-middle mr-1" style="font-size: 14px; margin-top: -2px;">tune</i>
+    {{ month|default:'1' }} міс. / {% if all_records %}Показати всі продажі{% else %}Продані повністю{% endif %}
+</button>
 {% endif %}
 
      <span id="b_buy"><img src="/media/images/Ecommerce Buy.ico" width="32" height="32" title="Додати до кошика вибрані позиції" data-toggle="tooltip" data-placement="bottom"> </span>
@@ -2391,6 +2331,7 @@ function show_year_sales(cell){
 {#     <span class="badge badge-warning">{{cat_discount.0}}</span> #}
      </h1>
 </div>
+
 
 
 <!-- Dialog print PHPbb -->
@@ -2807,3 +2748,126 @@ local_offer
 {% orm_debug %}
 </body>
 </html>
+
+
+<!-- Комбіноване модальне вікно налаштування продажів (Bootstrap 4) -->
+<div class="modal fade" id="salesFilterModal" tabindex="-1" role="dialog" aria-labelledby="salesFilterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document" style="max-width: 380px;">
+        <div class="modal-content">
+            <div class="modal-header bg-light d-flex align-items-center py-2 px-3">
+                <h5 class="modal-title h6 font-weight-bold mb-0" id="salesFilterModalLabel">Параметри аналітики</h5>
+                <button type="button" class="close p-2 m-0 ml-auto" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            
+            <div class="modal-body p-3">
+                <!-- СЕКЦІЯ 1: ВИБІР ПЕРІОДУ В МІСЯЦЯХ -->
+                <label class="font-weight-bold small text-muted text-uppercase mb-2 d-block text-center">Аналітичний період</label>
+                <div class="row no-gutters text-center mb-4">
+                    {% if company_id and category_id %}
+                        <!-- Комбінований режим (Бренд + Категорія) -->
+                        {% if all_records %}
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-category-last-sale-by-month-all' company_id category_id '1' %}" class="btn btn-sm w-100 {% if month == '1' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">1 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-category-last-sale-by-month-all' company_id category_id '3' %}" class="btn btn-sm w-100 {% if month == '3' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">3 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-category-last-sale-by-month-all' company_id category_id '6' %}" class="btn btn-sm w-100 {% if month == '6' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">6 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-category-last-sale-by-month-all' company_id category_id '12' %}" class="btn btn-sm w-100 {% if month == '12' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">12 міс.</a></div>
+                        {% else %}
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-category-last-sale-by-month' company_id category_id '1' %}" class="btn btn-sm w-100 {% if month == '1' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">1 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-category-last-sale-by-month' company_id category_id '3' %}" class="btn btn-sm w-100 {% if month == '3' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">3 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-category-last-sale-by-month' company_id category_id '6' %}" class="btn btn-sm w-100 {% if month == '6' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">6 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-category-last-sale-by-month' company_id category_id '12' %}" class="btn btn-sm w-100 {% if month == '12' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">12 міс.</a></div>
+                        {% endif %}
+                    {% elif category_id and attr_ids_str %}
+                        <!-- НОВИЙ РЕЖИМ: Категорія + Список атрибутів -->
+                        {% if all_records %}
+                            <div class="col-3 p-1"><a href="{% url 'invoice-cat-attribute-values-id-all-sales' category_id attr_ids_str '1' %}" class="btn btn-sm w-100 {% if month == '1' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">1 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-cat-attribute-values-id-all-sales' category_id attr_ids_str '3' %}" class="btn btn-sm w-100 {% if month == '3' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">3 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-cat-attribute-values-id-all-sales' category_id attr_ids_str '6' %}" class="btn btn-sm w-100 {% if month == '6' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">6 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-cat-attribute-values-id-all-sales' category_id attr_ids_str '12' %}" class="btn btn-sm w-100 {% if month == '12' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">12 міс.</a></div>
+                        {% else %}
+                            <div class="col-3 p-1"><a href="{% url 'invoice-cat-attribute-values-id-sales' category_id attr_ids_str '1' %}" class="btn btn-sm w-100 {% if month == '1' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">1 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-cat-attribute-values-id-sales' category_id attr_ids_str '3' %}" class="btn btn-sm w-100 {% if month == '3' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">3 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-cat-attribute-values-id-sales' category_id attr_ids_str '6' %}" class="btn btn-sm w-100 {% if month == '6' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">6 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-cat-attribute-values-id-sales' category_id attr_ids_str '12' %}" class="btn btn-sm w-100 {% if month == '12' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">12 міс.</a></div>
+                        {% endif %}
+                    {% elif category_id %}
+                        <!-- Тільки Категорія без атрибутів -->
+                        {% if all_records %}
+                            <div class="col-3 p-1"><a href="{% url 'invoice-category-last-sale-by-month-all' category_id '1' %}" class="btn btn-sm w-100 {% if month == '1' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">1 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-category-last-sale-by-month-all' category_id '3' %}" class="btn btn-sm w-100 {% if month == '3' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">3 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-category-last-sale-by-month-all' category_id '6' %}" class="btn btn-sm w-100 {% if month == '6' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">6 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-category-last-sale-by-month-all' category_id '12' %}" class="btn btn-sm w-100 {% if month == '12' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">12 міс.</a></div>
+                        {% else %}
+                            <div class="col-3 p-1"><a href="{% url 'invoice-category-last-sale-by-month' category_id '1' %}" class="btn btn-sm w-100 {% if month == '1' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">1 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-category-last-sale-by-month' category_id '3' %}" class="btn btn-sm w-100 {% if month == '3' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">3 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-category-last-sale-by-month' category_id '6' %}" class="btn btn-sm w-100 {% if month == '6' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">6 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-category-last-sale-by-month' category_id '12' %}" class="btn btn-sm w-100 {% if month == '12' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">12 міс.</a></div>
+                        {% endif %}
+                    {% elif company_id %}     
+                        <!-- Тільки Виробник -->
+                        {% if all_records %}
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-last-sale-by-month-all' company_id '1' %}" class="btn btn-sm w-100 {% if month == '1' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">1 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-last-sale-by-month-all' company_id '3' %}" class="btn btn-sm w-100 {% if month == '3' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">3 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-last-sale-by-month-all' company_id '6' %}" class="btn btn-sm w-100 {% if month == '6' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">6 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-last-sale-by-month-all' company_id '12' %}" class="btn btn-sm w-100 {% if month == '12' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">12 міс.</a></div>
+                        {% else %}
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-last-sale-by-month' company_id '1' %}" class="btn btn-sm w-100 {% if month == '1' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">1 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-last-sale-by-month' company_id '3' %}" class="btn btn-sm w-100 {% if month == '3' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">3 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-last-sale-by-month' company_id '6' %}" class="btn btn-sm w-100 {% if month == '6' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">6 міс.</a></div>
+                            <div class="col-3 p-1"><a href="{% url 'invoice-manufacturer-last-sale-by-month' company_id '12' %}" class="btn btn-sm w-100 {% if month == '12' %}btn-primary text-white{% else %}btn-outline-secondary bg-light{% endif %}">12 міс.</a></div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <hr class="my-3" style="border-top: 1px dashed #dee2e6;">
+
+                <!-- СЕКЦІЯ 2: ВИБІР РЕЖИМУ ФІЛЬТРАЦІЇ ЗЕНІТНИХ ЗАЛИШКІВ -->
+                <label class="font-weight-bold small text-muted text-uppercase mb-2 d-block text-center">Тип відображення залишків</label>
+                <div class="list-group">
+                    {% if company_id and category_id %}
+                        <a href="{% url 'invoice-manufacturer-category-last-sale-by-month' company_id category_id month|default:'1' %}" 
+                           class="list-group-item list-group-item-action text-center py-2 px-3 {% if not all_records %}active text-white{% endif %}" style="font-size: 14px;">
+                            Продані повністю
+                        </a>
+                        <a href="{% url 'invoice-manufacturer-category-last-sale-by-month-all' company_id category_id month|default:'1' %}" 
+                           class="list-group-item list-group-item-action text-center py-2 px-3 {% if all_records %}active text-white{% endif %}" style="font-size: 14px;">
+                            Показати всі продажі
+                        </a>
+                    {% elif category_id and attr_ids_str %}
+                        <a href="{% url 'invoice-cat-attribute-values-id-sales' category_id attr_ids_str month|default:'1' %}" 
+                           class="list-group-item list-group-item-action text-center py-2 px-3 {% if not all_records %}active text-white{% endif %}" style="font-size: 14px;">
+                            Продані повністю
+                        </a>
+                        <a href="{% url 'invoice-cat-attribute-values-id-all-sales' category_id attr_ids_str month|default:'1' %}" 
+                           class="list-group-item list-group-item-action text-center py-2 px-3 {% if all_records %}active text-white{% endif %}" style="font-size: 14px;">
+                            Показати всі продажі
+                        </a>
+                    {% elif category_id %}
+                        <a href="{% url 'invoice-category-last-sale-by-month' category_id month|default:'1' %}" 
+                           class="list-group-item list-group-item-action text-center py-2 px-3 {% if not all_records %}active text-white{% endif %}" style="font-size: 14px;">
+                            Продані повністю
+                        </a>
+                        <a href="{% url 'invoice-category-last-sale-by-month-all' category_id month|default:'1' %}" 
+                           class="list-group-item list-group-item-action text-center py-2 px-3 {% if all_records %}active text-white{% endif %}" style="font-size: 14px;">
+                            Показати всі продажі
+                        </a>
+                    {% elif company_id %}
+                        <a href="{% url 'invoice-manufacturer-last-sale-by-month' company_id month|default:'1' %}" 
+                           class="list-group-item list-group-item-action text-center py-2 px-3 {% if not all_records %}active text-white{% endif %}" style="font-size: 14px;">
+                            Продані повністю
+                        </a>
+                        <a href="{% url 'invoice-manufacturer-last-sale-by-month-all' company_id month|default:'1' %}" 
+                           class="list-group-item list-group-item-action text-center py-2 px-3 {% if all_records %}active text-white{% endif %}" style="font-size: 14px;">
+                            Показати всі продажі
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="modal-footer bg-light py-2 px-3">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Скасувати</button>
+            </div>
+        </div>
+    </div>
+</div>

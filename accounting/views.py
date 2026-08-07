@@ -2902,6 +2902,328 @@ def invoicecomponent_add(request, mid=None, cid=None, id=None):
     return render(request, 'index.html', context)
 
 
+def invoicecomponent_sales_list(request, mid=None, cid=None, month=None, all=None, url_name=None, attr_val_id=None, attr_val_ids=None):
+    company_name = '' 
+    type_name = ''
+    id_list = []
+    zsum = 0
+    zcount = 0
+    head_text = u'Повністю продані товари за останні %s місяців' % month
+    head_text_array = []
+    attr_ids_list = []
+    attr_ids_str = ""
+    years_range = None
+    curdate = datetime.datetime.now()
+    sel_year = 0
+    url_name = None
+
+    test_m = int(month) if month else 1
+    sub_m = sub_months(curdate, test_m)
+
+    # 1. Визначаємо аналітичний період продажів
+    if month:
+        sale_period_qs = ClientInvoice.objects.filter(date__gte=sub_m)
+    else:
+        sale_period_qs = ClientInvoice.objects.filter(date__month=curdate.month)
+
+    if mid:
+        sale_period_qs = sale_period_qs.filter(catalog__manufacturer_id=mid)
+        if not all:
+            sale_period_qs = sale_period_qs.exclude(catalog__count__gt=0)
+        try:
+            company_name = Manufacturer.objects.only('id', 'name').get(id=mid)
+        except Manufacturer.DoesNotExist:
+            company_name = None
+        url_name = 'invoice-manufacture-by-year-all'
+        
+    if cid:
+        sale_period_qs = sale_period_qs.filter(catalog__type_id=cid)
+        if all == True:
+            head_text = u'Продані товари за останні %s місяців' % month
+        else:
+            head_text = u'Повністю продані товари за останні %s місяців' % month
+            sale_period_qs = sale_period_qs.exclude(catalog__count__gt=0)
+        try:
+            type_name = Type.objects.only('id', 'name').get(id=cid)
+        except Type.DoesNotExist:
+            type_name = None
+        url_name = 'invoice-category-by-year-all'
+
+    # Додайте цей блок фільтрації за атрибутами всередину invoicecomponent_sales_list:
+    if attr_val_id:
+        sale_period_qs = sale_period_qs.filter(catalog__attributes__id=attr_val_id)
+        
+    if attr_val_ids:
+        # Розбиваємо рядок на кшталт "+5+12" на чисті ID [5, 12]
+        clean_ids = [int(x) for x in attr_val_ids.split('+') if x.strip()]
+        if clean_ids:
+            # Фільтруємо товари, які мають ВСІ вказані атрибути одночасно
+            for a_id in clean_ids:
+                sale_period_qs = sale_period_qs.filter(catalog__attributes__id=a_id)
+    
+    # Отримуємо унікальні ID товарів, що продавалися
+    sold_catalog_ids = list(sale_period_qs.values_list('catalog_id', flat=True).distinct())
+    
+    # КРИТИЧНЕ ВИПРАВЛЕННЯ ДУБЛІКАТІВ: 
+    # Групуємо виключно за полем 'catalog'. База даних поверне строго 1 рядок на 1 товар.
+    base_qs = InvoiceComponentList.objects.filter(catalog_id__in=sold_catalog_ids)
+    raw_list_res = base_qs.values('catalog').annotate(sum_catalog=Sum('count')).order_by('catalog')
+    list_res = list(raw_list_res)
+    
+    id_set = {item['catalog'] for item in list_res}
+    
+    # Адмінська статистика
+    if auth_group(request.user, 'admin') == True:
+        years_range = (sale_period_qs.filter(catalog__in=id_set)
+                       .extra({'yyear': "Extract(year from accounting_clientinvoice.date)"})
+                       .values_list('yyear')
+                       .annotate(pk_count=Sum('count'))
+                       .order_by('yyear'))
+
+    # Точні продажі за період
+    sales = sale_period_qs.filter(catalog__in=id_set).values('catalog').annotate(sum_sales=Sum('count'))
+    sale_dict = {s['catalog']: s['sum_sales'] for s in sales}        
+    
+    # --- ПАКЕТНЕ ЗАВАНТАЖЕННЯ (BULK LOADING) ---
+    cat_queryset = Catalog.objects.filter(pk__in=id_set).select_related('type', 'manufacturer', 'user_update', 'currency')
+    cat_dict = {c.id: c for c in cat_queryset}
+
+    discounts = Discount.objects.filter(
+        date_start__lte=curdate, 
+        date_end__gte=curdate, 
+        manufacture_id__in=id_set
+    ).order_by("-sale")
+    discount_dict = {}
+    for d in discounts:
+        if d.manufacture_id not in discount_dict:
+            discount_dict[d.manufacture_id] = d
+
+    storage_boxes = StorageBox.objects.filter(catalog_id__in=id_set).values_list('catalog_id', 'box_name__name', 'count', 'count_real')
+    storage_dict = {}
+    for cat_id, box_name, count_val, count_real in storage_boxes:
+        box_text = u"%s - %s з %s шт." % (box_name, count_val, count_real)
+        if cat_id not in storage_dict:
+            storage_dict[cat_id] = []
+        storage_dict[cat_id].append(box_text)
+
+    # === НАШ ОСТАТОЧНИЙ НАДІЙНИЙ БЛОК ДЛЯ ПОВЕРНЕННЯ БАДЖІВ АТРИБУТІВ ===
+    if attr_val_id or attr_val_ids:
+        target_attr_ids = []
+        if attr_val_id:
+            try:
+                target_attr_ids.append(int(str(attr_val_id).strip()))
+            except ValueError:
+                pass
+
+        if attr_val_ids:
+            # Очищаємо рядок від можливих слешів на кінці урла (наприклад, "+5/" -> "+5")
+            clean_str = str(attr_val_ids).replace('/', '').strip()
+            
+            # Розбиваємо по плюсу та дістаємо ТІЛЬКИ чисті цифри
+            for x in clean_str.split('+'):
+                x_clean = x.strip()
+                if x_clean and x_clean.isdigit():
+                    target_attr_ids.append(int(x_clean))
+            
+        # Якщо ми знайшли хоча б один ID, робимо запит до бази
+        if target_attr_ids:
+            cav_qs = CatalogAttributeValue.objects.filter(id__in=target_attr_ids).select_related('attr_id').only('value', 'attr_id__name', 'id')
+            
+            for i in cav_qs:
+                tmp_text = u"{} >>> {}".format(i.attr_id.name, i.value)
+                head_text_array.append({'id': i.pk, 'txt': tmp_text})
+            
+            # Формуємо правильний і чистий рядок із провідним плюсом для посилань по роках
+            attr_ids_str = "+" + "+".join([str(x) for x in target_attr_ids])
+    # =================================================================
+
+    exchange_rates = (Exchange.objects
+                      .filter(date__month=curdate.month, date__year=curdate.year)
+                      .values('currency__ids_char')
+                      .annotate(average_val=Avg('value')))
+    exchange_dict = {item['currency__ids_char']: item['average_val'] for item in exchange_rates}
+
+    # Завантажуємо всі валюти, ціни та кількості компонентів окремо
+    component_prices = InvoiceComponentList.objects.filter(catalog_id__in=id_set).values('catalog_id', 'price', 'count', 'currency__ids_char')
+    components_by_catalog = {}
+    for cp in component_prices:
+        c_id = cp['catalog_id']
+        if c_id not in components_by_catalog:
+            components_by_catalog[c_id] = []
+        components_by_catalog[c_id].append(cp)
+
+    final_processed_list = []
+
+    # --- ГОЛОВНИЙ ЦИКЛ ОБРОБКИ O(N) ---
+    for element in list_res:
+        cat_id = element['catalog']
+        cat_obj = cat_dict.get(cat_id)
+        
+        if not cat_obj:
+            continue
+            
+        # Емулюємо поля 'catalog__*' з об'єкта каталогу (в пам'яті дублікати не створюються)
+        element['catalog__name'] = cat_obj.name
+        element['catalog__ids'] = cat_obj.ids
+        element['catalog__dealer_code'] = cat_obj.dealer_code
+        element['catalog__manufacturer__name'] = cat_obj.manufacturer.name if cat_obj.manufacturer else ''
+        element['catalog__price'] = cat_obj.price
+        element['catalog__last_price'] = cat_obj.last_price
+        element['catalog__sale'] = cat_obj.sale
+        element['catalog__count'] = cat_obj.count
+        element['catalog__type__name'] = cat_obj.type.name if cat_obj.type else ''
+        element['catalog__type__id'] = cat_obj.type_id
+        element['catalog__user_update__username'] = cat_obj.user_update.username if cat_obj.user_update else ''
+        element['catalog__last_update'] = cat_obj.last_update
+
+        # Плоска структура полів
+        element['manufacturer__id'] = cat_obj.manufacturer_id
+        element['manufacturer__name'] = cat_obj.manufacturer.name if cat_obj.manufacturer else ''
+        element['locality'] = cat_obj.locality
+        element['type__name_ukr'] = cat_obj.type.name_ukr if cat_obj.type else ''
+        element['description'] = cat_obj.description
+        element['photo_url'] = cat_obj.photo_url
+        element['youtube_url'] = cat_obj.youtube_url
+        element['last_update'] = cat_obj.last_update
+        element['user_update'] = cat_obj.user_update.username if cat_obj.user_update else ''
+
+        c_sale = sale_dict.get(cat_id, 0)
+        element['c_sale'] = c_sale
+        
+        realshop_count = cat_obj.count
+        element['get_realshop_count'] = realshop_count
+        element['balance'] = realshop_count  
+
+        if realshop_count != 0:
+            zsum += realshop_count * cat_obj.price
+            zcount += realshop_count
+            
+            element['new_arrival'] = cat_obj.new_arrival()
+            element['get_discount'] = discount_dict.get(cat_id, 0)
+            element['box_name'] = storage_dict.get(cat_id, [])
+
+            # Розрахунок собівартості invoice_price у пам'яті
+            cc_items = components_by_catalog.get(cat_id, [])
+            ic_count = 0
+            total_ua_sum = 0
+            
+            for item in cc_items:
+                item_price = item.get('price', 0) or 0  
+                item_count = item.get('count', 0) or 0
+                
+                if item_price > 0:
+                    comp_currency_code = item.get('currency__ids_char', 'UAH')
+                    cur_exchange = exchange_dict.get(comp_currency_code)
+                    
+                    ua_price_per_item = item_price * cur_exchange if cur_exchange else item_price
+                    total_ua_sum += ua_price_per_item * item_count
+                    ic_count += item_count
+            
+            ua = 0
+            profit = 0
+            percent = 0
+            
+            if ic_count != 0:
+                ua = total_ua_sum / ic_count
+            
+            if cat_obj.currency and cat_obj.currency.ids_char == 'UAH':
+                percent_sale = (100 - cat_obj.sale) * 0.01
+                profit = cat_obj.price * percent_sale - ua
+                if ua > 0:
+                    percent = (cat_obj.price * percent_sale) / (ua / 100) - 100
+            
+            element['invoice_price'] = (ua, profit, round(percent))
+        else:
+            element['new_arrival'] = False
+            element['get_discount'] = 0
+            element['invoice_price'] = (0, 0, 0)
+            element['box_name'] = []
+
+        final_processed_list.append(element)
+
+    cur_year = datetime.date.today().year
+
+    processed_years = []
+    if years_range:
+        for yy in years_range:
+            # КРИТИЧНЕ ВИПРАВЛЕННЯ: Правильно дістаємо рік та кількість із кортежу
+            if isinstance(yy, (tuple, list)):
+                year_val = yy[0]   # Перший елемент - це рік (наприклад, 2017)
+                count_val = yy[1]  # Другий елемент - це кількість
+            else:
+                year_val = yy
+                count_val = 0
+                
+            target_url = "#"
+
+            # 1. КОМБІНОВАНИЙ РЕЖИМ (Виробник + Категорія)
+            if mid and cid:
+                if head_text_array:
+                    target_url = reverse('invoice-manufacture-category-attr-val-ids-by-year-all', args=[year_val, mid, cid, attr_ids_str])
+                else:
+                    if all == True:
+                        if url_name == 'invoice-category-manufacture-by-year-all':
+                            target_url = reverse('invoice-category-manufacture-by-year-all', args=[year_val, cid, mid])
+                        else:
+                            target_url = reverse('invoice-manufacture-category-by-year-all', args=[year_val, mid, cid])
+                    else:
+                        if url_name == 'invoice-category-manufacture-by-year':
+                            target_url = reverse('invoice-category-manufacture-by-year', args=[year_val, cid, mid])
+                        else:
+                            target_url = reverse('invoice-manufacture-category-by-year', args=[year_val, mid, cid])
+            
+            # 2. РЕЖИМ СУТО КАТЕГОРІЇ (cid)
+            elif cid:
+                if head_text_array:
+                    target_url = reverse('invoice-cat-attribute-values-ids-by-year-all', args=[year_val, cid, attr_ids_str])
+                else:
+                    if all == True:
+                        target_url = reverse('invoice-category-by-year-all', args=[year_val, cid])
+                    else:
+                        target_url = reverse('invoice-category-by-year', args=[year_val, cid])
+            
+            # 3. РЕЖИМ СУТО ВИРОБНИКА (mid)
+            elif mid:
+                if head_text_array:
+                    target_url = reverse('invoice-manufacture-attr-val-ids-by-year-all', args=[year_val, mid, attr_ids_str])
+                else:
+                    if all == True:
+                        target_url = reverse('invoice-manufacture-by-year-all', args=[year_val, mid])
+                    else:
+                        target_url = reverse('invoice-manufacture-by-year', args=[year_val, mid])
+
+            processed_years.append({
+                'year': year_val,
+                'count': count_val,
+                'url': target_url
+            })
+
+    vars = {
+        'is_sales_report': True,  # Спеціальний маркер для розуміння що це звіт по продажам
+        'all_records': all,  # Передаємо True або False у шаблон
+        'year_url_name': url_name, 
+        'processed_years': processed_years,
+        'componentlist': final_processed_list, 
+        'zsum': zsum, 
+        'zcount': zcount, 
+        'company_name': company_name, 
+        'company_id': mid, 
+        'category_id': cid, 
+        'category_name': type_name, #type_name.name if type_name else '', 
+        'years_range': years_range, 
+        'cur_year': cur_year, 
+        'select_year': sel_year, 
+        'weblink': 'invoicecomponent_list.html', 
+        'head_text': head_text, 
+        'head_text_array': head_text_array, 
+        'month': str(month),
+        'attr_ids_str': attr_ids_str
+    }
+    vars.update(custom_proc(request))
+    return render(request, 'index.html', vars)
+
+
+""" 
 def invoicecomponent_sales_list(request, mid=None, cid=None, month=None, all=None):
     company_name = '' 
     type_name = ''
@@ -2914,7 +3236,6 @@ def invoicecomponent_sales_list(request, mid=None, cid=None, month=None, all=Non
     attr_ids_list = []
     list_res = None
     attr_ids_str = ""
-#    all = False
     new_list = []
     years_range  = None
     sale_list = None
@@ -2923,10 +3244,7 @@ def invoicecomponent_sales_list(request, mid=None, cid=None, month=None, all=Non
     url_name = None
 
     test_m = int(month)
-#    add_m = add_months(curdate, test_m)
-#    print "ADD month date = %s " % add_m
     sub_m = sub_months(curdate, test_m)
-    print "SUB month date = %s " % sub_m
 
     if month:
         #dd = datetime.datetime(2024, 11, 1)
@@ -3003,9 +3321,9 @@ def invoicecomponent_sales_list(request, mid=None, cid=None, month=None, all=Non
     vars = {'year_url_name': url_name, 'componentlist': list_res, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id': mid, 'category_id': cid, 'category_name':type_name, 'years_range':years_range, 'cur_year': cur_year, 'select_year': sel_year, 'weblink': 'invoicecomponent_list.html', 'head_text': head_text, 'head_text_array': head_text_array, 'attr_ids_str': attr_ids_str}
     vars.update(custom_proc(request))
     return render(request, 'index.html', vars)
+ """
 
-
-
+""" 
 def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None, attr_val_id=None, attr_val_ids=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None, all=False, mc_search=False, by_id=None, url_name=None):
     #company_list = Manufacturer.objects.none()
     company_list = Manufacturer.objects.all().only('id', 'name')
@@ -3174,12 +3492,9 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
             if element['catalog']==sale['catalog']:
                 element['c_sale']=sale['sum_catalog']
                 element['balance']=element['sum_catalog'] - element['c_sale']
-#                element['new_arrival'] = Catalog.objects.get(pk = element['catalog']).new_arrival()
-#                element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
         for cat in cat_list:
             if element['catalog']==cat['id']:
                 element['manufacturer__id']=cat['manufacturer__id']
-#                element['manufacturer__name1']=cat['manufacturer__name']
                 element['manufacturer__name']=cat['manufacturer__name']
                 element['locality']=cat['locality']
                 element['type__name_ukr']=cat['type__name_ukr']
@@ -3199,12 +3514,386 @@ def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None,
             element['get_discount'] = cat_obj.get_discount()
             element['invoice_price'] = cat_obj.invoice_price()
             element['box_name'] = cat_obj.get_storage_box_list_to_html()
-#            element['invoice_price'] = Catalog.objects.get(pk = element['catalog']).invoice_price()
-#        if element['balance'] == 0:
-#            print "Element = " + str(element)
+
     cur_year = datetime.date.today().year        
     #url_name = 'invoice-category-manufacture-by-year'
     vars = {'year_url_name': url_name, 'company_list': company_list, 'type_list': type_list, 'componentlist': list_res, 'zsum':zsum, 'zcount':zcount, 'company_name': company_name, 'company_id': mid, 'category_id': cid, 'category_name':cat_name, 'years_range':years_range, 'cur_year': cur_year, 'select_year': sel_year, 'weblink': 'invoicecomponent_list.html', 'focus': focus, 'qsearch_lookup' : mc_search, 'head_text': head_text, 'head_text_array': head_text_array, 'attr_ids_str': attr_ids_str}
+    vars.update(custom_proc(request))
+    return render(request, 'index.html', vars)
+ """
+
+import re
+import datetime
+from django.db.models import Q, Sum, Avg
+from django.shortcuts import render
+from django.core.urlresolvers import reverse  # Імпорт для Django 1.10
+
+def invoicecomponent_list(request, mid=None, cid=None, isale=None, attr_id=None, attr_val_id=None, attr_val_ids=None, limit=0, focus=0, upday=0, sel_year=0, enddate=None, all=False, mc_search=False, by_id=None, url_name=None):
+    company_list = Manufacturer.objects.all().only('id', 'name')
+    type_list = Type.objects.all().only('id', 'name')
+    
+    company_name = '' 
+    cat_name = ''
+    qs_list = None  
+    zsum = 0
+    zcount = 0
+    head_text = ''
+    head_text_array = []
+    attr_ids_str = ""
+
+    base_qs = InvoiceComponentList.objects.all()
+      
+    # --- 1. БЛОК ФІЛЬТРАЦІЇ ТА ПОШУКУ ---
+    if 'name' in request.GET and request.GET['name']:
+        name = request.GET['name'].strip()
+        if len(name) <= 1:
+            context = {'weblink': 'error_message.html', 'mtext': u'[%s] Введіть більше символів для пошуку' % name}
+            context.update(custom_proc(request))
+            return render(request, 'index.html', context)
+        if name.isdigit() and len(name) >= 12:
+            qs_list = base_qs.filter(
+                Q(catalog__barcode__icontains=name) | 
+                Q(catalog__barcode_upc__icontains=name) | 
+                Q(catalog__barcode_ean__icontains=name)
+            )            
+        else:
+            qs_list = base_qs.filter(catalog__name__icontains=name)        
+
+    elif 'id' in request.GET and request.GET['id']:
+        search_id = request.GET['id'].strip()
+        if len(search_id) <= 1:
+            context = {'weblink': 'error_message.html', 'mtext': u'[%s] Введіть більше символів для пошуку' % search_id}
+            context.update(custom_proc(request))
+            return render(request, 'index.html', context)
+
+        if search_id.isdigit() and len(search_id) >= 12:
+            qs_list = base_qs.filter(
+                Q(catalog__barcode__icontains=search_id) | 
+                Q(catalog__barcode_upc__icontains=search_id) | 
+                Q(catalog__barcode_ean__icontains=search_id)
+            )            
+        try:
+            id_res = re.search(r"(?<=rivelo.com.ua/component/)[0-9]+", search_id.lower()).group()
+            qs_list = base_qs.filter(catalog__id=id_res)            
+        except (AttributeError, TypeError):
+            if not qs_list:               
+                qs_list = base_qs.filter(
+                    Q(catalog__ids__icontains=search_id) | 
+                    Q(catalog__dealer_code__icontains=search_id) | 
+                    Q(catalog__manufacture_article__icontains=search_id)
+                ).order_by('catalog__manufacturer_id')
+
+    if by_id:
+        qs_list = base_qs.filter(catalog__id=by_id)        
+
+    if qs_list is None:
+        qs_list = base_qs.all()
+
+    if mid:
+        qs_list = qs_list.filter(catalog__manufacturer_id=mid)
+        if not all:
+            qs_list = qs_list.exclude(catalog__count=0)            
+        try:
+            company_name = Manufacturer.objects.only('id', 'name').get(id=mid)
+        except Manufacturer.DoesNotExist:
+            company_name = None
+
+    if cid:
+        qs_list = qs_list.filter(catalog__type_id=cid)
+        if not all:
+            qs_list = qs_list.exclude(catalog__count=0)            
+        cat_name = next((t for t in type_list if t.id == int(cid)), None)
+
+    # --- 2. ПЕРЕХОПЛЕННЯ АТРИБУТІВ З URL (ЗАХИСТ ДЛЯ DJANGO 1.10) ---
+    if not attr_val_id and request.resolver_match and 'attr_val_id' in request.resolver_match.kwargs:
+        attr_val_id = request.resolver_match.kwargs['attr_val_id']
+        
+    if not attr_val_ids and request.resolver_match and 'attr_val_ids' in request.resolver_match.kwargs:
+        attr_val_ids = request.resolver_match.kwargs['attr_val_ids']
+
+    # --- 3. ФІЛЬТРАЦІЯ НАДХОДЖЕНЬ (qs_list) ЗА АТРИБУТАМИ ---
+    if attr_val_id:
+        qs_list = qs_list.filter(catalog__attributes__id=attr_val_id)
+
+    if attr_val_ids:
+        clean_ids = [int(x) for x in str(attr_val_ids).replace('/', '').split('+') if x.strip() and x.isdigit()]
+        if clean_ids:
+            for a_id in clean_ids:
+                qs_list = qs_list.filter(catalog__attributes__id=a_id)
+
+    # --- 4. ОПТИМІЗАЦІЯ ГРУПУВАННЯ ТА ЛІКВІДАЦІЯ ДУБЛІВ ВАЛЮТ ---
+    list_res = qs_list.values('catalog').annotate(sum_catalog=Sum('count')).order_by('catalog')
+    
+    if limit == 0:
+        try:
+            if enddate == True:
+                list_res = list_res.order_by("catalog__date")
+            else:
+                list_res = list_res.order_by("catalog__type")
+        except:
+            list_res = InvoiceComponentList.objects.none()
+    else:
+        list_res = list_res.order_by("catalog__type")
+        list_res = list_res[:limit]
+
+    list_res = list(list_res)
+    id_set = {item['catalog'] for item in list_res}
+    new_list = []
+    years_range = None
+    
+    is_admin = auth_group(request.user, 'admin')
+
+    # Статистика по роках
+    if is_admin:
+        years_range = (ClientInvoice.objects.filter(catalog__in=id_set)
+                       .extra({'yyear': "Extract(year from accounting_clientinvoice.date)"})
+                       .values_list('yyear')
+                       .annotate(pk_count=Sum('count'))
+                       .order_by('yyear'))
+
+    # --- 5. ФІЛЬТРАЦІЯ ПРОДАЖІВ (sale_qs) ЗА АТРИБУТАМИ ---
+    sale_qs = ClientInvoice.objects.filter(catalog_id__in=id_set)
+    if mid:
+        sale_qs = sale_qs.filter(catalog__manufacturer_id=mid)
+    if cid:
+        sale_qs = sale_qs.filter(catalog__type_id=cid)
+    if sel_year > 0:
+        sale_qs = sale_qs.filter(date__year=sel_year)
+        
+    if attr_val_id:
+        sale_qs = sale_qs.filter(catalog__attributes__id=attr_val_id)
+    if attr_val_ids:
+        clean_ids = [int(x) for x in str(attr_val_ids).replace('/', '').split('+') if x.strip() and x.isdigit()]
+        if clean_ids:
+            for a_id in clean_ids:
+                sale_qs = sale_qs.filter(catalog__attributes__id=a_id)
+        
+    sales = sale_qs.values('catalog').annotate(sum_sales=Sum('count')).order_by()
+    sale_dict = {s['catalog']: s['sum_sales'] for s in sales}
+
+    # --- 6. ПАКЕТНЕ ЗАВАНТАЖЕННЯ ДАНИХ (BULK LOADING) ---
+    cat_queryset = Catalog.objects.filter(pk__in=id_set).select_related('type', 'manufacturer', 'user_update', 'currency')
+    cat_dict = {c.id: c for c in cat_queryset}
+
+    curdate = datetime.date.today()
+    discounts = Discount.objects.filter(
+        date_start__lte=curdate, 
+        date_end__gte=curdate, 
+        manufacture_id__in=id_set
+    ).order_by("-sale")
+    discount_dict = {}
+    for d in discounts:
+        if d.manufacture_id not in discount_dict:
+            discount_dict[d.manufacture_id] = d
+
+    storage_boxes = StorageBox.objects.filter(catalog_id__in=id_set).values_list('catalog_id', 'box_name__name', 'count', 'count_real')
+    storage_dict = {}
+    for cat_id, box_name, count_val, count_real in storage_boxes:
+        box_text = u"%s - %s з %s шт." % (box_name, count_val, count_real)
+        if cat_id not in storage_dict:
+            storage_dict[cat_id] = []
+        storage_dict[cat_id].append(box_text)
+
+    exchange_rates = (Exchange.objects
+                      .filter(date__month=curdate.month, date__year=curdate.year)
+                      .values('currency__ids_char')
+                      .annotate(average_val=Avg('value')))
+    exchange_dict = {item['currency__ids_char']: item['average_val'] for item in exchange_rates}
+
+    component_prices = InvoiceComponentList.objects.filter(catalog_id__in=id_set).values('catalog_id', 'price', 'count', 'currency__ids_char')
+    components_by_catalog = {}
+    for cp in component_prices:
+        c_id = cp['catalog_id']
+        if c_id not in components_by_catalog:
+            components_by_catalog[c_id] = []
+        components_by_catalog[c_id].append(cp)
+
+    # --- 7. ПАКЕТНИЙ ЗБІР НАЗВ АТРИБУТІВ ДЛЯ БАДЖІВ В ЗАГОЛОВОК ---
+    if attr_val_id or attr_val_ids:
+        target_attr_ids = []
+        if attr_val_id:
+            target_attr_ids.append(int(attr_val_id))
+        if attr_val_ids:
+            target_attr_ids.extend([int(x) for x in str(attr_val_ids).replace('/', '').split('+') if x.strip() and x.isdigit()])
+            
+        if target_attr_ids:
+            cav_qs = CatalogAttributeValue.objects.filter(id__in=target_attr_ids).select_related('attr_id').only('value', 'attr_id__name', 'id')
+            head_text_array = []
+            for i in cav_qs:
+                tmp_text = u"{} >>> {}".format(i.attr_id.name, i.value)
+                head_text_array.append({'id': i.pk, 'txt': tmp_text})
+                
+            attr_ids_str = "+" + "+".join([str(x) for x in target_attr_ids])
+
+    # --- 8. ГЕНЕРАЦІЯ ПОСИЛАНЬ ПО РОКАХ ДЛЯ ШАБЛОНУ ---
+    processed_years = []
+    if years_range:
+        for yy in years_range:
+            if isinstance(yy, (tuple, list)):
+                year_val = yy[0]
+                count_val = yy[1]
+            else:
+                year_val = yy
+                count_val = 0
+                
+            target_url = "#"
+
+            if mid and cid:
+                if head_text_array:
+                    target_url = reverse('invoice-manufacture-category-attr-val-ids-by-year-all', args=[year_val, mid, cid, attr_ids_str])
+                else:
+                    if all == True:
+                        if url_name == 'invoice-category-manufacture-by-year-all':
+                            target_url = reverse('invoice-category-manufacture-by-year-all', args=[year_val, cid, mid])
+                        else:
+                            target_url = reverse('invoice-manufacture-category-by-year-all', args=[year_val, mid, cid])
+                    else:
+                        if url_name == 'invoice-category-manufacture-by-year':
+                            target_url = reverse('invoice-category-manufacture-by-year', args=[year_val, cid, mid])
+                        else:
+                            target_url = reverse('invoice-manufacture-category-by-year', args=[year_val, mid, cid])
+            elif cid:
+                if head_text_array:
+                    target_url = reverse('invoice-cat-attribute-values-ids-by-year-all', args=[year_val, cid, attr_ids_str])
+                else:
+                    if all == True:
+                        target_url = reverse('invoice-category-by-year-all', args=[year_val, cid])
+                    else:
+                        target_url = reverse('invoice-category-by-year', args=[year_val, cid])
+            elif mid:
+                if head_text_array:
+                    target_url = reverse('invoice-manufacture-attr-val-ids-by-year-all', args=[year_val, mid, attr_ids_str])
+                else:
+                    if all == True:
+                        target_url = reverse('invoice-manufacture-by-year-all', args=[year_val, mid])
+                    else:
+                        target_url = reverse('invoice-manufacture-by-year', args=[year_val, mid])
+
+            processed_years.append({
+                'year': year_val,
+                'count': count_val,
+                'url': target_url
+            })
+
+    # --- 9. ГОЛОВНИЙ ЦИКЛ ОБРОБКИ O(N) ---
+    for element in list_res:
+        cat_id = element['catalog']
+        cat_obj = cat_dict.get(cat_id)
+        
+        if not cat_obj:
+            continue
+            
+        element['catalog__name'] = cat_obj.name
+        element['catalog__ids'] = cat_obj.ids
+        element['catalog__dealer_code'] = cat_obj.dealer_code
+        element['catalog__manufacturer__name'] = cat_obj.manufacturer.name if cat_obj.manufacturer else ''
+        element['catalog__price'] = cat_obj.price
+        element['catalog__last_price'] = cat_obj.last_price
+        element['catalog__sale'] = cat_obj.sale
+        element['catalog__count'] = cat_obj.count
+        element['catalog__type__name'] = cat_obj.type.name if cat_obj.type else ''
+        element['catalog__type__id'] = cat_obj.type_id
+        element['catalog__user_update__username'] = cat_obj.user_update.username if cat_obj.user_update else ''
+        element['catalog__last_update'] = cat_obj.last_update
+
+        element['manufacturer__id'] = cat_obj.manufacturer_id
+        element['manufacturer__name'] = cat_obj.manufacturer.name if cat_obj.manufacturer else ''
+        element['locality'] = cat_obj.locality
+        element['type__name_ukr'] = cat_obj.type.name_ukr if cat_obj.type else ''
+        element['description'] = cat_obj.description
+        element['photo_url'] = cat_obj.photo_url
+        element['youtube_url'] = cat_obj.youtube_url
+        element['last_update'] = cat_obj.last_update
+        element['user_update'] = cat_obj.user_update.username if cat_obj.user_update else ''
+
+        c_sale = sale_dict.get(cat_id, 0)
+        element['c_sale'] = c_sale
+        
+        realshop_count = cat_obj.count
+        element['get_realshop_count'] = realshop_count
+        element['balance'] = realshop_count  
+
+        # Визначаємо, чи активовано режим пошуку в даний момент
+        is_searching = ('name' in request.GET and request.GET['name']) or ('id' in request.GET and request.GET['id']) or by_id or mc_search
+
+        # ВИПРАВЛЕНО: Товар потрапить у список, якщо він є в наявності, АБО якщо йде пошук, АБО увімкнено режим "Показати все"
+        if realshop_count != 0 or is_searching or all == True:
+            new_list.append(element)
+            
+            # Нарощуємо фінансові підсумки тільки для тих товарів, які реально є на складі
+            if realshop_count != 0:
+                zsum += realshop_count * cat_obj.price
+                zcount += realshop_count
+            
+            element['new_arrival'] = cat_obj.new_arrival()
+            element['get_discount'] = discount_dict.get(cat_id, 0)
+            element['box_name'] = storage_dict.get(cat_id, [])
+
+            cc_items = components_by_catalog.get(cat_id, [])
+            ic_count = 0
+            total_ua_sum = 0
+            
+            for item in cc_items:
+                item_price = item.get('price', 0) or 0  
+                item_count = item.get('count', 0) or 0
+                
+                if item_price > 0:
+                    comp_currency_code = item.get('currency__ids_char', 'UAH')
+                    cur_exchange = exchange_dict.get(comp_currency_code)
+                    
+                    if cur_exchange:
+                        ua_price_per_item = item_price * cur_exchange
+                    else:
+                        ua_price_per_item = item_price * 1  
+                    
+                    total_ua_sum += ua_price_per_item * item_count
+                    ic_count += item_count
+            
+            ua = 0
+            profit = 0
+            percent = 0
+            
+            if ic_count != 0:
+                ua = total_ua_sum / ic_count
+            
+            if cat_obj.currency and cat_obj.currency.ids_char == 'UAH':
+                percent_sale = (100 - cat_obj.sale) * 0.01
+                profit = cat_obj.price * percent_sale - ua
+                if ua > 0:
+                    percent = (cat_obj.price * percent_sale) / (ua / 100) - 100
+            
+            element['invoice_price'] = (ua, profit, round(percent))
+        else:
+            element['new_arrival'] = False
+            element['get_discount'] = 0
+            element['invoice_price'] = (0, 0, 0)
+            element['box_name'] = []
+
+    cur_year = datetime.date.today().year
+    render_list = list_res if all else new_list
+    
+    vars = {
+        'year_url_name': url_name, 
+        'company_list': company_list, 
+        'type_list': type_list, 
+        'componentlist': render_list, 
+        'zsum': zsum, 
+        'zcount': zcount, 
+        'company_name': company_name, 
+        'company_id': mid, 
+        'category_id': cid, 
+        'category_name': cat_name, 
+        'years_range': years_range, 
+        'cur_year': cur_year, 
+        'select_year': sel_year, 
+        'weblink': 'invoicecomponent_list.html', 
+        'focus': focus, 
+        'qsearch_lookup': mc_search, 
+        'head_text': head_text, 
+        'head_text_array': head_text_array, 
+        'processed_years': processed_years,
+        'attr_ids_str': attr_ids_str
+    }
     vars.update(custom_proc(request))
     return render(request, 'index.html', vars)
 
